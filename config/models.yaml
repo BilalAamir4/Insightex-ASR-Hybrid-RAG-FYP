@@ -1,0 +1,87 @@
+# Insightex model registry. One entry per model; null = unknown.
+# Never pick a model whose status is pending or undecided.
+# Weights are never stored in this repo; they are only referenced here.
+- key: asr
+  type: asr
+  name: faster-whisper            # checkpoint not chosen
+  runtime: CTranslate2
+  device: cuda
+  precision: float16
+  used_by: [backend/src/insightex/asr]
+  storage_path: ${INSIGHTEX_MODEL_CACHE_MASTER}/huggingface
+  runtime_path: ${HF_HOME}
+  venv: ~/envs/insightex
+  peak_vram_mib: null
+  status: pending
+  decision_ref: null
+  notes: >-
+    Candidate checkpoints, both cached: Systran/faster-whisper-medium and Systran/faster-whisper-large-v3.
+    Decision waits on WER evaluation.
+    Verified peak VRAM: 5,530 MiB for large-v3 in the 10-minute run
+    (docs/reports/ENV_AUDIT_REPORT.md; data log followup/T2_process_a.txt).
+- key: llm
+  type: llm
+  name: qwen3.5:latest            # 9.7B Q4_K_M, id 6488c96fa5fa
+  runtime: ollama
+  device: cuda
+  precision: Q4_K_M
+  used_by: [backend/src/insightex/llm, backend/src/insightex/extract]
+  storage_path: E:\FYP\LLMs       # Windows OLLAMA_MODELS; served by Windows Ollama
+  runtime_path: null
+  venv: null
+  peak_vram_mib: 7566
+  status: pending
+  decision_ref: null
+  notes: >-
+    Fallback candidate: Gemma 4 E4B. Peak 7,566 MiB at num_ctx 8192 per audit
+    (626 MiB headroom on the 8 GB card). Unload contract: keep_alive 0.
+- key: embedding
+  type: embedding
+  name: BAAI/bge-m3
+  runtime: sentence-transformers
+  device: cuda
+  precision: null
+  used_by: [backend/src/insightex/index]
+  storage_path: ${INSIGHTEX_MODEL_CACHE_MASTER}/huggingface
+  runtime_path: ${HF_HOME}
+  venv: ~/envs/insightex
+  peak_vram_mib: 3089
+  status: decided
+  decision_ref: docs/reports/Embedding_Report.md; docs/adr/0001-bge-m3.md
+  notes: >-
+    1024-d, 30 s windows. Peak 3,089 MiB is standalone, measured 2 Oct 2026, not re-run.
+    Rejected candidate (tied, not chosen): Qwen/Qwen3-Embedding-0.6B.
+- key: reranker
+  type: reranker
+  name: null
+  runtime: null
+  device: null
+  precision: null
+  used_by: [backend/src/insightex/retrieval]
+  storage_path: null
+  runtime_path: null
+  venv: null
+  peak_vram_mib: null
+  status: undecided
+  decision_ref: null
+  notes: null
+- key: ocr_vlm
+  type: ocr_vlm
+  name: PaddleOCR-VL (0.9B)
+  runtime: paddle
+  device: cuda
+  precision: null
+  used_by: [workers/ocr, backend/src/insightex/visual]
+  storage_path: ~/.paddlex
+  runtime_path: ~/.paddlex
+  venv: ~/envs/paddleocr-vl
+  peak_vram_mib: null
+  status: optional
+  decision_ref: docs/reports/OCR_report.md
+  notes: >-
+    Model folder on disk: ~/.paddlex/official_models/PaddleOCR-VL-1.6 (the "1.6" version is
+    read from that folder name only; unverified otherwise). Also present: PP-DocLayoutV3,
+    PP-LCNet_x1_0_doc_ori.
+    About 3,097 MiB allocated (max_memory_allocated), about 7,950 MiB reserved by the Paddle allocator.
+    Adoption gated on a 30-frame bake-off.
+    Cache size differs: ~/.paddlex about 1,985 MB vs master cache paddlex about 302 MB (unresolved).

@@ -1,0 +1,21 @@
+# Runtime data lives outside the repo in ~/insightex-data
+config/local.yaml
+env/.env
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+.venv/
+*.faiss
+*.npz
+*.wav
+*.mp4
+*.vhdx
+# Model weight files
+*.safetensors
+*.gguf
+*.onnx
+*.pt
+*.pth
+*.bin
+*.ckpt

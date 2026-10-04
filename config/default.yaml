@@ -1,0 +1,20 @@
+# Insightex default configuration. Only keys with known values.
+# ${VAR} entries are resolved from environment variables set by env/insightex_env.sh.
+# Machine-specific overrides go in config/local.yaml (gitignored).
+window_seconds: 30
+
+visual:
+  enabled: false
+
+paths:
+  home: ${INSIGHTEX_HOME}
+  data: ${INSIGHTEX_DATA}
+  model_cache_master: ${INSIGHTEX_MODEL_CACHE_MASTER}
+  hf_home: ${HF_HOME}
+
+endpoints:
+  ollama_base_url: ${OLLAMA_BASE_URL}
+
+# ingest:
+#   url:
+#     # values not yet decided

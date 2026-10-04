@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+# No dependency list here: pinned dependencies live in requirements.lock.txt.
+[project]
+name = "insightex"
+version = "0.0.0"
+description = "Timestamp-grounded knowledge base for code-switched (Urdu + English) lecture videos"
+requires-python = ">=3.12"
+
+[tool.setuptools.packages.find]
+where = ["backend/src"]
+
+[tool.ruff]
+line-length = 100
+src = ["backend/src"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend/src"]
