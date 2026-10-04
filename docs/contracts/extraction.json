@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "DRAFT. Source: CONCEPT_SCHEMA in tools/probe_ollama/ollama_contract.py (the real schema passed as Ollama /api/chat `format`). Not yet a final contract; the Ollama call contract is unfinished.",
+  "title": "ConceptExtraction",
+  "type": "object",
+  "properties": {
+    "concepts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "exam_relevant": {"type": "boolean"}
+        },
+        "required": ["name", "description", "exam_relevant"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["concepts"],
+  "additionalProperties": false
+}
