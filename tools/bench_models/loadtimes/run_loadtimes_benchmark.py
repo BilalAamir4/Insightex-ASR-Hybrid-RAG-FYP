@@ -11,6 +11,8 @@ import json
 import time
 import os
 
+RESULTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "loadtimes_results.json")
+
 TESTS = [
     # (type, name, path_label, cache_path, compute_type)
     # cache paths are expanded by the WSL shell after the env script is sourced (see run_test)
@@ -91,6 +93,6 @@ if __name__ == "__main__":
         vram = f"{r['vram_peak_mb']} MiB"
         print(f"{m:<22} {loc:<24} {cold:<10} {warm:<10} {sp:<10} {vram}")
 
-    with open("e:/FYP/tools/env_audit/loadtimes_results.json", "w") as f:
+    with open(RESULTS_FILE, "w") as f:
         json.dump(results, f, indent=2)
-    print("\nSaved to e:/FYP/tools/env_audit/loadtimes_results.json")
+    print(f"\nSaved to {RESULTS_FILE}")
