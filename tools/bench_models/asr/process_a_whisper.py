@@ -13,9 +13,9 @@ import subprocess
 import threading
 from pathlib import Path
 
-VIDEO_FILE = "/mnt/e/FYP/data/day04_batch_vs_online/raw/lecture_test.mp4"
-AUDIO_FILE = "/mnt/e/FYP/data/day04_batch_vs_online/eval/lecture_first10min.wav"
-OUT_JSON = "/mnt/e/FYP/data/day04_batch_vs_online/eval/whisper_large_v3_first10min.json"
+VIDEO_FILE = os.path.join(os.environ["INSIGHTEX_DATA"], "eval/day04_batch_vs_online/raw/lecture_test.mp4")
+AUDIO_FILE = os.path.join(os.environ["INSIGHTEX_DATA"], "eval/day04_batch_vs_online/eval/lecture_first10min.wav")
+OUT_JSON = os.path.join(os.environ["INSIGHTEX_DATA"], "eval/day04_batch_vs_online/eval/whisper_large_v3_first10min.json")
 CACHE_DIR = os.path.expanduser("~/cache/huggingface/hub")
 NVIDIA_SMI = "/usr/lib/wsl/lib/nvidia-smi"
 

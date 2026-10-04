@@ -4,7 +4,7 @@ Orchestrator for load-time benchmarking.
 Runs on Windows host (or WSL) and invokes WSL commands:
 - Drops WSL cache using `wsl -u root -e bash -c "sync; echo 3 > /proc/sys/vm/drop_caches"`
 - Runs worker in ~/envs/insightex
-- Measures both ext4 (~/cache/huggingface/hub) and drvfs (/mnt/e/FYP/cache/huggingface/hub)
+- Measures both ext4 (~/cache/huggingface/hub) and drvfs ($INSIGHTEX_MODEL_CACHE_MASTER/huggingface/hub)
 """
 import subprocess
 import json
@@ -13,12 +13,13 @@ import os
 
 TESTS = [
     # (type, name, path_label, cache_path, compute_type)
-    ("whisper", "medium", "ext4 (~/cache)", "/home/bilal_aamir/cache/huggingface/hub", "float16"),
-    ("whisper", "medium", "drvfs (/mnt/e/FYP/cache)", "/mnt/e/FYP/cache/huggingface/hub", "float16"),
-    ("whisper", "large-v3", "ext4 (~/cache)", "/home/bilal_aamir/cache/huggingface/hub", "float16"),
-    ("whisper", "large-v3", "drvfs (/mnt/e/FYP/cache)", "/mnt/e/FYP/cache/huggingface/hub", "float16"),
-    ("bge-m3", "BAAI/bge-m3", "ext4 (~/cache)", "/home/bilal_aamir/cache/huggingface/hub", ""),
-    ("bge-m3", "BAAI/bge-m3", "drvfs (/mnt/e/FYP/cache)", "/mnt/e/FYP/cache/huggingface/hub", ""),
+    # cache paths are expanded by the WSL shell after the env script is sourced (see run_test)
+    ("whisper", "medium", "ext4 (~/cache)", "$HOME/cache/huggingface/hub", "float16"),
+    ("whisper", "medium", "drvfs (cache master)", "$INSIGHTEX_MODEL_CACHE_MASTER/huggingface/hub", "float16"),
+    ("whisper", "large-v3", "ext4 (~/cache)", "$HOME/cache/huggingface/hub", "float16"),
+    ("whisper", "large-v3", "drvfs (cache master)", "$INSIGHTEX_MODEL_CACHE_MASTER/huggingface/hub", "float16"),
+    ("bge-m3", "BAAI/bge-m3", "ext4 (~/cache)", "$HOME/cache/huggingface/hub", ""),
+    ("bge-m3", "BAAI/bge-m3", "drvfs (cache master)", "$INSIGHTEX_MODEL_CACHE_MASTER/huggingface/hub", ""),
 ]
 
 def drop_wsl_caches():
@@ -34,8 +35,9 @@ def run_test(mtype, mname, plabel, cpath, ctype):
     drop_wsl_caches()
 
     wsl_cmd = (
-        f"bash /mnt/e/FYP/tools/env_audit/run_in_env.sh "
-        f"python3 /mnt/e/FYP/tools/env_audit/load_single_model.py {mtype} {mname} {cpath} {ctype}"
+        f'source "$HOME/insightex/env/insightex_env.sh" && '
+        f'bash "$INSIGHTEX_HOME/scripts/run_in_env.sh" '
+        f'python3 "$INSIGHTEX_HOME/tools/bench_models/loadtimes/load_single_model.py" {mtype} {mname} {cpath} {ctype}'
     )
 
     t0 = time.time()

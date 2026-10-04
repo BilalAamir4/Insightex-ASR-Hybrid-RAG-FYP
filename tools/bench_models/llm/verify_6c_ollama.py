@@ -20,7 +20,7 @@ import urllib.error
 BASE_URL = "http://localhost:11434"
 MODEL_NAME = "qwen3.5:latest"
 NVIDIA_SMI = "/usr/lib/wsl/lib/nvidia-smi"
-ROMAN_TEXT_FILE = "/mnt/e/FYP/data/day04_batch_vs_online/eval/manual_roman.txt"
+ROMAN_TEXT_FILE = os.path.join(os.environ["INSIGHTEX_DATA"], "eval/day04_batch_vs_online/eval/manual_roman.txt")
 
 def get_vram_mb():
     try:

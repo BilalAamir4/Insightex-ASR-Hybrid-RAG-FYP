@@ -3,7 +3,7 @@
 Item 2: Honest load-time re-measurement.
 Cold = after `echo 3 | sudo tee /proc/sys/vm/drop_caches`
 Warm = immediate re-load (page cache hot).
-Tests both /mnt/e/ (drvfs) and ~/cache/ (ext4) paths for Whisper + BGE-M3.
+Tests both the master cache on drvfs ($INSIGHTEX_MODEL_CACHE_MASTER) and ~/cache/ (ext4) paths for Whisper + BGE-M3.
 Each test runs in its own subprocess for VRAM isolation.
 """
 import os
@@ -16,9 +16,9 @@ NVIDIA_SMI = "/usr/lib/wsl/lib/nvidia-smi"
 
 # Paths
 WHISPER_CACHE_EXT4 = os.path.expanduser("~/cache/huggingface/hub")
-WHISPER_CACHE_DRVFS = "/mnt/e/FYP/LLMs"  # if models are also here
+WHISPER_CACHE_DRVFS = os.path.join(os.environ["INSIGHTEX_MODEL_CACHE_MASTER"], "huggingface", "hub")
 BGE_CACHE_EXT4 = os.path.expanduser("~/cache/huggingface/hub")
-BGE_CACHE_DRVFS = "/mnt/e/FYP/LLMs"
+BGE_CACHE_DRVFS = os.path.join(os.environ["INSIGHTEX_MODEL_CACHE_MASTER"], "huggingface", "hub")
 
 def get_vram_mb():
     try:
@@ -164,7 +164,7 @@ if __name__ == "__main__":
         print(f"  {'Model':<20} {'Source':<12} {'Cold(s)':<10} {'Warm(s)':<10} {'Speedup':<10}")
         print(f"  {'-'*62}")
         for r in results:
-            src = "ext4" if "/home/" in r["cache_dir"] else "drvfs"
+            src = "ext4" if os.path.expanduser("~") in r["cache_dir"] else "drvfs"
             speedup = f"{r['cold_s']/r['warm_s']:.1f}x" if r["warm_s"] > 0 else "?"
             print(f"  {r['model_id']:<20} {src:<12} {r['cold_s']:<10} {r['warm_s']:<10} {speedup:<10}")
 

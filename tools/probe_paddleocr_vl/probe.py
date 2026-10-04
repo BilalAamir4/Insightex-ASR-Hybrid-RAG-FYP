@@ -58,8 +58,8 @@ def main():
     except Exception as e:
         print(f"[PADDLE_FLAGS] Error reading flags: {e}")
 
-    img_path = "/mnt/e/FYP/data/frames/eq1.png"
-    out_dir = "/mnt/e/FYP/data/frames/out"
+    img_path = os.path.join(os.environ["INSIGHTEX_DATA"], "eval/frames/eq1.png")
+    out_dir = os.path.join(os.environ["INSIGHTEX_DATA"], "eval/frames/out")
     os.makedirs(out_dir, exist_ok=True)
 
     if not os.path.exists(img_path):

@@ -1,15 +1,17 @@
 #!/bin/bash
+MASTER="${INSIGHTEX_MODEL_CACHE_MASTER:?run via scripts/run_in_env.sh or a login shell}"
+E_ROOT="$(dirname "$(dirname "$MASTER")")"
 paths=(
-    "/mnt/e/FYP/cache"
-    "/mnt/e/FYP/cache/huggingface"
-    "/mnt/e/FYP/cache/pip"
-    "/mnt/e/FYP/cache/torch"
-    "/mnt/e/FYP/cache/paddlex"
-    "/mnt/e/FYP/cache/paddle"
-    "/mnt/e/FYP/LLMs"
-    "/mnt/e/LLMs"
-    "/home/bilal_aamir/.paddlex"
-    "/home/bilal_aamir/.cache/paddle"
+    "$MASTER"
+    "$MASTER/huggingface"
+    "$MASTER/pip"
+    "$MASTER/torch"
+    "$MASTER/paddlex"
+    "$MASTER/paddle"
+    "$(dirname "$MASTER")/LLMs"
+    "$E_ROOT/LLMs"
+    "$HOME/.paddlex"
+    "$HOME/.cache/paddle"
 )
 for p in "${paths[@]}"; do
     if [ -L "$p" ]; then

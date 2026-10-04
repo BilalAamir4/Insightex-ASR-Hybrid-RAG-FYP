@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-master_base = Path("/mnt/e/FYP/cache/huggingface/hub")
-runtime_base = Path("/home/bilal_aamir/cache/huggingface/hub")
+master_base = Path(os.environ["INSIGHTEX_MODEL_CACHE_MASTER"]) / "huggingface/hub"
+runtime_base = Path(os.environ["HF_HOME"]) / "hub"
 
 models = [
     "models--BAAI--bge-m3",

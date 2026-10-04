@@ -20,8 +20,8 @@ import threading
 from pathlib import Path
 import jsonschema
 
-SEGMENTS_FILE = Path("/mnt/e/FYP/data/day04_batch_vs_online/eval/whisper_large_v3_first10min.json")
-OUT_FILE = Path("/mnt/e/FYP/tools/env_audit/results/followup/T2.txt")
+SEGMENTS_FILE = Path(os.environ["INSIGHTEX_DATA"]) / "eval/day04_batch_vs_online/eval/whisper_large_v3_first10min.json"
+OUT_FILE = Path(os.environ["INSIGHTEX_DATA"]) / "logs/env_audit/followup/T2.txt"
 OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 BASE_URL = "http://localhost:11434"

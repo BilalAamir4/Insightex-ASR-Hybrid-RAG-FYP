@@ -1,4 +1,4 @@
 #!/bin/bash
-source /mnt/e/FYP/env/insightex_env.sh
-source /home/bilal_aamir/envs/insightex/bin/activate
+source "$(dirname "$(readlink -f "$0")")/../env/insightex_env.sh"
+source "$HOME/envs/insightex/bin/activate"
 exec "$@"

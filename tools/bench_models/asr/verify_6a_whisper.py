@@ -11,7 +11,7 @@ import json
 import subprocess
 import threading
 
-AUDIO_FILE = "/mnt/e/FYP/data/day04_batch_vs_online/eval/clip_30s.wav"
+AUDIO_FILE = os.path.join(os.environ["INSIGHTEX_DATA"], "eval/day04_batch_vs_online/eval/clip_30s.wav")
 AUDIO_DURATION_S = 30.0
 CACHE_DIR = os.path.expanduser("~/cache/huggingface/hub")
 NVIDIA_SMI = "/usr/lib/wsl/lib/nvidia-smi"

@@ -39,17 +39,17 @@ def check_file(path_str):
     if last_line:
         print(f"   Last non-empty line: {last_line}")
 
-print("=== CHECKING tools/env_audit/ ===")
-audit_dir = Path("/mnt/e/FYP/tools/env_audit")
+print("=== CHECKING tools/audit_env/ ===")
+audit_dir = Path(os.environ["INSIGHTEX_HOME"]) / "tools/audit_env"
 for f in sorted(audit_dir.iterdir()):
     if f.is_file():
         check_file(str(f))
 
 print("\n=== CHECKING SPECIFIC PROJECT & HOME FILES ===")
 specific_files = [
-    "/mnt/e/FYP/env/insightex_env.sh",
-    "/mnt/e/FYP/requirements.lock.txt",
-    "/mnt/e/FYP/tools/env_audit/ENV_AUDIT_REPORT.md",
+    os.environ["INSIGHTEX_HOME"] + "/env/insightex_env.sh",
+    os.environ["INSIGHTEX_HOME"] + "/requirements.lock.txt",
+    os.environ["INSIGHTEX_HOME"] + "/docs/reports/ENV_AUDIT_REPORT.md",
     "~/.bashrc",
     "~/.profile",
     "~/.bash_profile",

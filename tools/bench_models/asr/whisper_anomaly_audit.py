@@ -15,11 +15,11 @@ import subprocess
 from pathlib import Path
 import numpy as np
 
-AUDIO_FILE = "/mnt/e/FYP/data/day04_batch_vs_online/eval/clip_30s.wav"
+AUDIO_FILE = os.path.join(os.environ["INSIGHTEX_DATA"], "eval/day04_batch_vs_online/eval/clip_30s.wav")
 AUDIO_DURATION_S = 30.0
 CACHE_DIR = os.path.expanduser("~/cache/huggingface/hub")
 NVIDIA_SMI = "/usr/lib/wsl/lib/nvidia-smi"
-OUT_FILE = Path("/mnt/e/FYP/tools/env_audit/results/followup/T3.txt")
+OUT_FILE = Path(os.environ["INSIGHTEX_DATA"]) / "logs/env_audit/followup/T3.txt"
 OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 out_lines = []

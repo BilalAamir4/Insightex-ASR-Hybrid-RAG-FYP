@@ -1,8 +1,9 @@
 import hashlib
 import json
+import os
 from pathlib import Path
 
-OUT_TXT = Path("E:/FYP/tools/env_audit/results/followup2/F7.txt")
+OUT_TXT = Path(os.environ["INSIGHTEX_DATA"]) / "logs/env_audit/followup2/F7.txt"
 
 output_lines = []
 
@@ -15,12 +16,7 @@ log("=== TASK F7: RELABEL CARRIED-OVER AND UNSUPPORTED ITEMS ===")
 # Step b: LFS blob filename vs SHA256
 log("\n--- Step b: LFS Blob Filename vs Computed SHA256 Check ---")
 import os
-if os.path.exists("/mnt/e/FYP/cache/huggingface/hub"):
-    master_cache = Path("/mnt/e/FYP/cache/huggingface/hub")
-    OUT_TXT = Path("/mnt/e/FYP/tools/env_audit/results/followup2/F7.txt")
-else:
-    master_cache = Path("E:/FYP/cache/huggingface/hub")
-    OUT_TXT = Path("E:/FYP/tools/env_audit/results/followup2/F7.txt")
+master_cache = Path(os.environ["INSIGHTEX_MODEL_CACHE_MASTER"]) / "huggingface/hub"
 models = [
     "models--BAAI--bge-m3",
     "models--Systran--faster-whisper-medium",

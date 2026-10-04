@@ -1,4 +1,5 @@
 import json
+import os
 import time
 import urllib.request
 import urllib.error
@@ -8,8 +9,8 @@ from pathlib import Path
 
 BASE_URL = "http://127.0.0.1:11434"
 MODEL_NAME = "qwen3.5:latest"
-SEGMENTS_FILE = Path("E:/FYP/data/day04_batch_vs_online/eval/whisper_large_v3_first10min.json")
-OUT_FILE = Path("E:/FYP/tools/env_audit/results/followup2/F2.txt")
+SEGMENTS_FILE = Path(os.environ["INSIGHTEX_DATA"]) / "eval/day04_batch_vs_online/eval/whisper_large_v3_first10min.json"
+OUT_FILE = Path(os.environ["INSIGHTEX_DATA"]) / "logs/env_audit/followup2/F2.txt"
 
 CONCEPT_SCHEMA = {
     "type": "object",

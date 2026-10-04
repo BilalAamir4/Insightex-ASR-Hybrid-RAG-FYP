@@ -2,10 +2,16 @@ param(
     [Parameter(Mandatory=$true)]
     [string]$RunLabel,
 
-    [string]$ExtraEnv = ""
+    [string]$ExtraEnv = "",
+
+    # Windows-side path of $INSIGHTEX_DATA/eval/frames/out; derived through WSL when omitted
+    [string]$DataDir = ""
 )
 
-$outFile = "E:\FYP\data\frames\out\vram_run$RunLabel.csv"
+if (-not $DataDir) {
+    $DataDir = (wsl -d Ubuntu-24.04 -- bash -lc 'wslpath -w $INSIGHTEX_DATA/eval/frames/out').Trim()
+}
+$outFile = Join-Path $DataDir "vram_run$RunLabel.csv"
 if (Test-Path $outFile) { Remove-Item -Force $outFile }
 
 Write-Host "Checking baseline GPU memory before Run $RunLabel..."
@@ -40,7 +46,7 @@ Start-Sleep -Seconds 2
 
 try {
     Write-Host "Launching probe in WSL with timeout 600..."
-    $cmd = "source ~/envs/paddleocr-vl/bin/activate && $ExtraEnv timeout 600 python /mnt/e/FYP/tools/vl_probe/probe.py"
+    $cmd = "source ~/envs/paddleocr-vl/bin/activate && $ExtraEnv timeout 600 python `$INSIGHTEX_HOME/tools/probe_paddleocr_vl/probe.py"
     Write-Host "WSL Command: $cmd"
     wsl -d Ubuntu-24.04 -- bash -lc "$cmd"
 }
