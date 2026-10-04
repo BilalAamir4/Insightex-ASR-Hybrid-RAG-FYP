@@ -1,0 +1,113 @@
+======================================================================
+TASK T3: WHISPER SPEED ANOMALY BENCHMARK (DATA ONLY)
+Date: 2026-10-03 15:02:10
+Audio File: /mnt/e/FYP/data/day04_batch_vs_online/eval/clip_30s.wav (30.0s)
+======================================================================
+
+
+======================================================================
+SUBPROCESS: large-v3 | Order: Order1 (large-v3 -> medium) | temp_override=None
+======================================================================
+GPU State Before Process:
+  PState: P0, Clocks(Graphics/Mem): 1725 MHz / 7001 MHz
+  Temp: 55 C, VRAM Used: 1002 MiB, Active Compute Procs: (none)
+Model Load Time: 8.15s
+  Run 1 (cold  ):  4.40s | Speed:  6.81x real time | RTF: 0.1468 | Segs: 18 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.108 | CompRatio:  2.08
+  Run 2 (warm-1):  3.37s | Speed:  8.91x real time | RTF: 0.1122 | Segs: 18 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.108 | CompRatio:  2.08
+  Run 3 (warm-2):  3.36s | Speed:  8.92x real time | RTF: 0.1121 | Segs: 18 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.108 | CompRatio:  2.08
+  Run 4 (warm-3):  3.37s | Speed:  8.91x real time | RTF: 0.1123 | Segs: 18 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.108 | CompRatio:  2.08
+  Run 5 (warm-4):  3.33s | Speed:  9.00x real time | RTF: 0.1111 | Segs: 18 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.108 | CompRatio:  2.08
+GPU State After Process Exit:
+  PState: P3, VRAM Used: 1155 MiB (Delta: 153 MiB)
+__RESULT__:{"model": "large-v3", "order": "Order1 (large-v3 -> medium)", "temp_override": null, "load_time_s": 8.15, "runs": [{"run": 1, "label": "cold", "elapsed_s": 4.4, "speed_factor_x": 6.81, "rtf": 0.1468, "num_segments": 18, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.108, "compression_ratio_mean": 2.079, "no_speech_mean": 0.38}, {"run": 2, "label": "warm-1", "elapsed_s": 3.37, "speed_factor_x": 8.91, "rtf": 0.1122, "num_segments": 18, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.108, "compression_ratio_mean": 2.079, "no_speech_mean": 0.38}, {"run": 3, "label": "warm-2", "elapsed_s": 3.36, "speed_factor_x": 8.92, "rtf": 0.1121, "num_segments": 18, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.108, "compression_ratio_mean": 2.079, "no_speech_mean": 0.38}, {"run": 4, "label": "warm-3", "elapsed_s": 3.37, "speed_factor_x": 8.91, "rtf": 0.1123, "num_segments": 18, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.108, "compression_ratio_mean": 2.079, "no_speech_mean": 0.38}, {"run": 5, "label": "warm-4", "elapsed_s": 3.33, "speed_factor_x": 9.0, "rtf": 0.1111, "num_segments": 18, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.108, "compression_ratio_mean": 2.079, "no_speech_mean": 0.38}]}
+
+
+======================================================================
+SUBPROCESS: medium | Order: Order1 (large-v3 -> medium) | temp_override=None
+======================================================================
+GPU State Before Process:
+  PState: P0, Clocks(Graphics/Mem): 1725 MHz / 7001 MHz
+  Temp: 56 C, VRAM Used: 1003 MiB, Active Compute Procs: (none)
+Model Load Time: 3.75s
+  Run 1 (cold  ):  7.75s | Speed:  3.87x real time | RTF: 0.2584 | Segs: 15 | MaxTemp: 0.40 | SegsTemp>0: 10 | AvgLogProb: -0.273 | CompRatio:  2.15
+  Run 2 (warm-1): 10.68s | Speed:  2.81x real time | RTF: 0.3560 | Segs: 18 | MaxTemp: 0.80 | SegsTemp>0: 17 | AvgLogProb: -0.577 | CompRatio:  2.05
+  Run 3 (warm-2):  9.45s | Speed:  3.18x real time | RTF: 0.3150 | Segs:  0 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb:  0.000 | CompRatio:  0.00
+  Run 4 (warm-3): 13.46s | Speed:  2.23x real time | RTF: 0.4488 | Segs:  6 | MaxTemp: 0.60 | SegsTemp>0: 6 | AvgLogProb: -0.490 | CompRatio:  1.99
+  Run 5 (warm-4): 11.49s | Speed:  2.61x real time | RTF: 0.3830 | Segs:  9 | MaxTemp: 0.80 | SegsTemp>0: 4 | AvgLogProb: -0.624 | CompRatio:  1.93
+GPU State After Process Exit:
+  PState: P3, VRAM Used: 1154 MiB (Delta: 151 MiB)
+__RESULT__:{"model": "medium", "order": "Order1 (large-v3 -> medium)", "temp_override": null, "load_time_s": 3.75, "runs": [{"run": 1, "label": "cold", "elapsed_s": 7.75, "speed_factor_x": 3.87, "rtf": 0.2584, "num_segments": 15, "max_temp": 0.4, "segs_temp_gt_0": 10, "avg_logprob_mean": -0.273, "compression_ratio_mean": 2.148, "no_speech_mean": 0.718}, {"run": 2, "label": "warm-1", "elapsed_s": 10.68, "speed_factor_x": 2.81, "rtf": 0.356, "num_segments": 18, "max_temp": 0.8, "segs_temp_gt_0": 17, "avg_logprob_mean": -0.577, "compression_ratio_mean": 2.054, "no_speech_mean": 0.576}, {"run": 3, "label": "warm-2", "elapsed_s": 9.45, "speed_factor_x": 3.18, "rtf": 0.315, "num_segments": 0, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": 0.0, "compression_ratio_mean": 0.0, "no_speech_mean": 0.0}, {"run": 4, "label": "warm-3", "elapsed_s": 13.46, "speed_factor_x": 2.23, "rtf": 0.4488, "num_segments": 6, "max_temp": 0.6, "segs_temp_gt_0": 6, "avg_logprob_mean": -0.49, "compression_ratio_mean": 1.99, "no_speech_mean": 0.719}, {"run": 5, "label": "warm-4", "elapsed_s": 11.49, "speed_factor_x": 2.61, "rtf": 0.383, "num_segments": 9, "max_temp": 0.8, "segs_temp_gt_0": 4, "avg_logprob_mean": -0.624, "compression_ratio_mean": 1.925, "no_speech_mean": 0.281}]}
+
+
+======================================================================
+SUBPROCESS: medium | Order: Order2 (medium -> large-v3) | temp_override=None
+======================================================================
+GPU State Before Process:
+  PState: P5, Clocks(Graphics/Mem): 210 MHz / 810 MHz
+  Temp: 54 C, VRAM Used: 1008 MiB, Active Compute Procs: (none)
+Model Load Time: 1.31s
+  Run 1 (cold  ):  7.67s | Speed:  3.91x real time | RTF: 0.2557 | Segs:  5 | MaxTemp: 0.40 | SegsTemp>0: 4 | AvgLogProb: -0.285 | CompRatio:  2.21
+  Run 2 (warm-1):  5.74s | Speed:  5.23x real time | RTF: 0.1912 | Segs:  5 | MaxTemp: 0.20 | SegsTemp>0: 3 | AvgLogProb: -0.256 | CompRatio:  2.18
+  Run 3 (warm-2):  7.66s | Speed:  3.92x real time | RTF: 0.2554 | Segs: 14 | MaxTemp: 0.40 | SegsTemp>0: 9 | AvgLogProb: -0.319 | CompRatio:  2.18
+  Run 4 (warm-3):  4.39s | Speed:  6.83x real time | RTF: 0.1465 | Segs:  4 | MaxTemp: 0.20 | SegsTemp>0: 4 | AvgLogProb: -0.249 | CompRatio:  2.36
+  Run 5 (warm-4): 18.14s | Speed:  1.65x real time | RTF: 0.6046 | Segs:  8 | MaxTemp: 1.00 | SegsTemp>0: 8 | AvgLogProb: -0.957 | CompRatio:  1.93
+GPU State After Process Exit:
+  PState: P2, VRAM Used: 1164 MiB (Delta: 156 MiB)
+__RESULT__:{"model": "medium", "order": "Order2 (medium -> large-v3)", "temp_override": null, "load_time_s": 1.31, "runs": [{"run": 1, "label": "cold", "elapsed_s": 7.67, "speed_factor_x": 3.91, "rtf": 0.2557, "num_segments": 5, "max_temp": 0.4, "segs_temp_gt_0": 4, "avg_logprob_mean": -0.285, "compression_ratio_mean": 2.212, "no_speech_mean": 0.678}, {"run": 2, "label": "warm-1", "elapsed_s": 5.74, "speed_factor_x": 5.23, "rtf": 0.1912, "num_segments": 5, "max_temp": 0.2, "segs_temp_gt_0": 3, "avg_logprob_mean": -0.256, "compression_ratio_mean": 2.179, "no_speech_mean": 0.753}, {"run": 3, "label": "warm-2", "elapsed_s": 7.66, "speed_factor_x": 3.92, "rtf": 0.2554, "num_segments": 14, "max_temp": 0.4, "segs_temp_gt_0": 9, "avg_logprob_mean": -0.319, "compression_ratio_mean": 2.178, "no_speech_mean": 0.738}, {"run": 4, "label": "warm-3", "elapsed_s": 4.39, "speed_factor_x": 6.83, "rtf": 0.1465, "num_segments": 4, "max_temp": 0.2, "segs_temp_gt_0": 4, "avg_logprob_mean": -0.249, "compression_ratio_mean": 2.363, "no_speech_mean": 0.609}, {"run": 5, "label": "warm-4", "elapsed_s": 18.14, "speed_factor_x": 1.65, "rtf": 0.6046, "num_segments": 8, "max_temp": 1.0, "segs_temp_gt_0": 8, "avg_logprob_mean": -0.957, "compression_ratio_mean": 1.931, "no_speech_mean": 0.455}]}
+
+
+======================================================================
+SUBPROCESS: large-v3 | Order: Order2 (medium -> large-v3) | temp_override=None
+======================================================================
+GPU State Before Process:
+  PState: P3, Clocks(Graphics/Mem): 225 MHz / 5001 MHz
+  Temp: 54 C, VRAM Used: 1007 MiB, Active Compute Procs: (none)
+Model Load Time: 2.42s
+  Run 1 (cold  ):  3.70s | Speed:  8.11x real time | RTF: 0.1233 | Segs: 18 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.108 | CompRatio:  2.08
+  Run 2 (warm-1):  3.39s | Speed:  8.86x real time | RTF: 0.1129 | Segs: 18 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.108 | CompRatio:  2.08
+  Run 3 (warm-2):  2.68s | Speed: 11.20x real time | RTF: 0.0893 | Segs: 18 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.108 | CompRatio:  2.08
+  Run 4 (warm-3):  3.34s | Speed:  8.98x real time | RTF: 0.1114 | Segs: 18 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.108 | CompRatio:  2.08
+  Run 5 (warm-4):  3.33s | Speed:  9.02x real time | RTF: 0.1109 | Segs: 18 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.108 | CompRatio:  2.08
+GPU State After Process Exit:
+  PState: P3, VRAM Used: 1159 MiB (Delta: 152 MiB)
+__RESULT__:{"model": "large-v3", "order": "Order2 (medium -> large-v3)", "temp_override": null, "load_time_s": 2.42, "runs": [{"run": 1, "label": "cold", "elapsed_s": 3.7, "speed_factor_x": 8.11, "rtf": 0.1233, "num_segments": 18, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.108, "compression_ratio_mean": 2.079, "no_speech_mean": 0.38}, {"run": 2, "label": "warm-1", "elapsed_s": 3.39, "speed_factor_x": 8.86, "rtf": 0.1129, "num_segments": 18, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.108, "compression_ratio_mean": 2.079, "no_speech_mean": 0.38}, {"run": 3, "label": "warm-2", "elapsed_s": 2.68, "speed_factor_x": 11.2, "rtf": 0.0893, "num_segments": 18, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.108, "compression_ratio_mean": 2.079, "no_speech_mean": 0.38}, {"run": 4, "label": "warm-3", "elapsed_s": 3.34, "speed_factor_x": 8.98, "rtf": 0.1114, "num_segments": 18, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.108, "compression_ratio_mean": 2.079, "no_speech_mean": 0.38}, {"run": 5, "label": "warm-4", "elapsed_s": 3.33, "speed_factor_x": 9.02, "rtf": 0.1109, "num_segments": 18, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.108, "compression_ratio_mean": 2.079, "no_speech_mean": 0.38}]}
+
+
+======================================================================
+SUBPROCESS: medium | Order: Extra (medium temp=0.0) | temp_override=0.0
+======================================================================
+GPU State Before Process:
+  PState: P3, Clocks(Graphics/Mem): 210 MHz / 5001 MHz
+  Temp: 53 C, VRAM Used: 997 MiB, Active Compute Procs: (none)
+Model Load Time: 1.54s
+  Run 1 (cold  ):  3.46s | Speed:  8.66x real time | RTF: 0.1155 | Segs: 12 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.277 | CompRatio:  2.20
+  Run 2 (warm-1):  3.53s | Speed:  8.49x real time | RTF: 0.1178 | Segs: 12 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.277 | CompRatio:  2.20
+  Run 3 (warm-2):  3.55s | Speed:  8.45x real time | RTF: 0.1184 | Segs: 12 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.277 | CompRatio:  2.20
+  Run 4 (warm-3):  3.53s | Speed:  8.49x real time | RTF: 0.1177 | Segs: 12 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.277 | CompRatio:  2.20
+  Run 5 (warm-4):  3.45s | Speed:  8.70x real time | RTF: 0.1150 | Segs: 12 | MaxTemp: 0.00 | SegsTemp>0: 0 | AvgLogProb: -0.277 | CompRatio:  2.20
+GPU State After Process Exit:
+  PState: P3, VRAM Used: 1166 MiB (Delta: 169 MiB)
+__RESULT__:{"model": "medium", "order": "Extra (medium temp=0.0)", "temp_override": 0.0, "load_time_s": 1.54, "runs": [{"run": 1, "label": "cold", "elapsed_s": 3.46, "speed_factor_x": 8.66, "rtf": 0.1155, "num_segments": 12, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.277, "compression_ratio_mean": 2.198, "no_speech_mean": 0.727}, {"run": 2, "label": "warm-1", "elapsed_s": 3.53, "speed_factor_x": 8.49, "rtf": 0.1178, "num_segments": 12, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.277, "compression_ratio_mean": 2.198, "no_speech_mean": 0.727}, {"run": 3, "label": "warm-2", "elapsed_s": 3.55, "speed_factor_x": 8.45, "rtf": 0.1184, "num_segments": 12, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.277, "compression_ratio_mean": 2.198, "no_speech_mean": 0.727}, {"run": 4, "label": "warm-3", "elapsed_s": 3.53, "speed_factor_x": 8.49, "rtf": 0.1177, "num_segments": 12, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.277, "compression_ratio_mean": 2.198, "no_speech_mean": 0.727}, {"run": 5, "label": "warm-4", "elapsed_s": 3.45, "speed_factor_x": 8.7, "rtf": 0.115, "num_segments": 12, "max_temp": 0.0, "segs_temp_gt_0": 0, "avg_logprob_mean": -0.277, "compression_ratio_mean": 2.198, "no_speech_mean": 0.727}]}
+
+
+======================================================================
+TASK T3 SUMMARY DATA TABLE
+======================================================================
+Model & Run Setting                  Order                        Cold (s)  Warm Med  Warm Min-Max (s)   Speed (x real)  RTF (warm med)
+----------------------------------------------------------------------------------------------------------------------------------
+large-v3                             Order1 (large-v3 -> medium)  4.40      3.37      3.33-3.37s         8.91x           0.1123
+medium                               Order1 (large-v3 -> medium)  7.75      11.09     9.45-13.46s        2.71x           0.3697
+medium                               Order2 (medium -> large-v3)  7.67      6.70      4.39-18.14s        4.58x           0.2233
+large-v3                             Order2 (medium -> large-v3)  3.70      3.33      2.68-3.39s         9.00x           0.1110
+medium (temp=0.0)                    Extra (medium temp=0.0)      3.46      3.53      3.45-3.55s         8.49x           0.1177
+
+--- TEMPERATURE FALLBACK OCCURRENCES ---
+large-v3 (Order1 (large-v3 -> medium))        | Max temps seen: [0.0, 0.0, 0.0, 0.0, 0.0] | Segments with temp>0: [0, 0, 0, 0, 0]
+medium (Order1 (large-v3 -> medium))          | Max temps seen: [0.4, 0.8, 0.0, 0.6, 0.8] | Segments with temp>0: [10, 17, 0, 6, 4]
+medium (Order2 (medium -> large-v3))          | Max temps seen: [0.4, 0.2, 0.4, 0.2, 1.0] | Segments with temp>0: [4, 3, 9, 4, 8]
+large-v3 (Order2 (medium -> large-v3))        | Max temps seen: [0.0, 0.0, 0.0, 0.0, 0.0] | Segments with temp>0: [0, 0, 0, 0, 0]
+medium (Extra (medium temp=0.0))              | Max temps seen: [0.0, 0.0, 0.0, 0.0, 0.0] | Segments with temp>0: [0, 0, 0, 0, 0]
+
+--- DATA-ONLY CONCLUSION ---
+Reported the empirical data as measured. Cause not tested.
+No generalized speed or quality claim is made beyond this specific 30.0s clip.

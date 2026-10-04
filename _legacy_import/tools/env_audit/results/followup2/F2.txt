@@ -1,0 +1,162 @@
+=== TASK F2: CHUNK INDEXING AND REPRODUCIBILITY RE-CHECK ===
+Initial Idle VRAM: 1090 MiB
+Initial ollama ps:
+NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL
+
+--- Step a: Analysis of Chunk Numbering Across Code & Logs ---
+In ollama_contract.py:
+1. In build_chunks(): 'chunk_id' is assigned as len(chunks) + 1 (1-based: 1, 2, ..., 10).
+2. In the per-call loop (Step e): chunks are iterated with 'for idx, chunk in enumerate(chunks)'. 'call_label' prints chunk['chunk_id'] (1-based: Chunk 01 to Chunk 10).
+3. In the reproducibility test (Step g): 'repro_chunks = [chunks[1], chunks[4], chunks[7]]'. These 0-based indices map to chunk_ids 2, 5, and 8.
+4. In Step h (printed human-review section): 'for cid in [2, 5, 8]: chunk_obj = next(c for c in chunks if c['chunk_id'] == cid)'. This correctly matched chunk_ids 2, 5, and 8.
+5. In results/followup/T2.txt: Chunk 02 is [61.34s -> 121.38s], Chunk 05 is [243.32s -> 304.06s], Chunk 08 is [426.16s -> 487.50s].
+6. DISCREPANCY ROOT CAUSE: In T2.txt, the actual code ran correctly on chunks 2, 5, and 8. However, in the PREVIOUS ASSISTANT'S CHAT MESSAGE, the text was hallucinated/fabricated (displaying different timestamps like '60.9s -> 119.3s' and completely fabricated concept sets like 'Model Retraining' and 'Machine Learning Software Lifecycle' that did not exist in T2.txt).
+
+--- Step b: Table of All 10 Chunks ---
+1-based ID  | 0-based Idx | Start   | End     | Duration | # Segs | First 80 Characters
+------------------------------------------------------------------------------------------------------------------------
+1           | 0           | 0.00    | 61.34   | 61.34    | 32     | Hello guys, welcome to my YouTube channel This is 100 days of machine learning a
+2           | 1           | 61.34   | 121.38  | 60.04    | 30     | تو وہ آپ کے machine پہ بیٹھا نہیں رہتا وہ آپ کے customers کے پاس جانا چاہیے اور 
+3           | 2           | 121.38  | 181.54  | 60.16    | 32     | کیونکہ at the end آپ صرف machine learning models بنا کے اپنے machine پہ نہیں رکھ
+4           | 3           | 181.54  | 243.32  | 61.78    | 32     | no doubt آپ کر سکتے ہو ایسا but ایسا کوئی کرتا نہیں ہے کیونکہ it would be costly
+5           | 4           | 243.32  | 304.06  | 60.74    | 31     | server this is the server ٹھیک ہے and over there آپ کا machine learning model ru
+6           | 5           | 304.06  | 364.92  | 60.86    | 31     | movies تھے آپ نے سب کو consider کر کے بنایا but netflix تو ہر ہفتے نئی movies ad
+7           | 6           | 364.92  | 426.16  | 61.24    | 31     | is کہ وہ نیا data لے کے آتے ہیں یہ data پورے time update ہو رہا ہوتا ہے یہ updat
+8           | 7           | 426.16  | 487.50  | 61.34    | 31     | but yeah that is what batch learning is batch learning کو ایک بار summarize کر ر
+9           | 8           | 487.50  | 547.76  | 60.26    | 30     | نہیں پا رہے ہو آپ کا code فٹ جا رہے right so that is one problem کی آپ since آپ 
+10          | 9           | 547.76  | 599.80  | 52.04    | 27     | آپ اس کو واپس pull down کر کے train کر کے update نہیں کر سکتے so that is a limit
+
+Identified target chunks for reproducibility test by start time:
+  Chunk ID 2 (Start: 61.34s, End: 121.38s)
+  Chunk ID 5 (Start: 243.32s, End: 304.06s)
+  Chunk ID 8 (Start: 426.16s, End: 487.50s)
+
+--- Step c: Re-running Reproducibility Test (C2: JSON Schema, num_ctx 8192, temp 0.1, keep_alive 2m) ---
+
+=======================================================
+Testing Chunk 2 [61.34s -> 121.38s] (3 independent runs)
+=======================================================
+  Run 1 (24.72s): 4 concepts -> ['Production Environment', 'Development Environment', 'Batch Learning (Offline Learning)', 'Online Learning']
+  Run 2 (3.60s): 4 concepts -> ['Production Environment', 'Development Environment', 'Batch Learning (Offline Learning)', 'Online Learning']
+  Run 3 (3.63s): 4 concepts -> ['Production Environment', 'Development Environment', 'Batch Learning (Offline Learning)', 'Online Learning']
+
+  [Metrics for Chunk 2 [61.34s -> 121.38s]]
+  Set Equality across 3 runs: True
+  Pairwise Jaccard calculations:
+    R1 vs R2: intersection=4, union=4 -> Jaccard = 1.0000
+    R2 vs R3: intersection=4, union=4 -> Jaccard = 1.0000
+    R1 vs R3: intersection=4, union=4 -> Jaccard = 1.0000
+    Mean Jaccard across 3 pairs: 1.0000
+
+=======================================================
+Testing Chunk 5 [243.32s -> 304.06s] (3 independent runs)
+=======================================================
+  Run 1 (3.45s): 3 concepts -> ['Static Machine Learning Model', 'Online Learning (Implied)', 'Recommendation Engine']
+  Run 2 (4.43s): 4 concepts -> ['Static Machine Learning Model', 'Evolving Business Scenario', 'Recommendation Engine', 'Server-Side Deployment']
+  Run 3 (4.56s): 4 concepts -> ['Static Machine Learning Model', 'Evolving Business Scenario', 'Recommendation Engine', 'Online Learning']
+
+  [Metrics for Chunk 5 [243.32s -> 304.06s]]
+  Set Equality across 3 runs: False
+  Pairwise Jaccard calculations:
+    R1 vs R2: intersection=2, union=5 -> Jaccard = 0.4000
+    R2 vs R3: intersection=3, union=5 -> Jaccard = 0.6000
+    R1 vs R3: intersection=2, union=5 -> Jaccard = 0.4000
+    Mean Jaccard across 3 pairs: 0.4667
+
+=======================================================
+Testing Chunk 8 [426.16s -> 487.50s] (3 independent runs)
+=======================================================
+  Run 1 (3.89s): 3 concepts -> ['Batch Learning', 'Online Learning', 'Data Scaling Challenges']
+  Run 2 (4.18s): 3 concepts -> ['Batch Learning', 'Online Learning', 'Data Scaling Challenges']
+  Run 3 (4.63s): 4 concepts -> ['Batch Learning', 'Online Learning', 'Data Scaling Challenges', 'Periodic Retraining']
+
+  [Metrics for Chunk 8 [426.16s -> 487.50s]]
+  Set Equality across 3 runs: False
+  Pairwise Jaccard calculations:
+    R1 vs R2: intersection=3, union=3 -> Jaccard = 1.0000
+    R2 vs R3: intersection=3, union=4 -> Jaccard = 0.7500
+    R1 vs R3: intersection=3, union=4 -> Jaccard = 0.7500
+    Mean Jaccard across 3 pairs: 0.8333
+
+[FINALLY BLOCK] Unloading model...
+  [UNLOAD] Sending keep_alive: 0 to unload model...
+  [UNLOAD] Model unloaded successfully in 0.15s.
+Post-unload ollama ps:
+NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL
+Post-unload VRAM: 1095 MiB (Initial idle: 1090 MiB, Delta: 5 MiB)
+
+--- Step d: Chunk Text (First 600 Chars) Beside Run 1 Concepts ---
+
+================================================================================
+CHUNK 02 [61.34s -> 121.38s]
+================================================================================
+RAW CHUNK TRANSCRIPT (first 600 chars):
+تو وہ آپ کے machine پہ بیٹھا نہیں رہتا وہ آپ کے customers کے پاس جانا چاہیے اور اس کا ایک ہی طریقہ ہے کہ آپ اپنے code کو کسی server پہ run کراؤ جس کا IP address آپ کے customers کے پاس ہوگا وہ اس IP address پہ hit کریں گے اور آپ کے application کو access کر پائیں گے machine learning is more different جب آپ machine learning کے software بناتے ہو تو آپ اس کو بھی server پہ deploy کرتے ہو اور جو server کا environment ہے جہاں پہ آپ کا code run کر رہا ہوتا ہے اس کو production environment بولتے ہیں جب آپ اس کو code کر رہے ہوتے ہوں اپنے machine پہ تو اس کو development environment بولتے ہیں now machine le
+
+RUN 1 EXTRACTED CONCEPTS (4 items):
+  - Name:          Production Environment
+    Exam Relevant: True
+    Description:   The server environment where the machine learning code runs and serves customers, accessed via a specific IP address.
+  - Name:          Development Environment
+    Exam Relevant: True
+    Description:   The local machine environment used for writing and testing code before deploying it to a server.
+  - Name:          Batch Learning (Offline Learning)
+    Exam Relevant: True
+    Description:   A type of machine learning where software behaves or runs in distinct, separate batches; also referred to as offline learning.
+  - Name:          Online Learning
+    Exam Relevant: True
+    Description:   The second major type of machine learning discussed, contrasting with batch learning, which will be covered in detail.
+
+================================================================================
+CHUNK 05 [243.32s -> 304.06s]
+================================================================================
+RAW CHUNK TRANSCRIPT (first 600 chars):
+server this is the server ٹھیک ہے and over there آپ کا machine learning model run کرتا رہے گا جب بھی user کچھ بھی data دے گا آپ کا machine learning model predictions کرتے رہے گا it could be anything let's say آپ netflix میں کام کرتے ہو اور آپ کو ایک recommendation engine منانا ہے جو users کو movie select کرے کر کے بتائے ٹھیک ہے تو in that case آپ کیا کرو گے وہ recommendation engine کو train کرو گے اپنے machine پہ اور اس کو اٹھا کے netflix کے server پہ ڈال دو گے جہاں پر users جب جب آئیں گے تو آپ کا system automatically ان کو movie suggest کرتا رہے گا right but I guess آپ کو اس چیز میں ایک probl
+
+RUN 1 EXTRACTED CONCEPTS (3 items):
+  - Name:          Static Machine Learning Model
+    Exam Relevant: True
+    Description:   A model that is trained once and deployed on a server to make predictions based on existing data, but fails to learn new information or adapt to evolving business scenarios after deployment.
+  - Name:          Online Learning (Implied)
+    Exam Relevant: True
+    Description:   The concept of a model that needs to evolve over time as the business scenario changes, contrasting with the static approach where the model only works on old data.
+  - Name:          Recommendation Engine
+    Exam Relevant: True
+    Description:   A specific type of machine learning system used in contexts like Netflix to analyze user data and automatically suggest movies or content.
+
+================================================================================
+CHUNK 08 [426.16s -> 487.50s]
+================================================================================
+RAW CHUNK TRANSCRIPT (first 600 chars):
+but yeah that is what batch learning is batch learning کو ایک بار summarize کر رہا ہوں میں batch learning is where you train your machine learning model with your entire data there is no incremental learning and that is why since generally the data is big you don't train it online on the server instead what you do is you pull down your model you retrain it with the new data and then you put it on the server again and again یہ آپ periodically کرتے ہو ٹھیک ہے so that is what batch learning is now اگر آپ سے کوئی پوچھے کی disadvantage کیا ہے batch learning کا تو پہلا disadvantage تو یہ ہے کی اگر آ
+
+RUN 1 EXTRACTED CONCEPTS (3 items):
+  - Name:          Batch Learning
+    Exam Relevant: True
+    Description:   A training methodology where the machine learning model is trained using the entire dataset at once, rather than incrementally. The instructor explains that due to large data volumes, models are typically pulled down from a server, retrained with new data in chunks periodically, and then pushed back up.
+  - Name:          Online Learning
+    Exam Relevant: True
+    Description:   Contrasted with batch learning; the instructor notes that online training is generally not performed directly on the server for big data scenarios because of scalability issues.
+  - Name:          Data Scaling Challenges
+    Exam Relevant: True
+    Description:   The disadvantage discussed where rapidly growing data (e.g., doubling every few months in social networks) may exceed the processing capacity of existing tools, requiring a shift to big data technologies.
+
+--- Step e: Correction of Earlier Reported Numbers ---
+Earlier (faulty chat message) reported:
+  Chunk 2: Set equality=True, Jaccard=1.000
+  Chunk 5: Set equality=False, Jaccard=0.556 (with fabricated concept sets {A,B,C} vs {A,B,C,D})
+  Chunk 8: Set equality=False, Jaccard=0.667
+
+Actual measurements in this run:
+  Chunk 2 [61.34s -> 121.38s]:
+    Set equality: True
+    Pairwise Jaccards: R1-R2=1.0000, R2-R3=1.0000, R1-R3=1.0000
+    Mean Jaccard: 1.0000
+  Chunk 5 [243.32s -> 304.06s]:
+    Set equality: False
+    Pairwise Jaccards: R1-R2=0.4000, R2-R3=0.6000, R1-R3=0.4000
+    Mean Jaccard: 0.4667
+  Chunk 8 [426.16s -> 487.50s]:
+    Set equality: False
+    Pairwise Jaccards: R1-R2=1.0000, R2-R3=0.7500, R1-R3=0.7500
+    Mean Jaccard: 0.8333

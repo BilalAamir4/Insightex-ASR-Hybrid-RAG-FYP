@@ -1,0 +1,29 @@
+query,start,end,kind
+"How does the lecturer define ""production"" in simple terms?",00:48,01:00,en
+What is the difference between a production environment and a development environment?,01:23,01:33,en
+Why isn't batch learning trained directly on the server?,02:50,03:07,en
+Why does a recommendation engine like Netflix's need to keep updating?,04:55,05:27,en
+How does the email spam classifier example show a weakness of batch learning?,05:27,05:52,en
+What is the hardware limitation problem with batch learning?,08:19,08:37,en
+What example shows the availability problem of batch learning?,09:38,10:10,en
+What does the lecturer say about the previous video on types of machine learning?,00:13,00:31,en
+Why does software need to be deployed on a server for customers to use it?,00:59,01:18,en
+What is incremental training and why doesn't batch learning use it?,02:40,02:50,en
+How does the lecturer draw the batch learning flow from data to model to server?,03:39,04:16,en
+How often do people typically retrain batch learning models?,06:42,07:09,en
+Where does the data scientist train a batch model and where does the trained model go?,03:07,03:23,en
+Which two types of machine learning will be covered in this video?,01:44,01:57,en
+How does the lecturer describe training a Netflix recommendation engine and putting it on the server?,04:16,04:36,en
+Why can't a model on a remote device just be refreshed when new data arrives?,08:37,09:12,hard
+What goes wrong when a model learns once and then stays frozen?,04:41,04:52,hard
+Why would a daily-refreshed system show stale content during breaking news?,10:40,11:08,hard
+What happens when the dataset becomes too big for the available tools?,07:55,08:18,hard
+How do teams stop a deployed model from going out of date?,05:52,06:20,hard
+"What is the basis for the types of machine learning discussed today, compared with the supervision-based ones?",00:30,00:47,hard
+Why does knowing this difference matter for someone who builds models?,01:56,02:15,hard
+What does the lecturer say happens when a platform's user base keeps doubling?,07:44,07:55,hard
+production environment kya hota hai,01:20,01:30,roman
+batch learning mein model ko dobara train kyun karna parta hai,05:52,06:20,roman
+satellite ya drone par batch learning kyun fail ho jati hai,09:12,09:38,roman
+news feed update hone mein 24 ghante kyun lagte hain,10:03,10:15,roman
+batch learning mein pura data ek saath kaise use hota hai,02:26,02:40,roman

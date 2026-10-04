@@ -1,0 +1,89 @@
+=== TASK F3: RECOMPUTE ALL T3 NUMBERS FROM RAW TIMES ===
+
+--- Step a & b & c: Recomputing All T3 Numbers from Raw Times ---
+Audio Duration from T3.txt: 30.00 s
+
+Condition                      | Cold (s) | Warm Runs (s)            | Median  | Min   | Max   | Mean    | Speed      | RTF    
+-----------------------------------------------------------------------------------------------------------------------------
+large-v3 (Order1 (large-v3 -> medium)) | 4.40     | [3.37, 3.36, 3.37, 3.33] | 3.365   | 3.33  | 3.37  | 3.357   | 8.92 x RT   | 0.1122 
+   Inputs: warm_runs=[3.37, 3.36, 3.37, 3.33] -> sorted=[3.33, 3.36, 3.37, 3.37]
+   Median calculation: statistics.median([3.37, 3.36, 3.37, 3.33]) = 3.3650
+   Speed calculation: 30.0 / 3.3650 = 8.9153x real time
+   RTF calculation: 3.3650 / 30.0 = 0.1122
+
+medium (Order1 (large-v3 -> medium)) | 7.75     | [10.68, 9.45, 13.46, 11.49] | 11.085  | 9.45  | 13.46 | 11.270  | 2.71 x RT   | 0.3695 
+   Inputs: warm_runs=[10.68, 9.45, 13.46, 11.49] -> sorted=[9.45, 10.68, 11.49, 13.46]
+   Median calculation: statistics.median([10.68, 9.45, 13.46, 11.49]) = 11.0850
+   Speed calculation: 30.0 / 11.0850 = 2.7064x real time
+   RTF calculation: 11.0850 / 30.0 = 0.3695
+
+medium (Order2 (medium -> large-v3)) | 7.67     | [5.74, 7.66, 4.39, 18.14] | 6.700   | 4.39  | 18.14 | 8.982   | 4.48 x RT   | 0.2233 
+   Inputs: warm_runs=[5.74, 7.66, 4.39, 18.14] -> sorted=[4.39, 5.74, 7.66, 18.14]
+   Median calculation: statistics.median([5.74, 7.66, 4.39, 18.14]) = 6.7000
+   Speed calculation: 30.0 / 6.7000 = 4.4776x real time
+   RTF calculation: 6.7000 / 30.0 = 0.2233
+
+large-v3 (Order2 (medium -> large-v3)) | 3.70     | [3.39, 2.68, 3.34, 3.33] | 3.335   | 2.68  | 3.39  | 3.185   | 9.00 x RT   | 0.1112 
+   Inputs: warm_runs=[3.39, 2.68, 3.34, 3.33] -> sorted=[2.68, 3.33, 3.34, 3.39]
+   Median calculation: statistics.median([3.39, 2.68, 3.34, 3.33]) = 3.3350
+   Speed calculation: 30.0 / 3.3350 = 8.9955x real time
+   RTF calculation: 3.3350 / 30.0 = 0.1112
+
+medium (Extra (medium temp=0.0)) | 3.46     | [3.53, 3.55, 3.53, 3.45] | 3.530   | 3.45  | 3.55  | 3.515   | 8.50 x RT   | 0.1177 
+   Inputs: warm_runs=[3.53, 3.55, 3.53, 3.45] -> sorted=[3.45, 3.53, 3.53, 3.55]
+   Median calculation: statistics.median([3.53, 3.55, 3.53, 3.45]) = 3.5300
+   Speed calculation: 30.0 / 3.5300 = 8.4986x real time
+   RTF calculation: 3.5300 / 30.0 = 0.1177
+
+--- Step d: Per-Segment Quality Data Check ---
+Checking T3.txt: T3.txt records run-level summaries (avg_logprob_mean, compression_ratio_mean), but does NOT contain individual segment lists.
+Per instructions: Re-running required conditions in fresh processes (2 runs each: 1 cold, 1 warm).
+
+Pre-test Idle VRAM: 1078 MiB
+Pre-test ollama ps:
+NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL
+
+Loading existing per-segment results from E:\FYP\tools\env_audit\results\followup2\F3_segments.json...
+
+--- Analysis of Per-Segment Metrics ---
+Condition                           | Run    | # Segs | Mean LogProb | Min LogProb  | Max CompRatio
+-----------------------------------------------------------------------------------------------
+medium with default settings        | cold   | 4      | -0.2323      | -0.2323      | 2.3984       
+medium with default settings        | warm   | 7      | -0.7229      | -0.7229      | 2.1056       
+medium with temperature=0.0         | cold   | 12     | -0.2774      | -0.2784      | 2.4144       
+medium with temperature=0.0         | warm   | 12     | -0.2774      | -0.2784      | 2.4144       
+large-v3 default                    | cold   | 18     | -0.1082      | -0.1499      | 2.1582       
+large-v3 default                    | warm   | 18     | -0.1082      | -0.1499      | 2.1582       
+
+--- Segment Text Comparison: medium-default vs medium-temp0 (Warm Run) ---
+medium-default warm segments count: 7
+medium-temp0 warm segments count:   12
+
+Segment-by-segment comparison:
+  [DIFF at 0.00s]:
+    default: '�Ray was saying machine learning is no different'
+    temp0:   'ماشین لرننگ کیسے نہیں مختلف ہے'
+  [DIFF at 1.58s]:
+    default: 'جب آپ machine learning کے softwareات بناتے ہو تو آپ اس کو بھی server پہ deptoy کرتے ہو'
+    temp0:   'جب آپ ماشین لرننگ کے سوٹ ویس بناتے ہو'
+  [DIFF at 6.30s]:
+    default: 'اور جو server کا environment ہے جہاں پہ آپ کا code run کر رہا ہوتا ہے اس کو production environment بولتے ہیں'
+    temp0:   'اور جو سرور کا انوارمنٹ ہے جہاں پہ آپ کا'
+  [DIFF at 12.72s]:
+    default: 'جب آپ اس کو code کر رہی ہوتے ہیں اپنے machine پہ تو اس کو development environment بولتے ہیں'
+    temp0:   'جب آپ اس کو کوڈ کر رہے ہوتے ہو اپنے ماشین پر تو اس کو ڈیبلوپمنٹ انوارمنٹ بولتے ہیں'
+  [NO MATCH in temp0 for default segment at 16.94s -> 19.96s]
+  [DIFF at 19.96s]:
+    default: 'یا machine learning جو ہوتا ہے وہ server پہ الگ انگس سے بھیحف کرتا ہے یا الگ انگسہ چلتا ہے'
+    temp0:   'یا ماشین لرنگ جو ہوتا ہے وہ سرور پر'
+  [NO MATCH in temp0 for default segment at 26.30s -> 29.98s]
+
+Summary of differences: 5 differing segments out of 5 matched start-time segments.
+
+--- Step e: Data-Only Conclusion ---
+Data measured strictly on clip_30s.wav. Cause not tested beyond the isolated temperature=0.0 run.
+No general claim of equality or superiority is made. Checkpoint selection requires a comprehensive WER evaluation across the full lecture corpus.
+
+Post-test VRAM: 1078 MiB (Delta from pre-test: 0 MiB)
+Post-test ollama ps:
+NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL

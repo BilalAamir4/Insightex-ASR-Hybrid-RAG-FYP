@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-10-02T12:20:32.439161",
+  "cli_args": {
+    "srt": "/mnt/e/FYP/embedding/data/day04_batch_vs_online/whisper_urdu.srt",
+    "queries": "tools/eval_embeddings/queries.csv",
+    "out": "tools/eval_embeddings/results",
+    "models": "bge-m3,qwen3-0.6b",
+    "windows": "30,60,90",
+    "stride": null,
+    "topk": 5,
+    "batch_size": 16,
+    "max_seq_length": 512,
+    "dry_run": false
+  },
+  "model_definitions": {
+    "bge-m3": {
+      "id": "BAAI/bge-m3",
+      "query_prefix": "",
+      "doc_prefix": ""
+    },
+    "qwen3-0.6b": {
+      "id": "Qwen/Qwen3-Embedding-0.6B",
+      "query_prefix": "Instruct: Given a question about a lecture, retrieve the lecture transcript passage that answers it\nQuery: ",
+      "doc_prefix": ""
+    }
+  },
+  "qwen_query_instruction": "Instruct: Given a question about a lecture, retrieve the lecture transcript passage that answers it\nQuery: ",
+  "package_versions": {
+    "torch": "2.11.0+cu128",
+    "transformers": "5.18.0",
+    "sentence_transformers": "6.1.0",
+    "faiss": "1.15.1",
+    "numpy": "2.5.3",
+    "pandas": "3.0.6"
+  },
+  "srt_path": "/mnt/e/FYP/embedding/data/day04_batch_vs_online/whisper_urdu.srt",
+  "srt_sha256": "c035574757d6a220d323911d552b0d5569c0b3e907083b7a1e8acf611a7114ce",
+  "queries_path": "/mnt/e/FYP/embedding/tools/eval_embeddings/queries.csv",
+  "queries_sha256": "c667db6f9baac31c115385606ff35c83f39b6f67562153c50c457ea628b78579"
+}

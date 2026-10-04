@@ -1,0 +1,92 @@
+=== TASK F6: LAUNCHER FAILURE MODE, EXACT COMMAND AND RAW ERROR ===
+Idle VRAM before tests: 1076 MiB
+
+======================================================================
+MODE 1: WITHOUT WRAPPER (plain non-login, non-interactive shell)
+Command: wsl -d Ubuntu-24.04 bash /mnt/e/FYP/tools/env_audit/fail_mode_test.sh
+======================================================================
+--- Running: wsl -d Ubuntu-24.04 bash /mnt/e/FYP/tools/env_audit/fail_mode_test.sh ---
+Return Code: 0
+STDOUT:
+=== LD_LIBRARY_PATH CHECK ===
+LD_LIBRARY_PATH: ''
+Entry count: 0
+
+=== COMMAND 1: import ctranslate2; print(version) ===
+ctranslate2 version: 4.8.2
+Exit code: 0
+Stderr: (empty)
+
+=== COMMAND 2: import ctranslate2; print(get_cuda_device_count()) ===
+CUDA device count: 1
+Exit code: 0
+Stderr: (empty)
+
+=== COMMAND 3: WhisperModel CUDA load & transcribe ===
+Initializing WhisperModel('medium', device='cuda', compute_type='float16')...
+Model loaded. Transcribing...
+Exit code: 1
+Stderr:
+FAILED WITH EXCEPTION: Library libcublas.so.12 is not found or cannot be loaded
+Traceback (most recent call last):
+  File "/mnt/e/FYP/tools/env_audit/fail_whisper_test.py", line 12, in <module>
+    first_seg = next(segments)
+                ^^^^^^^^^^^^^^
+  File "/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/faster_whisper/transcribe.py", line 1190, in generate_segments
+    encoder_output = self.encode(segment)
+                     ^^^^^^^^^^^^^^^^^^^^
+  File "/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/faster_whisper/transcribe.py", line 1400, in encode
+    return self.model.encode(features, to_cpu=to_cpu)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Library libcublas.so.12 is not found or cannot be loaded
+
+======================================================================
+MODE 2: WITH WRAPPER (run_in_env.sh)
+Command: wsl -d Ubuntu-24.04 bash /mnt/e/FYP/tools/env_audit/run_in_env.sh bash /mnt/e/FYP/tools/env_audit/fail_mode_test.sh
+======================================================================
+--- Running: wsl -d Ubuntu-24.04 bash /mnt/e/FYP/tools/env_audit/run_in_env.sh bash /mnt/e/FYP/tools/env_audit/fail_mode_test.sh ---
+Return Code: 0
+STDOUT:
+=== LD_LIBRARY_PATH CHECK ===
+LD_LIBRARY_PATH: '/usr/lib/wsl/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/cusparse/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/cublas/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/nvtx/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/cudnn/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/cusolver/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/cusparselt/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/nvjitlink/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/cuda_cupti/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/curand/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/nvshmem/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/cufft/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/nccl/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/cufile/lib:/home/bilal_aamir/envs/insightex/lib/python3.12/site-packages/nvidia/cuda_runtime/lib:'
+Entry count: 16
+
+=== COMMAND 1: import ctranslate2; print(version) ===
+ctranslate2 version: 4.8.2
+Exit code: 0
+Stderr: (empty)
+
+=== COMMAND 2: import ctranslate2; print(get_cuda_device_count()) ===
+CUDA device count: 1
+Exit code: 0
+Stderr: (empty)
+
+=== COMMAND 3: WhisperModel CUDA load & transcribe ===
+Initializing WhisperModel('medium', device='cuda', compute_type='float16')...
+Model loaded. Transcribing...
+SUCCESS: Transcribed segment:  مشین لرننگ ایسے نہیں دفرنٹ
+Exit code: 0
+Stderr: (empty)
+
+======================================================================
+ADDITIONAL TEST: System python3 (/usr/bin/python3) without wrapper
+Command: wsl -d Ubuntu-24.04 python3 -c 'import ctranslate2'
+======================================================================
+--- Running: wsl -d Ubuntu-24.04 python3 -c import ctranslate2 ---
+Return Code: 1
+STDERR:
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'ctranslate2'
+
+--- Checking Python Binaries in WSL ---
+--- Running: wsl -d Ubuntu-24.04 which python3 ---
+Return Code: 0
+STDOUT:
+/usr/bin/python3
+--- Running: wsl -d Ubuntu-24.04 bash /mnt/e/FYP/tools/env_audit/run_in_env.sh which python ---
+Return Code: 0
+STDOUT:
+/home/bilal_aamir/envs/insightex/bin/python
+
+Post-test VRAM: 1078 MiB (Delta from initial idle: 2 MiB)

@@ -1,0 +1,66 @@
+[
+  {
+    "model": "whisper-medium",
+    "cache_dir": "/home/bilal_aamir/cache/huggingface/hub",
+    "compute_type": "float16",
+    "cold_s": 3.76,
+    "warm_s": 0.66,
+    "vram_before_mb": 1167,
+    "vram_peak_mb": 3112,
+    "vram_after_mb": 4904,
+    "location": "ext4 (~/cache)"
+  },
+  {
+    "model": "whisper-medium",
+    "cache_dir": "/mnt/e/FYP/cache/huggingface/hub",
+    "compute_type": "float16",
+    "cold_s": 16.51,
+    "warm_s": 4.9,
+    "vram_before_mb": 1167,
+    "vram_peak_mb": 3112,
+    "vram_after_mb": 4904,
+    "location": "drvfs (/mnt/e/FYP/cache)"
+  },
+  {
+    "model": "whisper-large-v3",
+    "cache_dir": "/home/bilal_aamir/cache/huggingface/hub",
+    "compute_type": "float16",
+    "cold_s": 8.37,
+    "warm_s": 2.03,
+    "vram_before_mb": 1167,
+    "vram_peak_mb": 4936,
+    "vram_after_mb": 7937,
+    "location": "ext4 (~/cache)"
+  },
+  {
+    "model": "whisper-large-v3",
+    "cache_dir": "/mnt/e/FYP/cache/huggingface/hub",
+    "compute_type": "float16",
+    "cold_s": 29.64,
+    "warm_s": 8.64,
+    "vram_before_mb": 876,
+    "vram_peak_mb": 4645,
+    "vram_after_mb": 7941,
+    "location": "drvfs (/mnt/e/FYP/cache)"
+  },
+  {
+    "model": "bge-m3",
+    "cache_dir": "/home/bilal_aamir/cache/huggingface/hub",
+    "cold_s": 6.25,
+    "warm_s": 1.7,
+    "vram_before_mb": 750,
+    "vram_peak_mb": 3089,
+    "vram_after_mb": 3089,
+    "location": "ext4 (~/cache)"
+  },
+  {
+    "model": "bge-m3",
+    "cache_dir": "/mnt/e/FYP/cache/huggingface/hub",
+    "cold_s": 27.5,
+    "warm_s": 10.26,
+    "vram_before_mb": 750,
+    "vram_peak_mb": 3089,
+    "vram_after_mb": 3089,
+    "location": "drvfs (/mnt/e/FYP/cache)"
+  }
+]
