@@ -62,7 +62,7 @@ def _youtube(host: str, path_segments: list[str], query: dict[str, list[str]], r
         head = path_segments[0] if path_segments else ""
         if head == "watch":
             video_id = (query.get("v") or [None])[0]
-        elif head in ("embed", "shorts") and len(path_segments) >= 2:
+        elif head in ("embed", "shorts", "live") and len(path_segments) >= 2:
             video_id = path_segments[1]
             if head == "embed" and video_id == "videoseries":
                 video_id = None
