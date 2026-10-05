@@ -7,8 +7,6 @@ from pathlib import Path
 
 from insightex.core.config import load_config, require_path
 
-DRIVE_DOWNLOADERS = ("yt-dlp", "gdown")
-
 
 @dataclass(frozen=True)
 class IngestSettings:
@@ -17,12 +15,7 @@ class IngestSettings:
     max_download_bytes: int = 4 * 1024**3
     keep_source: bool = False
     max_video_height: int = 1080
-    drive_downloader: str = "yt-dlp"
     deno_path: str | None = None
-
-    def __post_init__(self) -> None:
-        if self.drive_downloader not in DRIVE_DOWNLOADERS:
-            raise ValueError(f"drive_downloader must be one of {DRIVE_DOWNLOADERS}")
 
     @classmethod
     def from_config(cls, cfg: dict | None = None) -> IngestSettings:
@@ -36,6 +29,5 @@ class IngestSettings:
             max_download_bytes=int(url.get("max_download_bytes", defaults.max_download_bytes)),
             keep_source=bool(url.get("keep_source", defaults.keep_source)),
             max_video_height=int(url.get("max_video_height", defaults.max_video_height)),
-            drive_downloader=str(url.get("drive_downloader", defaults.drive_downloader)),
             deno_path=url.get("deno_path") or None,
         )

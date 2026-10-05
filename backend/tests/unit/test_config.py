@@ -9,7 +9,6 @@ def test_repo_default_config_loads(monkeypatch, tmp_path):
     s = IngestSettings.from_config(load_config(repo_root() / "config"))
     assert s.lectures_dir == tmp_path / "lectures"
     assert (s.max_duration_s, s.max_download_bytes, s.keep_source) == (10800, 4 * 1024**3, False)
-    assert s.drive_downloader in ("yt-dlp", "gdown")
 
 
 def test_local_yaml_overrides_and_env_expansion(tmp_path, monkeypatch):
@@ -28,7 +27,3 @@ def test_unset_variable_reported(tmp_path, monkeypatch):
     with pytest.raises(ConfigError, match="NOPE_UNSET"):
         IngestSettings.from_config(load_config(tmp_path))
 
-
-def test_bad_drive_downloader_rejected(tmp_path):
-    with pytest.raises(ValueError):
-        IngestSettings(lectures_dir=tmp_path, drive_downloader="wget")

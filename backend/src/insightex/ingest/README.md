@@ -4,7 +4,7 @@
 Every source is fully downloaded, normalized to H.264/AAC mp4 and stored locally; there is no embedded player
 and no audio-only download.
 
-**Model used:** none (yt-dlp, gdown, httpx, FFmpeg on CPU)
+**Model used:** none (yt-dlp, httpx, FFmpeg on CPU)
 
 **Feature numbers:** not assigned
 

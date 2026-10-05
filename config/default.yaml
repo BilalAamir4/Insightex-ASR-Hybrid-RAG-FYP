@@ -22,5 +22,4 @@ ingest:
     max_download_bytes: 4294967296    # 4 GiB; Content-Length and bytes actually received
     keep_source: false                # delete the original download after a successful transcode
     max_video_height: 1080
-    drive_downloader: yt-dlp          # yt-dlp | gdown
     deno_path: null                   # null = the deno wheel installed in the venv

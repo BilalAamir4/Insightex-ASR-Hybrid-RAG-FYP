@@ -1,13 +1,9 @@
 import httpx
 import pytest
-import requests
-from gdown.exceptions import DownloadError as GdownDownloadError
-from gdown.exceptions import FileURLRetrievalError
 from yt_dlp.utils import DownloadError, ExtractorError, GeoRestrictedError
 
 from insightex.ingest import netguard
 from insightex.ingest.errors import DEFAULT_MESSAGES, ErrorCode, IngestError
-from insightex.ingest.sources.gdrive import map_gdown_error
 from insightex.ingest.sources.ytdlp import map_ytdlp_error
 
 E = ErrorCode
@@ -80,30 +76,6 @@ def test_ytdlp_drive_messages(msg, code):
 
 def test_ytdlp_403_on_youtube_is_not_drive_error():
     assert map_ytdlp_error(DownloadError("ERROR: HTTP Error 403: Forbidden"), [], "youtube").code == E.DOWNLOAD_FAILED
-
-
-@pytest.mark.parametrize(
-    "exc,code",
-    [
-        (FileURLRetrievalError("Too many users have viewed or downloaded this file recently."), E.DRIVE_QUOTA_EXCEEDED),
-        (FileURLRetrievalError("Cannot retrieve the public link of the file. You may need to change the permission"),
-         E.DRIVE_NOT_SHARED),
-        (requests.ConnectionError("conn refused"), E.NETWORK_ERROR),
-        (requests.Timeout("slow"), E.NETWORK_ERROR),
-        (GdownDownloadError("response body ended early"), E.DOWNLOAD_FAILED),
-        (RuntimeError("weird"), E.DOWNLOAD_FAILED),
-    ],
-)
-def test_gdown_mapping(exc, code):
-    assert map_gdown_error(exc).code == code
-
-
-def test_gdown_http_status():
-    resp = requests.Response()
-    resp.status_code = 403
-    assert map_gdown_error(requests.HTTPError(response=resp)).code == E.DRIVE_NOT_SHARED
-    resp.status_code = 429
-    assert map_gdown_error(requests.HTTPError(response=resp)).code == E.DRIVE_QUOTA_EXCEEDED
 
 
 _REQ = httpx.Request("GET", "https://example.com/v.mp4")
