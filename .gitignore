@@ -19,3 +19,4 @@ __pycache__/
 *.pth
 *.bin
 *.ckpt
+*.egg-info/
