@@ -1,7 +1,9 @@
 """Engine behaviour with fake sources (no network) and real ffmpeg on synthetic clips."""
 
 import json
+import os
 import shutil
+import stat
 import threading
 from types import SimpleNamespace
 
@@ -206,3 +208,17 @@ def test_probe_result_fields(settings, use_source, media):
                  "normalized_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "title": "T", "uploader": "U",
                  "duration_s": 12.0, "thumbnail_url": "https://i.ytimg.com/x.jpg", "exists_locally": False}
     assert not settings.lectures_dir.exists()  # probe writes nothing
+
+
+@pytest.mark.parametrize("keep_source", [False, True])
+def test_final_files_are_0644_regardless_of_umask(tmp_path, use_source, media, keep_source):
+    settings = IngestSettings(lectures_dir=tmp_path / "lectures", keep_source=keep_source)
+    use_source(FakeSource(media["hevc_vfr_mkv"]))  # transcode path: ffmpeg writes with the process umask
+    old = os.umask(0o077)
+    try:
+        engine.ingest(YT, rights_confirmed=True, settings=settings)
+    finally:
+        os.umask(old)
+    names = ["video.mp4", "audio.wav", "thumbnail.jpg", "manifest.json"] + (["source.mkv"] if keep_source else [])
+    modes = {n: stat.S_IMODE((settings.lectures_dir / LID / n).stat().st_mode) for n in names}
+    assert modes == {n: 0o644 for n in names}

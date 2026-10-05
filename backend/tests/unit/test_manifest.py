@@ -1,5 +1,6 @@
 import json
 import os
+import stat
 
 import pytest
 
@@ -81,3 +82,12 @@ def test_fail_from_any_in_progress_status(path):
         m.set_status(s)
     m.fail("DOWNLOAD_FAILED", "nope")
     assert m.status == "failed" and m.error == {"code": "DOWNLOAD_FAILED", "message": "nope"}
+
+
+def test_manifest_is_0644_regardless_of_umask(tmp_path):
+    old = os.umask(0o077)  # a hostile umask: the mode must come from the code, not the environment
+    try:
+        write_manifest(tmp_path, _m())
+    finally:
+        os.umask(old)
+    assert stat.S_IMODE((tmp_path / "manifest.json").stat().st_mode) == 0o644

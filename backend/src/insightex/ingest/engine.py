@@ -21,7 +21,7 @@ from types import SimpleNamespace
 from typing import Any
 
 from insightex.core import ids
-from insightex.core.manifest import IN_PROGRESS, Manifest, read_manifest, write_manifest
+from insightex.core.manifest import FILE_MODE, IN_PROGRESS, Manifest, read_manifest, write_manifest
 from insightex.ingest import netguard
 from insightex.ingest.errors import ErrorCode, IngestError
 from insightex.ingest.settings import IngestSettings
@@ -207,7 +207,7 @@ def ingest(
 
             if settings.keep_source:
                 final_source = path / f"source{source.suffix}"
-                os.replace(source, final_source)
+                _publish(source, final_source)
                 manifest.files["source"] = final_source.name
             manifest.set_status("ready")
             manifest.error = None
@@ -227,6 +227,12 @@ def ingest(
 
     progress("done", 1.0, "Ready")
     return manifest
+
+
+def _publish(src: Path, dst: Path) -> None:
+    """Move a finished file into its final place with explicit permissions (not umask-dependent)."""
+    os.chmod(src, FILE_MODE)
+    os.replace(src, dst)
 
 
 def _fail(path: Path, manifest: Manifest, exc: IngestError) -> None:
@@ -304,7 +310,7 @@ def _process(
         raise IngestError(ErrorCode.TRANSCODE_FAILED) from exc
     if out.video is None or out.audio is None:
         raise IngestError(ErrorCode.TRANSCODE_FAILED)
-    os.replace(tmp_video, path / VIDEO_NAME)
+    _publish(tmp_video, path / VIDEO_NAME)
     manifest.files["video"] = VIDEO_NAME
     manifest.processing = mode
     manifest.duration_s = round(out.duration_s, 3) if out.duration_s else manifest.duration_s
@@ -324,13 +330,13 @@ def _process(
     except ffmpeg.FFmpegError as exc:
         log.error("audio extraction failed: %s\n%s", exc, exc.stderr)
         raise IngestError(ErrorCode.TRANSCODE_FAILED) from exc
-    os.replace(tmp / AUDIO_NAME, path / AUDIO_NAME)
+    _publish(tmp / AUDIO_NAME, path / AUDIO_NAME)
     manifest.files["audio"] = AUDIO_NAME
     manifest.audio = {"sample_rate": ffmpeg.ASR_SAMPLE_RATE, "channels": ffmpeg.ASR_CHANNELS, "codec": ffmpeg.ASR_CODEC}
 
     progress("extracting_audio", None, "Saving thumbnail")
     if _thumbnail(final_video, tmp, meta.thumbnail_url, out.duration_s):
-        os.replace(tmp / THUMB_NAME, path / THUMB_NAME)
+        _publish(tmp / THUMB_NAME, path / THUMB_NAME)
         manifest.files["thumbnail"] = THUMB_NAME
 
 

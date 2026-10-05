@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any
 
 MANIFEST_NAME = "manifest.json"
+# mkstemp creates 0600; published files must be readable by whatever serves them (not umask-dependent).
+FILE_MODE = 0o644
 SCHEMA_VERSION = 1
 
 STATUSES = ("probed", "downloading", "transcoding", "ready", "failed")
@@ -91,6 +93,7 @@ def write_manifest(lecture_path: Path, manifest: Manifest) -> Path:
     fd, tmp = tempfile.mkstemp(prefix=".manifest.", suffix=".tmp", dir=lecture_path)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
+            os.fchmod(f.fileno(), FILE_MODE)
             json.dump(manifest.to_dict(), f, ensure_ascii=False, indent=2)
             f.write("\n")
             f.flush()
