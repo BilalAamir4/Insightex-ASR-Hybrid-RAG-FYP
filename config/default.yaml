@@ -11,10 +11,16 @@ paths:
   data: ${INSIGHTEX_DATA}
   model_cache_master: ${INSIGHTEX_MODEL_CACHE_MASTER}
   hf_home: ${HF_HOME}
+  lectures: ${INSIGHTEX_DATA}/lectures
 
 endpoints:
   ollama_base_url: ${OLLAMA_BASE_URL}
 
-# ingest:
-#   url:
-#     # values not yet decided
+ingest:
+  url:
+    max_duration_s: 10800             # 3 hours; checked at probe (when known) and after download
+    max_download_bytes: 4294967296    # 4 GiB; Content-Length and bytes actually received
+    keep_source: false                # delete the original download after a successful transcode
+    max_video_height: 1080
+    drive_downloader: yt-dlp          # yt-dlp | gdown
+    deno_path: null                   # null = the deno wheel installed in the venv
