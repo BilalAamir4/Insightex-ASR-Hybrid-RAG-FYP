@@ -54,8 +54,11 @@ class Manifest:
     video: dict[str, Any] | None = None
     # {sample_rate, channels, codec} of audio.wav
     audio: dict[str, Any] | None = None
-    # "remux" | "transcode"
-    processing: str | None = None
+    # What was found in the downloaded file (engine's ffprobe, recorded before the source is deleted):
+    # {codec, width, height, fps, container}. container is ffprobe's format_name, e.g. "matroska,webm".
+    source: dict[str, Any] | None = None
+    # "remux" | "transcode": what was actually done (a failed remux that fell back to transcode says "transcode").
+    decision: str | None = None
     # Paths relative to the lecture folder; null until the file exists.
     files: dict[str, str | None] = field(
         default_factory=lambda: {"video": None, "audio": None, "thumbnail": None, "source": None}

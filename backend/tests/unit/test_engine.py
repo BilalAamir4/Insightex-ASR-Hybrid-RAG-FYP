@@ -66,7 +66,7 @@ def test_remux_end_to_end(settings, use_source, media):
     use_source(FakeSource(media["h264_aac_mp4"]))
     stages = []
     m = engine.ingest(YT, rights_confirmed=True, progress_cb=lambda s, f, msg: stages.append((s, f)), settings=settings)
-    assert m.status == "ready" and m.processing == "remux" and m.error is None
+    assert m.status == "ready" and m.decision == "remux" and m.error is None
     assert _files(settings) == ["audio.wav", "manifest.json", "thumbnail.jpg", "video.mp4"]
     on_disk = json.loads((settings.lectures_dir / LID / "manifest.json").read_text())
     assert on_disk["status"] == "ready"
@@ -83,7 +83,7 @@ def test_transcode_and_keep_source(tmp_path, use_source, media):
     settings = IngestSettings(lectures_dir=tmp_path / "lectures", keep_source=True)
     use_source(FakeSource(media["hevc_vfr_mkv"]))
     m = engine.ingest(YT, rights_confirmed=True, settings=settings)
-    assert m.processing == "transcode" and m.files["source"] == "source.mkv"
+    assert m.decision == "transcode" and m.files["source"] == "source.mkv"
     assert "source.mkv" in _files(settings)
 
 
@@ -222,3 +222,27 @@ def test_final_files_are_0644_regardless_of_umask(tmp_path, use_source, media, k
     names = ["video.mp4", "audio.wav", "thumbnail.jpg", "manifest.json"] + (["source.mkv"] if keep_source else [])
     modes = {n: stat.S_IMODE((settings.lectures_dir / LID / n).stat().st_mode) for n in names}
     assert modes == {n: 0o644 for n in names}
+
+
+def test_manifest_records_source_probe_and_decision(tmp_path, use_source, media):
+    """The source's codec/size/fps/container come from the engine's own ffprobe of the downloaded file,
+    recorded even though the source is deleted afterwards (keep_source false)."""
+    settings = IngestSettings(lectures_dir=tmp_path / "lectures")
+    use_source(FakeSource(media["hevc_vfr_mkv"]))
+    engine.ingest(YT, rights_confirmed=True, settings=settings)
+    on_disk = json.loads((settings.lectures_dir / LID / "manifest.json").read_text())
+    assert "source.mkv" not in _files(settings) and "processing" not in on_disk
+    assert on_disk["decision"] == "transcode"
+    src = on_disk["source"]
+    assert set(src) == {"codec", "width", "height", "fps", "container"}
+    assert (src["codec"], src["width"], src["height"]) == ("hevc", 320, 240)
+    assert "matroska" in src["container"] and src["fps"] > 0
+    assert on_disk["video"]["codec"] == "h264"  # output description stays separate from the source's
+
+
+def test_remux_source_probe_describes_the_h264_input(settings, use_source, media):
+    use_source(FakeSource(media["h264_aac_mp4"]))
+    m = engine.ingest(YT, rights_confirmed=True, settings=settings)
+    assert m.decision == "remux"
+    assert (m.source["codec"], m.source["width"], m.source["height"], m.source["fps"]) == ("h264", 320, 240, 25.0)
+    assert "mp4" in m.source["container"].split(",")

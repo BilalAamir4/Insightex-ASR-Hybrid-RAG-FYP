@@ -286,6 +286,13 @@ def _process(
         raise IngestError(ErrorCode.NO_AUDIO_STREAM)
     _check_duration(info.duration_s, settings)
 
+    manifest.source = {
+        "codec": info.video.codec,
+        "width": info.video.width,
+        "height": info.video.height,
+        "fps": round(info.video.fps, 3) if info.video.fps else None,
+        "container": info.format_name,
+    }
     mode = ffmpeg.decide_processing(info, settings.max_video_height)
     tmp_video = tmp / VIDEO_NAME
 
@@ -312,7 +319,7 @@ def _process(
         raise IngestError(ErrorCode.TRANSCODE_FAILED)
     _publish(tmp_video, path / VIDEO_NAME)
     manifest.files["video"] = VIDEO_NAME
-    manifest.processing = mode
+    manifest.decision = mode
     manifest.duration_s = round(out.duration_s, 3) if out.duration_s else manifest.duration_s
     manifest.video = {
         "codec": out.video.codec,
