@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Insightex</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 860px; margin: 0 auto; padding: 16px; color: #222; }
+  header { display: flex; align-items: baseline; gap: 16px; border-bottom: 1px solid #ccc; margin-bottom: 16px; }
+  header h1 { font-size: 1.3rem; margin: 0 0 8px; }
+  header a { color: inherit; text-decoration: none; }
+  section { margin-bottom: 28px; }
+  input[type=text] { width: 100%; box-sizing: border-box; padding: 8px; font-size: 1rem; }
+  button { padding: 8px 14px; font-size: 1rem; cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  .row { display: flex; gap: 8px; margin: 8px 0; align-items: center; flex-wrap: wrap; }
+  .row input[type=text] { flex: 1; min-width: 140px; }
+  .card { display: flex; gap: 12px; border: 1px solid #ccc; padding: 12px; margin: 12px 0; }
+  .card img { width: 200px; max-width: 40%; height: auto; align-self: flex-start; background: #eee; }
+  .card h2 { margin: 0 0 6px; font-size: 1.1rem; }
+  .meta { color: #555; margin: 2px 0; }
+  .error { color: #a00; margin: 8px 0; }
+  .note { color: #555; }
+  progress { width: 100%; height: 18px; }
+  video { width: 100%; background: #000; }
+  ul.library { list-style: none; padding: 0; }
+  ul.library li { margin: 8px 0; }
+  ul.library a { display: flex; gap: 12px; text-decoration: none; color: inherit; border: 1px solid #ccc; padding: 8px; }
+  ul.library img { width: 120px; height: auto; background: #eee; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1><a href="/">Insightex</a></h1>
+  <a href="/">Library</a>
+</header>
+
+<!-- Home: add a lecture + library -->
+<main id="home" hidden>
+  <section id="add">
+    <h2>Add a lecture</h2>
+    <label for="url">Paste a YouTube, Google Drive or direct video link</label>
+    <div class="row">
+      <input type="text" id="url" placeholder="https://..." autocomplete="off">
+      <button id="check">Check link</button>
+    </div>
+    <div id="add-error" class="error" role="alert" hidden></div>
+
+    <div id="preview" class="card" hidden>
+      <img id="pv-thumb" alt="" hidden>
+      <div>
+        <h2 id="pv-title"></h2>
+        <div class="meta" id="pv-uploader"></div>
+        <div class="meta" id="pv-duration"></div>
+        <div id="pv-exists" hidden>
+          <p><strong>Already in your library</strong></p>
+          <button id="pv-open">Open lecture</button>
+        </div>
+        <div id="pv-new">
+          <label><input type="checkbox" id="rights"> I own this lecture or have permission to use it.</label>
+          <div class="row"><button id="add-btn" disabled>Add lecture</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="progress" hidden>
+      <div id="pr-label"></div>
+      <progress id="pr-bar" max="100"></progress>
+      <div class="note" id="pr-message"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Library</h2>
+    <div id="lib-empty" class="note" hidden>No lectures yet. Add one above.</div>
+    <ul id="library" class="library"></ul>
+  </section>
+</main>
+
+<!-- Player -->
+<main id="player" hidden>
+  <h2 id="pl-title"></h2>
+  <div class="meta" id="pl-duration"></div>
+  <video id="video" controls preload="metadata"></video>
+  <div class="row">
+    <label for="jump">Jump to</label>
+    <input type="text" id="jump" placeholder="mm:ss or h:mm:ss" size="12" style="flex:0 1 160px">
+    <button id="jump-btn">Go</button>
+    <span id="jump-error" class="error" role="alert"></span>
+  </div>
+  <div class="row" id="yt-row" hidden>
+    <a id="yt-link" href="#" target="_blank" rel="noopener">Open on YouTube at this time</a>
+  </div>
+  <div id="pl-error" class="error" role="alert" hidden></div>
+</main>
+
+<script type="module">
+import { parseTimestamp, formatTimestamp } from "./timestamp.js";
+
+const $ = (id) => document.getElementById(id);
+const show = (el, on = true) => { el.hidden = !on; };
+
+async function api(path, options) {
+  let res;
+  try {
+    res = await fetch(path, options);
+  } catch {
+    throw new Error("Couldn't reach the Insightex server. Is it running?");
+  }
+  let body = null;
+  try { body = await res.json(); } catch { /* non-JSON body */ }
+  if (!res.ok) throw new Error(body?.error?.message ?? "Something went wrong. Please try again.");
+  return body;
+}
+
+const postJson = (path, data) => api(path, {
+  method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+});
+
+// ---------------------------------------------------------------- routing
+const params = new URLSearchParams(location.search);
+const lectureId = params.get("lecture");
+if (lectureId) initPlayer(lectureId); else initHome();
+
+const playerUrl = (id) => `/?lecture=${encodeURIComponent(id)}`;
+
+// ---------------------------------------------------------------- home: library
+async function loadLibrary() {
+  const list = $("library");
+  list.replaceChildren();
+  let lectures = [];
+  try { lectures = (await api("/api/lectures")).lectures; } catch (e) { $("lib-empty").textContent = e.message; }
+  show($("lib-empty"), lectures.length === 0);
+  for (const lec of lectures) {
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = playerUrl(lec.lecture_id);
+    if (lec.thumbnail_url) {
+      const img = document.createElement("img");
+      img.src = lec.thumbnail_url; img.alt = "";
+      a.append(img);
+    }
+    const text = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = lec.title || lec.lecture_id;
+    const dur = document.createElement("div");
+    dur.className = "meta";
+    dur.textContent = formatTimestamp(lec.duration_s) ?? "";
+    text.append(title, dur);
+    a.append(text);
+    li.append(a);
+    list.append(li);
+  }
+}
+
+// ---------------------------------------------------------------- home: ingest flow
+let pollTimer = null;
+
+function showAddError(message) {
+  $("add-error").textContent = message;
+  show($("add-error"), Boolean(message));
+}
+
+function resetAdd() {
+  clearTimeout(pollTimer);
+  showAddError("");
+  show($("preview"), false);
+  show($("progress"), false);
+  $("check").disabled = false;
+  $("url").disabled = false;
+}
+
+function initHome() {
+  show($("home"));
+  loadLibrary();
+  let probed = null;
+
+  $("check").addEventListener("click", async () => {
+    const url = $("url").value.trim();
+    resetAdd();
+    if (!url) { showAddError("Paste a link first."); return; }
+    $("check").disabled = true;
+    try {
+      probed = await postJson("/api/ingest/probe", { url });
+    } catch (e) {
+      showAddError(e.message);
+      return;
+    } finally {
+      $("check").disabled = false;
+    }
+    renderPreview(probed);
+  });
+
+  $("url").addEventListener("keydown", (e) => { if (e.key === "Enter") $("check").click(); });
+  $("rights").addEventListener("change", () => { $("add-btn").disabled = !$("rights").checked; });
+  $("pv-open").addEventListener("click", () => { location.href = playerUrl(probed.lecture_id); });
+
+  $("add-btn").addEventListener("click", async () => {
+    if (!$("rights").checked) return;
+    $("add-btn").disabled = true;
+    try {
+      const job = await postJson("/api/ingest", { url: $("url").value.trim(), rights_confirmed: true });
+      if (job.job_id === null) { location.href = playerUrl(job.lecture_id); return; }  // already ready
+      startProgress(job.job_id, job.lecture_id);
+    } catch (e) {
+      showAddError(e.message);
+      $("add-btn").disabled = !$("rights").checked;
+    }
+  });
+}
+
+function renderPreview(p) {
+  const thumb = $("pv-thumb");
+  if (p.thumbnail_url) { thumb.src = p.thumbnail_url; show(thumb); } else { thumb.removeAttribute("src"); show(thumb, false); }
+  $("pv-title").textContent = p.title || "(untitled)";
+  $("pv-uploader").textContent = p.uploader ? `By ${p.uploader}` : "";
+  const dur = formatTimestamp(p.duration_s);
+  $("pv-duration").textContent = dur ?? "Duration checked after download";
+  show($("pv-exists"), p.exists_locally);
+  show($("pv-new"), !p.exists_locally);
+  $("rights").checked = false;
+  $("add-btn").disabled = true;
+  show($("preview"));
+}
+
+const STAGE_LABELS = {
+  queued: "Waiting in line", probing: "Reading video details", downloading: "Downloading",
+  transcoding: "Converting video", extracting_audio: "Extracting audio", done: "Done",
+};
+
+function startProgress(jobId, lecture) {
+  show($("preview"), false);
+  show($("progress"));
+  $("check").disabled = true;
+  $("url").disabled = true;
+  let netFailures = 0;
+
+  const tick = async () => {
+    let job;
+    try {
+      job = await api(`/api/ingest/${encodeURIComponent(jobId)}`);
+      netFailures = 0;
+    } catch (e) {
+      if (++netFailures >= 5) { resetAdd(); showAddError(e.message); return; }
+      pollTimer = setTimeout(tick, 1000);
+      return;
+    }
+    if (job.status === "failed") {
+      resetAdd();
+      showAddError(job.error?.message ?? job.message ?? "The lecture couldn't be added.");
+      return;
+    }
+    if (job.status === "done") { location.href = playerUrl(lecture); return; }
+    const bar = $("pr-bar");
+    const label = STAGE_LABELS[job.status === "queued" ? "queued" : job.stage] ?? "Working";
+    if (job.fraction === null || job.fraction === undefined) {
+      bar.removeAttribute("value");  // indeterminate
+      $("pr-label").textContent = label;
+    } else {
+      const pct = Math.round(job.fraction * 100);
+      bar.value = pct;
+      $("pr-label").textContent = `${label}: ${pct}%`;
+    }
+    $("pr-message").textContent = job.message ?? "";
+    pollTimer = setTimeout(tick, 1000);
+  };
+  tick();
+}
+
+// ---------------------------------------------------------------- player
+/**
+ * seekTo(seconds): the ONLY place the page changes playback position programmatically.
+ * Cited answers, graph navigation and highlight reels must call this instead of touching
+ * video.currentTime. Clamps to [0, duration]; ignores invalid values; returns the position it
+ * moved to, or null if it did nothing. Requires video metadata to be loaded (readyState >= 1);
+ * until then it does nothing, so callers that may run early should wait for "loadedmetadata".
+ */
+let seekTo = () => null;
+
+async function initPlayer(id) {
+  show($("player"));
+  const video = $("video");
+  let lecture;
+  try {
+    lecture = await api(`/api/lectures/${encodeURIComponent(id)}`);
+  } catch (e) {
+    $("pl-error").textContent = e.message;
+    show($("pl-error"));
+    show(video, false);
+    return;
+  }
+  document.title = `${lecture.title || "Lecture"} - Insightex`;
+  $("pl-title").textContent = lecture.title || lecture.lecture_id;
+  const dur = formatTimestamp(lecture.duration_s);
+  $("pl-duration").textContent = dur ? `Duration ${dur}` : "";
+
+  seekTo = (seconds) => {
+    if (typeof seconds !== "number" || !Number.isFinite(seconds) || seconds < 0) return null;
+    if (video.readyState < 1) return null;
+    const max = Number.isFinite(video.duration) ? video.duration : seconds;
+    const target = Math.min(seconds, max);
+    video.currentTime = target;
+    return target;
+  };
+  window.insightex = { seekTo };  // for later features and manual testing from the console
+
+  const template = lecture.external_timestamp_url_template;
+  const ytLink = $("yt-link");
+  const updateYtLink = () => {
+    ytLink.href = template.replace("{t}", String(Math.floor(video.currentTime || 0)));
+  };
+  if (template) {
+    show($("yt-row"));
+    for (const ev of ["loadedmetadata", "timeupdate", "seeked", "pause"]) video.addEventListener(ev, updateYtLink);
+    for (const ev of ["click", "auxclick", "mouseover", "focus"]) ytLink.addEventListener(ev, updateYtLink);
+    updateYtLink();
+  }
+
+  const jump = () => {
+    const seconds = parseTimestamp($("jump").value);
+    const err = $("jump-error");
+    if (seconds === null) { err.textContent = "Use mm:ss, h:mm:ss or 1h2m3s."; return; }
+    err.textContent = "";
+    if (seekTo(seconds) === null) err.textContent = "The video isn't ready yet.";
+  };
+  $("jump-btn").addEventListener("click", jump);
+  $("jump").addEventListener("keydown", (e) => { if (e.key === "Enter") jump(); });
+
+  // Deep link ?t=...: seek once, as soon as metadata is available.
+  const t = params.get("t");
+  const applyDeepLink = () => { if (t !== null) { const s = parseTimestamp(t); if (s !== null) seekTo(s); } };
+  video.addEventListener("loadedmetadata", applyDeepLink, { once: true });
+
+  video.src = lecture.video_url;
+  video.addEventListener("error", () => {
+    $("pl-error").textContent = "The video couldn't be played.";
+    show($("pl-error"));
+  });
+}
+</script>
+</body>
+</html>
