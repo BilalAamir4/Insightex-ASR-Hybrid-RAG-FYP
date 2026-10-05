@@ -1,3 +1,3 @@
 # backend/tests/integration
 
-Placeholder. No tests yet.
+Real-network tests, marked `network`, skipped by default.

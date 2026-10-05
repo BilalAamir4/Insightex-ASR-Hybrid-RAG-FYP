@@ -1,3 +1,3 @@
 # backend/tests/unit
 
-Placeholder. No tests yet.
+Offline tests (URL ingestion, manifest, ids, ffmpeg on synthetic clips).

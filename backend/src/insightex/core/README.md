@@ -6,4 +6,6 @@
 
 **Feature numbers:** not assigned
 
-**Status:** skeleton only. No code yet; this README is the contract for what belongs here.
+**Status:** `config.py` (default.yaml + local.yaml, `${VAR}` expansion), `ids.py` (canonical id -> lecture_id,
+path-traversal-safe), `manifest.py` (per-lecture manifest.json, atomic writes, status transitions).
+Logging and shared errors not yet.
