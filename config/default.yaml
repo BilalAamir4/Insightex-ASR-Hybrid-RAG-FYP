@@ -16,6 +16,10 @@ paths:
 endpoints:
   ollama_base_url: ${OLLAMA_BASE_URL}
 
+api:
+  host: 127.0.0.1                   # loopback only; the server refuses 0.0.0.0 and ::
+  port: 8000
+
 ingest:
   url:
     max_duration_s: 10800             # 3 hours; checked at probe (when known) and after download
