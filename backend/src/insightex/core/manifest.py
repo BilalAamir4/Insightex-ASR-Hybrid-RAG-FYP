@@ -13,7 +13,8 @@ from typing import Any
 MANIFEST_NAME = "manifest.json"
 # mkstemp creates 0600; published files must be readable by whatever serves them (not umask-dependent).
 FILE_MODE = 0o644
-SCHEMA_VERSION = 1
+# v2: `processing` renamed `decision`; `source` (probe of the downloaded file) added. v1 manifests still load.
+SCHEMA_VERSION = 2
 
 STATUSES = ("probed", "downloading", "transcoding", "ready", "failed")
 # Forward-only pipeline; any non-terminal status may fail. "ready" and "failed" are terminal.
@@ -85,6 +86,11 @@ class Manifest:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Manifest:
+        data = dict(data)
+        if data.get("schema_version", 1) < 2:
+            data["decision"] = data.pop("processing", None)
+            data["source"] = None
+        data["schema_version"] = SCHEMA_VERSION  # in memory it is v2; the next write persists that
         known = {f for f in cls.__dataclass_fields__}
         return cls(**{k: v for k, v in data.items() if k in known})
 
