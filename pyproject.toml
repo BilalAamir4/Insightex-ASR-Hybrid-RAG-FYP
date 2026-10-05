@@ -19,3 +19,6 @@ src = ["backend/src"]
 [tool.pytest.ini_options]
 testpaths = ["backend/tests"]
 pythonpath = ["backend/src"]
+# Network tests hit real YouTube/Drive/HTTP servers: run them explicitly with `pytest -m network`.
+markers = ["network: needs internet access and real URLs (skipped by default)"]
+addopts = "-m 'not network'"
