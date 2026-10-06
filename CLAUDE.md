@@ -70,7 +70,7 @@ Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash
 ## GPU / VRAM contract (RTX 3070, 8 GB) — hard rules
 
 - Never run two CUDA stages at once. Each stage is its own subprocess and must exit fully before the next one starts.
-- Ollama (`qwen3.5:latest`) alone peaks at about 7.7–7.8 GB, which leaves roughly 450 MiB. Always set `num_ctx` explicitly.
+- Ollama (`qwen3.5:latest`) alone peaks at 7,566 MiB, which leaves about 626 MiB (`ENV_AUDIT_REPORT.md`). Always set `num_ctx` explicitly.
 - Before any GPU run, check `ollama ps`, then run `ollama stop <model>` if a model is loaded. Ask the user before stopping Ollama.
 - Ollama batch call body: `/api/chat` with a JSON Schema `format`, `think: false`, `keep_alive: "10m"`, `num_ctx: 8192`, `temperature: 0.1` and `num_predict: 600`.
   - In a `finally` block, unload with `keep_alive: 0`, then poll `ollama ps` until the model is gone.

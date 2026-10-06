@@ -82,7 +82,7 @@ These come from the October 2026 review. Settle each one when its module starts.
   - Check that the chosen book actually covers the dev lecture's topic.
   - This decision blocks F1, F2, F11 and Test B.
 - **M0 / M7 / M11: qwen3.5 VRAM headroom.**
-  - The ~7.7 GB peak leaves about 450 MiB. The KV cache grows with context, and Urdu script is token-expensive. The risk is a silent CPU offload or a truncated prompt.
+  - The 7,566 MiB peak leaves about 626 MiB (`ENV_AUDIT_REPORT.md`). The KV cache grows with context, and Urdu script is token-expensive. The risk is a silent CPU offload or a truncated prompt.
   - Always set `num_ctx` explicitly. Measure VRAM, tok/s and `ollama ps` at the worst-case prompt (3–5 Urdu windows + 2 textbook chunks).
   - Gate: concept extraction on 10 labelled windows, qwen3.5 vs Gemma 4 E4B. If the two are within noise, use the smaller model for interactive Q&A; using the larger one only for offline extraction is a valid split.
   - Optional lever: KV-cache quantisation.
@@ -97,7 +97,7 @@ These come from the October 2026 review. Settle each one when its module starts.
   - Decide in the WER gate: medium and large-v3 × forced `ur` / auto-detect (4 configs, with large-v3-turbo as a 5th if time allows).
   - Confirm `task=transcribe`, not translate. Count dropped segments explicitly. Enable `word_timestamps=True`.
 - **M5: Query-time VRAM conflict.**
-  - BGE-M3 (~1.1 GB) and qwen3.5 (~7.7 GB) can't share 8 GB.
+  - BGE-M3 (1,141.7 MB measured bake-off peak, `Embedding_Report.md`; `MODELS.md` and `ENV_AUDIT_REPORT.md` carry 3,089 MiB, not re-run; re-measure in M5) and qwen3.5 (7,566 MiB, `ENV_AUDIT_REPORT.md`) can't share 8 GB.
   - Encode documents on the GPU at ingest. Encode queries on the CPU in the API process (fp32, ~2.3 GB RAM), and run the reranker on the CPU too.
   - Gate: rerun Test A with CPU queries; Recall@3 must not change.
 - **M5 / M9: Sparse weights.**
