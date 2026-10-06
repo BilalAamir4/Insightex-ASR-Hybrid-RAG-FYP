@@ -97,6 +97,7 @@ Each decision has, or will get, an ADR in `docs/adr/`. Decision records are in `
 - Do not generate labelled query ranges from the SRT, because that makes the evaluation circular.
   - Do not call labels "hand-labelled" or "spot-checked" unless the user confirms it.
   - Verify on synthetic fixtures, not on the real lecture.
+- Lecture-derived text (transcripts, SRT/segment JSON, references, query snippets) lives in ~/insightex-data, never in the repo.
 - Recommend, but let the user make final model and design calls.
   - State limits honestly and mark unverified claims as unverified.
   - Label carried-over measurements as not re-run.
