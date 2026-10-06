@@ -71,6 +71,10 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 - **M19: Hardening** (error states, Tailscale demo path, nginx only if range requests misbehave).
   Exit: a clean demo on a fresh boot.
 - **M20: Thesis and defense material.**
+  - **Before making the repo final: remove lecture-derived text** (decided 6 Oct 2026: it stays until then). Keep `queries.csv` and `per_query_results.csv`, which are the project's own evaluation work.
+    - Current tree: `docs/reports/embedding_bakeoff/results_seq1024/windows_W30.csv`, `windows_W60.csv` and `windows_W90.csv` (the full transcript); one transcript line each in `docs/reports/PRE_MIGRATION_AUDIT.md` and `docs/reports/ENV_AUDIT_REPORT.md`; check the Urdu strings in `tools/bench_models/asr/verify_6a_whisper.py`.
+    - History (tree of tag `import-baseline`, under `_legacy_import/`): `embedding/data/day04_batch_vs_online/whisper_urdu.srt`; the `windows_W*.csv` files and result files under `embedding/tools/eval_embeddings/` (`results/` and `results_seq1024/`); `tools/env_audit/results/followup/T2.txt` and `T2_process_a.txt`; `tools/env_audit/results/followup2/F2.txt`, `F3.txt`, `F6.txt` and `F3_segments.json`; the transcript line in `STRUCTURE_AUDIT.md` and the Urdu-script line in `tools/env_audit/ENV_AUDIT_REPORT.md`.
+    - Method: take a backup bundle first (`git bundle create`), run `git filter-repo`, force-push `main`, and re-point and re-push the `import-baseline` tag.
 - **Stretch order:** F17 → F18 → F19 → F16, only if Milestones 1–9 finish early.
 
 ## Pending decisions by module
