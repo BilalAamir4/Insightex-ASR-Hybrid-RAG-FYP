@@ -20,3 +20,5 @@ __pycache__/
 *.bin
 *.ckpt
 *.egg-info/
+CLAUDE.md
+Link Video Feature Implementation.txt
