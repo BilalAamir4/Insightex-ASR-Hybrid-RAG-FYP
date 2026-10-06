@@ -20,5 +20,5 @@ __pycache__/
 *.bin
 *.ckpt
 *.egg-info/
-CLAUDE.md
+*:Zone.Identifier
 Link Video Feature Implementation.txt
