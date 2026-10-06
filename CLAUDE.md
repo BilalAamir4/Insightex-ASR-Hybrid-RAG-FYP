@@ -3,7 +3,7 @@
 Guidance for Claude Code in this repository. This file loads at the start of every session, so it stays short (target under 150 lines). More detail lives in places that load only when needed:
 - `.claude/rules/*.md`: path-scoped rules. Each one loads only when you touch files matching its `paths:` globs.
 - Nested `CLAUDE.md` files (e.g. `tools/CLAUDE.md`). These load when you work in that folder.
-- `docs/features/` <!-- TODO: not yet in repo -->, `docs/adr/` and `docs/reports/`. Read these on demand.
+- `docs/features/`, `docs/adr/` and `docs/reports/`. Read these on demand.
 
 ## What this is
 
@@ -11,11 +11,11 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
 
 - The **ASR pipeline is the committed Baseline.**
 - The **visual pipeline** (scene detection + OCR) is Optional. It sits behind `visual.enabled`, is time-boxed, and must never block a Baseline milestone.
-- Feature numbers (F1–F20) follow the proposal. Tiers and per-feature notes are in `docs/features/`. <!-- TODO: not yet in repo -->
+- Feature numbers (F1–F20) follow the proposal. Tiers and per-feature notes are in `docs/features/`.
 
 ## Current state (update this block at every milestone)
 
-- **Phase 0 (Foundation).** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria). <!-- TODO: not yet in repo -->
+- **Phase 0 (Foundation).** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
 - **Done:** M3 link ingestion (6 Oct 2026). This covers the engine + CLI, the FastAPI API with one-worker background jobs, and the static HTML ingest/library/player page.
 - **Partial:**
   - M0b: repo and tag `import-baseline` exist. Config system, ADRs and textbook choice are still to do.
@@ -23,7 +23,7 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
   - M2: the normalisation path exists. Local file upload is still to do.
   - M6: API, player and `seekTo(seconds)` exist. Ask box and citations are still to do.
 - **Not started:** the ASR stage (M4), production embeddings/FAISS (M5), concept extraction, the graph, the router and answers.
-- Before starting a module, check its open decisions in `docs/BUILD_ORDER.md` ("Pending decisions by module"). Settle them before building. <!-- TODO: not yet in repo -->
+- Before starting a module, check its open decisions in `docs/BUILD_ORDER.md` ("Pending decisions by module"). Settle them before building.
 
 ## Pipeline (target)
 
@@ -109,8 +109,8 @@ Each decision has, or will get, an ADR in `docs/adr/`. Decision records are in `
 |---|---|
 | Directory map | `README.md` |
 | Models, storage map, VRAM budget | `docs/MODELS.md` |
-| Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` <!-- TODO: not yet in repo --> |
-| Per-feature spec (F1–F20) | `docs/features/Fxx-*.md` <!-- TODO: not yet in repo --> |
+| Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` |
+| Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
 | ADRs (so far `0001-bge-m3.md`: embedding model and window) | `docs/adr/` |
 | Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
