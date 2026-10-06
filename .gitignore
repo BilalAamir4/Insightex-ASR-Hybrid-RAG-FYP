@@ -22,9 +22,3 @@ __pycache__/
 *.egg-info/
 *:Zone.Identifier
 Link Video Feature Implementation.txt
-# Lecture-derived text lives in ~/insightex-data, never in the repo (already-tracked files are unaffected)
-*.srt
-*.vtt
-*whisper*.json
-windows_W*.csv
-per_query_results.csv
