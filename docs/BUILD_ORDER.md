@@ -11,7 +11,7 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 | Module | State |
 |---|---|
 | M0 | Not done: environment open items still need closing |
-| M0b | Partial: git repo exists (tag `import-baseline`, pushed to GitHub); config system, ADRs and textbook choice still to do |
+| M0b | Partial: git repo exists on GitHub, tag `import-baseline` pushed; config system, ADRs and textbook choice still to do |
 | M1 | Partial: one-worker background jobs exist from link ingestion; GPU lease, resume-after-kill and generic stage runner still to do |
 | M2 | Partial: normalisation path (video.mp4 + 16 kHz mono audio.wav) exists for link ingestion; local file upload still to do |
 | M3 | **Done (6 Oct 2026)**; the eval-lecture fetch (4–6 lectures) still has to be run |
