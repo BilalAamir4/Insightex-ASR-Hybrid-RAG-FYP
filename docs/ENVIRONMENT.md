@@ -36,9 +36,9 @@ Sourced once from `~/.profile`; `scripts/run_in_env.sh` sources it too and then 
 
 ## 5. Ollama
 
-- Runs on **Windows**, loopback only: `127.0.0.1:11434` (MEASURED 2026-10-07: the Windows `ollama.exe` process is the only listener; WSL reaches it as `localhost` through mirrored networking). Version 0.35.1 per `/api/version` today (the old audit recorded 0.33.3, so Ollama was updated in between).
+- Runs on **Windows**, loopback only: `127.0.0.1:11434` (MEASURED 2026-10-07: the Windows `ollama.exe` process is the only listener; WSL reaches it as `localhost` through mirrored networking). Version **0.35.1** per `/api/version` (read after the restart on 2026-10-07; the old audit recorded 0.33.3). **Windows Ollama auto-updates**, so the version can change without notice. Rule: **re-run `tools/ollama_contract_probe.py` after any Ollama update** and compare with `docs/measurements/`. See the 0.35.1 confirmation line in section 7.
 - Models live in `E:\FYP\LLMs`. `/api/tags` lists exactly `qwen3.5:latest` (9.7B, Q4_K_M, id `6488c96fa5fa`).
-- Start script: `E:\FYP\start_ollama.ps1` sets `OLLAMA_MODELS=E:\FYP\LLMs` and `OLLAMA_HOST=127.0.0.1:11434` for its own process, then runs `ollama serve`. The copy in `E:\FYP` is what Windows runs; a repo reference copy existed at `scripts/windows/start_ollama.ps1` (identical, last committed in HEAD). **The two copies must stay in sync.**
+- Start script: `scripts/windows/start_ollama.ps1` in the repo is the **source of truth**. It sets `OLLAMA_MODELS=E:\FYP\LLMs` and `OLLAMA_HOST=127.0.0.1:11434` for its own process, then runs `ollama serve`. `E:\FYP\start_ollama.ps1` is a **deployed copy** (it is what Task Scheduler runs) and **must be re-copied by hand after any change to the repo copy**. Check with `diff <(tr -d '\r' < scripts/windows/start_ollama.ps1) <(tr -d '\r' < /mnt/e/FYP/start_ollama.ps1)` (no output = same content). The two files are not byte-identical, only identical after stripping CR: the repo checkout has CRLF line endings (`.gitattributes`: `*.ps1 eol=crlf`; the committed blob is LF) and the `E:\FYP` copy has LF only (191 vs 195 bytes, checked 2026-10-07). PowerShell accepts both.
 - **Autostart:** Task Scheduler task `Insightex Ollama` runs `powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "E:\FYP\start_ollama.ps1"`. MEASURED after the restart: Windows booted 23:30:30, `ollama.exe` started 23:30:56, task state Running, `/api/tags` answered with no manual step.
 - **Desktop-app autostart is disabled** (stated by the project owner; setting not inspected here). Only one `ollama` process was running after boot and no tray-app process.
 - Never set `OLLAMA_HOST=0.0.0.0`. Do not change Ollama or Windows settings from WSL work; changes there are made by hand.
@@ -46,20 +46,21 @@ Sourced once from `~/.profile`; `scripts/run_in_env.sh` sources it too and then 
 
 ## 6. Call contract
 
-Summary: `chat_json(messages, schema, num_ctx, num_predict=1024, ...)` in `backend/src/insightex/llm/ollama_client.py`. Exact model name checked first, `think: false`, JSON Schema `format` from a pydantic model, `num_ctx` required (project default 8192), `num_predict` explicit, budget rule estimated prompt + `num_predict` <= `num_ctx`, `done_reason: length` raises `OutputTruncated` and is never parsed, `unload()` with `keep_alive: 0` plus polling. Full table, numbers and alternatives: **`docs/adr/0001-ollama-call-contract.md`**.
+Summary: `chat_json(messages, schema, num_ctx, num_predict=1024, ...)` in `backend/src/insightex/llm/ollama_client.py`. Exact model name checked first, `think: false`, JSON Schema `format` from a pydantic model, `num_ctx` required (project default 8192), `num_predict` explicit, budget rule estimated prompt + `num_predict` <= `num_ctx`, `done_reason: length` raises `OutputTruncated` and is never parsed, `unload()` with `keep_alive: 0` plus polling. Full table, numbers and alternatives: **`docs/adr/0002-ollama-call-contract.md`**.
 
 ## 7. Measured numbers
 
 | Item | Value | Date, source |
 |---|---|---|
 | Idle VRAM (Windows desktop only, no model) | 600 to 1,273 MiB (1,273 right after boot, 600 later) | 2026-10-07, `nvidia-smi` |
-| qwen3.5 at `num_ctx` 8192, 6.9k-token prompt | peak 7,374 to 7,424 MiB, model share about 6,500 MiB, 768 to 818 MiB free, 100% GPU, 59.7 to 63.7 tok/s | 2026-10-07, `docs/measurements/2026-10-07_ollama_contract.md` |
+| qwen3.5 at `num_ctx` 8192, 6.9k-token prompt | peak 7,374 to 7,682 MiB, model share 6,495 to 6,601 MiB, **510 to 818 MiB free** (depends on the desktop baseline, 852 to 1,081 MiB), 100% GPU, 52.1 to 63.7 tok/s | 2026-10-07, `docs/measurements/2026-10-07_ollama_contract.md` |
 | qwen3.5 at `num_ctx` 16384, 13.7k-token prompt | 16%/84% CPU/GPU, 44.4 tok/s (not usable at 100% GPU) | same file; one run, old 600-token cap |
 | Whisper medium / large-v3 load, cold then warm | 4.35 / 0.78 s and 7.92 / 1.78 s | 2026-10-07, `docs/measurements/2026-10-07_loadtimes.md` |
 | bge-m3 load (sentence-transformers), cold then warm | 6.48 / 1.59 s | same file |
 | Whisper warm speed on Day 4 first 10 min (speed only) | medium 21.4x real time (RTF 0.0466), large-v3 8.4x (RTF 0.1197) | same file; WER is M4 |
 | Whisper large-v3 peak VRAM, 10 min | 5,530 MiB | 3 Oct 2026, CARRIED OVER |
 | bge-m3 peak VRAM | 3,089 MiB | 2 Oct 2026, CARRIED OVER (the bake-off measured 1,141.7 MB, see `Embedding_Report.md`) |
+| **Confirmed on Ollama 0.35.1** (version read from `/api/version` by the probe) | the 8192 / 6,905-token case was re-run after the restart: 100% GPU, `done_reason` `stop`, valid JSON, 786 output tokens, peak 7,682 MiB, 510 MiB free, 52.1 tok/s, load 29.7 s (baseline 1,081 MiB). The earlier long-prompt runs were made before the restart, and the Ollama version they ran on was not recorded. | 2026-10-07 23:44, same measurements file |
 | `tools/verify_env.py` after full restart | 12 of 12 passed | 2026-10-07, report `$INSIGHTEX_DATA/env_reports/20261007T233720.json` |
 
 GPU contract (hard): never two CUDA stages at once; each stage is its own process and exits fully before the next starts. At query time the GPU belongs to Ollama; bge-m3 query encoding and the reranker run on CPU inside the API process (planned, M5).
@@ -78,10 +79,10 @@ GPU contract (hard): never two CUDA stages at once; each stage is its own proces
 
 ## 10. Known risks
 
-- **VRAM headroom is about 800 MiB** at `num_ctx` 8192 with a 7k-token prompt (peak about 7.4 GB of 8.19 GB), on a clean desktop.
+- **VRAM headroom is 510 to 818 MiB** at `num_ctx` 8192 with a 7k-token prompt (peak 7.4 to 7.7 GB of 8.19 GB), depending on how much the Windows desktop holds (baseline 852 to 1,081 MiB across runs).
 - **Windows apps eating VRAM.** GPU-heavy Windows apps took about 2.3 GB at one point; with that load the model does not fit at 100% GPU. Close them during work and check the idle baseline.
 - **Urdu token cost.** Urdu script costs far more tokens per character than English; the budget rule's 1.5 chars/token for Arabic script is a guess. No Urdu-script prompt has been run through the probe, so context headroom for real Urdu lectures is unmeasured.
-- **Ollama updates itself.** Version moved from 0.33.3 to 0.35.1 between audits; a new version can change memory use. Re-run `tools/ollama_contract_probe.py` after an Ollama update.
+- **Ollama updates itself** (Windows auto-update). Version moved from 0.33.3 to 0.35.1 between audits; a new version can change memory use or the CPU/GPU split. Re-run `tools/ollama_contract_probe.py` after any Ollama update.
 - Extraction quality is not evaluated (see M7 open items in the ADR).
 
 ## 11. How to verify

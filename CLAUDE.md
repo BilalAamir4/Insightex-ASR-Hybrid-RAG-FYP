@@ -16,7 +16,9 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
 ## Current state (update this block at every milestone)
 
 - **Phase 0 (Foundation).** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
-- **Done:** M3 link ingestion (6 Oct 2026). This covers the engine + CLI, the FastAPI API with one-worker background jobs, and the static HTML ingest/library/player page.
+- **Done:**
+  - M0 environment verification (7 Oct 2026): cold-boot pass, `scripts/verify_env.sh` 12/12 after a full Windows restart with Ollama started by Task Scheduler. State in `docs/ENVIRONMENT.md`, Ollama contract in `docs/adr/0002-ollama-call-contract.md`. **Next: M0b.**
+  - M3 link ingestion (6 Oct 2026). This covers the engine + CLI, the FastAPI API with one-worker background jobs, and the static HTML ingest/library/player page.
 - **Partial:**
   - M0b: repo and tag `import-baseline` exist. Config system, ADRs and textbook choice are still to do.
   - M1: background jobs exist. GPU lease, resume-after-kill and a generic stage runner are still to do.
@@ -69,12 +71,12 @@ Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash
 ## GPU / VRAM contract (RTX 3070, 8 GB) — hard rules
 
 - Never run two CUDA stages at once. Each stage is its own subprocess and must exit fully before the next one starts.
-- Ollama (`qwen3.5:latest`) alone peaks at about 7.4 GB at `num_ctx` 8192 (measured 2026-10-07), leaving about 800 MiB on a clean Windows desktop (`docs/ENVIRONMENT.md`). Always set `num_ctx` explicitly; 16384 spills to CPU.
+- Ollama (`qwen3.5:latest`) alone peaks at about 7.4 GB at `num_ctx` 8192 (measured 2026-10-07), leaving 510 to 818 MiB depending on the Windows desktop's VRAM use (`docs/ENVIRONMENT.md`). Always set `num_ctx` explicitly; 16384 spills to CPU.
 - Before any GPU run, check `ollama ps`, then run `ollama stop <model>` if a model is loaded. Ask the user before stopping Ollama.
 - Ollama calls go through `insightex.llm.ollama_client.chat_json`: `/api/chat` with a JSON Schema `format`, `think: false`, `keep_alive: "10m"`, `num_ctx` required (default 8192), `temperature` 0, `num_predict` explicit (default 1024).
   - Estimated prompt tokens + `num_predict` must fit in `num_ctx`; `done_reason: length` is an error, never parsed.
   - In a `finally` block, call `unload()` (`keep_alive: 0`, then poll `/api/ps` until the model is gone).
-  - Full contract and measurements: `docs/adr/0001-ollama-call-contract.md`.
+  - Full contract and measurements: `docs/adr/0002-ollama-call-contract.md`.
 - Query time (planned, M5): the GPU belongs to Ollama. BGE-M3 query encoding and the reranker run on CPU inside the API process.
 
 ## Decisions already made (don't relitigate without new evidence)
@@ -112,11 +114,11 @@ Each decision has, or will get, an ADR in `docs/adr/`. Decision records are in `
 | Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` |
 | Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
-| ADRs (so far `0001-bge-m3.md`: embedding model and window) | `docs/adr/` |
+| ADRs (so far `0001-bge-m3.md`: embedding model and window; `0002-ollama-call-contract.md`: Ollama call contract) | `docs/adr/` |
 | Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
 | Draft JSON Schema: ASR segment list (id, start, end, text, avg_logprob, no_speech_prob) | `docs/contracts/segments.json` |
 | Current environment state, how to verify (`scripts/verify_env.sh`) | `docs/ENVIRONMENT.md` |
-| Ollama call contract (ADR) and probe measurements | `docs/adr/0001-ollama-call-contract.md`, `docs/measurements/` |
+| Ollama call contract (ADR) and probe measurements | `docs/adr/0002-ollama-call-contract.md`, `docs/measurements/` |
 | Setup and after-restart steps | `docs/runbooks/setup.md`, `docs/runbooks/after_restart_checklist.md` |
 | Proposal, feature list (placeholder; documents not added yet) | `docs/proposal/README.md` |
 | Reports: `Embedding_Report`, `OCR_report`, `vl_probe_REPORT`, `PRE_MIGRATION_AUDIT`, `MIGRATION_REPORT` | `docs/reports/` |

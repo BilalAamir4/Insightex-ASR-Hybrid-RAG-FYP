@@ -37,7 +37,7 @@ Run commands from a WSL shell, not nested through PowerShell (`wsl -- bash -lc "
 
 Runs on the Windows host, bound to `127.0.0.1:11434`, reached from WSL as `localhost` (mirrored networking in `%UserProfile%\.wslconfig`). Models are stored in `E:\FYP\LLMs` (Windows user variable `OLLAMA_MODELS`). Start it with `scripts/windows/start_ollama.ps1`. Never set `OLLAMA_HOST=0.0.0.0`.
 
-Batch call settings: see `docs/adr/0001-ollama-call-contract.md` (`chat_json`: JSON Schema `format`, `think: false`, `keep_alive: "10m"`, `num_ctx` required with default 8192, `num_predict` default 1024, `temperature` 0). At the end of a batch call `unload()` in a `finally` block.
+Batch call settings: see `docs/adr/0002-ollama-call-contract.md` (`chat_json`: JSON Schema `format`, `think: false`, `keep_alive: "10m"`, `num_ctx` required with default 8192, `num_predict` default 1024, `temperature` 0). At the end of a batch call `unload()` in a `finally` block.
 
 ## Checks
 

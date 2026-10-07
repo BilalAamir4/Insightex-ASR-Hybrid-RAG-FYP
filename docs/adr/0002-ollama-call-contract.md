@@ -1,8 +1,8 @@
-# ADR 0001: Ollama call contract (qwen3.5:latest)
+# ADR 0002: Ollama call contract (qwen3.5:latest)
 
 Status: decided for M0 on 2026-10-07. The model choice itself is still open until M7 (qwen3.5 vs Gemma 4 E4B); this ADR fixes how any call to Ollama is made. Final model calls stay with the user.
 
-(An earlier ADR file, `0001-bge-m3.md`, records the embedding decision. Both carry number 0001; renumber one when convenient.)
+(ADR numbering: `0001-bge-m3.md` is the embedding decision; this is 0002.)
 
 ## Context
 
@@ -43,18 +43,20 @@ All on 2026-10-07, RTX 3070, `qwen3.5:latest`, `think: false`, `temperature` 0, 
 | 3 | 8192 | 6,884 | 600 | 852 | 7,421 | 6,569 | 771 | 100% GPU | 600 | 63.7 | **length** | **no (cut off)** |
 | 4 | 16384 | 13,735 | 600 | 861 | 7,296 | 6,435 | 896 | **16%/84% CPU/GPU** | 600 | 44.4 | **length** | **no (cut off)** |
 | 5 | 8192 | 6,905 | 1024 | 879 | 7,374 | 6,495 | 818 | 100% GPU | 786 | 61.6 | stop | yes |
+| 6 | 8192 | 6,905 | 1024 | 1,081 | 7,682 | 6,601 | 510 | 100% GPU | 786 | 52.1 | stop | yes |
 | 5b | 8192 | 6,903 | 600 | 862 | 7,424 | 6,562 | 768 | 100% GPU | 474 | 59.7 | stop | yes |
 
+- Run 6 is the same case re-run after the full Windows restart on Ollama 0.35.1 (higher desktop baseline, cold model file: load 29.7 s). The version of the earlier runs was not recorded.
 - Run 5b was recorded only in a console log (its report write was lost when the 16384 fit failed); the numbers are from that log, with an earlier prompt variant (6 extra passages instead of 7, no concept cap).
 - In every run the prompt was intact: measured `prompt_eval_count` was within 5 tokens of a calibration count made with a prefix-cache-defeating nonce, and below `num_ctx`. Runs 1 and 2 use only ~1,760 tokens, so truncation near 4096 was not exercised.
 - `ollama ps` model size: 5.49 GB (ctx 4096), 5.63 GB (ctx 8192), 6.55 GB with 5.50 GB in VRAM (ctx 16384).
 - Peak VRAM was within 3 MiB for ctx 4096 vs 8192 (rows 1 and 2), so the larger context cost no extra GPU memory at that prompt size. The lower peak in row 4 only reflects layers moved to CPU.
-- Free VRAM at peak across all 100%-GPU runs: 768 to 818 MiB.
+- Free VRAM at peak across all 100%-GPU runs: 510 to 818 MiB (the low end is run 6, with the busiest desktop).
 - Output of run 5: 16 concepts against a requested "at most 15"; 11 of 16 `evidence_quote` values appeared verbatim in the input.
 
 ## Consequences
 
-- Default context is 8192; a prompt of about 7,000 tokens plus 1,024 output tokens fits at 100% GPU with about 800 MiB free on an otherwise idle desktop.
+- Default context is 8192; a prompt of about 7,000 tokens plus 1,024 output tokens fits at 100% GPU with 510 to 818 MiB free depending on the Windows desktop's VRAM use.
 - Callers must size their prompts. Anything that would exceed `num_ctx - num_predict` fails loudly; the caller splits the input (fewer windows or passages per call) instead of raising the context.
 - Truncated output is an error to handle (retry with a larger `num_predict` or less requested output), never a result to parse.
 - Operational constraint: **Windows GPU-heavy apps must be closed during work.** They held about 2.3 GB of VRAM at one point (about 3.2 GB used with no model loaded, against about 0.9 GB clean). With that load the 7.4 GB peak does not fit. `tools/verify_env.py` reports the idle baseline and fails the unload check if VRAM does not return to within 200 MiB of it.

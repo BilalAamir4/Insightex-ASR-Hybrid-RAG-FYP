@@ -8,6 +8,6 @@
 
 **Outputs:** Quality report.
 
-**Status:** Planned. Extraction quality is provisional pending human inspection (see `docs/adr/0001-ollama-call-contract.md`, open items for M7).
+**Status:** Planned. Extraction quality is provisional pending human inspection (see `docs/adr/0002-ollama-call-contract.md`, open items for M7).
 
 Standalone tool: it must not import from `backend/`.

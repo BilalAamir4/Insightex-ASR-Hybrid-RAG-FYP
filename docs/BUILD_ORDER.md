@@ -20,7 +20,7 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 
 ## Phase 0: Foundation (week of 5 Oct)
 
-- **M0: Close the environment's open items.** This covers the post-restart check, the Ollama call contract (model `qwen3.5:latest`, `think`, `num_ctx`, `format`, `keep_alive`), and a rewrite of `ENV_AUDIT_REPORT.md` as a single current-state document.
+- **M0: Close the environment's open items.** Done 7 Oct 2026 (`docs/ENVIRONMENT.md`). This covers the post-restart check, the Ollama call contract (model `qwen3.5:latest`, `think`, `num_ctx`, `format`, `keep_alive`), and a rewrite of `ENV_AUDIT_REPORT.md` as a single current-state document.
   Exit: one verification script passes from a cold boot.
 - **M0b: Repo scaffold, config system, one ADR per decision, textbook chosen.**
   Exit: `docs/adr/` holds one ADR for every decision.
@@ -35,6 +35,7 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 - **M4: ASR stage + WER gate** in `tools/eval_wer`.
   Exit: the checkpoint and language decision is recorded as an ADR, with numbers.
 - **M5: Windows + embedding (dense and sparse) + FAISS.**
+  - Prerequisite for the sparse-weight work: `FlagEmbedding` is **not installed** and is not in `requirements.lock.txt`. Installing it needs the user's approval and a lockfile update (then re-run `scripts/verify_env.sh`). `tools/bench_models/loadtimes/verify_6b_loadtimes.py` fails at its bge-m3 step for the same reason.
   Exit: Test A reproduces through production code, and the CPU-query gate passes.
 - **M6: Minimal API and UI.** Upload or link, progress, player, ask box, top-3 citations that seek the video.
   Exit: paste link → wait → ask → click → the video jumps to the right moment.
@@ -86,7 +87,7 @@ These come from the October 2026 review. Settle each one when its module starts.
   - Check that the chosen book actually covers the dev lecture's topic.
   - This decision blocks F1, F2, F11 and Test B.
 - **M0 / M7 / M11: qwen3.5 VRAM headroom.**
-  - The 2 Oct audit recorded a 7,566 MiB peak with 626 MiB free; re-measured 2026-10-07 at about 7.4 GB peak with about 800 MiB free (`docs/ENVIRONMENT.md`, `docs/adr/0001-ollama-call-contract.md`). The KV cache grows with context, and Urdu script is token-expensive. The risk is a silent CPU offload or a truncated prompt.
+  - The 2 Oct audit recorded a 7,566 MiB peak with 626 MiB free; re-measured 2026-10-07 at 7.4 to 7.7 GB peak with 510 to 818 MiB free (`docs/ENVIRONMENT.md`, `docs/adr/0002-ollama-call-contract.md`). The KV cache grows with context, and Urdu script is token-expensive. The risk is a silent CPU offload or a truncated prompt.
   - Always set `num_ctx` explicitly. Measure VRAM, tok/s and `ollama ps` at the worst-case prompt (3–5 Urdu windows + 2 textbook chunks).
   - Gate: concept extraction on 10 labelled windows, qwen3.5 vs Gemma 4 E4B. If the two are within noise, use the smaller model for interactive Q&A; using the larger one only for offline extraction is a valid split.
   - Optional lever: KV-cache quantisation.
