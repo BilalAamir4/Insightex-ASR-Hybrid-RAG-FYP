@@ -24,6 +24,8 @@ Nothing project-related should grow on C:.
 
 Sourced once from `~/.profile`; `scripts/run_in_env.sh` sources it too and then activates the venv. It sets `INSIGHTEX_HOME`, `INSIGHTEX_DATA`, `INSIGHTEX_MODEL_CACHE_MASTER`, `HF_HOME`, `HF_HUB_OFFLINE=1`, `OLLAMA_BASE_URL=http://localhost:11434`, `PIP_CACHE_DIR`, `TORCH_HOME` and `LD_LIBRARY_PATH` (`/usr/lib/wsl/lib` plus the 15 `nvidia/*/lib` directories of the venv, 16 entries when started empty).
 
+The venv `activate` script (`~/envs/insightex/bin/activate`, last line) sources this repo copy, guarded by an `if [ -f ... ]` block; `E:\FYP\env` is backup only and is not sourced by anything.
+
 - **`LD_LIBRARY_PATH` has no empty entries** (fixed 2026-10-07). An empty entry means the current directory is searched for libraries. The script now joins entries without a trailing colon and handles an empty or preset prior value. `tools/verify_env.py` checks for empty entries and duplicates.
 - **Once-per-shell guard** (`_INSIGHTEX_ENV_LOADED`): the script returns immediately if the variable is already exported, so it never duplicates entries. **Stale-session caveat:** a session that was started before the script was changed (an IDE terminal or agent session left open) keeps its old exported `LD_LIBRARY_PATH` and the guard stops the fix from being applied. After editing the script, open a new WSL session (or use `env -i HOME=$HOME PATH=/usr/bin:/bin bash -lc '...'` to test).
 - Without the wrapper, faster-whisper fails at **inference** time with `libcublas.so.12 is not found`, not at import.
