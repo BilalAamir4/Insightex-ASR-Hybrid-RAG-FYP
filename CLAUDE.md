@@ -103,6 +103,8 @@ Each decision has, or will get, an ADR in `docs/adr/`. Decision records are in `
   - State limits honestly and mark unverified claims as unverified.
   - Label carried-over measurements as not re-run.
   - Frame risky technical claims as decision gates with a measurable exit, not as assertions.
+- No hardcoded tunables in `backend/src/`. A new tunable goes into `config/default.yaml` with a comment (one line, with unit) and is read through the typed settings object (`insightex.core.config`). Entry points load settings once and pass them down.
+- Every new or changed project decision gets an ADR in `docs/adr/` (template: `docs/adr/template.md`). A new decision gets a new ADR; a changed decision gets a new ADR that supersedes the old one, and the old ADR is never rewritten beyond its status line.
 - Git: do not add a Claude co-author trailer to commits.
 
 ## Where to look
