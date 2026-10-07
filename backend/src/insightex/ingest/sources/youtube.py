@@ -46,5 +46,5 @@ def download(
     parsed: ParsedUrl, dest_dir: Path, settings: IngestSettings, meta: SourceMeta, on_bytes: BytesCb | None
 ) -> Path:
     return ytdlp.download(
-        parsed.normalized_url, dest_dir, settings, "youtube", ytdlp.YOUTUBE_FORMAT, on_bytes, merge_mp4=True
+        parsed.normalized_url, dest_dir, settings, "youtube", ytdlp.youtube_format(settings.max_video_height), on_bytes, merge_mp4=True
     )

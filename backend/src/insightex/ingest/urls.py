@@ -9,8 +9,8 @@ from urllib.parse import parse_qs, parse_qsl, quote, unquote, urlencode, urlspli
 
 from insightex.core.ids import lecture_id_from_canonical
 from insightex.ingest.errors import ErrorCode, IngestError
+from insightex.ingest.settings import IngestSettings
 
-MAX_URL_LENGTH = 2048
 
 YOUTUBE_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
 DRIVE_ID_RE = re.compile(r"^[A-Za-z0-9_-]{25,64}$")
@@ -125,11 +125,13 @@ def normalize_direct_url(parts) -> str:
     return urlunsplit((scheme, netloc, path, query, ""))
 
 
-def parse_url(raw: str) -> ParsedUrl:
+def parse_url(raw: str, max_length: int | None = None) -> ParsedUrl:
     if not isinstance(raw, str):
         raise _unsupported()
     raw = raw.strip()
-    if not raw or len(raw) > MAX_URL_LENGTH or any(c.isspace() or ord(c) < 32 for c in raw):
+    if max_length is None:
+        max_length = IngestSettings.current().max_url_length
+    if not raw or len(raw) > max_length or any(c.isspace() or ord(c) < 32 for c in raw):
         raise _unsupported()
     m = _SCHEME_RE.match(raw)
     if m is None or not raw[m.end():].startswith("//"):

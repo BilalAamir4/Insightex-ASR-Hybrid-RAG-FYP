@@ -115,9 +115,19 @@ def parse_ffprobe_json(data: dict) -> MediaInfo:
     return MediaInfo(format_name=fmt.get("format_name") or "", duration_s=duration, video=video, audio=audio)
 
 
-def ffprobe(path: Path) -> MediaInfo:
+def _ingest_settings(settings=None):
+    """Explicit settings from the caller, else the process settings (imported late: media sits below ingest)."""
+    if settings is not None:
+        return settings
+    from insightex.ingest.settings import IngestSettings
+
+    return IngestSettings.current()
+
+
+def ffprobe(path: Path, settings=None) -> MediaInfo:
     cmd = [FFPROBE, "-v", "error", "-print_format", "json", "-show_format", "-show_streams", str(path)]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    proc = subprocess.run(cmd, capture_output=True, text=True,
+                          timeout=_ingest_settings(settings).ffprobe_timeout_s)
     if proc.returncode != 0:
         raise FFmpegError(f"ffprobe failed on {path.name}", proc.stderr[-4000:])
     try:
@@ -126,12 +136,13 @@ def ffprobe(path: Path) -> MediaInfo:
         raise FFmpegError(f"ffprobe returned invalid JSON for {path.name}", proc.stdout[-2000:]) from exc
 
 
-def decide_processing(info: MediaInfo, max_height: int = 1080) -> str:
+def decide_processing(info: MediaInfo, max_height: int | None = None) -> str:
     """"remux" when the file already is H.264 (8-bit 4:2:0) + AAC in an MP4/MOV container within
     max_height, else "transcode"."""
     v, a = info.video, info.audio
     if v is None or a is None:
         return "transcode"
+    max_height = _ingest_settings().max_video_height if max_height is None else max_height
     in_mp4 = "mp4" in info.format_name.split(",")
     display_height = v.width if v.rotation in (90, 270) else v.height
     ok = (
@@ -158,7 +169,9 @@ def remux_args(src: Path, dst: Path) -> list[str]:
     ]
 
 
-def transcode_args(src: Path, dst: Path, info: MediaInfo, max_height: int = 1080) -> list[str]:
+def transcode_args(src: Path, dst: Path, info: MediaInfo, max_height: int | None = None, settings=None) -> list[str]:
+    cfg = _ingest_settings(settings)
+    max_height = cfg.max_video_height if max_height is None else max_height
     fps = transcode_fps(info)
     # ffmpeg auto-rotates on decode, so ih is the displayed height. Even dimensions for yuv420p.
     vf = f"scale=w=-2:h='trunc(min({max_height},ih)/2)*2',setsar=1"
@@ -167,7 +180,7 @@ def transcode_args(src: Path, dst: Path, info: MediaInfo, max_height: int = 1080
         "-vf", vf,
         # Variable frame rate (phones, OBS) becomes constant: timestamps stay on the wall clock.
         "-fps_mode", "cfr", "-r", f"{fps:.3f}".rstrip("0").rstrip("."),
-        "-c:v", "libx264", "-preset", "medium", "-crf", "23", "-pix_fmt", "yuv420p",
+        "-c:v", "libx264", "-preset", cfg.preset, "-crf", str(cfg.crf), "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "128k", "-ac", "2",
         "-movflags", "+faststart", "-f", "mp4", str(dst),
     ]
@@ -223,12 +236,14 @@ def run_ffmpeg(
         on_fraction(1.0)
 
 
-def extract_frame_jpeg(src: Path, dst: Path, at_s: float) -> None:
+def extract_frame_jpeg(src: Path, dst: Path, at_s: float, settings=None) -> None:
+    cfg = _ingest_settings(settings)
     args = ["-ss", f"{max(at_s, 0):.3f}", "-i", str(src), "-frames:v", "1",
-            "-vf", "scale=w='min(1280,iw)':h=-2", "-q:v", "3", "-update", "1", "-f", "image2", str(dst)]
+            "-vf", f"scale=w='min({cfg.thumb_max_width},iw)':h=-2", "-q:v", str(cfg.thumb_quality), "-update", "1", "-f", "image2", str(dst)]
     run_ffmpeg(args)
 
 
-def image_to_jpeg(src: Path, dst: Path) -> None:
+def image_to_jpeg(src: Path, dst: Path, settings=None) -> None:
     """Convert any image ffmpeg can decode (webp, png, jpg) to JPEG."""
-    run_ffmpeg(["-i", str(src), "-frames:v", "1", "-q:v", "3", "-update", "1", "-f", "image2", str(dst)])
+    run_ffmpeg(["-i", str(src), "-frames:v", "1", "-q:v", str(_ingest_settings(settings).thumb_quality),
+                "-update", "1", "-f", "image2", str(dst)])

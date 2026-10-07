@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from insightex.api.routers import ingest, lectures
-from insightex.core.config import repo_root
+from insightex.core.config import Settings, get_settings, repo_root
 from insightex.ingest.settings import IngestSettings
 from insightex.jobs.ingest_jobs import IngestJobs, Runner, recover_interrupted
 
@@ -20,10 +20,12 @@ log = logging.getLogger(__name__)
 
 def create_app(
     settings: IngestSettings | None = None,
+    app_settings: Settings | None = None,
     runner: Runner | None = None,
     frontend_dir: Path | None = None,
 ) -> FastAPI:
-    settings = settings or IngestSettings.from_config()
+    app_settings = app_settings or get_settings()
+    settings = settings or IngestSettings.from_settings(app_settings)
     jobs = IngestJobs(settings, runner=runner)
 
     @asynccontextmanager
@@ -36,6 +38,7 @@ def create_app(
 
     app = FastAPI(title="Insightex", lifespan=lifespan)
     app.state.settings = settings
+    app.state.app_settings = app_settings
     app.state.jobs = jobs
     app.include_router(ingest.router)
     app.include_router(lectures.router)

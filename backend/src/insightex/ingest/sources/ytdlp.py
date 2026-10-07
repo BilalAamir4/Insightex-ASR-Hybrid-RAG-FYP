@@ -22,14 +22,11 @@ log = logging.getLogger(__name__)
 
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 
-YOUTUBE_FORMAT = (
-    # H.264 <=1080p + AAC (merged into mp4), then any single-file H.264+AAC <=1080p,
-    # then the best <=1080p of any codec, then whatever exists (transcode scales it down).
-    "bv*[vcodec^=avc1][height<=1080]+ba[acodec^=mp4a]"
-    "/b[vcodec^=avc1][acodec^=mp4a][height<=1080]"
-    "/bv*[height<=1080]+ba/b[height<=1080]"
-    "/bv*+ba/b"
-)
+def youtube_format(max_height: int) -> str:
+    # H.264 <=max_height + AAC (merged into mp4), then any single-file H.264+AAC <=max_height,
+    # then the best <=max_height of any codec, then whatever exists (transcode scales it down).
+    h = f"[height<={max_height}]"
+    return f"bv*[vcodec^=avc1]{h}+ba[acodec^=mp4a]/b[vcodec^=avc1][acodec^=mp4a]{h}/bv*{h}+ba/b{h}/bv*+ba/b"
 
 
 class _SizeCapExceeded(Exception):
@@ -93,7 +90,7 @@ def base_opts(settings: IngestSettings, logger: _Logger) -> dict[str, Any]:
         "cookiesfrombrowser": None,
         "usenetrc": False,
         "js_runtimes": {"deno": {"path": deno} if deno else {}},
-        "socket_timeout": 30,
+        "socket_timeout": settings.socket_timeout_s,
         "retries": 3,
         "fragment_retries": 3,
         "extractor_retries": 2,

@@ -39,7 +39,6 @@ STAGES = ("probing", "downloading", "transcoding", "extracting_audio", "done")
 TMP_DIR = ".tmp"
 LOCKS_DIR = ".locks"
 VIDEO_NAME, AUDIO_NAME, THUMB_NAME = "video.mp4", "audio.wav", "thumbnail.jpg"
-MAX_THUMBNAIL_BYTES = 10 * 1024 * 1024
 
 SOURCES: dict[str, Any] = {
     "youtube": SimpleNamespace(probe=youtube.probe, download=youtube.download),
@@ -65,7 +64,7 @@ class ProbeResult:
 
 
 def _settings(settings: IngestSettings | None) -> IngestSettings:
-    return settings or IngestSettings.from_config()
+    return settings or IngestSettings.current()
 
 
 def _lecture_path(settings: IngestSettings, parsed: ParsedUrl) -> Path:
@@ -93,7 +92,7 @@ def _check_duration(duration_s: float | None, settings: IngestSettings) -> None:
 def probe(url: str, settings: IngestSettings | None = None) -> ProbeResult:
     """Metadata without downloading media. Raises IngestError (TOO_LONG when the duration is known)."""
     settings = _settings(settings)
-    parsed = parse_url(url)
+    parsed = parse_url(url, settings.max_url_length)
     path = _lecture_path(settings, parsed)
     existing = read_manifest(path)
     if _is_ready(path, existing):
@@ -158,7 +157,7 @@ def ingest(
     if rights_confirmed is not True:
         raise IngestError(ErrorCode.RIGHTS_NOT_CONFIRMED)
     settings = _settings(settings)
-    parsed = parse_url(url)
+    parsed = parse_url(url, settings.max_url_length)
     progress = _Progress(progress_cb)
     path = _lecture_path(settings, parsed)
 
@@ -276,7 +275,7 @@ def _process(
     progress: _Progress,
 ) -> None:
     try:
-        info = ffmpeg.ffprobe(source)
+        info = ffmpeg.ffprobe(source, settings)
     except ffmpeg.FFmpegError as exc:
         log.warning("ffprobe rejected %s: %s\n%s", source.name, exc, exc.stderr)
         raise IngestError(ErrorCode.NOT_A_VIDEO, "This file couldn't be read as a video.") from exc
@@ -311,7 +310,7 @@ def _process(
         if mode == "transcode":
             ffmpeg.run_ffmpeg(ffmpeg.transcode_args(source, tmp_video, info, settings.max_video_height),
                               info.duration_s, on_fraction("transcoding", "Converting video"))
-        out = ffmpeg.ffprobe(tmp_video)
+        out = ffmpeg.ffprobe(tmp_video, settings)
     except ffmpeg.FFmpegError as exc:
         log.error("transcode failed for %s: %s\n%s", source.name, exc, exc.stderr)
         raise IngestError(ErrorCode.TRANSCODE_FAILED) from exc
@@ -342,34 +341,35 @@ def _process(
     manifest.audio = {"sample_rate": ffmpeg.ASR_SAMPLE_RATE, "channels": ffmpeg.ASR_CHANNELS, "codec": ffmpeg.ASR_CODEC}
 
     progress("extracting_audio", None, "Saving thumbnail")
-    if _thumbnail(final_video, tmp, meta.thumbnail_url, out.duration_s):
+    if _thumbnail(final_video, tmp, meta.thumbnail_url, out.duration_s, settings):
         _publish(tmp / THUMB_NAME, path / THUMB_NAME)
         manifest.files["thumbnail"] = THUMB_NAME
 
 
-def _thumbnail(video: Path, tmp: Path, thumbnail_url: str | None, duration_s: float | None) -> bool:
+def _thumbnail(video: Path, tmp: Path, thumbnail_url: str | None, duration_s: float | None,
+               settings: IngestSettings) -> bool:
     """Source thumbnail if available, else a frame at 10% of the duration. Best effort: never fails ingest."""
     dst = tmp / THUMB_NAME
     if thumbnail_url:
         try:
             raw = tmp / "thumbnail.src"
-            _fetch_small(thumbnail_url, raw, MAX_THUMBNAIL_BYTES)
-            ffmpeg.image_to_jpeg(raw, dst)
+            _fetch_small(thumbnail_url, raw, settings.thumb_max_bytes, settings)
+            ffmpeg.image_to_jpeg(raw, dst, settings)
             return True
         except (IngestError, ffmpeg.FFmpegError, OSError) as exc:
             log.info("source thumbnail unusable (%s); using a video frame", exc)
     try:
-        ffmpeg.extract_frame_jpeg(video, dst, (duration_s or 0) * 0.10)
+        ffmpeg.extract_frame_jpeg(video, dst, (duration_s or 0) * 0.10, settings)
         return dst.is_file()
     except ffmpeg.FFmpegError as exc:
         log.warning("thumbnail frame extraction failed: %s\n%s", exc, exc.stderr)
         return False
 
 
-def _fetch_small(url: str, dst: Path, limit: int) -> None:
+def _fetch_small(url: str, dst: Path, limit: int, settings: IngestSettings) -> None:
     import httpx
 
-    with netguard.make_client() as client:
+    with netguard.make_client(settings=settings) as client:
         try:
             with netguard.guarded_stream(client, url) as response:
                 if response.status_code >= 400:

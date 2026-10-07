@@ -17,7 +17,7 @@ and no audio-only download.
 - `sources/`: per-source probe + download (`youtube.py`, `gdrive.py`, `direct.py`, shared `ytdlp.py`).
 - `engine.py`: `probe(url)` and `ingest(url, rights_confirmed, progress_cb)`; dedup, locking, atomic moves.
 - `errors.py`: `IngestError(code, message)` with the fixed code set.
-- `settings.py`: limits from `config/default.yaml` (`paths.lectures`, `ingest.url.*`).
+- `settings.py`: `IngestSettings`, built from the typed settings (`ingest.*`, `paths.data_dir`).
 - `cli.py`: `python -m insightex.ingest.cli probe <url>` / `ingest <url> --confirm-rights`.
 
 ## Output contract
