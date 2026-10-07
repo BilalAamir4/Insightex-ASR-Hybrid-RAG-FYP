@@ -45,11 +45,18 @@ SYSTEM_PROMPT = (
     "List at most 15 concepts, the most important first. Do not invent concepts that the text does not support."
 )
 
-# Placeholder textbook text: the real textbook is not chosen yet (M0b).
-TEXTBOOK_CHUNKS = [
-    """Batch learning and online learning describe two different ways a system can be trained. In batch learning, also called offline learning, the system is incapable of learning incrementally: it must be trained using all the available data. This will generally take a lot of time and computing resources, so it is typically done offline. First the system is trained, and then it is launched into production and runs without learning anymore; it just applies what it has learned. If you want a batch learning system to know about new data, such as a new type of spam, you need to train a new version of the system from scratch on the full dataset, then stop the old system and replace it with the new one. Fortunately, the whole process of training, evaluating and launching a machine learning system can be automated fairly easily, so even a batch learning system can adapt to change. Simply update the data and train a new version as often as needed. This solution is simple and often works fine, but training on the full set of data can take many hours, so you would typically train a new system only every twenty-four hours or even just weekly. If your system needs to adapt to rapidly changing data, for example to predict stock prices, then you need a more reactive solution. Also, training on the full set of data requires a lot of computing resources, including CPU, memory space, disk space, disk input and output, and network input and output. If you have a lot of data and you automate your system to train from scratch every day, it will end up costing you a lot of money. If the amount of data is huge, it may even be impossible to use a batch learning algorithm. Finally, if your system needs to be able to learn autonomously and it has limited resources, for example a smartphone application or a rover on Mars, then carrying around large amounts of training data and taking up a lot of resources to train for hours every day is a showstopper.""",
-    """In online learning, you train the system incrementally by feeding it data instances sequentially, either individually or in small groups called mini-batches. Each learning step is fast and cheap, so the system can learn about new data on the fly, as it arrives. Online learning is great for systems that receive data as a continuous flow, such as stock prices, and need to adapt to change rapidly or autonomously. It is also a good option if you have limited computing resources: once an online learning system has learned about new data instances, it does not need them anymore, so you can discard them unless you want to roll back to a previous state and replay the data. This can save a huge amount of space. Online learning algorithms can also be used to train systems on huge datasets that cannot fit in one machine's main memory, which is called out-of-core learning. The algorithm loads part of the data, runs a training step on that data, and repeats the process until it has run on all of the data. One important parameter of online learning systems is how fast they should adapt to changing data, which is called the learning rate. If you set a high learning rate, then your system will rapidly adapt to new data, but it will also tend to quickly forget the old data. Conversely, if you set a low learning rate, the system will have more inertia; that is, it will learn more slowly, but it will also be less sensitive to noise in the new data or to sequences of nonrepresentative data points, which are outliers. A big challenge with online learning is that if bad data is fed to the system, the system's performance will gradually decline. If it is a live system, your clients will notice. For example, bad data could come from a malfunctioning sensor on a robot, or from someone spamming a search engine to try to rank high in search results. To reduce this risk, you need to monitor your system closely and promptly switch learning off, and possibly revert to a previously working state, if you detect a drop in performance. You may also want to monitor the input data and react to abnormal data, for example using an anomaly detection algorithm.""",
-]
+# Textbook passages are copyrighted book text and are never committed. They live outside the repo.
+TEXTBOOK_CHUNKS_DEFAULT = DATA / "books/ollama_probe_chunks.json"
+TEXTBOOK_CHUNKS: list[str] = []
+
+
+def load_textbook_chunks(path: Path) -> None:
+    """Fill TEXTBOOK_CHUNKS (JSON list of 2 strings) from a file outside the repo."""
+    if not path.is_file():
+        raise SystemExit(f"Textbook chunks file not found: {path}\n"
+                         "Put a JSON list of two textbook passages there (outside the repo), "
+                         "or pass --textbook-chunks PATH.")
+    TEXTBOOK_CHUNKS[:] = json.loads(path.read_text(encoding="utf-8"))
 
 RESPONSE_SCHEMA = {
     "type": "object",
@@ -361,7 +368,10 @@ def write_padded_run(r, first: bool):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", action="append", metavar="CTX:TARGET", help="padded run, e.g. 8192:7000 (repeatable)")
+    ap.add_argument("--textbook-chunks", type=Path, default=TEXTBOOK_CHUNKS_DEFAULT,
+                    help="JSON list of 2 textbook passages (default: %(default)s)")
     args = ap.parse_args()
+    load_textbook_chunks(args.textbook_chunks)
     if args.run:
         return padded_main([tuple(int(x) for x in r.split(":")) for r in args.run])
     if (REPO / 'docs/measurements' / f'{dt.date.today().isoformat()}_ollama_contract.md').exists():
