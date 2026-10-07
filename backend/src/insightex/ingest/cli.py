@@ -3,7 +3,7 @@
     python -m insightex.ingest.cli probe <url>
     python -m insightex.ingest.cli ingest <url> --confirm-rights
 
-Full error details go to $INSIGHTEX_DATA/logs/ingest/ingest.log; the terminal shows the user-facing message.
+Full error details go to <paths.data_dir>/logs/ingest/ingest.log; the terminal shows the user-facing message.
 """
 
 from __future__ import annotations
@@ -11,27 +11,24 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
 import sys
 import time
 from pathlib import Path
 
+from insightex.core.config import get_settings
 from insightex.ingest.engine import ingest, probe
 from insightex.ingest.errors import IngestError
 from insightex.ingest.settings import IngestSettings
 
 
-def _setup_logging(verbose: bool) -> Path | None:
+def _setup_logging(verbose: bool, logs_dir: Path) -> Path:
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
     console = logging.StreamHandler(sys.stderr)
     console.setLevel(logging.DEBUG if verbose else logging.ERROR + 10)  # quiet unless -v
     console.setFormatter(logging.Formatter("%(levelname)s %(name)s: %(message)s"))
     root.addHandler(console)
-    data = os.environ.get("INSIGHTEX_DATA")
-    if not data:
-        return None
-    log_dir = Path(data) / "logs" / "ingest"
+    log_dir = logs_dir / "ingest"
     log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / "ingest.log"
     fh = logging.FileHandler(log_file, encoding="utf-8")
@@ -77,8 +74,9 @@ def main(argv: list[str] | None = None) -> int:
                           help="confirm you have the right to use this video (required)")
     args = parser.parse_args(argv)
 
-    log_file = _setup_logging(args.verbose)
-    settings = IngestSettings.from_config()
+    app_settings = get_settings()
+    log_file = _setup_logging(args.verbose, app_settings.paths.logs_dir)
+    settings = IngestSettings.from_settings(app_settings)
     try:
         if args.command == "probe":
             result = probe(args.url, settings=settings)

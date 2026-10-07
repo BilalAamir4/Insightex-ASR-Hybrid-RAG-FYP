@@ -1,0 +1,9 @@
+# Copy to config/local.yaml (gitignored) and keep only the keys you change.
+# Same keys as default.yaml; unknown keys are an error.
+api:
+  port: 8001                 # run a second server next to the first
+ingest:
+  url:
+    keep_source: true        # keep the original download after transcoding
+ollama:
+  num_ctx: 4096              # smaller context while other apps hold VRAM

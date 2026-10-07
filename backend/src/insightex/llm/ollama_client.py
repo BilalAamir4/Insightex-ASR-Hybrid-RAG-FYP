@@ -1,7 +1,9 @@
 """Ollama call contract: one structured-output chat call plus unload.
 
 `num_ctx` is required on every call so no caller silently inherits Ollama's
-VRAM-based default context; `num_predict` is an explicit field too (default 1024).
+VRAM-based default context (callers pass settings.ollama.num_ctx); `num_predict` defaults to
+settings.ollama.num_predict. All other values come from the `ollama:` config section; library code
+takes an OllamaSettings argument and falls back to get_settings() only when none is passed.
 Budget rule: estimated prompt tokens + num_predict must fit in num_ctx, else the call
 fails before it is sent. A reply cut off at num_predict (done_reason "length") is an
 error (OutputTruncated); truncated JSON is never parsed. The response is validated
@@ -10,7 +12,6 @@ with pydantic.
 from __future__ import annotations
 
 import logging
-import os
 import time
 from dataclasses import dataclass
 from typing import TypeVar
@@ -18,8 +19,8 @@ from typing import TypeVar
 import httpx
 from pydantic import BaseModel
 
-MODEL = "qwen3.5:latest"
-DEFAULT_NUM_PREDICT = 1024
+from insightex.core.config import Ollama as OllamaSettings
+from insightex.core.config import get_settings
 
 log = logging.getLogger(__name__)
 
@@ -97,11 +98,8 @@ class ChatMetrics:
 _checked_models: set[tuple[str, str]] = set()
 
 
-def _base_url() -> str:
-    url = os.environ.get("OLLAMA_BASE_URL")
-    if not url:
-        raise OllamaError("OLLAMA_BASE_URL is not set (source env/insightex_env.sh)")
-    return url.rstrip("/")
+def _cfg(ollama: OllamaSettings | None) -> OllamaSettings:
+    return ollama or get_settings().ollama  # fallback when the caller passed no settings
 
 
 def _ensure_model(client: httpx.Client, base: str, model: str) -> None:
@@ -122,12 +120,13 @@ def chat_json(
     messages: list[dict],
     schema: type[T],
     num_ctx: int,
-    keep_alive: str | int = "10m",
-    temperature: float = 0,
-    seed: int = 42,
-    num_predict: int = DEFAULT_NUM_PREDICT,
-    timeout: float = 600.0,
-    model: str = MODEL,
+    ollama: OllamaSettings | None = None,
+    keep_alive: str | int | None = None,
+    temperature: float | None = None,
+    seed: int | None = None,
+    num_predict: int | None = None,
+    timeout: float | None = None,
+    model: str | None = None,
 ) -> tuple[T, ChatMetrics]:
     """POST /api/chat with a JSON Schema `format`; return (validated object, metrics).
 
@@ -135,16 +134,23 @@ def chat_json(
     reply is validated against it. Raises PromptBudgetError (before sending),
     OutputTruncated, ModelMissingError / OllamaError, or pydantic.ValidationError.
     """
+    cfg = _cfg(ollama)
+    keep_alive = cfg.keep_alive if keep_alive is None else keep_alive
+    temperature = cfg.temperature if temperature is None else temperature
+    seed = cfg.seed if seed is None else seed
+    num_predict = cfg.num_predict if num_predict is None else num_predict
+    timeout = cfg.request_timeout_s if timeout is None else timeout
+    model = model or cfg.model
     estimated = estimate_prompt_tokens(messages)
     if estimated + num_predict > num_ctx:
         raise PromptBudgetError(estimated, num_predict, num_ctx)
-    base = _base_url()
+    base = cfg.base_url.rstrip("/")
     options: dict = {"num_ctx": num_ctx, "temperature": temperature, "seed": seed, "num_predict": num_predict}
     body = {
         "model": model,
         "messages": messages,
         "stream": False,
-        "think": False,
+        "think": cfg.think,
         "format": schema.model_json_schema(),
         "keep_alive": keep_alive,
         "options": options,
@@ -158,7 +164,7 @@ def chat_json(
             raise OllamaError(f"/api/chat failed: {e}") from e
     data = r.json()
     msg = data.get("message", {})
-    if msg.get("thinking"):
+    if msg.get("thinking") and not cfg.think:
         raise OllamaError("model returned thinking text although think=false")
     prompt_n = data.get("prompt_eval_count", 0)
     log.info("ollama chat: estimated_prompt_tokens=%d prompt_eval_count=%d eval_count=%d num_predict=%d num_ctx=%d done_reason=%s",
@@ -181,21 +187,24 @@ def chat_json(
     return parsed, metrics
 
 
-def loaded_models() -> list[dict]:
+def loaded_models(ollama: OllamaSettings | None = None) -> list[dict]:
     """Entries from /api/ps (empty list when nothing is resident)."""
-    r = httpx.get(f"{_base_url()}/api/ps", timeout=10)
+    cfg = _cfg(ollama)
+    r = httpx.get(f"{cfg.base_url.rstrip('/')}/api/ps", timeout=cfg.ps_timeout_s)
     r.raise_for_status()
     return r.json().get("models", [])
 
 
-def unload(model: str = MODEL, wait_s: float = 30.0) -> bool:
+def unload(ollama: OllamaSettings | None = None, model: str | None = None, wait_s: float | None = None) -> bool:
     """Send keep_alive=0 and poll /api/ps until the model is gone. True if it unloaded."""
-    base = _base_url()
-    r = httpx.post(f"{base}/api/generate", json={"model": model, "keep_alive": 0}, timeout=60)
+    cfg = _cfg(ollama)
+    model = model or cfg.model
+    base = cfg.base_url.rstrip("/")
+    r = httpx.post(f"{base}/api/generate", json={"model": model, "keep_alive": 0}, timeout=cfg.unload_timeout_s)
     r.raise_for_status()
-    deadline = time.monotonic() + wait_s
+    deadline = time.monotonic() + (cfg.unload_wait_s if wait_s is None else wait_s)
     while time.monotonic() < deadline:
-        if not any(m.get("name") == model for m in loaded_models()):
+        if not any(m.get("name") == model for m in loaded_models(cfg)):
             return True
         time.sleep(0.5)
     return False
@@ -226,7 +235,7 @@ def _selftest() -> dict:
         budget_raises = True
     else:
         raise AssertionError("budget rule did not raise PromptBudgetError")
-    entry = next((e for e in loaded_models() if e.get("name") == MODEL), None)
+    entry = next((e for e in loaded_models() if e.get("name") == get_settings().ollama.model), None)
     size, vram = (entry or {}).get("size", 0), (entry or {}).get("size_vram", 0)
     return {
         "parsed": obj.model_dump(),

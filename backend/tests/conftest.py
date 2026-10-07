@@ -8,7 +8,30 @@ from pathlib import Path
 
 import pytest
 
+from insightex.core.config import clear_settings_cache
 from insightex.ingest.settings import IngestSettings
+
+
+@pytest.fixture(autouse=True)
+def isolated_settings(request, monkeypatch, tmp_path, tmp_path_factory):
+    """Every test sees default settings plus paths.data_dir=tmp_path, whatever the shell exports.
+
+    Clears INSIGHTEX_DATA, OLLAMA_BASE_URL, INSIGHTEX_CONFIG and INSIGHTEX__* and points INSIGHTEX_CONFIG
+    at a throwaway file, so config/local.yaml and ~/insightex-data are never read or written.
+    Opt out with @pytest.mark.real_env (tests that need the real environment).
+    """
+    if request.node.get_closest_marker("real_env"):
+        yield
+        return
+    for name in list(os.environ):
+        if name.upper().startswith("INSIGHTEX__") or name in ("INSIGHTEX_DATA", "OLLAMA_BASE_URL", "INSIGHTEX_CONFIG"):
+            monkeypatch.delenv(name)
+    cfg = tmp_path_factory.mktemp("cfg") / "test_config.yaml"  # outside tmp_path: tests list its contents
+    cfg.write_text(f"paths:\n  data_dir: {tmp_path}\n")
+    monkeypatch.setenv("INSIGHTEX_CONFIG", str(cfg))
+    clear_settings_cache()
+    yield
+    clear_settings_cache()
 
 
 def _ffmpeg(*args: str) -> None:

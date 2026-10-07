@@ -22,3 +22,14 @@ __pycache__/
 *.egg-info/
 *:Zone.Identifier
 Link Video Feature Implementation.txt
+# Packaging and tool caches
+build/
+dist/
+# Media and documents: never committed outside tests/fixtures/
+*.mkv
+*.pdf
+!backend/tests/fixtures/**
+# Local data and model directories if created inside the repo
+/data/
+/books/
+/models/

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Rejects commit messages with a Co-Authored-By trailer or "Generated with <AI tool>" attribution.
+# Enable once per clone: git config core.hooksPath scripts/git-hooks
+msg=$(grep -v '^#' "$1")
+if grep -qiE '^[[:space:]]*co-authored-by:' <<<"$msg"; then
+  echo "commit-msg: rejected: Co-Authored-By trailer (project rule: no attribution lines)" >&2
+  exit 1
+fi
+if grep -qiE 'generated (with|by)' <<<"$msg" && grep -qiE 'claude|chatgpt|openai|copilot|gemini|codex|cursor|anthropic|\bAI\b' <<<"$msg"; then
+  echo "commit-msg: rejected: 'Generated with <AI tool>' attribution (project rule)" >&2
+  exit 1
+fi

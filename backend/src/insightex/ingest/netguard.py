@@ -17,12 +17,12 @@ from urllib.parse import urljoin, urlsplit
 import httpx
 
 from insightex.ingest.errors import ErrorCode, IngestError
+from insightex.ingest.settings import IngestSettings
 
 log = logging.getLogger(__name__)
 
 MAX_REDIRECTS = 10
 USER_AGENT = "Insightex/0.1 (lecture ingestion)"
-TIMEOUT = httpx.Timeout(connect=15.0, read=60.0, write=60.0, pool=15.0)
 
 # Spelled out to match the spec; is_global below also catches CGNAT, reserved, documentation etc.
 BLOCKED_NETWORKS = tuple(
@@ -83,11 +83,13 @@ def check_url(url: str, resolver: Resolver = system_resolver) -> None:
         raise IngestError(ErrorCode.BLOCKED_ADDRESS)
 
 
-def make_client(transport: httpx.BaseTransport | None = None) -> httpx.Client:
+def make_client(transport: httpx.BaseTransport | None = None, settings: IngestSettings | None = None) -> httpx.Client:
+    cfg = settings or IngestSettings.current()
     # trust_env=False: no proxy or netrc credentials from the environment.
     return httpx.Client(
         follow_redirects=False,
-        timeout=TIMEOUT,
+        timeout=httpx.Timeout(connect=cfg.connect_timeout_s, read=cfg.read_timeout_s,
+                              write=cfg.read_timeout_s, pool=cfg.connect_timeout_s),
         # identity: the byte cap and Content-Length comparison count bytes as sent on the wire.
         headers={"User-Agent": USER_AGENT, "Accept-Encoding": "identity"},
         trust_env=False,
