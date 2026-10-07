@@ -9,7 +9,7 @@ TOPICS = {
     "mini-batches": ["mini-batch"],
     "learning rate in online learning": ["learning rate"],
     "out-of-core learning": ["out-of-core"],
-    "bad data degrading online system": ["bad data", "performance will gradually decline", "garbage"],
+    "bad data degrading online system": ["bad data"],
 }
 
 if __name__ == "__main__":
