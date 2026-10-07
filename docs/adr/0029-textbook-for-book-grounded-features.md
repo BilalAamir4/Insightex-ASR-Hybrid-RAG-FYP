@@ -20,7 +20,7 @@ Textbook: Aurélien Géron, *Hands-On Machine Learning with Scikit-Learn, Keras,
 
 ## Consequences
 
-- The chosen book is copyrighted. Licence note: FILL (not yet supplied).
+- The chosen book is copyrighted. Licence note: PDF obtained from an online source; licence status not verified. Used locally for development and evaluation only; never committed or distributed. To be replaced by a licensed copy of the same 2nd edition (purchase, university library, or O'Reilly access) before the public demo.
 - Textbook PDFs and extracted book text are never committed (ADR-0032).
 - Page numbering rules for citations are in ADR-0030.
 
@@ -44,3 +44,5 @@ Coverage of the six lecture topics:
 ## Gate / revisit when
 
 Gate: if the supervisor or panel rules a copyrighted book out of the public demo, switch the demo to D2L with a lecture that D2L covers, recorded as a superseding ADR.
+
+Gate: if a licensed 2nd-edition copy is obtained, confirm its page labels match the recorded ones (section labels 14 to 17, label = zero-based index minus 29).

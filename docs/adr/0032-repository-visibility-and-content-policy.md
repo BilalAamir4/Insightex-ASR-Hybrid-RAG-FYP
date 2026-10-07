@@ -23,6 +23,7 @@ Not recorded.
 ## Consequences
 
 Removing lecture-derived text from history needs a backup bundle, `git filter-repo`, a force-push of `main` and a re-pushed `import-baseline` tag (M20 plan).
+- The textbook chunks committed on 2026-10-07 in `tools/ollama_contract_probe.py` are removed from the tree and added to the pre-finalisation history purge together with the lecture transcript. The probe now reads them from `~/insightex-data/books/ollama_probe_chunks.json`.
 
 ## Evidence
 
