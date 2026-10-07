@@ -17,10 +17,11 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
 
 - **Phase 0 (Foundation).** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
 - **Done:**
-  - M0 environment verification (7 Oct 2026): cold-boot pass, `scripts/verify_env.sh` 12/12 after a full Windows restart with Ollama started by Task Scheduler. State in `docs/ENVIRONMENT.md`, Ollama contract in `docs/adr/0002-ollama-call-contract.md`. **Next: M0b.**
+  - M0 environment verification (7 Oct 2026): cold-boot pass, `scripts/verify_env.sh` 12/12 after a full Windows restart with Ollama started by Task Scheduler. State in `docs/ENVIRONMENT.md`, Ollama contract in `docs/adr/0002-ollama-call-contract.md`.
   - M3 link ingestion (6 Oct 2026). This covers the engine + CLI, the FastAPI API with one-worker background jobs, and the static HTML ingest/library/player page.
 - **Partial:**
-  - M0b: repo and tag `import-baseline` exist. Config system, ADRs and textbook choice are still to do.
+  - M0b session 2 still to do: the remaining ADRs, conforming ADR-0001 and ADR-0002 to the template, and the textbook decision. **Next: M0b session 2.**
+  - M0b session 1 (8 Oct 2026, merged at 6013448): typed config system (`config/default.yaml`, `insightex config show|validate`), scaffold, test isolation, commit-msg hook, ADR-0003 and ADR-0004. Repo and tag `import-baseline` exist.
   - M1: background jobs exist. GPU lease, resume-after-kill and a generic stage runner are still to do.
   - M2: the normalisation path exists. Local file upload is still to do.
   - M6: API, player and `seekTo(seconds)` exist. Ask box and citations are still to do.
