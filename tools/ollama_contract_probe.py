@@ -7,10 +7,12 @@ peak VRAM, the model's own share (peak - baseline), the PROCESSOR column of
 `ollama ps`, prompt_eval_count, tokens/sec and JSON validity.
 
 Run: bash scripts/run_in_env.sh python tools/ollama_contract_probe.py
+Padded mode: ... probe.py --run 8192:7000 --run 16384:14000   (num_ctx:target prompt tokens; appends to the measurements file)
 Needs Ollama up and nothing else on the GPU. Writes docs/measurements/<date>_ollama_contract.md.
 """
 from __future__ import annotations
 
+import argparse
 import datetime as dt
 import json
 import os
@@ -221,7 +223,148 @@ def run_one(messages, source_text, num_ctx, baseline) -> dict:
     }
 
 
+TOPICS = [
+    "linear regression and the normal equation", "gradient descent and the learning rate", "logistic regression and the sigmoid function",
+    "overfitting, underfitting and the bias-variance tradeoff", "regularisation with L1 and L2 penalties", "cross-validation and model selection",
+    "decision trees and information gain", "random forests and bagging", "gradient boosting", "support vector machines and the kernel trick",
+    "k-nearest neighbours and the curse of dimensionality", "k-means clustering", "principal component analysis", "naive Bayes classifiers",
+    "feature scaling and normalisation", "handling missing data and outliers", "evaluation metrics: precision, recall and F1",
+    "the confusion matrix and ROC curves", "supervised versus unsupervised versus reinforcement learning", "training, validation and test sets and data leakage",
+    "neural networks and backpropagation", "activation functions", "stochastic and mini-batch gradient descent", "model drift and monitoring in production",
+    "instance-based versus model-based learning",
+]
+CHUNKS_CACHE = DATA / "eval/probe_textbook_chunks.json"
+
+
+def extra_chunks() -> list[str]:
+    """Textbook-style passages for padding. Generated once by qwen3.5 (placeholder text; the real textbook is not chosen yet)."""
+    if CHUNKS_CACHE.exists():
+        return json.loads(CHUNKS_CACHE.read_text())["chunks"]
+    chunks = []
+    for i, topic in enumerate(TOPICS):
+        body = {"model": MODEL, "stream": False, "think": False, "keep_alive": "10m",
+                "messages": [{"role": "user", "content": f"Write a passage of about 400 words in the style of an introductory machine learning textbook on: {topic}. Plain connected prose in one or two paragraphs; no headings, no lists, no markdown, no equations."}],
+                "options": {"num_ctx": 4096, "temperature": 0.7, "seed": 100 + i, "num_predict": 700}}
+        chunks.append(httpx.post(f"{BASE}/api/chat", json=body, timeout=600).json()["message"]["content"].strip())
+        print(f"generated chunk {i + 1}/{len(TOPICS)}: {len(chunks[-1].split())} words", flush=True)
+    unload()
+    CHUNKS_CACHE.write_text(json.dumps({"note": "LLM-generated placeholder textbook text for probe padding", "model": MODEL, "topics": TOPICS, "chunks": chunks}, indent=1))
+    return chunks
+
+
+def padded_messages(chunks: list[str], nonce: str = "") -> tuple[list[dict], str]:
+    segs = json.loads(TRANSCRIPT.read_text())
+    by_win: dict[int, list[str]] = {}
+    for s in segs:
+        by_win.setdefault(int(s["start"] // WINDOW_S), []).append(s["text"].strip())
+    transcript_txt = "\n".join(f"[{w * WINDOW_S}s-{(w + 1) * WINDOW_S}s] " + " ".join(by_win[w]) for w in sorted(by_win))
+    texts = TEXTBOOK_CHUNKS + chunks
+    user = ("TRANSCRIPT (all consecutive 30 s windows of the first 10 minutes):\n" + transcript_txt
+            + "".join(f"\n\nTEXTBOOK PASSAGE {i + 1}:\n{c}" for i, c in enumerate(texts)) + "\n\nExtract the concepts as JSON.")
+    sysmsg = (f"[run {nonce}] " if nonce else "") + SYSTEM_PROMPT
+    return [{"role": "system", "content": sysmsg}, {"role": "user", "content": user}], transcript_txt + " ".join(texts)
+
+
+def count_tokens(chunks, num_ctx, nonce) -> int:
+    """prompt_eval_count of a num_predict=1 call. A fresh nonce at the very start defeats Ollama's prefix cache."""
+    msgs, _ = padded_messages(chunks, nonce)
+    body = {"model": MODEL, "messages": msgs, "stream": False, "think": False, "keep_alive": "10m",
+            "options": {"num_ctx": num_ctx, "temperature": 0, "seed": 42, "num_predict": 1}}
+    return httpx.post(f"{BASE}/api/chat", json=body, timeout=900).json()["prompt_eval_count"]
+
+
+def fit_chunks(pool: list[str], num_ctx: int, target: int, tol: float = 0.03) -> tuple[list[str], int]:
+    """Whole passages from the pool, with the last one trimmed (at a sentence end) to land within tol of target tokens."""
+    n = 0
+    chunks: list[str] = []
+    cur = count_tokens(chunks, num_ctx, f"c{n}")
+    per_word = None
+    for _ in range(12):
+        if abs(cur - target) <= tol * target:
+            break
+        if per_word is None:
+            words = len(padded_messages(chunks)[0][1]["content"].split())
+            per_word = cur / words
+        need_words = int((target - cur) / per_word)
+        if need_words <= 0:
+            # overshoot: trim the last chunk
+            last = chunks[-1].split()
+            keep = max(0, len(last) + need_words)
+            text = " ".join(last[:keep])
+            text = text[: text.rfind(".") + 1] if "." in text else text
+            chunks[-1] = text
+        else:
+            # add as many whole passages as fit in need_words, then a trimmed one for the remainder
+            while need_words > 0 and len(chunks) < len(pool):
+                words_next = pool[len(chunks)].split()
+                if need_words >= len(words_next):
+                    chunks.append(pool[len(chunks)])
+                    need_words -= len(words_next)
+                else:
+                    cut = " ".join(words_next[:need_words])
+                    chunks.append(cut[: cut.rfind(".") + 1] if "." in cut else cut)
+                    need_words = 0
+            if need_words > 0:
+                raise SystemExit(f"chunk pool exhausted at {cur} tokens (target {target})")
+        n += 1
+        cur = count_tokens(chunks, num_ctx, f"c{n}")
+    if abs(cur - target) > tol * target:
+        raise SystemExit(f"could not fit prompt to {target} tokens (got {cur})")
+    return chunks, cur
+
+
+def padded_main(runs: list[tuple[int, int]]):
+    if httpx.get(f"{BASE}/api/ps", timeout=10).json().get("models"):
+        raise SystemExit("A model is already loaded. Unload it first.")
+    pool = extra_chunks()
+    results = []
+    for num_ctx, target in runs:
+        chunks, calibrated = fit_chunks(pool, num_ctx, target)
+        if not unload():
+            raise SystemExit("could not unload after calibration")
+        time.sleep(2)
+        baseline = settle_baseline()
+        msgs, source_text = padded_messages(chunks)  # no nonce in the measured run
+        r = run_one(msgs, source_text, num_ctx, baseline)
+        r.update({"target_tokens": target, "calibrated_tokens": calibrated, "n_extra_chunks": len(chunks)})
+        pe = r["prompt_eval_count"] or 0
+        r["prompt_intact"] = abs(pe - calibrated) <= 16 and pe < num_ctx
+        r["unloaded"] = unload()
+        time.sleep(2)
+        r["after_unload_mib"] = settle_baseline()
+        r["returned_to_baseline"] = abs(r["after_unload_mib"] - baseline) <= 200
+        results.append(r)
+        print(json.dumps(r, indent=1), flush=True)
+    write_padded_report(results)
+
+
+def write_padded_report(results):
+    out = REPO / "docs/measurements" / f"{dt.date.today().isoformat()}_ollama_contract.md"
+    L = ["", "## Padded-prompt runs (near-limit context)", "",
+         "Prompt: system prompt + all 20 consecutive 30 s windows of the first 10 min of the Day 4 transcript + the 2 placeholder chunks above + additional textbook-style passages, "
+         "added until `prompt_eval_count` reached the target (last passage trimmed at a sentence end). The extra passages are LLM-generated placeholder text (qwen3.5, 25 topics, cached at "
+         "`$INSIGHTEX_DATA/eval/probe_textbook_chunks.json`), not filler repetition and not the chosen textbook. `num_predict` 600, otherwise the same call as above. "
+         "Each measured run starts from a freshly loaded model (the calibration calls were unloaded first); calibration used `num_predict: 1` with a unique nonce so the prefix cache could not understate the count.", "",
+         "| num_ctx | target tokens | prompt_eval_count (measured run) | intact? | baseline MiB | peak MiB | model share MiB | free at peak MiB | PROCESSOR | out tokens | tok/s | done_reason | JSON valid | after unload MiB |",
+         "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    for r in results:
+        L.append(f"| {r['num_ctx']} | {r['target_tokens']} | {r['prompt_eval_count']} (calibrated {r['calibrated_tokens']}) | {'yes' if r['prompt_intact'] else 'NO'} | {r['baseline_mib']} | {r['peak_mib']} | {r['model_share_mib']} | {r['free_at_peak_mib']} | {r['processor']} | {r['eval_count']} | {r['tokens_per_sec']} | {r['done_reason']} | {r['json_valid']} | {r['after_unload_mib']} ({'yes' if r['returned_to_baseline'] else 'NO'}) |")
+    L += [""]
+    for r in results:
+        L += [f"- num_ctx {r['num_ctx']}: `ollama ps` model size {r['ps_size_bytes']} B, in VRAM {r['ps_size_vram_bytes']} B, context_length {r['ps_context_length']}; "
+              f"load {r['load_s']} s, wall {r['wall_s']} s; extra passages {r['n_extra_chunks']}; sanity {json.dumps(r['sensible'], ensure_ascii=False)}; notes {r['notes'] or 'none'}."]
+    L += ["", "Single run per setting. \"intact\" means the measured run's prompt_eval_count matches the calibrated count (within 16 tokens) and is below num_ctx, i.e. nothing was cut.", ""]
+    with open(out, "a") as f:
+        f.write("\n".join(L))
+    print("appended to", out)
+
+
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--run", action="append", metavar="CTX:TARGET", help="padded run, e.g. 8192:7000 (repeatable)")
+    args = ap.parse_args()
+    if args.run:
+        return padded_main([tuple(int(x) for x in r.split(":")) for r in args.run])
     messages, source_text, meta = build_prompt()
     ps = httpx.get(f"{BASE}/api/ps", timeout=10).json().get("models", [])
     if ps:
