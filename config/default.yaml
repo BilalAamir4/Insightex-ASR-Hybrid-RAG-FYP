@@ -1,29 +1,49 @@
-# Insightex default configuration. Only keys with known values.
-# ${VAR} entries are resolved from environment variables set by env/insightex_env.sh.
-# Machine-specific overrides go in config/local.yaml (gitignored).
-window_seconds: 30
-
-visual:
-  enabled: false
+# Insightex default configuration: every setting and its default value.
+# Override in config/local.yaml (gitignored) or the file named by $INSIGHTEX_CONFIG, then by
+# INSIGHTEX__<SECTION>__<KEY> env vars. Library/process variables (HF_HOME, LD_LIBRARY_PATH, ...)
+# stay in env/insightex_env.sh and are not settings. Show the merged result: insightex config show
 
 paths:
-  home: ${INSIGHTEX_HOME}
-  data: ${INSIGHTEX_DATA}
-  model_cache_master: ${INSIGHTEX_MODEL_CACHE_MASTER}
-  hf_home: ${HF_HOME}
-  lectures: ${INSIGHTEX_DATA}/lectures
-
-endpoints:
-  ollama_base_url: ${OLLAMA_BASE_URL}
+  data_dir: ~/insightex-data        # runtime data root; lectures/ and logs/ live under it. Alias env: INSIGHTEX_DATA
 
 api:
-  host: 127.0.0.1                   # loopback only; the server refuses 0.0.0.0 and ::
-  port: 8000
+  host: 127.0.0.1                   # bind address; loopback only, the server refuses 0.0.0.0 and ::
+  port: 8000                        # TCP port
 
 ingest:
+  ffprobe_timeout_s: 120            # seconds before ffprobe is killed
+  max_url_length: 2048              # characters; longer URLs are rejected
   url:
-    max_duration_s: 10800             # 3 hours; checked at probe (when known) and after download
-    max_download_bytes: 4294967296    # 4 GiB; Content-Length and bytes actually received
-    keep_source: false                # delete the original download after a successful transcode
-    max_video_height: 1080
-    deno_path: null                   # null = the deno wheel installed in the venv
+    max_duration_s: 10800           # seconds (3 h); checked at probe (when known) and after download
+    max_download_bytes: 4294967296  # bytes (4 GiB); Content-Length and bytes actually received
+    keep_source: false              # delete the original download after a successful transcode
+    max_video_height: 1080          # pixels; taller video is scaled down, yt-dlp format capped to it
+    deno_path: null                 # null = the deno wheel installed in the venv
+    socket_timeout_s: 30            # seconds; yt-dlp socket timeout
+    connect_timeout_s: 15           # seconds; direct-download connect and pool-wait timeout
+    read_timeout_s: 60              # seconds; direct-download read and write timeout
+  transcode:
+    preset: medium                  # libx264 preset
+    crf: 23                         # libx264 constant rate factor (lower = better quality)
+  thumbnail:
+    max_width: 1280                 # pixels; frames wider than this are scaled down
+    quality: 3                      # ffmpeg JPEG -q:v (2 best .. 31 worst)
+    max_bytes: 10485760             # bytes (10 MiB); larger source thumbnails are not fetched
+
+ollama:                             # M0 call contract, docs/adr/0002-ollama-call-contract.md
+  base_url: http://localhost:11434  # Ollama server (loopback). Alias env: OLLAMA_BASE_URL
+  model: qwen3.5:latest             # exact tag, checked against /api/tags before the first call
+  think: false                      # request thinking text from the model
+  num_ctx: 8192                     # tokens; project default context. chat_json takes it as a required argument
+  num_predict: 1024                 # tokens; output cap, done_reason=length is an error
+  keep_alive: 10m                   # how long the model stays loaded between calls
+  temperature: 0                    # sampling temperature
+  seed: 42                          # sampling seed
+  request_timeout_s: 600            # seconds; /api/chat request timeout
+  ps_timeout_s: 10                  # seconds; /api/ps request timeout
+  unload_timeout_s: 60              # seconds; unload request timeout
+  unload_wait_s: 30                 # seconds to poll /api/ps for the model to disappear after unload
+  # `format` (JSON Schema) is generated per call from a pydantic class, so it is not a setting.
+
+visual:
+  enabled: false                    # optional visual pipeline (scene detection + OCR); nothing reads it yet
