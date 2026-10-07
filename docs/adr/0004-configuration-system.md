@@ -70,6 +70,7 @@ Before this decision, `backend/src/insightex/core/config.py` returned an untyped
 
 - `backend/tests/unit/test_config.py`: defaults, local override, missing `INSIGHTEX_CONFIG` file, env override with type conversion, unknown YAML and env keys, wrong type with dotted key, alias and conflict, `~` expansion, override precedence, `visual.enabled` default, origin tagging.
 - `ruff` is not installed, so lint configuration is declared in `pyproject.toml` and not run.
+- See also: ADR-0002 (the `ollama` section) and ADR-0027 (`api.host`, loopback only).
 
 ## Gate / revisit when
 

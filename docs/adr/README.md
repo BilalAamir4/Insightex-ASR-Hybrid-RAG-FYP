@@ -25,3 +25,31 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0002](0002-ollama-call-contract.md) | Ollama call contract (qwen3.5:latest) | Accepted | M0 | |
 | [0003](0003-record-architecture-decisions.md) | Record architecture decisions | Accepted | M0b | |
 | [0004](0004-configuration-system.md) | Configuration system | Accepted | M0b | |
+| [0005](0005-development-restart-and-build-order.md) | Development restart and walking-skeleton build order | Accepted | Project | |
+| [0006](0006-scope-asr-baseline-visual-optional.md) | Scope: ASR pipeline is Baseline, visual pipeline is Optional | Accepted | Project | |
+| [0007](0007-visual-track-effort-allocation.md) | Visual track effort allocation | Proposed | V1-V3 | |
+| [0008](0008-feature-tiers-and-numbering.md) | Feature tiers and numbering | Accepted | Project | |
+| [0009](0009-runtime-platform-and-file-layout.md) | Runtime platform and file layout | Accepted | M0 | |
+| [0010](0010-ollama-hosting-and-networking.md) | Ollama hosting and networking | Accepted | M0 | |
+| [0011](0011-gpu-discipline-one-model-in-vram.md) | GPU discipline: one model in VRAM at a time | Accepted | Project | |
+| [0012](0012-llm-selection-and-vram-headroom.md) | LLM selection and VRAM headroom | Proposed | M7 / M11 | |
+| [0013](0013-asr-engine-faster-whisper.md) | ASR engine: faster-whisper | Accepted | M4 | |
+| [0014](0014-asr-checkpoint-and-language-setting.md) | ASR checkpoint and language setting | Proposed | M4 | |
+| [0015](0015-query-time-embedding-on-cpu.md) | Query-time embedding on CPU | Proposed | M5 | |
+| [0016](0016-dense-sparse-retrieval-rrf.md) | Dense + sparse retrieval with Reciprocal Rank Fusion | Proposed | M5 / M9 | |
+| [0017](0017-window-edges-and-overlap.md) | Window edges and overlap | Proposed | M5 | |
+| [0018](0018-hybrid-retrieval-architecture.md) | Hybrid retrieval architecture | Accepted | Project | |
+| [0019](0019-concept-canonicalisation-across-scripts.md) | Concept canonicalisation across scripts | Proposed | M8 | |
+| [0020](0020-importance-and-recap-flags-on-extraction-pass.md) | Importance and recap flags ride on the extraction pass | Accepted | M7 | |
+| [0021](0021-deferred-infrastructure.md) | Deferred infrastructure | Accepted | Project | |
+| [0022](0022-job-queue-sqlite-single-gpu-worker.md) | Job queue: SQLite + single GPU worker | Proposed | M1 | |
+| [0023](0023-workspace-caching-and-session-rule.md) | Workspace caching and session rule | Proposed | M1 | |
+| [0024](0024-link-ingestion-download-and-play-locally.md) | Link ingestion: download and play locally | Accepted | M3 | |
+| [0025](0025-media-normalisation-and-workspace-layout.md) | Media normalisation and workspace layout | Accepted | M2 / M3 | |
+| [0026](0026-player-integration-point-seekto.md) | Player integration point: seekTo(seconds) | Accepted | M3 / M6 | |
+| [0027](0027-api-server-and-ui-stack.md) | API server and UI stack | Accepted | M3 / M6 | |
+| [0028](0028-code-organisation-backend-src-vs-tools.md) | Code organisation: backend/src vs tools/ | Accepted | Project | |
+| [0029](0029-textbook-for-book-grounded-features.md) | Textbook for book-grounded features | Accepted | M0b | |
+| [0030](0030-book-page-numbering-index-and-label.md) | Book page numbering: index and printed label | Proposed | M10 | |
+| [0031](0031-visual-ocr-engine-and-isolation.md) | Visual OCR engine and isolation | Proposed | V1-V3 | |
+| [0032](0032-repository-visibility-and-content-policy.md) | Repository visibility and content policy | Accepted | Project | |
