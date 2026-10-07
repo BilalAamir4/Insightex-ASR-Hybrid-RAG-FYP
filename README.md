@@ -16,6 +16,7 @@ Run the commands below from the repo root (the directory that holds `pyproject.t
 ```bash
 source env/insightex_env.sh            # already sourced from ~/.profile after setup
 source ~/envs/insightex/bin/activate
+git config core.hooksPath scripts/git-hooks   # one-time per clone: rejects Co-Authored-By / AI attribution in commit messages
 pip install -e . --no-deps             # installs the package and the `insightex` command; dependencies come from requirements.lock.txt
 
 pytest                                 # offline suites; network tests: pytest -m network
