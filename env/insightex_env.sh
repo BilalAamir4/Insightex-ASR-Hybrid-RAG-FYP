@@ -16,6 +16,7 @@ export TORCH_HOME="$HOME/cache/torch"
 
 # NVIDIA CUDA/cuDNN dynamic library paths for ctranslate2 & torch
 NVIDIA_SITE="$HOME/envs/insightex/lib/python3.12/site-packages/nvidia"
-NVIDIA_LD_DIRS=$(find "$NVIDIA_SITE" -mindepth 2 -maxdepth 2 -type d -name "lib" 2>/dev/null | tr '\n' ':')
+NVIDIA_LD_DIRS=$(find "$NVIDIA_SITE" -mindepth 2 -maxdepth 2 -type d -name "lib" 2>/dev/null | paste -sd: -)
 
-export LD_LIBRARY_PATH="/usr/lib/wsl/lib:${NVIDIA_LD_DIRS}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+# No trailing ':' and no empty entries (an empty entry means the current directory is searched).
+export LD_LIBRARY_PATH="/usr/lib/wsl/lib${NVIDIA_LD_DIRS:+:$NVIDIA_LD_DIRS}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
