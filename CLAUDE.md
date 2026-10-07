@@ -15,14 +15,13 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
 
 ## Current state (update this block at every milestone)
 
-- **Phase 0 (Foundation).** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
+- **Phase 0 (Foundation) complete; Phase 1 next.** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
 - **Done:**
+  - M0b repo scaffold, typed config and decision log (8 Oct 2026): `config/default.yaml`, `insightex config show|validate`, commit-msg hook, ADR-0001 to ADR-0032 in `docs/adr/` (decision log: `docs/adr/README.md`), textbook chosen (ADR-0029: Géron, Hands-On Machine Learning, 2nd Edition). Repo and tag `import-baseline` exist.
   - M0 environment verification (7 Oct 2026): cold-boot pass, `scripts/verify_env.sh` 12/12 after a full Windows restart with Ollama started by Task Scheduler. State in `docs/ENVIRONMENT.md`, Ollama contract in `docs/adr/0002-ollama-call-contract.md`.
   - M3 link ingestion (6 Oct 2026). This covers the engine + CLI, the FastAPI API with one-worker background jobs, and the static HTML ingest/library/player page.
 - **Partial:**
-  - M0b session 2 still to do: the remaining ADRs, conforming ADR-0001 and ADR-0002 to the template, and the textbook decision. **Next: M0b session 2.**
-  - M0b session 1 (8 Oct 2026, merged at 6013448): typed config system (`config/default.yaml`, `insightex config show|validate`), scaffold, test isolation, commit-msg hook, ADR-0003 and ADR-0004. Repo and tag `import-baseline` exist.
-  - M1: background jobs exist. GPU lease, resume-after-kill and a generic stage runner are still to do.
+  - M1: background jobs exist. GPU lease, resume-after-kill and a generic stage runner are still to do. **Next: M1.**
   - M2: the normalisation path exists. Local file upload is still to do.
   - M6: API, player and `seekTo(seconds)` exist. Ask box and citations are still to do.
 - **Not started:** the ASR stage (M4), production embeddings/FAISS (M5), concept extraction, the graph, the router and answers.
@@ -82,7 +81,7 @@ Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash
 
 ## Decisions already made (don't relitigate without new evidence)
 
-Each decision has, or will get, an ADR in `docs/adr/`. Decision records are in `docs/reports/`.
+Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decision log). Decision records are in `docs/reports/`.
 
 - **Embeddings:** `BAAI/bge-m3`, on 30 s non-overlapping windows of native-script Whisper text. Never embed Roman Urdu; it is used only for WER.
 - **Retrieval:** L2-normalised embeddings searched with `IndexFlatIP`. A hit means the retrieved window strictly overlaps the labelled range.
@@ -117,7 +116,7 @@ Each decision has, or will get, an ADR in `docs/adr/`. Decision records are in `
 | Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` |
 | Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
-| ADRs (so far `0001-bge-m3.md`: embedding model and window; `0002-ollama-call-contract.md`: Ollama call contract) | `docs/adr/` |
+| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0032) | `docs/adr/README.md` |
 | Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
 | Draft JSON Schema: ASR segment list (id, start, end, text, avg_logprob, no_speech_prob) | `docs/contracts/segments.json` |
 | Current environment state, how to verify (`scripts/verify_env.sh`) | `docs/ENVIRONMENT.md` |

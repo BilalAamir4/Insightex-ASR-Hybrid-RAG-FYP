@@ -1,10 +1,15 @@
-# ADR 0002: Ollama call contract (qwen3.5:latest)
+# ADR-0002: Ollama call contract (qwen3.5:latest)
 
-Status: decided for M0 on 2026-10-07. The model choice itself is still open until M7 (qwen3.5 vs Gemma 4 E4B); this ADR fixes how any call to Ollama is made. Final model calls stay with the user.
-
-(ADR numbering: `0001-bge-m3.md` is the embedding decision; this is 0002.)
+Status: Accepted
+Date decided: not recorded; on or before 2026-10-07
+Date recorded: 2026-10-08
+Module: M0
 
 ## Context
+
+Decided for M0 on 2026-10-07. The model choice itself is still open until M7 (qwen3.5 vs Gemma 4 E4B); this ADR fixes how any call to Ollama is made. Final model calls stay with the user.
+
+(ADR numbering: `0001-bge-m3.md` is the embedding decision; this is 0002.)
 
 - The GPU is an RTX 3070 with 8,192 MiB, shared with the Windows desktop. Ollama runs on Windows, bound to `127.0.0.1:11434`, reached from WSL at `http://localhost:11434`.
 - The earlier audit recorded a 7,566 MiB peak and 626 MiB of headroom at `num_ctx` 8192 on a short prompt. It never tested a long prompt or a larger context, and it used `num_predict` 600.
@@ -32,7 +37,30 @@ Every LLM call goes through `backend/src/insightex/llm/ollama_client.py` (`chat_
 | Metrics returned | `prompt_eval_count`, `eval_count`, `eval_duration`, tokens/sec, load and total duration, `done_reason` | `prompt_near_ctx_limit` (>= 98% of `num_ctx`) flags a possible truncated prompt. |
 | Residency check | `ollama ps` PROCESSOR must read 100% GPU; the self-test checks `size_vram / size` from `/api/ps` | A partial CPU split costs speed (below). |
 
-## Measured numbers
+## Alternatives considered
+
+| Alternative | Outcome |
+|---|---|
+| `num_ctx` 16384 | **Rejected.** One run (prompt 13,735 tokens, old 600-token cap): `ollama ps` showed 16%/84% CPU/GPU, 5.50 of 6.55 GB in VRAM, 44.4 tok/s (about 30% slower than at 8192). A 14k-token call is also rarely needed if inputs are chunked. |
+| KV-cache `q8_0` + flash attention (`OLLAMA_KV_CACHE_TYPE=q8_0`, `OLLAMA_FLASH_ATTENTION=1`, set on Windows) | **Not tested; left as an option** for longer context. It would need a Windows-side change, which was not made. Its effect on speed, VRAM and extraction quality is unknown. |
+| Gemma 4 E4B as the LLM | **Not measured.** It stays the M7 fallback/alternative (qwen3.5 vs Gemma 4 E4B is an open decision). This contract is model-agnostic apart from the exact name string; a change of model re-runs the probe. |
+| Default `num_predict` 600 (earlier audit value) | Rejected: cut valid JSON in runs 3 and 4. |
+| Parse truncated JSON by repairing it | Rejected: a repaired object can silently lose concepts or end a quote early. |
+| Leave `num_ctx` to Ollama's default | Rejected: the default depends on free VRAM (4096 here) and changes silently. |
+| Plain `format: "json"` instead of a JSON Schema | Rejected: the earlier audit saw no validity difference (10/10 both), but the schema also enforces the fields and `additionalProperties: false` in the engine. |
+
+## Consequences
+
+- Default context is 8192; a prompt of about 7,000 tokens plus 1,024 output tokens fits at 100% GPU with 510 to 818 MiB free depending on the Windows desktop's VRAM use.
+- Callers must size their prompts. Anything that would exceed `num_ctx - num_predict` fails loudly; the caller splits the input (fewer windows or passages per call) instead of raising the context.
+- Truncated output is an error to handle (retry with a larger `num_predict` or less requested output), never a result to parse.
+- Operational constraint: **Windows GPU-heavy apps must be closed during work.** They held about 2.3 GB of VRAM at one point (about 3.2 GB used with no model loaded, against about 0.9 GB clean). With that load the 7.4 GB peak does not fit. `tools/verify_env.py` reports the idle baseline and fails the unload check if VRAM does not return to within 200 MiB of it.
+- Windows must start Ollama before the pipeline (Task Scheduler runs `E:\FYP\start_ollama.ps1` at logon; see `docs/ENVIRONMENT.md`).
+- Single-user, single-GPU: one CUDA stage at a time stays in force; Ollama is a separate process and must be unloaded before Whisper or bge-m3 runs.
+
+## Evidence
+
+### Measured numbers
 
 All on 2026-10-07, RTX 3070, `qwen3.5:latest`, `think: false`, `temperature` 0, `seed` 42, from `docs/measurements/2026-10-07_ollama_contract.md` (probe: `tools/ollama_contract_probe.py`). Peak is the host `nvidia-smi` maximum during the call (0.2 s polling); model share = peak minus baseline; free = 8,192 minus peak. Baseline includes the Windows desktop.
 
@@ -54,35 +82,18 @@ All on 2026-10-07, RTX 3070, `qwen3.5:latest`, `think: false`, `temperature` 0, 
 - Free VRAM at peak across all 100%-GPU runs: 510 to 818 MiB (the low end is run 6, with the busiest desktop).
 - Output of run 5: 16 concepts against a requested "at most 15"; 11 of 16 `evidence_quote` values appeared verbatim in the input.
 
-## Consequences
+### Evidence limits
 
-- Default context is 8192; a prompt of about 7,000 tokens plus 1,024 output tokens fits at 100% GPU with 510 to 818 MiB free depending on the Windows desktop's VRAM use.
-- Callers must size their prompts. Anything that would exceed `num_ctx - num_predict` fails loudly; the caller splits the input (fewer windows or passages per call) instead of raising the context.
-- Truncated output is an error to handle (retry with a larger `num_predict` or less requested output), never a result to parse.
-- Operational constraint: **Windows GPU-heavy apps must be closed during work.** They held about 2.3 GB of VRAM at one point (about 3.2 GB used with no model loaded, against about 0.9 GB clean). With that load the 7.4 GB peak does not fit. `tools/verify_env.py` reports the idle baseline and fails the unload check if VRAM does not return to within 200 MiB of it.
-- Windows must start Ollama before the pipeline (Task Scheduler runs `E:\FYP\start_ollama.ps1` at logon; see `docs/ENVIRONMENT.md`).
-- Single-user, single-GPU: one CUDA stage at a time stays in force; Ollama is a separate process and must be unloaded before Whisper or bge-m3 runs.
+Evidence limits: the 8192 result rests on single runs (two long-prompt runs at 8192, one of which finished valid; the 6,884-token run was cut by the old cap), and the 16384 rejection rests on one run made with the old 600-token cap (its JSON failure is the cap, but the 16/84 CPU/GPU split and 44.4 tok/s do not depend on it). No run was repeated, and extraction quality was not evaluated here.
 
-## Alternatives considered
+### Sources
 
-| Alternative | Outcome |
-|---|---|
-| `num_ctx` 16384 | **Rejected.** One run (prompt 13,735 tokens, old 600-token cap): `ollama ps` showed 16%/84% CPU/GPU, 5.50 of 6.55 GB in VRAM, 44.4 tok/s (about 30% slower than at 8192). A 14k-token call is also rarely needed if inputs are chunked. |
-| KV-cache `q8_0` + flash attention (`OLLAMA_KV_CACHE_TYPE=q8_0`, `OLLAMA_FLASH_ATTENTION=1`, set on Windows) | **Not tested; left as an option** for longer context. It would need a Windows-side change, which was not made. Its effect on speed, VRAM and extraction quality is unknown. |
-| Gemma 4 E4B as the LLM | **Not measured.** It stays the M7 fallback/alternative (qwen3.5 vs Gemma 4 E4B is an open decision). This contract is model-agnostic apart from the exact name string; a change of model re-runs the probe. |
-| Default `num_predict` 600 (earlier audit value) | Rejected: cut valid JSON in runs 3 and 4. |
-| Parse truncated JSON by repairing it | Rejected: a repaired object can silently lose concepts or end a quote early. |
-| Leave `num_ctx` to Ollama's default | Rejected: the default depends on free VRAM (4096 here) and changes silently. |
-| Plain `format: "json"` instead of a JSON Schema | Rejected: the earlier audit saw no validity difference (10/10 both), but the schema also enforces the fields and `additionalProperties: false` in the engine. |
+`docs/measurements/2026-10-07_ollama_contract.md`; `tools/ollama_contract_probe.py`; `backend/src/insightex/llm/ollama_client.py`; `tools/verify_env.py` (12/12 after the full restart, report in `$INSIGHTEX_DATA/env_reports/`).
 
-## Open items for M7
+## Gate / revisit when
+
+### Open items for M7
 
 1. **Prompt-level caps are advisory.** The model returned 16 concepts against "at most 15". Enforce limits in the schema (`max_length` on the list in the pydantic model, which becomes `maxItems` in the JSON Schema), not only in the prompt text.
 2. **Quote grounding.** Only 11 of 16 evidence quotes appeared verbatim in the input. Extraction needs a quote-grounding check that drops or flags concepts whose quote is not in the source window.
 3. **Calibrate the token estimate.** Use the logged `prompt_eval_count` values to tune the 3.5 (Latin) and 1.5 (Arabic-script) chars/token ratios; neither was measured, and no Urdu-script prompt was run through the probe.
-
-Evidence limits: the 8192 result rests on single runs (two long-prompt runs at 8192, one of which finished valid; the 6,884-token run was cut by the old cap), and the 16384 rejection rests on one run made with the old 600-token cap (its JSON failure is the cap, but the 16/84 CPU/GPU split and 44.4 tok/s do not depend on it). No run was repeated, and extraction quality was not evaluated here.
-
-## Evidence
-
-`docs/measurements/2026-10-07_ollama_contract.md`; `tools/ollama_contract_probe.py`; `backend/src/insightex/llm/ollama_client.py`; `tools/verify_env.py` (12/12 after the full restart, report in `$INSIGHTEX_DATA/env_reports/`).

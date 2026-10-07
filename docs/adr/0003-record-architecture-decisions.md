@@ -29,6 +29,8 @@ Project decisions were recorded in chat summaries, reports and `CLAUDE.md`. Two 
 - Writing an ADR becomes part of every change that adds or alters a decision.
 - Numbers 0001 and 0002 are taken by the pre-template ADRs, so the first template-conformant ADR is 0003.
 
+- See also: ADR-0001 and ADR-0002 are now conformed to the template; ADR-0005 to ADR-0032 record the remaining decisions, listed in `README.md`.
+
 ## Evidence
 
 - `docs/adr/0001-bge-m3.md` and `docs/adr/0002-ollama-call-contract.md` exist without template sections.
