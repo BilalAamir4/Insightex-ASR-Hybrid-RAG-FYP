@@ -142,3 +142,38 @@ def unload(model: str = MODEL, wait_s: float = 30.0) -> bool:
             return True
         time.sleep(0.5)
     return False
+
+
+def _selftest() -> dict:
+    """Tiny schema-valid call; reports where the model is resident. Used by tools/verify_env.py."""
+
+    class _Probe(BaseModel):
+        answer: str
+        number: int
+
+    obj, m = chat_json(
+        [{"role": "user", "content": "Is 7 prime? Reply as JSON: answer (string) and number (the integer 7)."}],
+        _Probe,
+        num_ctx=4096,
+        num_predict=100,
+    )
+    entry = next((e for e in loaded_models() if e.get("name") == MODEL), None)
+    size, vram = (entry or {}).get("size", 0), (entry or {}).get("size_vram", 0)
+    return {
+        "parsed": obj.model_dump(),
+        "tokens_per_sec": round(m.tokens_per_sec, 1),
+        "prompt_eval_count": m.prompt_eval_count,
+        "gpu_pct": round(100 * vram / size, 1) if size else None,
+    }
+
+
+if __name__ == "__main__":
+    import json
+    import sys
+
+    if "--selftest" in sys.argv:
+        print(json.dumps(_selftest()))
+    elif "--unload" in sys.argv:
+        print(json.dumps({"unloaded": unload()}))
+    else:
+        sys.exit("usage: python -m insightex.llm.ollama_client --selftest | --unload")

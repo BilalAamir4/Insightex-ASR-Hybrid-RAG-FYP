@@ -28,3 +28,9 @@ Prompt: system prompt + 5 consecutive 30 s windows of the Day 4 transcript (from
 - Largest prompt_eval_count seen: 1760. Truncation is flagged when a run saw fewer prompt tokens than the largest run, or when the count is within 2% of num_ctx.
 - Baseline includes whatever the Windows desktop holds at that moment; the model's own share is peak minus that baseline.
 - The earlier figures in `ENV_AUDIT_REPORT.md` (7,566 MiB peak, 626 MiB headroom) were not re-run here and are not confirmed by this file.
+
+## Limits of this run
+
+- The assembled prompt was only 1,760 tokens (the two placeholder chunks are 350 and 383 words, not 400). It is well under 4096, so prompt truncation at `num_ctx` 4096 was **not exercised**; "truncated? no" only means both runs saw the same 1,760 tokens. A prompt close to 4096 tokens has not been tested.
+- Peak VRAM was within 3 MiB for both `num_ctx` values (7,394 vs 7,397 MiB), so on this run `num_ctx` 8192 cost no extra GPU memory over 4096. `ollama ps` reports the model at 5.49 GB (4096) and 5.63 GB (8192), both fully on GPU.
+- Single run per setting, no repeats. Baseline here was about 970 MiB (Windows desktop only), after the Windows apps that held about 3.2 GB earlier were closed.
