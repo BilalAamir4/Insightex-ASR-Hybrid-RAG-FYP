@@ -21,7 +21,7 @@ An ADR records one project decision: the context, the choice, the alternatives r
 
 | Number | Title | Status | Module | Note |
 |---|---|---|---|---|
-| [0001](0001-bge-m3.md) | Embedding model BAAI/bge-m3 with 30-second windows | Accepted | M5 | Predates the template; to be conformed without changing the decision. |
-| [0002](0002-ollama-call-contract.md) | Ollama call contract (qwen3.5:latest) | Accepted | M0 | Predates the template; to be conformed without changing the decision. |
+| [0001](0001-bge-m3.md) | Embedding model BAAI/bge-m3 with 30-second windows | Accepted | M5 | |
+| [0002](0002-ollama-call-contract.md) | Ollama call contract (qwen3.5:latest) | Accepted | M0 | |
 | [0003](0003-record-architecture-decisions.md) | Record architecture decisions | Accepted | M0b | |
 | [0004](0004-configuration-system.md) | Configuration system | Accepted | M0b | |
