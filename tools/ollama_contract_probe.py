@@ -31,6 +31,7 @@ TRANSCRIPT = DATA / "eval/day04_batch_vs_online/eval/whisper_large_v3_first10min
 REPO = Path(__file__).resolve().parents[1]
 CTX_SIZES = [4096, 8192]
 WINDOW_S = 30
+NUM_PREDICT = 1024
 N_WINDOWS = 5
 
 SYSTEM_PROMPT = (
@@ -41,7 +42,7 @@ SYSTEM_PROMPT = (
     "evidence_quote (an exact short quote copied from the transcript or textbook text that "
     "supports it). Reply with JSON only, in the form "
     '{"concepts":[{"label":str,"importance":int,"evidence_quote":str}]}. '
-    "Do not invent concepts that the text does not support."
+    "List at most 15 concepts, the most important first. Do not invent concepts that the text does not support."
 )
 
 # Placeholder textbook text: the real textbook is not chosen yet (M0b).
@@ -178,7 +179,7 @@ def run_one(messages, source_text, num_ctx, baseline) -> dict:
     body = {
         "model": MODEL, "messages": messages, "stream": False, "think": False,
         "format": RESPONSE_SCHEMA, "keep_alive": "10m",
-        "options": {"num_ctx": num_ctx, "temperature": 0, "seed": 42, "num_predict": 600},
+        "options": {"num_ctx": num_ctx, "temperature": 0, "seed": 42, "num_predict": NUM_PREDICT},
     }
     sampler.start()
     t0 = time.monotonic()
@@ -317,8 +318,7 @@ def padded_main(runs: list[tuple[int, int]]):
     if httpx.get(f"{BASE}/api/ps", timeout=10).json().get("models"):
         raise SystemExit("A model is already loaded. Unload it first.")
     pool = extra_chunks()
-    results = []
-    for num_ctx, target in runs:
+    for i, (num_ctx, target) in enumerate(runs):
         chunks, calibrated = fit_chunks(pool, num_ctx, target)
         if not unload():
             raise SystemExit("could not unload after calibration")
@@ -333,30 +333,29 @@ def padded_main(runs: list[tuple[int, int]]):
         time.sleep(2)
         r["after_unload_mib"] = settle_baseline()
         r["returned_to_baseline"] = abs(r["after_unload_mib"] - baseline) <= 200
-        results.append(r)
         print(json.dumps(r, indent=1), flush=True)
-    write_padded_report(results)
+        write_padded_run(r, first=(i == 0))
 
 
-def write_padded_report(results):
+def write_padded_run(r, first: bool):
+    """Append one run to the measurements file right away, so a later failure cannot lose it."""
     out = REPO / "docs/measurements" / f"{dt.date.today().isoformat()}_ollama_contract.md"
-    L = ["", "## Padded-prompt runs (near-limit context)", "",
-         "Prompt: system prompt + all 20 consecutive 30 s windows of the first 10 min of the Day 4 transcript + the 2 placeholder chunks above + additional textbook-style passages, "
-         "added until `prompt_eval_count` reached the target (last passage trimmed at a sentence end). The extra passages are LLM-generated placeholder text (qwen3.5, 25 topics, cached at "
-         "`$INSIGHTEX_DATA/eval/probe_textbook_chunks.json`), not filler repetition and not the chosen textbook. `num_predict` 600, otherwise the same call as above. "
-         "Each measured run starts from a freshly loaded model (the calibration calls were unloaded first); calibration used `num_predict: 1` with a unique nonce so the prefix cache could not understate the count.", "",
-         "| num_ctx | target tokens | prompt_eval_count (measured run) | intact? | baseline MiB | peak MiB | model share MiB | free at peak MiB | PROCESSOR | out tokens | tok/s | done_reason | JSON valid | after unload MiB |",
-         "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
-    for r in results:
-        L.append(f"| {r['num_ctx']} | {r['target_tokens']} | {r['prompt_eval_count']} (calibrated {r['calibrated_tokens']}) | {'yes' if r['prompt_intact'] else 'NO'} | {r['baseline_mib']} | {r['peak_mib']} | {r['model_share_mib']} | {r['free_at_peak_mib']} | {r['processor']} | {r['eval_count']} | {r['tokens_per_sec']} | {r['done_reason']} | {r['json_valid']} | {r['after_unload_mib']} ({'yes' if r['returned_to_baseline'] else 'NO'}) |")
-    L += [""]
-    for r in results:
-        L += [f"- num_ctx {r['num_ctx']}: `ollama ps` model size {r['ps_size_bytes']} B, in VRAM {r['ps_size_vram_bytes']} B, context_length {r['ps_context_length']}; "
-              f"load {r['load_s']} s, wall {r['wall_s']} s; extra passages {r['n_extra_chunks']}; sanity {json.dumps(r['sensible'], ensure_ascii=False)}; notes {r['notes'] or 'none'}."]
-    L += ["", "Single run per setting. \"intact\" means the measured run's prompt_eval_count matches the calibrated count (within 16 tokens) and is below num_ctx, i.e. nothing was cut.", ""]
+    L = [""]
+    if first:
+        L += [f"## Padded-prompt runs, {dt.datetime.now():%H:%M} (near-limit context, `num_predict` {NUM_PREDICT}, at most 15 concepts)", "",
+              "Prompt: system prompt + all 20 consecutive 30 s windows of the first 10 min of the Day 4 transcript + the 2 placeholder chunks above + additional textbook-style passages, "
+              "added until `prompt_eval_count` reached the target (last passage trimmed at a sentence end). The extra passages are LLM-generated placeholder text (qwen3.5, 25 topics, cached at "
+              "`$INSIGHTEX_DATA/eval/probe_textbook_chunks.json`), not filler repetition and not the chosen textbook. "
+              "Each measured run starts from a freshly loaded model (calibration was unloaded first); calibration used `num_predict: 1` with a unique nonce so the prefix cache could not understate the count. "
+              "Each run is appended as soon as it finishes. Single run per setting.", "",
+              "| num_ctx | target tokens | prompt_eval_count (measured run) | intact? | baseline MiB | peak MiB | model share MiB | free at peak MiB | PROCESSOR | out tokens | tok/s | done_reason | JSON valid | after unload MiB |",
+              "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    L.append(f"| {r['num_ctx']} | {r['target_tokens']} | {r['prompt_eval_count']} (calibrated {r['calibrated_tokens']}) | {'yes' if r['prompt_intact'] else 'NO'} | {r['baseline_mib']} | {r['peak_mib']} | {r['model_share_mib']} | {r['free_at_peak_mib']} | {r['processor']} | {r['eval_count']} | {r['tokens_per_sec']} | {r['done_reason']} | {r['json_valid']} | {r['after_unload_mib']} ({'yes' if r['returned_to_baseline'] else 'NO'}) |")
+    L.append(f"\n- num_ctx {r['num_ctx']}: `ollama ps` model size {r['ps_size_bytes']} B, in VRAM {r['ps_size_vram_bytes']} B, context_length {r['ps_context_length']}; "
+             f"load {r['load_s']} s, wall {r['wall_s']} s; extra passages {r['n_extra_chunks']}; sanity {json.dumps(r['sensible'], ensure_ascii=False)}; notes {r['notes'] or 'none'}.\n")
     with open(out, "a") as f:
         f.write("\n".join(L))
-    print("appended to", out)
+    print("appended to", out, flush=True)
 
 
 def main():
@@ -365,6 +364,8 @@ def main():
     args = ap.parse_args()
     if args.run:
         return padded_main([tuple(int(x) for x in r.split(":")) for r in args.run])
+    if (REPO / 'docs/measurements' / f'{dt.date.today().isoformat()}_ollama_contract.md').exists():
+        raise SystemExit('Default mode rewrites today\'s measurements file; it already exists. Use --run for padded runs.')
     messages, source_text, meta = build_prompt()
     ps = httpx.get(f"{BASE}/api/ps", timeout=10).json().get("models", [])
     if ps:
@@ -392,7 +393,7 @@ def write_report(results, meta):
     out.parent.mkdir(parents=True, exist_ok=True)
     full = max(r["prompt_eval_count"] or 0 for r in results)
     L = [f"# Ollama contract probe ({today})", "",
-         f"Model `{MODEL}`, `think: false`, `temperature: 0`, `seed: 42`, `num_predict: 600`, `keep_alive: 10m`, JSON Schema `format`. "
+         f"Model `{MODEL}`, `think: false`, `temperature: 0`, `seed: 42`, `num_predict: {NUM_PREDICT}`, `keep_alive: 10m`, JSON Schema `format`. "
          "Tool: `tools/ollama_contract_probe.py`. GPU: RTX 3070, 8192 MiB. Memory read from host `nvidia-smi` (whole GPU, polled every 0.2 s in a background thread) around each call.", "",
          "Prompt: system prompt + 5 consecutive 30 s windows of the Day 4 transcript "
          f"(from {meta['first_window_start_s']} s; {meta['transcript_words']} words, the 5 densest consecutive windows in the first 10 min) "

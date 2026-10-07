@@ -1,10 +1,15 @@
 """Ollama call contract: one structured-output chat call plus unload.
 
 `num_ctx` is required on every call so no caller silently inherits Ollama's
-VRAM-based default context. The response is validated with pydantic.
+VRAM-based default context; `num_predict` is an explicit field too (default 1024).
+Budget rule: estimated prompt tokens + num_predict must fit in num_ctx, else the call
+fails before it is sent. A reply cut off at num_predict (done_reason "length") is an
+error (OutputTruncated); truncated JSON is never parsed. The response is validated
+with pydantic.
 """
 from __future__ import annotations
 
+import logging
 import os
 import time
 from dataclasses import dataclass
@@ -14,6 +19,9 @@ import httpx
 from pydantic import BaseModel
 
 MODEL = "qwen3.5:latest"
+DEFAULT_NUM_PREDICT = 1024
+
+log = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -24,6 +32,49 @@ class OllamaError(RuntimeError):
 
 class ModelMissingError(OllamaError):
     pass
+
+
+class PromptBudgetError(OllamaError):
+    """Estimated prompt tokens + num_predict would not fit in num_ctx."""
+
+    def __init__(self, estimated_prompt_tokens: int, num_predict: int, num_ctx: int):
+        self.estimated_prompt_tokens, self.num_predict, self.num_ctx = estimated_prompt_tokens, num_predict, num_ctx
+        super().__init__(
+            f"prompt budget exceeded: ~{estimated_prompt_tokens} estimated prompt tokens + num_predict {num_predict} "
+            f"= {estimated_prompt_tokens + num_predict} > num_ctx {num_ctx}"
+        )
+
+
+class OutputTruncated(OllamaError):
+    """The reply hit num_predict (done_reason == "length"); its JSON is incomplete and was not parsed."""
+
+    def __init__(self, eval_count: int, num_predict: int):
+        self.eval_count, self.num_predict = eval_count, num_predict
+        super().__init__(
+            f"output truncated: done_reason=length after eval_count={eval_count} tokens (num_predict={num_predict}); "
+            "raise num_predict or ask for less output"
+        )
+
+
+# Rough, deliberately conservative token estimate (over-estimates). Not calibrated: the real
+# prompt_eval_count is logged after every call so these ratios can be tuned later.
+CHARS_PER_TOKEN_LATIN = 3.5   # English prose measured around 4+ chars/token with this tokenizer family
+CHARS_PER_TOKEN_ARABIC = 1.5  # Urdu/Arabic script is much more expensive per character
+PER_MESSAGE_OVERHEAD_TOKENS = 8
+
+
+def _is_arabic_script(ch: str) -> bool:
+    o = ord(ch)
+    return 0x0600 <= o <= 0x06FF or 0x0750 <= o <= 0x077F or 0xFB50 <= o <= 0xFDFF or 0xFE70 <= o <= 0xFEFF
+
+
+def estimate_prompt_tokens(messages: list[dict]) -> int:
+    total = 0.0
+    for m in messages:
+        text = m.get("content", "")
+        arabic = sum(1 for ch in text if _is_arabic_script(ch))
+        total += arabic / CHARS_PER_TOKEN_ARABIC + (len(text) - arabic) / CHARS_PER_TOKEN_LATIN + PER_MESSAGE_OVERHEAD_TOKENS
+    return int(total) + 1
 
 
 @dataclass(frozen=True)
@@ -74,20 +125,21 @@ def chat_json(
     keep_alive: str | int = "10m",
     temperature: float = 0,
     seed: int = 42,
-    num_predict: int | None = None,
+    num_predict: int = DEFAULT_NUM_PREDICT,
     timeout: float = 600.0,
     model: str = MODEL,
 ) -> tuple[T, ChatMetrics]:
     """POST /api/chat with a JSON Schema `format`; return (validated object, metrics).
 
     `schema` is a pydantic model class; its JSON Schema is sent as `format` and the
-    reply is validated against it. Raises OllamaError / ModelMissingError /
-    pydantic.ValidationError.
+    reply is validated against it. Raises PromptBudgetError (before sending),
+    OutputTruncated, ModelMissingError / OllamaError, or pydantic.ValidationError.
     """
+    estimated = estimate_prompt_tokens(messages)
+    if estimated + num_predict > num_ctx:
+        raise PromptBudgetError(estimated, num_predict, num_ctx)
     base = _base_url()
-    options: dict = {"num_ctx": num_ctx, "temperature": temperature, "seed": seed}
-    if num_predict is not None:
-        options["num_predict"] = num_predict
+    options: dict = {"num_ctx": num_ctx, "temperature": temperature, "seed": seed, "num_predict": num_predict}
     body = {
         "model": model,
         "messages": messages,
@@ -108,11 +160,16 @@ def chat_json(
     msg = data.get("message", {})
     if msg.get("thinking"):
         raise OllamaError("model returned thinking text although think=false")
+    prompt_n = data.get("prompt_eval_count", 0)
+    log.info("ollama chat: estimated_prompt_tokens=%d prompt_eval_count=%d eval_count=%d num_predict=%d num_ctx=%d done_reason=%s",
+             estimated, prompt_n, data.get("eval_count", 0), num_predict, num_ctx, data.get("done_reason"))
+    if data.get("done_reason") == "length":
+        raise OutputTruncated(data.get("eval_count", 0), num_predict)
     parsed = schema.model_validate_json(msg.get("content", ""))
     eval_s = data.get("eval_duration", 0) / 1e9
     eval_n = data.get("eval_count", 0)
     metrics = ChatMetrics(
-        prompt_eval_count=data.get("prompt_eval_count", 0),
+        prompt_eval_count=prompt_n,
         eval_count=eval_n,
         eval_duration_s=eval_s,
         tokens_per_sec=eval_n / eval_s if eval_s else 0.0,
@@ -151,12 +208,24 @@ def _selftest() -> dict:
         answer: str
         number: int
 
-    obj, m = chat_json(
-        [{"role": "user", "content": "Is 7 prime? Reply as JSON: answer (string) and number (the integer 7)."}],
-        _Probe,
-        num_ctx=4096,
-        num_predict=100,
-    )
+    msgs = [{"role": "user", "content": "Is 7 prime? Reply as JSON: answer (string) and number (the integer 7)."}]
+    obj, m = chat_json(msgs, _Probe, num_ctx=4096, num_predict=100)
+
+    # Truncation path: a 3-token cap cannot hold the JSON, so this must raise and never parse.
+    try:
+        chat_json(msgs, _Probe, num_ctx=4096, num_predict=3)
+    except OutputTruncated as e:
+        truncation = {"raises": True, "eval_count": e.eval_count, "num_predict": e.num_predict}
+    else:
+        raise AssertionError("num_predict=3 did not raise OutputTruncated")
+
+    # Budget path: fails before any request is sent.
+    try:
+        chat_json(msgs, _Probe, num_ctx=64, num_predict=64)
+    except PromptBudgetError:
+        budget_raises = True
+    else:
+        raise AssertionError("budget rule did not raise PromptBudgetError")
     entry = next((e for e in loaded_models() if e.get("name") == MODEL), None)
     size, vram = (entry or {}).get("size", 0), (entry or {}).get("size_vram", 0)
     return {
@@ -164,6 +233,8 @@ def _selftest() -> dict:
         "tokens_per_sec": round(m.tokens_per_sec, 1),
         "prompt_eval_count": m.prompt_eval_count,
         "gpu_pct": round(100 * vram / size, 1) if size else None,
+        "truncation": truncation,
+        "budget_raises": budget_raises,
     }
 
 
