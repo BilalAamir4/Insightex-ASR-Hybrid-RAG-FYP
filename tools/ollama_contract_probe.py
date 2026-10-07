@@ -342,7 +342,7 @@ def write_padded_run(r, first: bool):
     out = REPO / "docs/measurements" / f"{dt.date.today().isoformat()}_ollama_contract.md"
     L = [""]
     if first:
-        L += [f"## Padded-prompt runs, {dt.datetime.now():%H:%M} (near-limit context, `num_predict` {NUM_PREDICT}, at most 15 concepts)", "",
+        L += [f"## Padded-prompt runs, {dt.datetime.now():%H:%M}, Ollama {httpx.get(f'{BASE}/api/version', timeout=10).json().get('version')} (near-limit context, `num_predict` {NUM_PREDICT}, at most 15 concepts)", "",
               "Prompt: system prompt + all 20 consecutive 30 s windows of the first 10 min of the Day 4 transcript + the 2 placeholder chunks above + additional textbook-style passages, "
               "added until `prompt_eval_count` reached the target (last passage trimmed at a sentence end). The extra passages are LLM-generated placeholder text (qwen3.5, 25 topics, cached at "
               "`$INSIGHTEX_DATA/eval/probe_textbook_chunks.json`), not filler repetition and not the chosen textbook. "
