@@ -8,7 +8,7 @@ name = "insightex"
 version = "0.0.0"
 description = "Timestamp-grounded knowledge base for code-switched (Urdu + English) lecture videos"
 requires-python = ">=3.12"
-dependencies = ["fastapi", "httpx", "pydantic>=2", "PyYAML", "uvicorn", "yt-dlp"]
+dependencies = ["fastapi", "httpx", "pydantic>=2", "pymupdf", "PyYAML", "uvicorn", "yt-dlp"]
 
 [project.scripts]
 insightex = "insightex.cli:main"
