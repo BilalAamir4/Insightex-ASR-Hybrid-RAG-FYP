@@ -1,6 +1,6 @@
 # Setup runbook
 
-Sources: `CLAUDE.md` and `docs/reports/ENV_AUDIT_REPORT.md`. Steps marked *unverified* are stated there but were not re-run when this runbook was written. Starting from a blank machine has not been tested.
+Sources: `CLAUDE.md` and `docs/ENVIRONMENT.md`. Steps marked *unverified* are stated there but were not re-run when this runbook was written. Starting from a blank machine has not been tested.
 
 ## Layout
 
@@ -37,7 +37,7 @@ Run commands from a WSL shell, not nested through PowerShell (`wsl -- bash -lc "
 
 Runs on the Windows host, bound to `127.0.0.1:11434`, reached from WSL as `localhost` (mirrored networking in `%UserProfile%\.wslconfig`). Models are stored in `E:\FYP\LLMs` (Windows user variable `OLLAMA_MODELS`). Start it with `scripts/windows/start_ollama.ps1`. Never set `OLLAMA_HOST=0.0.0.0`.
 
-Batch call settings (from CLAUDE.md; the full request body is in `docs/reports/ENV_AUDIT_REPORT.md`): `/api/chat` with a JSON Schema `format`, `think: false`, `keep_alive: "10m"`, `num_ctx: 8192`, `temperature: 0.1`, `num_predict: 600`. At the end of a batch unload with `keep_alive: 0` in a `finally` block and poll `ollama ps` until the model is gone. The call contract is not final.
+Batch call settings: see `docs/adr/0001-ollama-call-contract.md` (`chat_json`: JSON Schema `format`, `think: false`, `keep_alive: "10m"`, `num_ctx` required with default 8192, `num_predict` default 1024, `temperature` 0). At the end of a batch call `unload()` in a `finally` block.
 
 ## Checks
 

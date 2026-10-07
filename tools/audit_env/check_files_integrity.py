@@ -49,7 +49,7 @@ print("\n=== CHECKING SPECIFIC PROJECT & HOME FILES ===")
 specific_files = [
     os.environ["INSIGHTEX_HOME"] + "/env/insightex_env.sh",
     os.environ["INSIGHTEX_HOME"] + "/requirements.lock.txt",
-    os.environ["INSIGHTEX_HOME"] + "/docs/reports/ENV_AUDIT_REPORT.md",
+    os.environ["INSIGHTEX_HOME"] + "/docs/ENVIRONMENT.md",
     "~/.bashrc",
     "~/.profile",
     "~/.bash_profile",

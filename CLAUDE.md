@@ -52,7 +52,7 @@ bash ~/insightex/scripts/test_frontend.sh
 
 Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash -lc "..."`), because quoting breaks `$` and `&&`.
 
-## Environment (short version; full detail in `docs/reports/ENV_AUDIT_REPORT.md`)
+## Environment (short version; full detail in `docs/ENVIRONMENT.md`)
 
 - WSL2 Ubuntu-24.04 runs on a Windows host. `/mnt/e/FYP` is `E:\FYP`. The repo is `~/insightex`, runtime data is `~/insightex-data`, and both sit on the ext4 vhdx stored on `E:\FYP\wsl`.
 - Main venv: `~/envs/insightex` (Py 3.12, torch cu128). It is pinned in `requirements.lock.txt`. PaddleOCR has its own venv, `~/envs/paddleocr-vl`.
@@ -62,19 +62,19 @@ Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash
   - To add a model: download it with `HF_HUB_OFFLINE=0 HF_HOME=$INSIGHTEX_MODEL_CACHE_MASTER/huggingface`, `cp -ru` it into `~/cache/huggingface/hub/`, then verify with `tools/audit_env/run_F7_check.py`.
 - Ollama runs on Windows at `127.0.0.1:11434`. WSL reaches it as `localhost` through mirrored networking.
   - **Never set `OLLAMA_HOST=0.0.0.0`.**
-  - Start it with `scripts/windows/start_ollama.ps1`.
+  - It starts automatically at Windows logon (Task Scheduler task `Insightex Ollama` runs `E:\FYP\start_ollama.ps1`; loopback only). If it is down, start that script by hand.
 - Do not search, modify or delete `E:\FYP\cache`, `E:\FYP\LLMs`, `E:\FYP\wsl` or `E:\FYP\docker`. The original pre-migration files on `E:\FYP` are the backup.
 - Nothing project-related should grow on C:.
-- Note: `ENV_AUDIT_REPORT.md` §1–5 still describe an older audit that includes rejected fixes, until M0 rewrites the report. Use §6+ and this file instead.
 
 ## GPU / VRAM contract (RTX 3070, 8 GB) — hard rules
 
 - Never run two CUDA stages at once. Each stage is its own subprocess and must exit fully before the next one starts.
-- Ollama (`qwen3.5:latest`) alone peaks at 7,566 MiB, which leaves about 626 MiB (`ENV_AUDIT_REPORT.md`). Always set `num_ctx` explicitly.
+- Ollama (`qwen3.5:latest`) alone peaks at about 7.4 GB at `num_ctx` 8192 (measured 2026-10-07), leaving about 800 MiB on a clean Windows desktop (`docs/ENVIRONMENT.md`). Always set `num_ctx` explicitly; 16384 spills to CPU.
 - Before any GPU run, check `ollama ps`, then run `ollama stop <model>` if a model is loaded. Ask the user before stopping Ollama.
-- Ollama batch call body: `/api/chat` with a JSON Schema `format`, `think: false`, `keep_alive: "10m"`, `num_ctx: 8192`, `temperature: 0.1` and `num_predict: 600`.
-  - In a `finally` block, unload with `keep_alive: 0`, then poll `ollama ps` until the model is gone.
-  - The full body is in `ENV_AUDIT_REPORT.md` §6.5.
+- Ollama calls go through `insightex.llm.ollama_client.chat_json`: `/api/chat` with a JSON Schema `format`, `think: false`, `keep_alive: "10m"`, `num_ctx` required (default 8192), `temperature` 0, `num_predict` explicit (default 1024).
+  - Estimated prompt tokens + `num_predict` must fit in `num_ctx`; `done_reason: length` is an error, never parsed.
+  - In a `finally` block, call `unload()` (`keep_alive: 0`, then poll `/api/ps` until the model is gone).
+  - Full contract and measurements: `docs/adr/0001-ollama-call-contract.md`.
 - Query time (planned, M5): the GPU belongs to Ollama. BGE-M3 query encoding and the reranker run on CPU inside the API process.
 
 ## Decisions already made (don't relitigate without new evidence)
@@ -115,7 +115,9 @@ Each decision has, or will get, an ADR in `docs/adr/`. Decision records are in `
 | ADRs (so far `0001-bge-m3.md`: embedding model and window) | `docs/adr/` |
 | Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
 | Draft JSON Schema: ASR segment list (id, start, end, text, avg_logprob, no_speech_prob) | `docs/contracts/segments.json` |
+| Current environment state, how to verify (`scripts/verify_env.sh`) | `docs/ENVIRONMENT.md` |
+| Ollama call contract (ADR) and probe measurements | `docs/adr/0001-ollama-call-contract.md`, `docs/measurements/` |
 | Setup and after-restart steps | `docs/runbooks/setup.md`, `docs/runbooks/after_restart_checklist.md` |
 | Proposal, feature list (placeholder; documents not added yet) | `docs/proposal/README.md` |
-| Reports: `Embedding_Report`, `OCR_report`, `vl_probe_REPORT`, `ENV_AUDIT_REPORT`, `PRE_MIGRATION_AUDIT`, `MIGRATION_REPORT` | `docs/reports/` |
+| Reports: `Embedding_Report`, `OCR_report`, `vl_probe_REPORT`, `PRE_MIGRATION_AUDIT`, `MIGRATION_REPORT` | `docs/reports/` |
 | Test lecture (mp4, WAVs, SRT/JSON, Roman-Urdu reference, queries) | `~/insightex-data/eval/day04_batch_vs_online/` |

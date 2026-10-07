@@ -72,7 +72,7 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
   Exit: a clean demo on a fresh boot.
 - **M20: Thesis and defense material.**
   - **Before making the repo final: remove lecture-derived text** (decided 6 Oct 2026: it stays until then). Keep `queries.csv` and `per_query_results.csv`, which are the project's own evaluation work.
-    - Current tree: `docs/reports/embedding_bakeoff/results_seq1024/windows_W30.csv`, `windows_W60.csv` and `windows_W90.csv` (the full transcript); one transcript line each in `docs/reports/PRE_MIGRATION_AUDIT.md` and `docs/reports/ENV_AUDIT_REPORT.md`; check the Urdu strings in `tools/bench_models/asr/verify_6a_whisper.py`.
+    - Current tree: `docs/reports/embedding_bakeoff/results_seq1024/windows_W30.csv`, `windows_W60.csv` and `windows_W90.csv` (the full transcript); one transcript line in `docs/reports/PRE_MIGRATION_AUDIT.md` (the one in `ENV_AUDIT_REPORT.md` went with that file on 2026-10-07; it remains in git history); check the Urdu strings in `tools/bench_models/asr/verify_6a_whisper.py`.
     - History (tree of tag `import-baseline`, under `_legacy_import/`): `embedding/data/day04_batch_vs_online/whisper_urdu.srt`; the `windows_W*.csv` files and result files under `embedding/tools/eval_embeddings/` (`results/` and `results_seq1024/`); `tools/env_audit/results/followup/T2.txt` and `T2_process_a.txt`; `tools/env_audit/results/followup2/F2.txt`, `F3.txt`, `F6.txt` and `F3_segments.json`; the transcript line in `STRUCTURE_AUDIT.md` and the Urdu-script line in `tools/env_audit/ENV_AUDIT_REPORT.md`.
     - Method: take a backup bundle first (`git bundle create`), run `git filter-repo`, force-push `main`, and re-point and re-push the `import-baseline` tag.
 - **Stretch order:** F17 → F18 → F19 → F16, only if Milestones 1–9 finish early.
@@ -86,7 +86,7 @@ These come from the October 2026 review. Settle each one when its module starts.
   - Check that the chosen book actually covers the dev lecture's topic.
   - This decision blocks F1, F2, F11 and Test B.
 - **M0 / M7 / M11: qwen3.5 VRAM headroom.**
-  - The 7,566 MiB peak leaves about 626 MiB (`ENV_AUDIT_REPORT.md`). The KV cache grows with context, and Urdu script is token-expensive. The risk is a silent CPU offload or a truncated prompt.
+  - The 2 Oct audit recorded a 7,566 MiB peak with 626 MiB free; re-measured 2026-10-07 at about 7.4 GB peak with about 800 MiB free (`docs/ENVIRONMENT.md`, `docs/adr/0001-ollama-call-contract.md`). The KV cache grows with context, and Urdu script is token-expensive. The risk is a silent CPU offload or a truncated prompt.
   - Always set `num_ctx` explicitly. Measure VRAM, tok/s and `ollama ps` at the worst-case prompt (3–5 Urdu windows + 2 textbook chunks).
   - Gate: concept extraction on 10 labelled windows, qwen3.5 vs Gemma 4 E4B. If the two are within noise, use the smaller model for interactive Q&A; using the larger one only for offline extraction is a valid split.
   - Optional lever: KV-cache quantisation.
@@ -101,7 +101,7 @@ These come from the October 2026 review. Settle each one when its module starts.
   - Decide in the WER gate: medium and large-v3 × forced `ur` / auto-detect (4 configs, with large-v3-turbo as a 5th if time allows).
   - Confirm `task=transcribe`, not translate. Count dropped segments explicitly. Enable `word_timestamps=True`.
 - **M5: Query-time VRAM conflict.**
-  - BGE-M3 (1,141.7 MB measured bake-off peak, `Embedding_Report.md`; `MODELS.md` and `ENV_AUDIT_REPORT.md` carry 3,089 MiB, not re-run; re-measure in M5) and qwen3.5 (7,566 MiB, `ENV_AUDIT_REPORT.md`) can't share 8 GB.
+  - BGE-M3 (1,141.7 MB measured bake-off peak, `Embedding_Report.md`; `MODELS.md` and `docs/ENVIRONMENT.md` carry 3,089 MiB, not re-run; re-measure in M5) and qwen3.5 (about 7.4 GB peak, `docs/ENVIRONMENT.md`) can't share 8 GB.
   - Encode documents on the GPU at ingest. Encode queries on the CPU in the API process (fp32, ~2.3 GB RAM), and run the reranker on the CPU too.
   - Gate: rerun Test A with CPU queries; Recall@3 must not change.
 - **M5 / M9: Sparse weights.**

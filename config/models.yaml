@@ -18,7 +18,7 @@
     Candidate checkpoints, both cached: Systran/faster-whisper-medium and Systran/faster-whisper-large-v3.
     Decision waits on WER evaluation.
     Verified peak VRAM: 5,530 MiB for large-v3 in the 10-minute run
-    (docs/reports/ENV_AUDIT_REPORT.md; data log followup/T2_process_a.txt).
+    (old docs/reports/ENV_AUDIT_REPORT.md, removed 2026-10-07, in git history; data log followup/T2_process_a.txt).
 - key: llm
   type: llm
   name: qwen3.5:latest            # 9.7B Q4_K_M, id 6488c96fa5fa

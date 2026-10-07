@@ -1,0 +1,93 @@
+# Environment (current state)
+
+Last verified: 2026-10-07, after a full Windows restart (boot 23:30:30). `bash scripts/verify_env.sh` passed 12 of 12 from a fresh login shell. This replaces `docs/reports/ENV_AUDIT_REPORT.md` (still in git history). Labels: **MEASURED** = measured on the date shown; **CARRIED OVER** = measured earlier (2 to 4 Oct 2026) and not re-run.
+
+## 1. Machine / OS
+
+- Windows 11 Pro host, about 32 GB RAM (WSL sees about 15 GB), Intel Core i7 (20 threads, carried over), NVIDIA GeForce RTX 3070 (8,192 MiB), driver 616.64.
+- WSL2 `Ubuntu-24.04` (24.04.5 LTS), kernel `6.18.40.1-microsoft-standard-WSL2`, mirrored networking (section 8).
+- Run everything from a WSL shell. Do not nest commands through `wsl -- bash -lc "..."` from PowerShell; quoting breaks `$` and `&&`.
+
+## 2. Storage layout
+
+| Location | What | Notes |
+|---|---|---|
+| `E:\FYP` (`/mnt/e/FYP`) | Heavy storage and backup | `cache\` (master model cache), `LLMs\` (Ollama models), `wsl\` (the ext4 vhdx), `docker\`, `start_ollama.ps1`. Do not search, modify or delete `cache`, `LLMs`, `wsl`, `docker`. Never point runtime caches here (DrvFS loads are 3.5x to 7.4x slower; carried over). |
+| `~/insightex` | Code (git repo, remote `Insightex-ASR-Hybrid-RAG-FYP`, tag `import-baseline`) | On the ext4 vhdx stored under `E:\FYP\wsl`. |
+| `~/insightex-data` | Runtime data (`lectures/`, `eval/`, `logs/`, `db/`, `env_reports/`) | `INSIGHTEX_DATA`. |
+| `~/cache/huggingface` | Runtime HF cache (ext4) | `HF_HOME`. Holds bge-m3, faster-whisper medium and large-v3. Master copy on `E:\FYP\cache`. |
+| `~/envs/insightex`, `~/envs/paddleocr-vl` | Python venvs | PaddleOCR has its own venv. |
+
+Nothing project-related should grow on C:.
+
+## 3. Env script (`env/insightex_env.sh`)
+
+Sourced once from `~/.profile`; `scripts/run_in_env.sh` sources it too and then activates the venv. It sets `INSIGHTEX_HOME`, `INSIGHTEX_DATA`, `INSIGHTEX_MODEL_CACHE_MASTER`, `HF_HOME`, `HF_HUB_OFFLINE=1`, `OLLAMA_BASE_URL=http://localhost:11434`, `PIP_CACHE_DIR`, `TORCH_HOME` and `LD_LIBRARY_PATH` (`/usr/lib/wsl/lib` plus the 15 `nvidia/*/lib` directories of the venv, 16 entries when started empty).
+
+- **`LD_LIBRARY_PATH` has no empty entries** (fixed 2026-10-07). An empty entry means the current directory is searched for libraries. The script now joins entries without a trailing colon and handles an empty or preset prior value. `tools/verify_env.py` checks for empty entries and duplicates.
+- **Once-per-shell guard** (`_INSIGHTEX_ENV_LOADED`): the script returns immediately if the variable is already exported, so it never duplicates entries. **Stale-session caveat:** a session that was started before the script was changed (an IDE terminal or agent session left open) keeps its old exported `LD_LIBRARY_PATH` and the guard stops the fix from being applied. After editing the script, open a new WSL session (or use `env -i HOME=$HOME PATH=/usr/bin:/bin bash -lc '...'` to test).
+- Without the wrapper, faster-whisper fails at **inference** time with `libcublas.so.12 is not found`, not at import.
+
+## 4. Venv and lockfile
+
+- `~/envs/insightex`: Python 3.12; torch 2.11.0+cu128, faster-whisper 1.2.1, ctranslate2 4.8.2, sentence-transformers 6.1.0, transformers 5.18.0, faiss-cpu 1.15.1, networkx 3.6.1, pydantic 2.13.5, httpx 0.28.1.
+- `requirements.lock.txt` (repo root, 94 packages) is the pin set. It **intentionally omits the editable `insightex` install** (this repo), and `pip freeze` itself omits `pip`, `setuptools` and `wheel`. `tools/verify_env.py` ignores exactly those four and fails on any other mismatch.
+- No installs, upgrades or removals without asking. `FlagEmbedding` is not installed (and not locked); `tools/bench_models/loadtimes/verify_6b_loadtimes.py` needs it for its bge-m3 step and fails there.
+
+## 5. Ollama
+
+- Runs on **Windows**, loopback only: `127.0.0.1:11434` (MEASURED 2026-10-07: the Windows `ollama.exe` process is the only listener; WSL reaches it as `localhost` through mirrored networking). Version 0.35.1 per `/api/version` today (the old audit recorded 0.33.3, so Ollama was updated in between).
+- Models live in `E:\FYP\LLMs`. `/api/tags` lists exactly `qwen3.5:latest` (9.7B, Q4_K_M, id `6488c96fa5fa`).
+- Start script: `E:\FYP\start_ollama.ps1` sets `OLLAMA_MODELS=E:\FYP\LLMs` and `OLLAMA_HOST=127.0.0.1:11434` for its own process, then runs `ollama serve`. The copy in `E:\FYP` is what Windows runs; a repo reference copy existed at `scripts/windows/start_ollama.ps1` (identical, last committed in HEAD). **The two copies must stay in sync.**
+- **Autostart:** Task Scheduler task `Insightex Ollama` runs `powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "E:\FYP\start_ollama.ps1"`. MEASURED after the restart: Windows booted 23:30:30, `ollama.exe` started 23:30:56, task state Running, `/api/tags` answered with no manual step.
+- **Desktop-app autostart is disabled** (stated by the project owner; setting not inspected here). Only one `ollama` process was running after boot and no tray-app process.
+- Never set `OLLAMA_HOST=0.0.0.0`. Do not change Ollama or Windows settings from WSL work; changes there are made by hand.
+- Before any GPU stage: `ollama ps`, and unload (`keep_alive: 0`) if a model is resident. Ask before stopping Ollama.
+
+## 6. Call contract
+
+Summary: `chat_json(messages, schema, num_ctx, num_predict=1024, ...)` in `backend/src/insightex/llm/ollama_client.py`. Exact model name checked first, `think: false`, JSON Schema `format` from a pydantic model, `num_ctx` required (project default 8192), `num_predict` explicit, budget rule estimated prompt + `num_predict` <= `num_ctx`, `done_reason: length` raises `OutputTruncated` and is never parsed, `unload()` with `keep_alive: 0` plus polling. Full table, numbers and alternatives: **`docs/adr/0001-ollama-call-contract.md`**.
+
+## 7. Measured numbers
+
+| Item | Value | Date, source |
+|---|---|---|
+| Idle VRAM (Windows desktop only, no model) | 600 to 1,273 MiB (1,273 right after boot, 600 later) | 2026-10-07, `nvidia-smi` |
+| qwen3.5 at `num_ctx` 8192, 6.9k-token prompt | peak 7,374 to 7,424 MiB, model share about 6,500 MiB, 768 to 818 MiB free, 100% GPU, 59.7 to 63.7 tok/s | 2026-10-07, `docs/measurements/2026-10-07_ollama_contract.md` |
+| qwen3.5 at `num_ctx` 16384, 13.7k-token prompt | 16%/84% CPU/GPU, 44.4 tok/s (not usable at 100% GPU) | same file; one run, old 600-token cap |
+| Whisper medium / large-v3 load, cold then warm | 4.35 / 0.78 s and 7.92 / 1.78 s | 2026-10-07, `docs/measurements/2026-10-07_loadtimes.md` |
+| bge-m3 load (sentence-transformers), cold then warm | 6.48 / 1.59 s | same file |
+| Whisper warm speed on Day 4 first 10 min (speed only) | medium 21.4x real time (RTF 0.0466), large-v3 8.4x (RTF 0.1197) | same file; WER is M4 |
+| Whisper large-v3 peak VRAM, 10 min | 5,530 MiB | 3 Oct 2026, CARRIED OVER |
+| bge-m3 peak VRAM | 3,089 MiB | 2 Oct 2026, CARRIED OVER (the bake-off measured 1,141.7 MB, see `Embedding_Report.md`) |
+| `tools/verify_env.py` after full restart | 12 of 12 passed | 2026-10-07, report `$INSIGHTEX_DATA/env_reports/20261007T233720.json` |
+
+GPU contract (hard): never two CUDA stages at once; each stage is its own process and exits fully before the next starts. At query time the GPU belongs to Ollama; bge-m3 query encoding and the reranker run on CPU inside the API process (planned, M5).
+
+## 8. .wslconfig
+
+`C:\Users\<user>\.wslconfig` contains `[wsl2]` and `networkingMode=mirrored`. A byte-identical reference copy is `env/wslconfig.reference` (BOM and CRLF kept); date copied and the "no original backup found" note are in `env/README.md`. Mirrored networking is why WSL reaches Windows Ollama at `localhost:11434`.
+
+## 9. Do NOT do
+
+- **Do not set `OLLAMA_HOST=0.0.0.0`.** Ollama stays loopback-only.
+- **Do not symlink WSL caches** (`~/.cache/pip`, `~/.paddlex`, `~/.cache/paddle`, HF/torch caches) **into `/mnt/e` or `/mnt/c`.** DrvFS loads were measured 3.5x to 7.4x slower. `tools/verify_env.py` fails if a cache resolves into `/mnt`.
+- **Do not trust the old audit scripts for `LD_LIBRARY_PATH`.** `tools/audit_env/check_login_env.sh` and similar counted entries with `grep -v '^$'`, which hid the empty entry (trailing colon) that existed until 2026-10-07. Use `tools/verify_env.py`.
+- Do not run `tools/bench_models/loadtimes/verify_6b_loadtimes.py` casually: it calls `sudo tee /proc/sys/vm/drop_caches`, its bge-m3 step needs a package that is not installed, and it reads `E:\FYP\cache` when that path exists.
+- Do not run two GPU stages together, and do not leave a model loaded in Ollama before starting one.
+
+## 10. Known risks
+
+- **VRAM headroom is about 800 MiB** at `num_ctx` 8192 with a 7k-token prompt (peak about 7.4 GB of 8.19 GB), on a clean desktop.
+- **Windows apps eating VRAM.** GPU-heavy Windows apps took about 2.3 GB at one point; with that load the model does not fit at 100% GPU. Close them during work and check the idle baseline.
+- **Urdu token cost.** Urdu script costs far more tokens per character than English; the budget rule's 1.5 chars/token for Arabic script is a guess. No Urdu-script prompt has been run through the probe, so context headroom for real Urdu lectures is unmeasured.
+- **Ollama updates itself.** Version moved from 0.33.3 to 0.35.1 between audits; a new version can change memory use. Re-run `tools/ollama_contract_probe.py` after an Ollama update.
+- Extraction quality is not evaluated (see M7 open items in the ADR).
+
+## 11. How to verify
+
+```bash
+bash ~/insightex/scripts/verify_env.sh     # wrapper for tools/verify_env.py
+```
+
+It prints a PASS/FAIL/SKIP table and writes `$INSIGHTEX_DATA/env_reports/<timestamp>.json`. Exit code 0 only if everything passes. It checks: env vars and caches, lockfile match, ffmpeg/ffprobe, FAISS, NetworkX, Ollama `/api/tags`, GPU idle baseline, and, each in its own process, torch CUDA, faster-whisper medium on 10 s of Day 4 audio, bge-m3 offline (1024-d), `chat_json` (schema-valid, truncation and budget paths, 100% GPU), and VRAM back within 200 MiB of baseline after unload. Ollama must be running first (Task Scheduler does this at logon). Run it from a new WSL session so the stale-session caveat in section 3 does not apply.

@@ -25,7 +25,7 @@ Do not point runtime caches at `/mnt/e` (DrvFS loads were measured 3.5x to 7.4x 
 
 ## VRAM budget (RTX 3070, 8,192 MiB)
 
-Measured values from `docs/reports/ENV_AUDIT_REPORT.md`. The Windows desktop holds about 1,000 MiB at idle.
+Measured values from `docs/ENVIRONMENT.md` and the old `ENV_AUDIT_REPORT.md` (removed 2026-10-07, in git history). The Windows desktop holds about 1,000 MiB at idle.
 
 | Stage | Peak (MiB) | Note |
 |---|---|---|

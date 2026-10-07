@@ -1,6 +1,6 @@
 # After-restart checklist
 
-Derived from the rules in `CLAUDE.md` and `docs/reports/ENV_AUDIT_REPORT.md`. The ordering below has not been tested after a real reboot (unverified).
+Derived from the rules in `CLAUDE.md` and `docs/ENVIRONMENT.md`. The ordering below has not been tested after a real reboot (unverified).
 
 1. **Ollama (Windows PowerShell):** run `scripts/windows/start_ollama.ps1` (sets `OLLAMA_MODELS=E:\FYP\LLMs`, `OLLAMA_HOST=127.0.0.1:11434`, runs `ollama serve`). Keep that window open.
 2. **Endpoint (WSL):** `curl -s http://localhost:11434/api/tags` should list `qwen3.5:latest`.
