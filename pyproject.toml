@@ -25,5 +25,8 @@ src = ["backend/src"]
 testpaths = ["backend/tests"]
 pythonpath = ["backend/src"]
 # Network tests hit real YouTube/Drive/HTTP servers: run them explicitly with `pytest -m network`.
-markers = ["network: needs internet access and real URLs (skipped by default)"]
+markers = [
+    "network: needs internet access and real URLs (skipped by default)",
+    "real_env: opts out of the autouse settings isolation in backend/tests/conftest.py",
+]
 addopts = "-m 'not network'"
