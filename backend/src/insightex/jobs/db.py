@@ -61,6 +61,22 @@ MIGRATIONS: list[str] = [
     );
     CREATE INDEX idx_workspaces_accessed ON workspaces(last_accessed_at);
     """,
+    # v3: source_kind also allows 'gdrive' (SQLite cannot alter a CHECK, so the table is rebuilt).
+    """
+    CREATE TABLE workspaces_new (
+        id               TEXT PRIMARY KEY,
+        source_kind      TEXT NOT NULL CHECK (source_kind IN ('youtube','gdrive','url','upload','dummy')),
+        source_ref       TEXT NOT NULL,
+        created_at       TEXT NOT NULL,
+        last_accessed_at TEXT NOT NULL,
+        size_bytes       INTEGER NOT NULL DEFAULT 0,
+        pinned           INTEGER NOT NULL DEFAULT 0 CHECK (pinned IN (0,1))
+    );
+    INSERT INTO workspaces_new SELECT id, source_kind, source_ref, created_at, last_accessed_at, size_bytes, pinned FROM workspaces;
+    DROP TABLE workspaces;
+    ALTER TABLE workspaces_new RENAME TO workspaces;
+    CREATE INDEX idx_workspaces_accessed ON workspaces(last_accessed_at);
+    """,
 ]
 
 

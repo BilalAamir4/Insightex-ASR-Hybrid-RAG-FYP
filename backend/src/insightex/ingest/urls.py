@@ -7,7 +7,6 @@ import re
 from dataclasses import dataclass
 from urllib.parse import parse_qs, parse_qsl, quote, unquote, urlencode, urlsplit, urlunsplit
 
-from insightex.core.ids import lecture_id_from_canonical
 from insightex.ingest.errors import ErrorCode, IngestError
 from insightex.ingest.settings import IngestSettings
 
@@ -37,10 +36,6 @@ class ParsedUrl:
     normalized_url: str
     media_id: str           # YouTube video id, Drive file id, or url hash
     canonical_id: str
-
-    @property
-    def lecture_id(self) -> str:
-        return lecture_id_from_canonical(self.canonical_id)
 
     @property
     def external_timestamp_url_template(self) -> str | None:

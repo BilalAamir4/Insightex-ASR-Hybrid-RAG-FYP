@@ -107,7 +107,7 @@ def test_download_writes_file_and_reports_bytes(settings, tmp_path):
 def test_download_cap_enforced_on_received_bytes(tmp_path):
     from insightex.ingest.settings import IngestSettings
 
-    small = IngestSettings(lectures_dir=tmp_path, max_download_bytes=2 * 1024 * 1024)
+    small = IngestSettings(max_download_bytes=2 * 1024 * 1024)
     # No Content-Length: only the byte count can catch it.
     body = b"v" * (5 * 1024 * 1024)
 
@@ -123,7 +123,7 @@ def test_download_cap_enforced_on_received_bytes(tmp_path):
 def test_download_cap_enforced_on_content_length(tmp_path):
     from insightex.ingest.settings import IngestSettings
 
-    small = IngestSettings(lectures_dir=tmp_path, max_download_bytes=100)
+    small = IngestSettings(max_download_bytes=100)
     with pytest.raises(IngestError) as e:
         direct.download(parse_url("https://videos.example/a.mp4"), tmp_path, small, SourceMeta(), None,
                         client(serve(b"", {"content-type": "video/mp4", "content-length": "101"})), resolver)

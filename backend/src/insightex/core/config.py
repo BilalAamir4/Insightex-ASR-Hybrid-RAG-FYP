@@ -40,10 +40,6 @@ class Paths(_Section):
         return Path(os.path.expandvars(str(v))).expanduser().resolve()
 
     @property
-    def lectures_dir(self) -> Path:
-        return self.data_dir / "lectures"
-
-    @property
     def logs_dir(self) -> Path:
         return self.data_dir / "logs"
 
@@ -51,12 +47,14 @@ class Paths(_Section):
 class Api(_Section):
     host: str
     port: int
+    sse_poll_interval_s: float
+    sse_keepalive_s: float
+    touch_min_interval_s: float
 
 
 class IngestUrl(_Section):
     max_duration_s: int
     max_download_bytes: int
-    keep_source: bool
     max_video_height: int
     deno_path: str | None
     socket_timeout_s: float

@@ -19,7 +19,7 @@ from insightex.jobs.workspace import Workspaces, validate_workspace_id
 
 log = logging.getLogger(__name__)
 
-SOURCE_KINDS = ("youtube", "url", "upload", "dummy")
+SOURCE_KINDS = ("youtube", "gdrive", "url", "upload", "dummy")
 
 
 class WorkspaceBusy(Exception):
@@ -167,3 +167,21 @@ def gc_all(conn: sqlite3.Connection, workspaces: Workspaces, max_bytes: int) -> 
                 if conn.execute("SELECT 1 FROM workspaces WHERE id = ?", (child.name,)).fetchone():
                     refresh_size(conn, workspaces, child.name)
     return swept, evict(conn, workspaces, max_bytes)
+
+
+def sweep_orphan_pending(conn: sqlite3.Connection, workspaces: Workspaces) -> list[str]:
+    """Delete `pending-*` directories and cache rows that no job references; return their ids.
+
+    A rebind that merged into an existing workspace and crashed before deleting the provisional
+    directory leaves one. Call it at worker start (the worker is a singleton).
+    """
+    referenced = {r["workspace_id"] for r in conn.execute("SELECT DISTINCT workspace_id FROM jobs")}
+    candidates: set[str] = {r["id"] for r in conn.execute("SELECT id FROM workspaces WHERE id LIKE 'pending-%'")}
+    if workspaces.root.is_dir():
+        candidates |= {c.name for c in workspaces.root.iterdir() if c.is_dir() and c.name.startswith("pending-")}
+    removed = []
+    for wid in sorted(candidates - referenced):
+        shutil.rmtree(workspaces.root / wid, ignore_errors=True)
+        conn.execute("DELETE FROM workspaces WHERE id = ?", (wid,))
+        removed.append(wid)
+    return removed

@@ -81,6 +81,15 @@ class StageContext:
         self.staging_dir = staging_dir
         self.upstream = upstream
         self._reporter = reporter
+        self.rebind_request: str | None = None
+
+    def rebind_workspace(self, new_workspace_id: str) -> None:
+        """Ask the runner to move this job to `new_workspace_id` once this stage has been published.
+
+        Only records the request; the runner applies it between stages, never mid-stage (a job whose
+        workspace id is provisional, such as `pending-<job id>`, learns its real id only after fetching).
+        """
+        self.rebind_request = new_workspace_id
 
     def progress(self, fraction: float, message: str | None = None) -> None:
         """Report progress (0 to 1) and check for cancellation and shutdown.
@@ -118,6 +127,15 @@ class Stage(ABC):
     def run(self, ctx: StageContext) -> None:
         """Do the work and write every declared output into `ctx.staging_dir`."""
 
+    def workspace_id_after(self, stage_dir: Path) -> str | None:
+        """The workspace id this job belongs to once the stage's outputs exist, or None to stay put.
+
+        Called for a job with a provisional workspace id after the stage ran or was found cached, so a
+        rebind interrupted by a crash is replayed from the stage's own output (`ctx.rebind_workspace`
+        is not called again when the stage is cached).
+        """
+        return None
+
 
 class GpuLease(ABC):
     """Serialises GPU stages across processes. Session 2 implements it with an OS file lock."""
@@ -140,17 +158,30 @@ class NullGpuLease(GpuLease):
 _PIPELINES: dict[str, tuple[Stage, ...]] = {}
 SourceFor = Callable[[dict[str, Any]], tuple[str, str]]
 _SOURCES: dict[str, SourceFor] = {}
-_BUILTIN_MODULES = ("insightex.jobs.dummy",)
+# (payload, workspace_id) -> the string the first stage's key chains from (default: the workspace id).
+ChainRoot = Callable[[dict[str, Any], str], str]
+_CHAIN_ROOTS: dict[str, ChainRoot] = {}
+PENDING_PREFIX = "pending-"
+_BUILTIN_MODULES = ("insightex.jobs.dummy", "insightex.ingest.pipeline")
 _builtins_loaded = False
 
 
 def register_pipeline(
-    kind: str, stages: list[Stage], *, replace: bool = False, source_for: SourceFor | None = None
+    kind: str,
+    stages: list[Stage],
+    *,
+    replace: bool = False,
+    source_for: SourceFor | None = None,
+    chain_root: ChainRoot | None = None,
 ) -> None:
     """Register the ordered, linear stage list that runs for jobs of `kind`.
 
     `source_for(payload)` returns `(source_kind, source_ref)` for the cache index (see jobs/cache.py);
     the runner calls it at job start. Without it the workspace is not indexed.
+
+    `chain_root(payload, workspace_id)` gives the upstream key of the first stage. Pipelines whose
+    workspace id can change during the job (`pending-<job id>`, then a content hash) must return a value
+    that does not depend on it, or no stage of a repeated job would ever be cached. Default: the workspace id.
     """
     if kind in _PIPELINES and not replace:
         raise ValueError(f"a pipeline for kind {kind!r} is already registered")
@@ -162,12 +193,22 @@ def register_pipeline(
         _SOURCES[kind] = source_for
     else:
         _SOURCES.pop(kind, None)
+    if chain_root is not None:
+        _CHAIN_ROOTS[kind] = chain_root
+    else:
+        _CHAIN_ROOTS.pop(kind, None)
 
 
 def get_source_for(kind: str) -> SourceFor | None:
     """The `source_for` callable declared by the pipeline for `kind`, or None."""
     get_pipeline(kind)
     return _SOURCES.get(kind)
+
+
+def get_chain_root(kind: str) -> ChainRoot | None:
+    """The `chain_root` callable declared by the pipeline for `kind`, or None."""
+    get_pipeline(kind)
+    return _CHAIN_ROOTS.get(kind)
 
 
 def get_pipeline(kind: str) -> tuple[Stage, ...]:

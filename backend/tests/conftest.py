@@ -72,4 +72,60 @@ def media(tmp_path_factory) -> dict[str, Path]:
 
 @pytest.fixture
 def settings(tmp_path) -> IngestSettings:
-    return IngestSettings(lectures_dir=tmp_path / "lectures")
+    return IngestSettings()
+
+
+@pytest.fixture
+def allow_loopback(monkeypatch):
+    """Let the SSRF guard accept 127.0.0.1, for the duration of one test only.
+
+    There is deliberately no config flag or environment variable for this in production code.
+    """
+    from insightex.ingest import netguard
+
+    real = netguard.is_public_ip
+    monkeypatch.setattr(netguard, "is_public_ip", lambda ip: str(ip) == "127.0.0.1" or real(ip))
+
+
+@pytest.fixture
+def serve_bytes(allow_loopback):
+    """serve_bytes(body) -> a local HTTP server that answers every GET with `body` as video/mp4; no internet involved."""
+    import http.server
+    import threading
+
+    servers = []
+
+    def start(body: bytes):
+        hits: list[str] = []
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                hits.append(self.path)
+                if self.path.split("?")[0] != "/lecture.mp4":
+                    self.send_error(404)
+                    return
+                self.send_response(200)
+                self.send_header("Content-Type", "video/mp4")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        servers.append(server)
+        return type("LocalServer", (), {"url": f"http://127.0.0.1:{server.server_address[1]}/lecture.mp4",
+                                        "hits": hits, "size": len(body)})
+
+    yield start
+    for server in servers:
+        server.shutdown()
+        server.server_close()
+
+
+@pytest.fixture
+def video_server(media, serve_bytes):
+    """The synthetic H.264/AAC clip served at /lecture.mp4."""
+    return serve_bytes(media["h264_aac_mp4"].read_bytes())

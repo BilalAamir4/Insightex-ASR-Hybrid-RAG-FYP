@@ -8,6 +8,7 @@ declared outputs, move the directory into place, record it in the manifest, and 
 from __future__ import annotations
 
 import contextvars
+import dataclasses
 import logging
 import os
 import shutil
@@ -30,10 +31,13 @@ from insightex.jobs.stages import (
     StageContext,
     UnknownJobKind,
     WorkerStopping,
+    PENDING_PREFIX,
+    get_chain_root,
     get_pipeline,
     get_source_for,
     stage_key,
 )
+from insightex.jobs.rebind import rebind
 from insightex.jobs.workspace import Workspaces
 
 log = logging.getLogger(__name__)
@@ -94,11 +98,12 @@ def run_job(
     _cache_step("register", _cache_register, conn, job)
     status = _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop)
     LOG_CONTEXT.set((job.id, "-"))
-    _cache_step("touch", cache.touch, conn, job.workspace_id)
+    workspace_id = store.get_job(conn, job.id).workspace_id  # a rebind may have changed it
+    _cache_step("touch", cache.touch, conn, workspace_id)
     if status == "succeeded":
-        _cache_step("stale-key sweep", cache.gc_stale_keys, workspaces, job.workspace_id)
-        _cache_step("size refresh", cache.refresh_size, conn, workspaces, job.workspace_id)
-        _cache_step("eviction", cache.evict, conn, workspaces, settings.cache.max_bytes, job.workspace_id)
+        _cache_step("stale-key sweep", cache.gc_stale_keys, workspaces, workspace_id)
+        _cache_step("size refresh", cache.refresh_size, conn, workspaces, workspace_id)
+        _cache_step("eviction", cache.evict, conn, workspaces, settings.cache.max_bytes, workspace_id)
     return status
 
 
@@ -128,7 +133,9 @@ def _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop) -> st
         store.finish(conn, job.id, "failed", str(exc))
         return "failed"
 
-    upstream_key = job.workspace_id
+    chain_root = get_chain_root(job.kind)
+    upstream_key = chain_root(job.payload, job.workspace_id) if chain_root else job.workspace_id
+    upstream_keys: dict[str, str] = {}
     upstream_dirs: dict[str, Path] = {}
     for idx, stage in enumerate(pipeline):
         LOG_CONTEXT.set((job.id, stage.name))
@@ -145,16 +152,31 @@ def _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop) -> st
         store.update_stage(conn, job.id, idx, stage_key=key)
         outputs = list(stage.outputs)
 
+        requested: list[str | None] = []
         if workspaces.stage_is_complete(job.workspace_id, stage.name, key, outputs):
             store.update_stage(
                 conn, job.id, idx, status="cached", progress=1.0, message=None, error=None, finished_at=utcnow()
             )
             log.info("stage cached (key %s)", key)
         else:
-            outcome = _run_stage(conn, job, idx, stage, key, settings, workspaces, lease, should_stop, upstream_dirs)
+            outcome = _run_stage(
+                conn, job, idx, stage, key, settings, workspaces, lease, should_stop, upstream_dirs, requested
+            )
             if outcome is not None:
                 return outcome
-        upstream_dirs[stage.name] = workspaces.stage_dir(job.workspace_id, stage.name, key)
+        upstream_keys[stage.name] = key
+        if job.workspace_id.startswith(PENDING_PREFIX):
+            try:
+                target = (requested[0] if requested else None) or stage.workspace_id_after(
+                    workspaces.stage_dir(job.workspace_id, stage.name, key)
+                )
+                if target and target != job.workspace_id:
+                    LOG_CONTEXT.set((job.id, stage.name))
+                    rebind(conn, workspaces, job.id, job.workspace_id, target, stage.name)
+                    job = dataclasses.replace(job, workspace_id=target)
+            except Exception as exc:
+                return _fail(conn, job, idx, exc, settings)
+        upstream_dirs = {n: workspaces.stage_dir(job.workspace_id, n, k) for n, k in upstream_keys.items()}
         upstream_key = key
 
     store.finish(conn, job.id, "succeeded")
@@ -164,9 +186,12 @@ def _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop) -> st
 
 
 def _run_stage(
-    conn, job, idx, stage: Stage, key, settings, workspaces: Workspaces, lease, should_stop, upstream_dirs
+    conn, job, idx, stage: Stage, key, settings, workspaces: Workspaces, lease, should_stop, upstream_dirs, requested
 ) -> str | None:
-    """Run one uncached stage. Returns None on success, else the job's resulting status."""
+    """Run one uncached stage. Returns None on success, else the job's resulting status.
+
+    `requested` receives the workspace id the stage asked for with `ctx.rebind_workspace`, if any.
+    """
     staging = workspaces.staging_dir(job.workspace_id, stage.name, key, os.getpid())
     started = time.monotonic()
     try:
@@ -185,6 +210,7 @@ def _run_stage(
             )
             progress(0.0, None)
             stage.run(ctx)
+            requested.append(ctx.rebind_request)
         _verify_outputs(stage, staging)
         _publish(workspaces, job.workspace_id, stage, key, staging, time.monotonic() - started)
     except JobCancelled:

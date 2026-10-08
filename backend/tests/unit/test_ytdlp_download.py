@@ -26,7 +26,7 @@ def server(media):
 
 
 def test_download_with_progress(server, tmp_path, media):
-    settings = IngestSettings(lectures_dir=tmp_path)
+    settings = IngestSettings()
     calls = []
     out = ytdlp.download(f"{server}/h264_aac.mp4", tmp_path, settings, "direct", "b", lambda r, t: calls.append((r, t)),
                          merge_mp4=False)
@@ -36,14 +36,14 @@ def test_download_with_progress(server, tmp_path, media):
 
 
 def test_byte_cap_aborts_download(server, tmp_path):
-    settings = IngestSettings(lectures_dir=tmp_path, max_download_bytes=1000)
+    settings = IngestSettings(max_download_bytes=1000)
     with pytest.raises(IngestError) as e:
         ytdlp.download(f"{server}/h264_aac.mp4", tmp_path, settings, "direct", "b", None, merge_mp4=False)
     assert e.value.code == ErrorCode.TOO_LARGE
 
 
 def test_missing_file_maps_to_error(server, tmp_path):
-    settings = IngestSettings(lectures_dir=tmp_path)
+    settings = IngestSettings()
     with pytest.raises(IngestError) as e:
         ytdlp.download(f"{server}/nope.mp4", tmp_path, settings, "direct", "b", None, merge_mp4=False)
     assert e.value.code in (ErrorCode.DOWNLOAD_FAILED, ErrorCode.UNSUPPORTED_URL)
@@ -69,7 +69,7 @@ def test_byte_cap_enforced_by_hook_without_content_length(tmp_path, media):
     httpd = http.server.HTTPServer(("127.0.0.1", 0), _NoLengthHandler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     try:
-        settings = IngestSettings(lectures_dir=tmp_path, max_download_bytes=1000)
+        settings = IngestSettings(max_download_bytes=1000)
         with pytest.raises(IngestError) as e:
             ytdlp.download(f"http://127.0.0.1:{httpd.server_address[1]}/clip.mp4", tmp_path, settings, "direct", "b",
                            None, merge_mp4=False)

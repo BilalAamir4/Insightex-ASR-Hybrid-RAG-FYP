@@ -51,7 +51,7 @@ def test_defaults_match_default_yaml():
 
 def test_ingest_settings_dataclass_defaults_match_yaml():
     from_yaml = IngestSettings.from_settings(load_settings())
-    assert from_yaml == IngestSettings(lectures_dir=from_yaml.lectures_dir)
+    assert from_yaml == IngestSettings()
 
 
 def test_visual_disabled_by_default():
@@ -59,9 +59,9 @@ def test_visual_disabled_by_default():
 
 
 def test_local_file_overrides_default(monkeypatch, tmp_path):
-    _local(monkeypatch, tmp_path, "api:\n  port: 9001\ningest:\n  url:\n    keep_source: true\n")
+    _local(monkeypatch, tmp_path, "api:\n  port: 9001\ningest:\n  url:\n    max_video_height: 720\n")
     s = load_settings()
-    assert s.api.port == 9001 and s.ingest.url.keep_source is True and s.api.host == "127.0.0.1"
+    assert s.api.port == 9001 and s.ingest.url.max_video_height == 720 and s.api.host == "127.0.0.1"
 
 
 def test_missing_config_env_file_raises(monkeypatch, tmp_path):
@@ -101,7 +101,7 @@ def test_alias_env_var_works(monkeypatch, tmp_path):
     monkeypatch.setenv("INSIGHTEX_DATA", str(tmp_path / "d"))
     monkeypatch.setenv("OLLAMA_BASE_URL", "http://example:1234")
     s = load_settings()
-    assert s.paths.data_dir == tmp_path / "d" and s.paths.lectures_dir == tmp_path / "d" / "lectures"
+    assert s.paths.data_dir == tmp_path / "d"
     assert s.ollama.base_url == "http://example:1234"
 
 
