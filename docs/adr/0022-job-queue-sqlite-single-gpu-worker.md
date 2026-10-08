@@ -1,6 +1,6 @@
 # ADR-0022: Job queue: SQLite + single GPU worker
 
-Status: Proposed
+Status: Superseded by ADR-0033
 Date decided: not recorded; before 2026-10-08
 Date recorded: 2026-10-08
 Module: M1

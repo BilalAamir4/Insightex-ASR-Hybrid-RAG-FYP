@@ -153,3 +153,21 @@ def test_render_marks_sources(monkeypatch, tmp_path):
     assert "port: 8000  # default" in out
     assert f"host: 127.0.0.1  # file {f}" in out
     assert "data_dir:" in out and "# env INSIGHTEX_DATA" in out
+
+
+def test_jobs_paths_derive_from_data_dir(tmp_path):
+    jobs = load_settings({"paths": {"data_dir": str(tmp_path)}}).jobs
+    assert jobs.db_path == tmp_path / "insightex.db"
+    assert jobs.workspaces_dir == tmp_path / "workspaces"
+    assert jobs.run_dir == tmp_path / "run"
+
+
+def test_jobs_explicit_path_wins_over_derived(tmp_path):
+    s = load_settings({"paths": {"data_dir": str(tmp_path)}, "jobs": {"run_dir": str(tmp_path / "elsewhere")}})
+    assert s.jobs.run_dir == tmp_path / "elsewhere" and s.jobs.db_path == tmp_path / "insightex.db"
+
+
+@pytest.mark.parametrize("key", ["db_path", "workspaces_dir", "run_dir"])
+def test_jobs_paths_under_mnt_are_rejected(key):
+    with pytest.raises(ConfigError, match=rf"jobs\.{key}.*under /mnt/"):
+        load_settings({"jobs": {key: "/mnt/e/FYP/x"}})

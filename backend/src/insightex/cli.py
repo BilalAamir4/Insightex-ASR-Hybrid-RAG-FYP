@@ -2,6 +2,9 @@
 
     insightex config show        merged settings as YAML, each value tagged with where it came from
     insightex config validate    exit 0 if the settings load, else print the error and exit 1
+    insightex db migrate         create or upgrade the job database
+    insightex worker             run the single job worker
+    insightex jobs ...           enqueue-dummy, list, show, cancel, retry (insightex.jobs.cli)
     insightex probe|ingest ...   link ingestion (insightex.ingest.cli)
 """
 
@@ -37,9 +40,14 @@ def main(argv: list[str] | None = None) -> int:
     p_config = sub.add_parser("config", help="inspect or validate the configuration")
     p_config.add_argument("action", choices=["show", "validate"])
     p_config.set_defaults(func=_config)
+    from insightex.jobs import cli as jobs_cli
+
+    jobs_cli.register(sub)
     sub.add_parser("probe", help="print metadata for a link (see: insightex probe <url>)")
     sub.add_parser("ingest", help="download and process a lecture video (see: insightex ingest <url> --confirm-rights)")
     args = parser.parse_args(argv)
+    if args.command in ("db", "worker", "jobs"):
+        return jobs_cli.run(args)
     return args.func(args)
 
 
