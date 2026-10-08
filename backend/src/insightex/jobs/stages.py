@@ -138,18 +138,36 @@ class NullGpuLease(GpuLease):
 
 
 _PIPELINES: dict[str, tuple[Stage, ...]] = {}
+SourceFor = Callable[[dict[str, Any]], tuple[str, str]]
+_SOURCES: dict[str, SourceFor] = {}
 _BUILTIN_MODULES = ("insightex.jobs.dummy",)
 _builtins_loaded = False
 
 
-def register_pipeline(kind: str, stages: list[Stage], *, replace: bool = False) -> None:
-    """Register the ordered, linear stage list that runs for jobs of `kind`."""
+def register_pipeline(
+    kind: str, stages: list[Stage], *, replace: bool = False, source_for: SourceFor | None = None
+) -> None:
+    """Register the ordered, linear stage list that runs for jobs of `kind`.
+
+    `source_for(payload)` returns `(source_kind, source_ref)` for the cache index (see jobs/cache.py);
+    the runner calls it at job start. Without it the workspace is not indexed.
+    """
     if kind in _PIPELINES and not replace:
         raise ValueError(f"a pipeline for kind {kind!r} is already registered")
     names = [validate_stage_name(s.name) for s in stages]
     if not stages or len(set(names)) != len(names):
         raise ValueError(f"pipeline {kind!r} needs at least one stage and unique stage names")
     _PIPELINES[kind] = tuple(stages)
+    if source_for is not None:
+        _SOURCES[kind] = source_for
+    else:
+        _SOURCES.pop(kind, None)
+
+
+def get_source_for(kind: str) -> SourceFor | None:
+    """The `source_for` callable declared by the pipeline for `kind`, or None."""
+    get_pipeline(kind)
+    return _SOURCES.get(kind)
 
 
 def get_pipeline(kind: str) -> tuple[Stage, ...]:

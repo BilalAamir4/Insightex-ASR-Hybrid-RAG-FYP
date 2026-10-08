@@ -8,8 +8,9 @@ import sys
 import uuid
 
 from insightex.core.config import ConfigError, Settings, get_settings
-from insightex.jobs import db, store
+from insightex.jobs import cache, db, store
 from insightex.jobs.stages import UnknownJobKind
+from insightex.jobs.workspace import Workspaces
 
 
 def register(sub: argparse._SubParsersAction) -> None:
@@ -20,6 +21,28 @@ def register(sub: argparse._SubParsersAction) -> None:
 
     p_worker = sub.add_parser("worker", help="run the single job worker (exit 2 if one is already running)")
     p_worker.set_defaults(func=_worker)
+
+    p_gpu = sub.add_parser("gpu", help="GPU lease")
+    gpu_sub = p_gpu.add_subparsers(dest="gpu_command", required=True)
+    p = gpu_sub.add_parser("status", help="report whether the GPU lease is free or busy, and who holds it")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(func=_gpu_status)
+
+    p_cache = sub.add_parser("cache", help="workspace cache")
+    cache_sub = p_cache.add_subparsers(dest="cache_command", required=True)
+    p = cache_sub.add_parser("list", help="list workspaces, most recently accessed first")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(func=_cache_list)
+    for name, func, text in (
+        ("delete", _cache_delete, "delete a workspace (refused while a job uses it)"),
+        ("pin", _cache_pin, "never evict this workspace"),
+        ("unpin", _cache_unpin, "allow eviction of this workspace"),
+    ):
+        p = cache_sub.add_parser(name, help=text)
+        p.add_argument("workspace_id")
+        p.set_defaults(func=func)
+    p = cache_sub.add_parser("gc", help="sweep stale stage keys in every idle workspace, then evict")
+    p.set_defaults(func=_cache_gc)
 
     p_jobs = sub.add_parser("jobs", help="enqueue, inspect, cancel and retry jobs")
     jobs_sub = p_jobs.add_subparsers(dest="jobs_command", required=True)
@@ -61,6 +84,63 @@ def _db(args: argparse.Namespace, settings: Settings) -> int:
     conn = db.connect(settings.jobs.db_path, settings.jobs.busy_timeout_ms)
     applied = db.migrate(conn)
     print(f"{settings.jobs.db_path}: schema version {db.schema_version(conn)} ({applied} migration(s) applied)")
+    return 0
+
+
+def _gpu_status(args: argparse.Namespace, settings: Settings) -> int:
+    from insightex.jobs import gpu_lease
+
+    result = {**gpu_lease.status(settings.gpu.lease_path), "run_dir": str(settings.jobs.run_dir)}
+    if args.json:
+        print(json.dumps(result, indent=2))
+        return 0
+    print(f"lease_path: {result['lease_path']}")
+    holder = result["holder"]
+    if result["state"] == "free":
+        print("state: free")
+    elif holder:
+        print(f"state: busy (pid {holder['pid']}, {holder['mode']}, {holder['purpose']}, since {holder['acquired_at']})")
+    else:
+        print("state: busy (no exclusive holder recorded; shared holds or a holder starting up)")
+    return 0
+
+
+def _workspaces(settings: Settings) -> Workspaces:
+    return Workspaces(settings.jobs.workspaces_dir)
+
+
+def _cache_list(args: argparse.Namespace, settings: Settings) -> int:
+    rows = cache.list_workspaces(_conn(settings), _workspaces(settings))
+    if args.json:
+        print(json.dumps({"workspaces": rows}, indent=2, ensure_ascii=False))
+        return 0
+    for r in rows:
+        flags = ",".join(f for f, on in (("pinned", r["pinned"]), ("busy", r["busy"]), ("unindexed", not r["indexed"])) if on)
+        print(f"{r['id']:<44} {r['size_bytes'] / 1e6:>10.1f} MB  {r['source_kind'] or '-':<8} {r['last_accessed_at'] or '-'}  {flags}")
+    return 0
+
+
+def _cache_delete(args: argparse.Namespace, settings: Settings) -> int:
+    cache.delete(_conn(settings), _workspaces(settings), args.workspace_id)
+    print("deleted")
+    return 0
+
+
+def _cache_pin(args: argparse.Namespace, settings: Settings) -> int:
+    cache.pin(_conn(settings), args.workspace_id)
+    print("pinned")
+    return 0
+
+
+def _cache_unpin(args: argparse.Namespace, settings: Settings) -> int:
+    cache.unpin(_conn(settings), args.workspace_id)
+    print("unpinned")
+    return 0
+
+
+def _cache_gc(args: argparse.Namespace, settings: Settings) -> int:
+    swept, evicted = cache.gc_all(_conn(settings), _workspaces(settings), settings.cache.max_bytes)
+    print(f"swept {swept} stale stage dir(s); evicted {len(evicted)} workspace(s)" + (f": {', '.join(evicted)}" if evicted else ""))
     return 0
 
 
@@ -123,6 +203,7 @@ def run(args: argparse.Namespace) -> int:
     """Load settings once and run the chosen command; user errors become `error: ...` and exit 1."""
     try:
         return args.func(args, get_settings())
-    except (ConfigError, store.JobNotFound, store.InvalidJobState, store.PipelineMismatch, UnknownJobKind, ValueError) as exc:
+    except (ConfigError, store.JobNotFound, store.InvalidJobState, store.PipelineMismatch, UnknownJobKind, ValueError,
+            cache.WorkspaceBusy, cache.WorkspaceNotFound) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1

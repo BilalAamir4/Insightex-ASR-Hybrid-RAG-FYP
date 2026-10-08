@@ -84,6 +84,15 @@ class Worker:
         self.stop_event = threading.Event()
         self.conn = db.open_connection(settings.jobs.db_path, settings.jobs.busy_timeout_ms)
 
+    def use_configured_lease(self) -> None:
+        """Replace the lease with the one `gpu.lease_enabled` selects: the flock lease, or none."""
+        if self.settings.gpu.lease_enabled:
+            from insightex.jobs.gpu_lease import FileGpuLease
+
+            self.gpu_lease = FileGpuLease(self.settings, should_stop=self.stop_event.is_set)
+        else:
+            self.gpu_lease = NullGpuLease()
+
     def startup(self) -> None:
         """Migrate, delete abandoned staging directories, and resolve jobs left `running` by a dead worker."""
         db.migrate(self.conn)
@@ -140,6 +149,7 @@ def main(settings: Settings) -> int:
         return EXIT_LOCKED
     setup_logging(settings.paths.logs_dir)
     worker = Worker(settings)
+    worker.use_configured_lease()
     worker.install_signal_handlers()
     try:
         return worker.run()

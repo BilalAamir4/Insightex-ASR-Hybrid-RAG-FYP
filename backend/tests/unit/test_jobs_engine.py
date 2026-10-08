@@ -40,9 +40,9 @@ FAST = {"cpu_seconds": 0.1, "gpu_seconds": 0.1, "step_seconds": 0.05}
 
 def test_migrate_twice_is_a_noop_the_second_time(env):
     _, conn, _ = env
-    assert db.schema_version(conn) == 1
+    assert db.schema_version(conn) == len(db.MIGRATIONS) == 2
     assert db.migrate(conn) == 0
-    assert conn.execute("SELECT COUNT(*) FROM schema_version").fetchone()[0] == 1
+    assert conn.execute("SELECT COUNT(*) FROM schema_version").fetchone()[0] == 2
 
 
 def test_connection_pragmas(env):

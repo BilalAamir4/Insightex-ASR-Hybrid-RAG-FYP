@@ -49,6 +49,18 @@ MIGRATIONS: list[str] = [
         PRIMARY KEY (job_id, idx)
     );
     """,
+    """
+    CREATE TABLE workspaces (
+        id               TEXT PRIMARY KEY,
+        source_kind      TEXT NOT NULL CHECK (source_kind IN ('youtube','url','upload','dummy')),
+        source_ref       TEXT NOT NULL,
+        created_at       TEXT NOT NULL,
+        last_accessed_at TEXT NOT NULL,
+        size_bytes       INTEGER NOT NULL DEFAULT 0,
+        pinned           INTEGER NOT NULL DEFAULT 0 CHECK (pinned IN (0,1))
+    );
+    CREATE INDEX idx_workspaces_accessed ON workspaces(last_accessed_at);
+    """,
 ]
 
 

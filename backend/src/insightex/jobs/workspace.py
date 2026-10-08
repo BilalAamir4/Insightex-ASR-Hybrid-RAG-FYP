@@ -181,6 +181,30 @@ class Workspaces:
                 removed += 1
         return removed
 
+    def sweep_stale_keys(self, workspace_id: str) -> int:
+        """Delete stage-key directories that the manifest does not name; return how many were removed.
+
+        The runner removes the superseded key on the normal path. This catches what a crash left: a key
+        directory moved into place before the manifest write, or a superseded one whose delete failed.
+        Call it only while no job is running for the workspace.
+        """
+        stages_root = self.path(workspace_id) / "stages"
+        if not stages_root.is_dir():
+            return 0
+        current = {name: entry.get("key") for name, entry in self.read_manifest(workspace_id)["stages"].items()}
+        removed = 0
+        for stage_dir in stages_root.iterdir():
+            if not stage_dir.is_dir():
+                continue
+            for key_dir in stage_dir.iterdir():
+                if key_dir.name != current.get(stage_dir.name):
+                    try:
+                        shutil.rmtree(key_dir)
+                        removed += 1
+                    except OSError as exc:
+                        log.warning("could not remove stale stage dir %s: %s", key_dir, exc)
+        return removed
+
     def remove_stage_key_dir(self, workspace_id: str, stage_name: str, stage_key: str) -> bool:
         """Delete a superseded stage directory. A failure is logged as a warning and returns False."""
         directory = self.stage_dir(workspace_id, stage_name, stage_key)
