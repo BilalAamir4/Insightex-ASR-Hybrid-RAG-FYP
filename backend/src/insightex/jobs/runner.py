@@ -15,6 +15,7 @@ import sqlite3
 import time
 import traceback
 from collections.abc import Callable
+from contextlib import nullcontext
 from pathlib import Path
 
 from insightex.core.config import Settings
@@ -169,7 +170,7 @@ def _run_stage(
     staging = workspaces.staging_dir(job.workspace_id, stage.name, key, os.getpid())
     started = time.monotonic()
     try:
-        with lease.hold(job.id, stage.name):
+        with lease.hold(job.id, stage.name) if stage.needs_gpu else nullcontext():
             shutil.rmtree(staging, ignore_errors=True)
             staging.mkdir(parents=True)
             store.update_stage(
