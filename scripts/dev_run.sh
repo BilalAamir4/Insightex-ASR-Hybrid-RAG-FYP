@@ -13,13 +13,14 @@ print(s.jobs.run_dir, s.paths.logs_dir)') || exit 1
 mkdir -p "$RUN_DIR" "$LOGS_DIR"
 
 WORKER_PID=""
-stop_worker() {
-  if [ -n "$WORKER_PID" ] && kill -0 "$WORKER_PID" 2>/dev/null; then
-    kill -TERM "$WORKER_PID"   # a clean stop puts a running job back in the queue
-    wait "$WORKER_PID" 2>/dev/null
-  fi
+API_PID=""
+cleanup() {
+  trap '' INT TERM
+  for pid in "$API_PID" "$WORKER_PID"; do   # a clean worker stop puts a running job back in the queue
+    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then kill -TERM "$pid"; wait "$pid" 2>/dev/null; fi
+  done
 }
-trap stop_worker EXIT
+trap cleanup EXIT
 trap 'exit 130' INT TERM
 
 if flock -n "$RUN_DIR/worker.lock" true 2>/dev/null; then
@@ -30,4 +31,7 @@ else
   echo "a worker is already running; using it (insightex gpu status shows the GPU lease)"
 fi
 
-python -m insightex.api
+# Background + wait, so a signal sent to this script runs the trap at once instead of after the API exits.
+python -m insightex.api &
+API_PID=$!
+wait "$API_PID"
