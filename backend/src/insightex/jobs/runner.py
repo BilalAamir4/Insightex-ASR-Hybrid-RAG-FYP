@@ -15,10 +15,11 @@ import sqlite3
 import time
 import traceback
 from collections.abc import Callable
+from contextlib import nullcontext
 from pathlib import Path
 
 from insightex.core.config import Settings
-from insightex.jobs import store
+from insightex.jobs import cache, store
 from insightex.jobs.db import utcnow
 from insightex.jobs.stages import (
     GpuLease,
@@ -30,6 +31,7 @@ from insightex.jobs.stages import (
     UnknownJobKind,
     WorkerStopping,
     get_pipeline,
+    get_source_for,
     stage_key,
 )
 from insightex.jobs.workspace import Workspaces
@@ -84,7 +86,38 @@ def run_job(
 
     The result is `succeeded`, `failed`, `cancelled`, or `queued` when the worker was told to stop and
     the job was put back. Never raises for job-level problems; those become a failed job.
+
+    Cache bookkeeping (ADR-0034): the workspace is registered and touched at start and touched at the
+    end; after a success the stale-key sweep, size refresh and eviction run in that order. A failure in
+    any of them logs a warning and never changes the job's status.
     """
+    _cache_step("register", _cache_register, conn, job)
+    status = _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop)
+    LOG_CONTEXT.set((job.id, "-"))
+    _cache_step("touch", cache.touch, conn, job.workspace_id)
+    if status == "succeeded":
+        _cache_step("stale-key sweep", cache.gc_stale_keys, workspaces, job.workspace_id)
+        _cache_step("size refresh", cache.refresh_size, conn, workspaces, job.workspace_id)
+        _cache_step("eviction", cache.evict, conn, workspaces, settings.cache.max_bytes, job.workspace_id)
+    return status
+
+
+def _cache_step(what: str, fn, *args) -> None:
+    try:
+        fn(*args)
+    except Exception as exc:
+        log.warning("cache %s failed: %s: %s", what, type(exc).__name__, exc)
+
+
+def _cache_register(conn: sqlite3.Connection, job: store.Job) -> None:
+    source_for = get_source_for(job.kind)
+    if source_for is not None:
+        kind, ref = source_for(job.payload)
+        cache.register(conn, job.workspace_id, kind, ref)
+    cache.touch(conn, job.workspace_id)
+
+
+def _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop) -> str:
     lease = gpu_lease or NullGpuLease()
     LOG_CONTEXT.set((job.id, "-"))
     try:
@@ -137,7 +170,7 @@ def _run_stage(
     staging = workspaces.staging_dir(job.workspace_id, stage.name, key, os.getpid())
     started = time.monotonic()
     try:
-        with lease.hold(job.id, stage.name):
+        with lease.hold(job.id, stage.name) if stage.needs_gpu else nullcontext():
             shutil.rmtree(staging, ignore_errors=True)
             staging.mkdir(parents=True)
             store.update_stage(

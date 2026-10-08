@@ -73,6 +73,7 @@ Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash
 - Never run two CUDA stages at once. Each stage is its own subprocess and must exit fully before the next one starts.
 - Ollama (`qwen3.5:latest`) alone peaks at about 7.4 GB at `num_ctx` 8192 (measured 2026-10-07), leaving 510 to 818 MiB depending on the Windows desktop's VRAM use (`docs/ENVIRONMENT.md`). Always set `num_ctx` explicitly; 16384 spills to CPU.
 - Before any GPU run, check `ollama ps`, then run `ollama stop <model>` if a model is loaded. Ask the user before stopping Ollama.
+- Unloading the model through the GPU lease (ADR-0033) is the approved way to free VRAM and needs no confirmation; stopping the Ollama service still does.
 - Ollama calls go through `insightex.llm.ollama_client.chat_json`: `/api/chat` with a JSON Schema `format`, `think: false`, `keep_alive: "10m"`, `num_ctx` required (default 8192), `temperature` 0, `num_predict` explicit (default 1024).
   - Estimated prompt tokens + `num_predict` must fit in `num_ctx`; `done_reason: length` is an error, never parsed.
   - In a `finally` block, call `unload()` (`keep_alive: 0`, then poll `/api/ps` until the model is gone).

@@ -10,6 +10,11 @@ insightex jobs list [--status S] [--limit N] [--json]
 insightex jobs show ID [--json]
 insightex jobs cancel ID
 insightex jobs retry ID
+insightex gpu status [--json]                      lease free or busy, with the exclusive holder if recorded
+insightex cache list [--json]                      workspaces, most recently accessed first
+insightex cache delete ID                          exit 1 with `error:` if a queued or running job uses it
+insightex cache pin ID | unpin ID                  pinned workspaces are never evicted (ID must be indexed)
+insightex cache gc                                 stale-key sweep for every idle workspace, then evict
 ```
 
 ## JSON shapes (stable)
@@ -50,3 +55,39 @@ insightex jobs retry ID
 - `progress` is 0 to 1. `error` on a stage holds `Type: message` followed by a trimmed traceback; `error` on the job is one line.
 - `attempts` counts claims by a worker. A clean worker shutdown does not count; a crash does.
 - Fields are only added, never renamed or removed, within this contract.
+
+## `gpu status --json`
+
+```json
+{
+  "lease_path": "/home/user/insightex-data/run/gpu.lock",
+  "run_dir": "/home/user/insightex-data/run",
+  "workspaces_dir": "/home/user/insightex-data/workspaces",
+  "ollama_base_url": "http://localhost:11434",
+  "ollama_model": "qwen3.5:latest",
+  "state": "free | busy",
+  "holder": {"pid": 1234, "mode": "exclusive", "purpose": "<job_id>:<stage_name>", "acquired_at": "...Z"}
+}
+```
+
+`run_dir`, `workspaces_dir`, `ollama_base_url` and `ollama_model` are the effective settings, so tools need not parse the config. `holder` is `null` when the lease is free, or when it is busy with shared holds only. It is diagnostic: the lock is the truth. The command takes a non-blocking exclusive lock and releases it at once.
+
+## `cache list --json`
+
+`{"workspaces": [<workspace>, ...]}`, most recently accessed first.
+
+```json
+{
+  "id": "yt-dQw4w9WgXcQ",
+  "source_kind": "youtube | url | upload | dummy | null",
+  "source_ref": "URL, original file name or label; null when not indexed",
+  "created_at": "...Z or null",
+  "last_accessed_at": "...Z or null",
+  "size_bytes": 123456,
+  "pinned": false,
+  "indexed": true,
+  "busy": false
+}
+```
+
+`indexed` is false for a directory with no row in the cache table; eviction skips it and `cache delete` still removes it. `busy` is true while a queued or running job references the workspace.

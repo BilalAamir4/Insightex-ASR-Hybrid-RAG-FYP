@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import fcntl
 import os
 import signal
 import subprocess
@@ -80,3 +81,26 @@ def test_second_worker_exits_with_code_2(conn):
     finally:
         first.send_signal(signal.SIGTERM)
         assert first.wait(timeout=15) == 0
+
+
+def test_sigterm_while_blocked_on_a_held_lease_requeues_the_job(conn):
+    settings, c = conn
+    settings.gpu.lease_path.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(settings.gpu.lease_path, os.O_RDWR | os.O_CREAT)
+    fcntl.flock(fd, fcntl.LOCK_EX)
+    job_id = store.enqueue(c, "dummy", {"cpu_seconds": 0.2, "gpu_seconds": 1}, "blocked")
+    worker = start_worker()
+    try:
+        wait_for(lambda: store.get_job(c, job_id).stages[0].status == "succeeded", what="dummy_cpu done")
+        time.sleep(0.5)  # the worker is now waiting for the lease
+        job = store.get_job(c, job_id)
+        assert job.status == "running" and job.stages[1].status == "pending"
+        worker.send_signal(signal.SIGTERM)
+        assert worker.wait(timeout=15) == 0
+    finally:
+        if worker.poll() is None:
+            worker.kill()
+        os.close(fd)
+    job = store.get_job(c, job_id)
+    assert job.status == "queued"
+    assert job.attempts == 0

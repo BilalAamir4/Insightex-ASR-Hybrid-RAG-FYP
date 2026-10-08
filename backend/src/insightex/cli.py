@@ -4,6 +4,8 @@
     insightex config validate    exit 0 if the settings load, else print the error and exit 1
     insightex db migrate         create or upgrade the job database
     insightex worker             run the single job worker
+    insightex gpu status         GPU lease free or busy
+    insightex cache ...          list, delete, pin, unpin, gc
     insightex jobs ...           enqueue-dummy, list, show, cancel, retry (insightex.jobs.cli)
     insightex probe|ingest ...   link ingestion (insightex.ingest.cli)
 """
@@ -46,7 +48,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("probe", help="print metadata for a link (see: insightex probe <url>)")
     sub.add_parser("ingest", help="download and process a lecture video (see: insightex ingest <url> --confirm-rights)")
     args = parser.parse_args(argv)
-    if args.command in ("db", "worker", "jobs"):
+    if args.command in ("db", "worker", "jobs", "gpu", "cache"):
         return jobs_cli.run(args)
     return args.func(args)
 

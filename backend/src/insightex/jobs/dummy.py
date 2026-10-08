@@ -52,4 +52,8 @@ class DummyGpu(Stage):
         (ctx.staging_dir / "gpu.txt").write_text(f"gpu stage saw: {cpu_text}", encoding="utf-8")
 
 
-register_pipeline("dummy", [DummyCpu(), DummyGpu()])
+def _source_for(payload: dict[str, Any]) -> tuple[str, str]:
+    return "dummy", str(payload.get("label", ""))
+
+
+register_pipeline("dummy", [DummyCpu(), DummyGpu()], source_for=_source_for)

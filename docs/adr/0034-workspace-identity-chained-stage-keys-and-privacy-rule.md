@@ -16,7 +16,7 @@ ADR-0023 said processed workspaces are cached per video, keyed by content hash o
 - the SHA-256 of the downloaded bytes for other links;
 - the SHA-256 of the uploaded bytes for uploads.
 
-The helpers that compute these are built in the next session. This session accepts any id that matches `^[A-Za-z0-9_-][A-Za-z0-9._-]{0,127}$`, because the id is a directory name.
+The helpers that compute these are in `insightex.sources.identity`. Any id that matches `^[A-Za-z0-9_-][A-Za-z0-9._-]{0,127}$` is accepted, because the id is a directory name.
 
 **Chained stage keys.** Each stage has a key: the first 16 hex characters of the SHA-256 of the canonical JSON (sorted keys, compact separators, no ASCII escaping) of the stage name, the stage's code version, the stage's config fingerprint and the upstream stage's key. For the first stage the upstream key is the workspace id. Changing one stage's version or config changes its key and every downstream key, and no upstream key.
 
@@ -25,6 +25,17 @@ The helpers that compute these are built in the next session. This session accep
 **Privacy rule.** Lecture artifacts (transcript, windows, embeddings, graph) are derived only from the video, are identical for everyone and are cached. User data (questions, answers, notes, quiz attempts, anything tied to a person) is never persisted beyond the session.
 
 **Two layouts for now.** Link ingestion still writes `lectures/<lecture_id>/` (ADR-0025). Workspaces under `workspaces/` are used by the new runner. The next sessions move ingestion onto the runner and remove `lectures/`.
+
+### Source identity, cache index and eviction
+
+- **Identity helpers:** `insightex.sources.identity` gives `youtube_video_id(url)`, `workspace_id_for_youtube` (`yt-<id>`), `workspace_id_for_bytes` (`sha256-<first 32 hex>`), `sha256_file` and `HashingWriter`, which hashes while a download or upload streams to disk. Every id passes `validate_workspace_id`.
+- **Index:** the `workspaces` table (schema version 2) holds `id`, `source_kind` (`youtube`, `url`, `upload`, `dummy`), `source_ref`, `created_at`, `last_accessed_at`, `size_bytes` and `pinned`. Each pipeline declares its source through `register_pipeline(..., source_for=payload -> (source_kind, source_ref))`; the runner registers the workspace at job start. `created_at` is never overwritten.
+- **Access times:** the runner touches the workspace when a job starts and when it ends; the API touches it when media is served.
+- **After every successful job** the runner runs the stale-key sweep, the size refresh and eviction, in that order. A failure in any of them logs a warning and never changes the job's status.
+- **Eviction:** when the sum of `size_bytes` exceeds `cache.max_bytes` (40 GiB), the least recently accessed workspaces are deleted until the sum is under the cap. Pinned workspaces, workspaces with a queued or running job, and the workspace whose job just finished are never evicted. If that workspace alone exceeds the cap, a warning says so. Directories with no row in the table are never evicted. Each eviction logs the id, size and last access time.
+- **Pin:** `cache pin` marks a workspace so eval lectures are never evicted; `cache unpin` reverses it.
+- **Delete:** `cache.delete(id)` raises `WorkspaceBusy` while a queued or running job references the workspace; otherwise it removes the directory and the row. Finished job rows stay; they hold no lecture content. Delete also works on directories with no row.
+- **Stale keys:** `Workspaces.sweep_stale_keys` removes stage-key directories the manifest does not name. `insightex cache gc` runs it for every workspace without a queued or running job, then evicts.
 
 ## Alternatives considered
 
@@ -38,7 +49,7 @@ The helpers that compute these are built in the next session. This session accep
 
 - Editing one stage's code or config reruns that stage and everything after it, and nothing before it. Each stage's author must bump `version` when its outputs change, or stale outputs stay cached.
 - The manifest's current key for a stage can be stale after a pipeline change, until the stage reruns.
-- Cached workspaces use disk. A size cap with least-recently-used eviction and a delete action per video follow in the next session; until then nothing evicts a workspace.
+- Cached workspaces use disk. Workspaces are evicted least-recently-used above `cache.max_bytes`, and each can be deleted or pinned.
 - The privacy rule limits what later modules may store: question and answer history, notes and quiz attempts stay in the browser session or process memory.
 - This ADR supersedes the session-rule wording of ADR-0023. The defense phrasing of the rule is for the project owner to confirm.
 
@@ -49,4 +60,4 @@ The helpers that compute these are built in the next session. This session accep
 
 ## Gate / revisit when
 
-Revisit when the source-identity helpers or the eviction policy show that the workspace id or key scheme does not fit (next session), or when a feature needs data tied to a person to persist.
+Revisit when the source-identity helpers or the eviction policy show that the workspace id or key scheme does not fit, or when a feature needs data tied to a person to persist.
