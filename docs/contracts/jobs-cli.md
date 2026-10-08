@@ -62,12 +62,15 @@ insightex cache gc                                 stale-key sweep for every idl
 {
   "lease_path": "/home/user/insightex-data/run/gpu.lock",
   "run_dir": "/home/user/insightex-data/run",
+  "workspaces_dir": "/home/user/insightex-data/workspaces",
+  "ollama_base_url": "http://localhost:11434",
+  "ollama_model": "qwen3.5:latest",
   "state": "free | busy",
   "holder": {"pid": 1234, "mode": "exclusive", "purpose": "<job_id>:<stage_name>", "acquired_at": "...Z"}
 }
 ```
 
-`holder` is `null` when the lease is free, or when it is busy with shared holds only. It is diagnostic: the lock is the truth. The command takes a non-blocking exclusive lock and releases it at once.
+`run_dir`, `workspaces_dir`, `ollama_base_url` and `ollama_model` are the effective settings, so tools need not parse the config. `holder` is `null` when the lease is free, or when it is busy with shared holds only. It is diagnostic: the lock is the truth. The command takes a non-blocking exclusive lock and releases it at once.
 
 ## `cache list --json`
 

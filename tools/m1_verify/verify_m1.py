@@ -20,9 +20,8 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
-
-import yaml
 
 RESULTS: list[tuple[str, bool | None, str]] = []  # (name, passed or None for skipped, evidence)
 WORKERS: list[subprocess.Popen] = []
@@ -113,14 +112,14 @@ def main() -> int:
     ap.add_argument("--cpu-seconds", type=float, default=3)
     ap.add_argument("--gpu-seconds", type=float, default=20)
     ap.add_argument("--timeout", type=float, default=120, help="seconds to wait for each step")
+    ap.add_argument("--out", type=Path, help="JSON result file (default: results/verify_m1_<UTC timestamp>.json here)")
     ap.add_argument("--no-load-model", action="store_true", help="do not load the Ollama model before the run")
     args = ap.parse_args()
 
     status = cli_json(["gpu", "status"])
     lease_path, run_dir = Path(status["lease_path"]), Path(status["run_dir"])
-    config = yaml.safe_load(cli(["config", "show"]).stdout)
-    workspaces_dir = Path(config["jobs"]["workspaces_dir"])
-    ollama_base, ollama_model = config["ollama"]["base_url"], config["ollama"]["model"]
+    workspaces_dir = Path(status["workspaces_dir"])
+    ollama_base, ollama_model = status["ollama_base_url"], status["ollama_model"]
     print(f"lease_path={lease_path}\nworkspaces_dir={workspaces_dir}\nollama={ollama_base} model={ollama_model}")
 
     if not try_lock(run_dir / "worker.lock"):
@@ -141,8 +140,32 @@ def main() -> int:
     if last is not None:
         record("worker stops on SIGTERM with exit 0", last.returncode == 0, f"exit code {last.returncode}")
     failed = [n for n, ok, _ in RESULTS if ok is False]
+    passed = sum(1 for _, ok, _ in RESULTS if ok)
     print(f"\n{len(RESULTS) - len(failed)}/{len(RESULTS)} checks passed" + (f"; failed: {', '.join(failed)}" if failed else ""))
+    write_results(args.out, passed, failed)
     return 1 if failed else 0
+
+
+def write_results(out: Path | None, passed: int, failed: list[str]) -> None:
+    now = datetime.now(UTC)
+    if out is None:
+        out = Path(__file__).resolve().parent / "results" / f"verify_m1_{now.strftime('%Y%m%dT%H%M%SZ')}.json"
+    repo = Path(__file__).resolve().parents[2]
+    git = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True, text=True)
+    doc = {
+        "timestamp": now.isoformat(timespec="seconds").replace("+00:00", "Z"),
+        "git_commit": git.stdout.strip() or None,
+        "checks": [
+            {"name": n, "status": "skip" if ok is None else "pass" if ok else "fail", "evidence": e}
+            for n, ok, e in RESULTS
+        ],
+        "passed": passed,
+        "total": len(RESULTS),
+        "all_passed": not failed,
+    }
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    print(f"results written to {out}")
 
 
 def run_checks(args, lease_path: Path, workspaces_dir: Path, ollama_base: str, ollama_model: str) -> None:

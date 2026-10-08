@@ -29,6 +29,9 @@ class WorkspaceBusy(Exception):
 class WorkspaceNotFound(KeyError):
     """No row and no directory for that workspace id."""
 
+    def __str__(self) -> str:  # KeyError would show the message in quotes
+        return str(self.args[0]) if self.args else ""
+
 
 def register(conn: sqlite3.Connection, workspace_id: str, source_kind: str, source_ref: str) -> None:
     """Insert the workspace if absent. An existing row is left untouched (`created_at` is never overwritten)."""

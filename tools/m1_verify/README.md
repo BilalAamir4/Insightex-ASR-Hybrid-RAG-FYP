@@ -2,18 +2,20 @@
 
 `verify_m1.py` checks the M1 exit criterion on the real machine: the GPU lease is held by a GPU stage, the kernel frees it when the worker is killed with `kill -9`, and a new worker recovers the job with the finished stage cached.
 
-It is standalone. It never imports from `backend/src/insightex`; it drives the `insightex` CLI with subprocess and parses `--json` output. The lease path comes from `insightex gpu status --json`.
+It is standalone. It never imports from `backend/src/insightex`; it drives the `insightex` CLI with subprocess and parses `--json` output with the standard library only. The lease path, workspaces directory and Ollama URL and model come from `insightex gpu status --json`.
 
 ## Run
 
 ```bash
 bash ~/insightex/scripts/run_in_env.sh python tools/m1_verify/verify_m1.py
-# options: --cpu-seconds 3  --gpu-seconds 20  --timeout 120  --no-load-model
+# options: --cpu-seconds 3  --gpu-seconds 20  --timeout 120  --no-load-model  --out PATH
 ```
 
 Run it from a WSL shell with Ollama running on Windows. By default it first loads the Ollama model with a short prompt (`num_ctx` 8192), so the run also shows the lease unloading it.
 
 Before starting, it takes the worker lock and the GPU lease without blocking. It aborts (exit 2) if a worker is running or the lease is held. If a check fails midway, it still stops every worker it started.
+
+Every run writes a JSON result (timestamp, git commit, each check's name, status and evidence, pass count) to `--out`, by default `tools/m1_verify/results/verify_m1_<UTC timestamp>.json`.
 
 ## Checks
 

@@ -90,7 +90,13 @@ def _db(args: argparse.Namespace, settings: Settings) -> int:
 def _gpu_status(args: argparse.Namespace, settings: Settings) -> int:
     from insightex.jobs import gpu_lease
 
-    result = {**gpu_lease.status(settings.gpu.lease_path), "run_dir": str(settings.jobs.run_dir)}
+    result = {
+        **gpu_lease.status(settings.gpu.lease_path),
+        "run_dir": str(settings.jobs.run_dir),
+        "workspaces_dir": str(settings.jobs.workspaces_dir),
+        "ollama_base_url": settings.ollama.base_url,
+        "ollama_model": settings.ollama.model,
+    }
     if args.json:
         print(json.dumps(result, indent=2))
         return 0
