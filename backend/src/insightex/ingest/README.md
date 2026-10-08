@@ -8,24 +8,26 @@ and no audio-only download.
 
 **Feature numbers:** not assigned
 
-**Status:** URL ingestion engine + test CLI implemented. Upload ingestion, API endpoints and UI not yet.
+**Status:** link ingestion runs as the `ingest_link` pipeline on the stage runner (ADR-0035). Local upload (M2) not yet.
 
 ## Modules
 
 - `urls.py`: URL classification, normalization, canonical ids (`yt:<id>`, `gdrive:<id>`, `url:<sha256[:16]>`).
 - `netguard.py`: SSRF guard for direct URLs (public addresses only, re-checked on every redirect).
 - `sources/`: per-source probe + download (`youtube.py`, `gdrive.py`, `direct.py`, shared `ytdlp.py`).
-- `engine.py`: `probe(url)` and `ingest(url, rights_confirmed, progress_cb)`; dedup, locking, atomic moves.
+- `probe.py`: `probe(url)` and the per-source adapter table.
+- `pipeline.py`: the `fetch` and `normalise` stages and the `ingest_link` registration.
+- `link_jobs.py`: `enqueue_link(...)`: validation, workspace id, de-duplication.
 - `errors.py`: `IngestError(code, message)` with the fixed code set.
 - `settings.py`: `IngestSettings`, built from the typed settings (`ingest.*`, `paths.data_dir`).
-- `cli.py`: `python -m insightex.ingest.cli probe <url>` / `ingest <url> --confirm-rights`.
+- `cli.py`: `insightex probe <url>` / `insightex ingest <url> --confirm-rights` (enqueues; a worker runs it).
 
 ## Output contract
 
-`$INSIGHTEX_DATA/lectures/<lecture_id>/`: `video.mp4` (H.264 <=1080p + AAC, faststart), `audio.wav`
-(16 kHz mono pcm_s16le, extracted from video.mp4 so ASR timestamps match the player), `thumbnail.jpg`,
-`manifest.json` (see `insightex.core.manifest`), and `source.<ext>` only when `keep_source` is true.
-Not connected to ASR or any later stage.
+`$INSIGHTEX_DATA/workspaces/<workspace_id>/stages/fetch/<key>/`: `source` (the downloaded file), `source.json`, optionally `thumbnail.src`.
+`.../stages/normalise/<key>/`: `video.mp4` (H.264 <=1080p + AAC, faststart), `audio.wav` (16 kHz mono pcm_s16le, extracted
+from video.mp4 so ASR timestamps match the player), `thumbnail.jpg`, `normalise.json`. Find them with
+`Workspaces.stage_output_dir(id, "normalise")`. The old `lectures/<lecture_id>/` layout is retired.
 
 ## Known limits
 

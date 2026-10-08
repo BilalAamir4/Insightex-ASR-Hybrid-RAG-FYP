@@ -45,7 +45,7 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0022](0022-job-queue-sqlite-single-gpu-worker.md) | Job queue: SQLite + single GPU worker | Superseded by ADR-0033 | M1 | |
 | [0023](0023-workspace-caching-and-session-rule.md) | Workspace caching and session rule | Superseded by ADR-0034 | M1 | |
 | [0024](0024-link-ingestion-download-and-play-locally.md) | Link ingestion: download and play locally | Accepted | M3 | |
-| [0025](0025-media-normalisation-and-workspace-layout.md) | Media normalisation and workspace layout | Accepted | M2 / M3 | |
+| [0025](0025-media-normalisation-and-workspace-layout.md) | Media normalisation and workspace layout | Superseded by ADR-0034 | M2 / M3 | |
 | [0026](0026-player-integration-point-seekto.md) | Player integration point: seekTo(seconds) | Accepted | M3 / M6 | |
 | [0027](0027-api-server-and-ui-stack.md) | API server and UI stack | Accepted | M3 / M6 | |
 | [0028](0028-code-organisation-backend-src-vs-tools.md) | Code organisation: backend/src vs tools/ | Accepted | Project | |
@@ -55,3 +55,4 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0032](0032-repository-visibility-and-content-policy.md) | Repository visibility and content policy | Accepted | Project | |
 | [0033](0033-job-queue-worker-and-resume-model.md) | Job queue, worker and resume model | Accepted | M1 | Supersedes ADR-0022 |
 | [0034](0034-workspace-identity-chained-stage-keys-and-privacy-rule.md) | Workspace identity, chained stage keys and privacy rule | Accepted | M1 | Supersedes ADR-0023 |
+| [0035](0035-link-ingestion-on-the-runner.md) | Link ingestion on the runner: chain root, provisional workspace, rebind | Accepted | M1 | Amends ADR-0034 (first-stage upstream key, `gdrive` source kind) |

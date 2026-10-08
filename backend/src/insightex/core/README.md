@@ -6,6 +6,5 @@
 
 **Feature numbers:** not assigned
 
-**Status:** `config.py` (typed settings: default.yaml < local file < INSIGHTEX__ env < overrides), `ids.py` (canonical id -> lecture_id,
-path-traversal-safe), `manifest.py` (per-lecture manifest.json, atomic writes, status transitions).
+**Status:** `config.py` (typed settings: default.yaml < local file < INSIGHTEX__ env < overrides). The per-lecture `ids.py` and `manifest.py` were removed with the `lectures/` layout; workspaces and their manifest are in `insightex.jobs.workspace`.
 Logging and shared errors not yet.

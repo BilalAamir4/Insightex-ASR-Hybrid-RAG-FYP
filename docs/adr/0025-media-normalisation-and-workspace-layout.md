@@ -1,6 +1,6 @@
 # ADR-0025: Media normalisation and workspace layout
 
-Status: Accepted
+Status: Superseded by ADR-0034
 Date decided: not recorded; on or before 2026-10-05
 Date recorded: 2026-10-08
 Module: M2 / M3

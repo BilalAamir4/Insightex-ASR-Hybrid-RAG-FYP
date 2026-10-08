@@ -14,7 +14,7 @@ Last verified: 2026-10-07, after a full Windows restart (boot 23:30:30). `bash s
 |---|---|---|
 | `E:\FYP` (`/mnt/e/FYP`) | Heavy storage and backup | `cache\` (master model cache), `LLMs\` (Ollama models), `wsl\` (the ext4 vhdx), `docker\`, `start_ollama.ps1`. Do not search, modify or delete `cache`, `LLMs`, `wsl`, `docker`. Never point runtime caches here (DrvFS loads are 3.5x to 7.4x slower; carried over). |
 | `~/insightex` | Code (git repo, remote `Insightex-ASR-Hybrid-RAG-FYP`, tag `import-baseline`) | On the ext4 vhdx stored under `E:\FYP\wsl`. |
-| `~/insightex-data` | Runtime data (`lectures/`, `eval/`, `logs/`, `db/`, `env_reports/`) | `INSIGHTEX_DATA`. |
+| `~/insightex-data` | Runtime data (`workspaces/`, `insightex.db`, `run/`, `eval/`, `logs/`, `env_reports/`; the old `lectures/` is no longer read) | `INSIGHTEX_DATA`. |
 | `~/cache/huggingface` | Runtime HF cache (ext4) | `HF_HOME`. Holds bge-m3, faster-whisper medium and large-v3. Master copy on `E:\FYP\cache`. |
 | `~/envs/insightex`, `~/envs/paddleocr-vl` | Python venvs | PaddleOCR has its own venv. |
 
@@ -94,3 +94,16 @@ bash ~/insightex/scripts/verify_env.sh     # wrapper for tools/verify_env.py
 ```
 
 It prints a PASS/FAIL/SKIP table and writes `$INSIGHTEX_DATA/env_reports/<timestamp>.json`. Exit code 0 only if everything passes. It checks: env vars and caches, lockfile match, ffmpeg/ffprobe, FAISS, NetworkX, Ollama `/api/tags`, GPU idle baseline, and, each in its own process, torch CUDA, faster-whisper medium on 10 s of Day 4 audio, bge-m3 offline (1024-d), `chat_json` (schema-valid, truncation and budget paths, 100% GPU), and VRAM back within 200 MiB of baseline after unload. Ollama must be running first (Task Scheduler does this at logon). Run it from a new WSL session so the stale-session caveat in section 3 does not apply.
+
+## 12. Running the app
+
+```bash
+bash ~/insightex/scripts/dev_run.sh          # worker in the background, API + UI in the foreground (http://127.0.0.1:8000)
+```
+
+- The worker (`insightex worker`) is a **separate process** from the API. The API only enqueues jobs and reads their state; without a worker, a submitted link stays "Waiting for the worker". `dev_run.sh` starts one unless another already holds `<run_dir>/worker.lock`, and stops the one it started when you press Ctrl-C. Worker log: `$INSIGHTEX_DATA/logs/worker.log`.
+- `insightex gpu status [--json]` shows whether the GPU lease is free or busy and who holds it (also `run_dir`, `workspaces_dir` and the Ollama settings).
+- Cache: `insightex cache list | delete ID | pin ID | unpin ID | gc` (the library's Delete button is `cache delete`). The cache is capped by `cache.max_bytes`; least recently used unpinned workspaces are evicted after each successful job.
+- Pin evaluation lectures so eviction never removes them: `insightex cache pin yt-<video id>` (the id is shown by `insightex cache list`).
+- Jobs: `insightex jobs list | show ID | cancel ID | retry ID`; `insightex ingest URL --confirm-rights` enqueues a link from the shell.
+- Lectures ingested before M1 session 3 live in `~/insightex-data/lectures/`. They are not migrated and not read; add them again by link.
