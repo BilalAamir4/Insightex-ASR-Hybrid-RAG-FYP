@@ -195,19 +195,26 @@ def loaded_models(ollama: OllamaSettings | None = None) -> list[dict]:
     return r.json().get("models", [])
 
 
-def unload(ollama: OllamaSettings | None = None, model: str | None = None, wait_s: float | None = None) -> bool:
-    """Send keep_alive=0 and poll /api/ps until the model is gone. True if it unloaded."""
+def unload(
+    ollama: OllamaSettings | None = None,
+    model: str | None = None,
+    *,
+    poll_interval_s: float,
+    timeout_s: float,
+) -> bool:
+    """Send keep_alive=0 and poll /api/ps every `poll_interval_s` for up to `timeout_s`. True if it unloaded."""
     cfg = _cfg(ollama)
     model = model or cfg.model
     base = cfg.base_url.rstrip("/")
     r = httpx.post(f"{base}/api/generate", json={"model": model, "keep_alive": 0}, timeout=cfg.unload_timeout_s)
     r.raise_for_status()
-    deadline = time.monotonic() + (cfg.unload_wait_s if wait_s is None else wait_s)
-    while time.monotonic() < deadline:
+    deadline = time.monotonic() + timeout_s
+    while True:
         if not any(m.get("name") == model for m in loaded_models(cfg)):
             return True
-        time.sleep(0.5)
-    return False
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(poll_interval_s)
 
 
 def _selftest() -> dict:
@@ -254,6 +261,7 @@ if __name__ == "__main__":
     if "--selftest" in sys.argv:
         print(json.dumps(_selftest()))
     elif "--unload" in sys.argv:
-        print(json.dumps({"unloaded": unload()}))
+        _s = get_settings()
+        print(json.dumps({"unloaded": unload(poll_interval_s=_s.gpu.ollama_poll_interval_s, timeout_s=_s.ollama.unload_wait_s)}))
     else:
         sys.exit("usage: python -m insightex.llm.ollama_client --selftest | --unload")

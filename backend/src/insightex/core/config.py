@@ -106,6 +106,17 @@ class Visual(_Section):
 _JOBS_DERIVED = {"db_path": "insightex.db", "workspaces_dir": "workspaces", "run_dir": "run"}
 
 
+def _local_path(v: Path) -> Path:
+    """Expand, resolve and reject paths under /mnt/ (Windows DrvFS)."""
+    v = Path(os.path.expandvars(str(v))).expanduser().resolve()
+    if v == Path("/mnt") or Path("/mnt") in v.parents:
+        raise ValueError(
+            f"{v} is under /mnt/ (Windows DrvFS); SQLite WAL and file locks are unreliable there. "
+            f"Use a path on the WSL ext4 disk"
+        )
+    return v
+
+
 class Jobs(_Section):
     """Job queue, worker and workspaces (ADR-0033, ADR-0034). Paths are absolute and never under /mnt/."""
 
@@ -121,13 +132,31 @@ class Jobs(_Section):
     @field_validator("db_path", "workspaces_dir", "run_dir", mode="after")
     @classmethod
     def _local_absolute(cls, v: Path) -> Path:
-        v = Path(os.path.expandvars(str(v))).expanduser().resolve()
-        if v == Path("/mnt") or Path("/mnt") in v.parents:
-            raise ValueError(
-                f"{v} is under /mnt/ (Windows DrvFS); SQLite WAL and file locks are unreliable there. "
-                f"Use a path on the WSL ext4 disk"
-            )
-        return v
+        return _local_path(v)
+
+
+class Gpu(_Section):
+    """GPU lease (ADR-0033). `lease_path` is absolute and never under /mnt/."""
+
+    lease_enabled: bool
+    lease_path: Path
+    lock_retry_interval_s: float
+    ollama_poll_interval_s: float
+    ollama_unload_timeout_s: float
+    qa_lease_timeout_s: float
+
+    @field_validator("lease_path", mode="after")
+    @classmethod
+    def _local_absolute(cls, v: Path) -> Path:
+        return _local_path(v)
+
+
+class Sources(_Section):
+    hash_chunk_bytes: int
+
+
+class Cache(_Section):
+    max_bytes: int
 
 
 class Settings(_Section):
@@ -137,6 +166,9 @@ class Settings(_Section):
     ollama: Ollama
     visual: Visual
     jobs: Jobs
+    gpu: Gpu
+    sources: Sources
+    cache: Cache
 
     @model_validator(mode="before")
     @classmethod
@@ -150,6 +182,9 @@ class Settings(_Section):
                     if jobs.get(key) is None:
                         jobs[key] = str(Path(str(data_dir)) / name)
                 data = {**data, "jobs": jobs}
+                gpu = data.get("gpu")
+                if isinstance(gpu, dict) and gpu.get("lease_path") is None:
+                    data = {**data, "gpu": {**gpu, "lease_path": str(Path(str(jobs["run_dir"])) / "gpu.lock")}}
         return data
 
 

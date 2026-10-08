@@ -32,7 +32,7 @@ Every LLM call goes through `backend/src/insightex/llm/ollama_client.py` (`chat_
 | Truncated output | `done_reason == "length"` raises `OutputTruncated` (carries `eval_count` and `num_predict`); the content is never parsed | A cut-off JSON string can look nearly valid; treating it as an error is the only safe option. |
 | `options.temperature`, `seed` | 0 and 42 | Reproducible runs. (The earlier audit used 0.1; its reproducibility test had one chunk with mean Jaccard 0.47 at 0.1.) |
 | `keep_alive` | `"10m"` during a batch | Removes the ~8.7 s reload per call seen in the earlier audit. |
-| Unload | `unload()`: `POST /api/generate` with `keep_alive: 0`, then poll `/api/ps` until the model is gone; call it in a `finally` block | The GPU belongs to one stage at a time (VRAM contract). Verified: VRAM returned to within 5 MiB of baseline after every unload. |
+| Unload | `unload(poll_interval_s=, timeout_s=)`: `POST /api/generate` with `keep_alive: 0`, then poll `/api/ps` every `poll_interval_s` until the model is gone or `timeout_s` passes; call it in a `finally` block | The GPU belongs to one stage at a time (VRAM contract). Verified: VRAM returned to within 5 MiB of baseline after every unload. |
 | Logging | after each call, log estimated prompt tokens next to the real `prompt_eval_count` | Lets the estimate ratios be calibrated later. |
 | Metrics returned | `prompt_eval_count`, `eval_count`, `eval_duration`, tokens/sec, load and total duration, `done_reason` | `prompt_near_ctx_limit` (>= 98% of `num_ctx`) flags a possible truncated prompt. |
 | Residency check | `ollama ps` PROCESSOR must read 100% GPU; the self-test checks `size_vram / size` from `/api/ps` | A partial CPU split costs speed (below). |

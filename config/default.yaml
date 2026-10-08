@@ -57,3 +57,17 @@ jobs:                               # job queue, worker and workspaces: docs/adr
   progress_min_interval_s: 0.5      # seconds; minimum gap between progress writes of one stage
   busy_timeout_ms: 5000             # milliseconds SQLite waits on a locked database
   error_traceback_chars: 4000       # characters of traceback stored in a failed stage's error
+
+gpu:                                # GPU lease: docs/adr/0033-*.md
+  lease_enabled: true               # false = worker runs GPU stages without taking the lease
+  lease_path: null                  # flock file; null = <jobs.run_dir>/gpu.lock. Never under /mnt/
+  lock_retry_interval_s: 0.2        # seconds between non-blocking lock attempts
+  ollama_poll_interval_s: 0.5       # seconds between /api/ps polls while waiting for the model to unload
+  ollama_unload_timeout_s: 30       # seconds to wait for the model to leave /api/ps after an exclusive acquire
+  qa_lease_timeout_s: 2.0           # seconds a Q&A call waits for a shared lease before answering "GPU busy"
+
+sources:                            # source identity: docs/adr/0034-*.md
+  hash_chunk_bytes: 1048576         # bytes (1 MiB) per read/write when hashing files
+
+cache:                              # workspace cache: docs/adr/0034-*.md
+  max_bytes: 42949672960            # bytes (40 GiB); least-recently-accessed unpinned workspaces are evicted above this
