@@ -1,6 +1,6 @@
 # ADR-0023: Workspace caching and session rule
 
-Status: Proposed
+Status: Superseded by ADR-0034
 Date decided: not recorded; before 2026-10-08
 Date recorded: 2026-10-08
 Module: M1

@@ -11,7 +11,7 @@ Hardware: RTX 3070 with 8 GB VRAM and 32 GB RAM. The Ollama model `qwen3.5` peak
 
 ## Decision
 
-Models load, process and unload one stage at a time and never coexist in VRAM. Each stage runs as a separate process, which released VRAM cleanly in the environment audit. The GPU lease that enforces this is built in M1 (ADR-0022).
+Models load, process and unload one stage at a time and never coexist in VRAM. Each stage runs as a separate process, which released VRAM cleanly in the environment audit. The GPU lease that enforces this is built in M1 (ADR-0033).
 
 ## Alternatives considered
 

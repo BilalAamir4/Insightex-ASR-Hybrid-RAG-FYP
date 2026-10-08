@@ -42,8 +42,8 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0019](0019-concept-canonicalisation-across-scripts.md) | Concept canonicalisation across scripts | Proposed | M8 | |
 | [0020](0020-importance-and-recap-flags-on-extraction-pass.md) | Importance and recap flags ride on the extraction pass | Accepted | M7 | |
 | [0021](0021-deferred-infrastructure.md) | Deferred infrastructure | Accepted | Project | |
-| [0022](0022-job-queue-sqlite-single-gpu-worker.md) | Job queue: SQLite + single GPU worker | Proposed | M1 | |
-| [0023](0023-workspace-caching-and-session-rule.md) | Workspace caching and session rule | Proposed | M1 | |
+| [0022](0022-job-queue-sqlite-single-gpu-worker.md) | Job queue: SQLite + single GPU worker | Superseded by ADR-0033 | M1 | |
+| [0023](0023-workspace-caching-and-session-rule.md) | Workspace caching and session rule | Superseded by ADR-0034 | M1 | |
 | [0024](0024-link-ingestion-download-and-play-locally.md) | Link ingestion: download and play locally | Accepted | M3 | |
 | [0025](0025-media-normalisation-and-workspace-layout.md) | Media normalisation and workspace layout | Accepted | M2 / M3 | |
 | [0026](0026-player-integration-point-seekto.md) | Player integration point: seekTo(seconds) | Accepted | M3 / M6 | |
@@ -53,3 +53,5 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0030](0030-book-page-numbering-index-and-label.md) | Book page numbering: index and printed label | Proposed | M10 | |
 | [0031](0031-visual-ocr-engine-and-isolation.md) | Visual OCR engine and isolation | Proposed | V1-V3 | |
 | [0032](0032-repository-visibility-and-content-policy.md) | Repository visibility and content policy | Accepted | Project | |
+| [0033](0033-job-queue-worker-and-resume-model.md) | Job queue, worker and resume model | Accepted | M1 | Supersedes ADR-0022 |
+| [0034](0034-workspace-identity-chained-stage-keys-and-privacy-rule.md) | Workspace identity, chained stage keys and privacy rule | Accepted | M1 | Supersedes ADR-0023 |

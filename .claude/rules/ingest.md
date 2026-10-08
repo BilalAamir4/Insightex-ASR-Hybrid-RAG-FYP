@@ -21,4 +21,4 @@ Status: link ingestion is done (6 Oct 2026). Local file upload is still to do an
   - the SSRF guard has a DNS-rebinding gap
   - HEVC decode is tested only on synthetic input
   - the demo-venue network is untested
-- Planned (M1): cache workspaces by content hash or YouTube ID plus pipeline version.
+- Planned (M1 sessions 2 and 3): workspaces are identified by YouTube ID or content hash, and each pipeline stage is cached under a chained key of its own version and config (ADR-0034). Ingestion moves onto the stage runner in session 3.
