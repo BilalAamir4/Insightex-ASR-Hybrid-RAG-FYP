@@ -1,0 +1,218 @@
+"""Stage runner: runs one job's pipeline with caching, atomic outputs and cooperative cancel (ADR-0033, ADR-0034).
+
+Per stage: compute the chained key; if the manifest already holds it with all outputs, mark the stage
+`cached`; otherwise take the GPU lease (if needed), run into a fresh staging directory, verify the
+declared outputs, move the directory into place, record it in the manifest, and mark the stage done.
+"""
+
+from __future__ import annotations
+
+import contextvars
+import logging
+import os
+import shutil
+import sqlite3
+import time
+import traceback
+from collections.abc import Callable
+from pathlib import Path
+
+from insightex.core.config import Settings
+from insightex.jobs import store
+from insightex.jobs.db import utcnow
+from insightex.jobs.stages import (
+    GpuLease,
+    JobCancelled,
+    KeyContext,
+    NullGpuLease,
+    Stage,
+    StageContext,
+    UnknownJobKind,
+    WorkerStopping,
+    get_pipeline,
+    stage_key,
+)
+from insightex.jobs.workspace import Workspaces
+
+log = logging.getLogger(__name__)
+
+# (job id, stage name) shown in every worker log line; the worker is single-threaded.
+LOG_CONTEXT: contextvars.ContextVar[tuple[str, str]] = contextvars.ContextVar("job_log_context", default=("-", "-"))
+
+
+class MissingOutput(RuntimeError):
+    """A stage finished without creating a declared output file."""
+
+
+def _fail_message(exc: BaseException, limit: int) -> str:
+    tb = "".join(traceback.format_exception(exc))
+    return f"{type(exc).__name__}: {exc}\n{tb[-limit:]}"
+
+
+class _Progress:
+    """The `ctx.progress` implementation for one running stage."""
+
+    def __init__(self, conn: sqlite3.Connection, job_id: str, idx: int, min_interval_s: float, stop: Callable[[], bool]):
+        self.conn, self.job_id, self.idx = conn, job_id, idx
+        self.min_interval_s, self.stop = min_interval_s, stop
+        self._last_write = float("-inf")
+
+    def __call__(self, fraction: float, message: str | None) -> None:
+        if self.stop():
+            raise WorkerStopping()
+        if store.is_cancel_requested(self.conn, self.job_id):
+            raise JobCancelled()
+        now = time.monotonic()
+        if fraction in (0.0, 1.0) or now - self._last_write >= self.min_interval_s:
+            self._last_write = now
+            changes: dict = {"progress": fraction}
+            if message is not None:
+                changes["message"] = message
+            store.update_stage(self.conn, self.job_id, self.idx, **changes)
+
+
+def run_job(
+    conn: sqlite3.Connection,
+    job: store.Job,
+    settings: Settings,
+    workspaces: Workspaces,
+    *,
+    gpu_lease: GpuLease | None = None,
+    should_stop: Callable[[], bool] = lambda: False,
+) -> str:
+    """Run a claimed job to its end; return the job's resulting status.
+
+    The result is `succeeded`, `failed`, `cancelled`, or `queued` when the worker was told to stop and
+    the job was put back. Never raises for job-level problems; those become a failed job.
+    """
+    lease = gpu_lease or NullGpuLease()
+    LOG_CONTEXT.set((job.id, "-"))
+    try:
+        pipeline = get_pipeline(job.kind)
+        store.check_pipeline_matches(job)
+    except (UnknownJobKind, store.PipelineMismatch) as exc:
+        log.error("%s", exc)
+        store.finish(conn, job.id, "failed", str(exc))
+        return "failed"
+
+    upstream_key = job.workspace_id
+    upstream_dirs: dict[str, Path] = {}
+    for idx, stage in enumerate(pipeline):
+        LOG_CONTEXT.set((job.id, stage.name))
+        if should_stop():
+            return _stop(conn, job)
+        if store.is_cancel_requested(conn, job.id):
+            return _cancel(conn, job, idx)
+
+        key_ctx = KeyContext(job.id, job.payload, job.workspace_id, settings)
+        try:
+            key = stage_key(stage.name, stage.version, stage.config_fingerprint(key_ctx), upstream_key)
+        except Exception as exc:
+            return _fail(conn, job, idx, exc, settings)
+        store.update_stage(conn, job.id, idx, stage_key=key)
+        outputs = list(stage.outputs)
+
+        if workspaces.stage_is_complete(job.workspace_id, stage.name, key, outputs):
+            store.update_stage(
+                conn, job.id, idx, status="cached", progress=1.0, message=None, error=None, finished_at=utcnow()
+            )
+            log.info("stage cached (key %s)", key)
+        else:
+            outcome = _run_stage(conn, job, idx, stage, key, settings, workspaces, lease, should_stop, upstream_dirs)
+            if outcome is not None:
+                return outcome
+        upstream_dirs[stage.name] = workspaces.stage_dir(job.workspace_id, stage.name, key)
+        upstream_key = key
+
+    store.finish(conn, job.id, "succeeded")
+    LOG_CONTEXT.set((job.id, "-"))
+    log.info("job succeeded")
+    return "succeeded"
+
+
+def _run_stage(
+    conn, job, idx, stage: Stage, key, settings, workspaces: Workspaces, lease, should_stop, upstream_dirs
+) -> str | None:
+    """Run one uncached stage. Returns None on success, else the job's resulting status."""
+    staging = workspaces.staging_dir(job.workspace_id, stage.name, key, os.getpid())
+    started = time.monotonic()
+    try:
+        with lease.hold(job.id, stage.name):
+            shutil.rmtree(staging, ignore_errors=True)
+            staging.mkdir(parents=True)
+            store.update_stage(
+                conn, job.id, idx, status="running", progress=0.0, message=None, error=None,
+                started_at=utcnow(), finished_at=None,
+            )
+            log.info("stage started (key %s)", key)
+            progress = _Progress(conn, job.id, idx, settings.jobs.progress_min_interval_s, should_stop)
+            ctx = StageContext(
+                job_id=job.id, payload=job.payload, workspace_id=job.workspace_id, settings=settings,
+                staging_dir=staging, upstream=dict(upstream_dirs), reporter=progress,
+            )
+            progress(0.0, None)
+            stage.run(ctx)
+        _verify_outputs(stage, staging)
+        _publish(workspaces, job.workspace_id, stage, key, staging, time.monotonic() - started)
+    except JobCancelled:
+        shutil.rmtree(staging, ignore_errors=True)
+        return _cancel(conn, job, idx)
+    except WorkerStopping:
+        shutil.rmtree(staging, ignore_errors=True)
+        return _stop(conn, job)
+    except Exception as exc:
+        shutil.rmtree(staging, ignore_errors=True)
+        return _fail(conn, job, idx, exc, settings)
+    store.update_stage(conn, job.id, idx, status="succeeded", progress=1.0, finished_at=utcnow())
+    log.info("stage succeeded in %.1fs", time.monotonic() - started)
+    return None
+
+
+def _verify_outputs(stage: Stage, staging: Path) -> None:
+    missing = [name for name in stage.outputs if not (staging / name).exists()]
+    if missing:
+        raise MissingOutput(f"stage {stage.name} did not create declared outputs: {', '.join(missing)}")
+
+
+def _publish(workspaces: Workspaces, workspace_id: str, stage: Stage, key: str, staging: Path, duration_s: float) -> None:
+    """Move finished outputs into stages/<name>/<key>/, record them in the manifest, drop the superseded key's dir."""
+    for name in stage.outputs:  # make file contents durable before they become visible under their final name
+        path = staging / name
+        if path.is_file():
+            fd = os.open(path, os.O_RDONLY)
+            try:
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+    final = workspaces.stage_dir(workspace_id, stage.name, key)
+    final.parent.mkdir(parents=True, exist_ok=True)
+    if final.exists():  # a crash between this move and the manifest write left it; same key means same content
+        shutil.rmtree(staging)
+    else:
+        os.replace(staging, final)
+    previous = workspaces.record_stage(workspace_id, stage.name, key, duration_s, list(stage.outputs))
+    if previous and previous != key:  # only after the new manifest is durable
+        workspaces.remove_stage_key_dir(workspace_id, stage.name, previous)
+
+
+def _fail(conn, job, idx: int, exc: BaseException, settings: Settings) -> str:
+    detail = _fail_message(exc, settings.jobs.error_traceback_chars)
+    log.error("stage failed: %s: %s", type(exc).__name__, exc)
+    store.update_stage(conn, job.id, idx, status="failed", error=detail, finished_at=utcnow())
+    store.finish(conn, job.id, "failed", f"{job.stages[idx].name} failed: {type(exc).__name__}: {exc}")
+    return "failed"
+
+
+def _cancel(conn, job, idx: int) -> str:
+    """Mark the stage at `idx` and every later stage cancelled, then the job."""
+    for i in range(idx, len(job.stages)):
+        store.update_stage(conn, job.id, i, status="cancelled", finished_at=utcnow())
+    store.finish(conn, job.id, "cancelled")
+    log.info("job cancelled")
+    return "cancelled"
+
+
+def _stop(conn, job) -> str:
+    store.requeue_interrupted(conn, job.id)
+    log.info("worker stopping: job returned to the queue")
+    return "queued"
