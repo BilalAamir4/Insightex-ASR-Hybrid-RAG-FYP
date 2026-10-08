@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, ValidationError, field_validator, model_validator
 
 ENV_PREFIX = "INSIGHTEX__"
 CONFIG_ENV = "INSIGHTEX_CONFIG"
@@ -102,12 +102,55 @@ class Visual(_Section):
     enabled: bool
 
 
+# jobs.* path keys that default (null in YAML) to a name under paths.data_dir.
+_JOBS_DERIVED = {"db_path": "insightex.db", "workspaces_dir": "workspaces", "run_dir": "run"}
+
+
+class Jobs(_Section):
+    """Job queue, worker and workspaces (ADR-0033, ADR-0034). Paths are absolute and never under /mnt/."""
+
+    db_path: Path
+    workspaces_dir: Path
+    run_dir: Path
+    poll_interval_s: float
+    max_attempts: int
+    progress_min_interval_s: float
+    busy_timeout_ms: int
+    error_traceback_chars: int
+
+    @field_validator("db_path", "workspaces_dir", "run_dir", mode="after")
+    @classmethod
+    def _local_absolute(cls, v: Path) -> Path:
+        v = Path(os.path.expandvars(str(v))).expanduser().resolve()
+        if v == Path("/mnt") or Path("/mnt") in v.parents:
+            raise ValueError(
+                f"{v} is under /mnt/ (Windows DrvFS); SQLite WAL and file locks are unreliable there. "
+                f"Use a path on the WSL ext4 disk"
+            )
+        return v
+
+
 class Settings(_Section):
     paths: Paths
     api: Api
     ingest: Ingest
     ollama: Ollama
     visual: Visual
+    jobs: Jobs
+
+    @model_validator(mode="before")
+    @classmethod
+    def _derive_jobs_paths(cls, data: Any) -> Any:
+        """Fill null jobs.* paths from paths.data_dir, so jobs code only sees concrete absolute paths."""
+        if isinstance(data, dict) and isinstance(data.get("jobs"), dict) and isinstance(data.get("paths"), dict):
+            data_dir = data["paths"].get("data_dir")
+            if data_dir is not None:
+                jobs = dict(data["jobs"])
+                for key, name in _JOBS_DERIVED.items():
+                    if jobs.get(key) is None:
+                        jobs[key] = str(Path(str(data_dir)) / name)
+                data = {**data, "jobs": jobs}
+        return data
 
 
 def repo_root() -> Path:

@@ -47,3 +47,13 @@ ollama:                             # M0 call contract, docs/adr/0002-ollama-cal
 
 visual:
   enabled: false                    # optional visual pipeline (scene detection + OCR); nothing reads it yet
+
+jobs:                               # job queue, worker and workspaces: docs/adr/0033-*.md, 0034-*.md
+  db_path: null                     # SQLite file; null = <paths.data_dir>/insightex.db. Never under /mnt/
+  workspaces_dir: null              # per-video workspaces; null = <paths.data_dir>/workspaces. Never under /mnt/
+  run_dir: null                     # worker.lock and GPU lease lock files; null = <paths.data_dir>/run. Never under /mnt/
+  poll_interval_s: 1.0              # seconds the worker sleeps when the queue is empty
+  max_attempts: 3                   # claims of one job before crash recovery marks it failed
+  progress_min_interval_s: 0.5      # seconds; minimum gap between progress writes of one stage
+  busy_timeout_ms: 5000             # milliseconds SQLite waits on a locked database
+  error_traceback_chars: 4000       # characters of traceback stored in a failed stage's error
