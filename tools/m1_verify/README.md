@@ -8,7 +8,7 @@ It is standalone. It never imports from `backend/src/insightex`; it drives the `
 
 ```bash
 bash ~/insightex/scripts/run_in_env.sh python tools/m1_verify/verify_m1.py
-# options: --cpu-seconds 3  --gpu-seconds 20  --timeout 120  --no-load-model  --out PATH
+# options: --cpu-seconds 3  --gpu-seconds 20  --timeout 120  --no-load-model  --out PATH  --keep-workspace
 ```
 
 Run it from a WSL shell with Ollama running on Windows. By default it first loads the Ollama model with a short prompt (`num_ctx` 8192), so the run also shows the lease unloading it.
@@ -30,6 +30,7 @@ Each prints `PASS`, `FAIL` or `SKIP` with one line of evidence. Exit code 0 only
 7. A new worker recovers the job: it ends `succeeded`, `dummy_cpu` is `cached`, `attempts` is 2.
 8. No `.staging/` entries remain in the workspace.
 9. SIGTERM stops the last worker with exit code 0.
+10. The dummy workspace the run created is removed with `insightex cache delete` (skipped with `--keep-workspace`). This runs last, also after a failure, and the results file is rewritten to include it.
 
 ## Ollama evidence by hand
 

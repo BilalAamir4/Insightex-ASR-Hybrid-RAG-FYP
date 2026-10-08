@@ -25,6 +25,7 @@ from pathlib import Path
 
 RESULTS: list[tuple[str, bool | None, str]] = []  # (name, passed or None for skipped, evidence)
 WORKERS: list[subprocess.Popen] = []
+CREATED: dict[str, str] = {}  # job_id and workspace of the dummy job this run enqueued
 
 
 def record(name: str, ok: bool | None, evidence: str) -> bool:
@@ -113,6 +114,7 @@ def main() -> int:
     ap.add_argument("--gpu-seconds", type=float, default=20)
     ap.add_argument("--timeout", type=float, default=120, help="seconds to wait for each step")
     ap.add_argument("--out", type=Path, help="JSON result file (default: results/verify_m1_<UTC timestamp>.json here)")
+    ap.add_argument("--keep-workspace", action="store_true", help="do not delete the dummy workspace afterwards")
     ap.add_argument("--no-load-model", action="store_true", help="do not load the Ollama model before the run")
     args = ap.parse_args()
 
@@ -130,25 +132,36 @@ def main() -> int:
         return 2
 
     try:
-        run_checks(args, lease_path, workspaces_dir, ollama_base, ollama_model)
-    except Abort as exc:
-        record("run", False, str(exc))
+        try:
+            run_checks(args, lease_path, workspaces_dir, ollama_base, ollama_model)
+        except Abort as exc:
+            record("run", False, str(exc))
+        finally:
+            stop_workers()
+        # The last worker's exit code is the clean-stop check; earlier workers were killed or already stopped.
+        if WORKERS:
+            record("worker stops on SIGTERM with exit 0", WORKERS[-1].returncode == 0, f"exit code {WORKERS[-1].returncode}")
+        write_results(args.out)
     finally:
-        codes = stop_workers()
-    # The last worker's exit code is the clean-stop check; earlier workers were killed or already stopped.
-    last = WORKERS[-1] if WORKERS else None
-    if last is not None:
-        record("worker stops on SIGTERM with exit 0", last.returncode == 0, f"exit code {last.returncode}")
+        if not args.keep_workspace:
+            cleanup_workspace()
+            write_results(args.out)  # rewrite so the JSON also holds the cleanup check
     failed = [n for n, ok, _ in RESULTS if ok is False]
-    passed = sum(1 for _, ok, _ in RESULTS if ok)
     print(f"\n{len(RESULTS) - len(failed)}/{len(RESULTS)} checks passed" + (f"; failed: {', '.join(failed)}" if failed else ""))
-    write_results(args.out, passed, failed)
+    print(f"results written to {RESULT_PATH[0]}")
     return 1 if failed else 0
 
 
-def write_results(out: Path | None, passed: int, failed: list[str]) -> None:
+RESULT_PATH: list[Path] = []
+
+
+def write_results(out: Path | None) -> None:
+    passed = sum(1 for _, ok, _ in RESULTS if ok)
+    failed = [n for n, ok, _ in RESULTS if ok is False]
     now = datetime.now(UTC)
-    if out is None:
+    if RESULT_PATH:
+        out = RESULT_PATH[0]
+    elif out is None:
         out = Path(__file__).resolve().parent / "results" / f"verify_m1_{now.strftime('%Y%m%dT%H%M%SZ')}.json"
     repo = Path(__file__).resolve().parents[2]
     git = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True, text=True)
@@ -165,7 +178,25 @@ def write_results(out: Path | None, passed: int, failed: list[str]) -> None:
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
-    print(f"results written to {out}")
+    RESULT_PATH[:] = [out]
+
+
+def cleanup_workspace() -> None:
+    """Delete the dummy workspace this run created with `insightex cache delete` and record the outcome."""
+    name = "dummy workspace deleted with cache delete"
+    workspace = CREATED.get("workspace")
+    if not workspace:
+        record(name, None, "no workspace was created")
+        return
+    try:
+        job_id = CREATED["job_id"]
+        if cli_json(["jobs", "show", job_id])["status"] in ("queued", "running"):
+            cli(["jobs", "cancel", job_id], check=False)  # an unfinished job would make delete refuse
+    except Abort:
+        pass
+    proc = cli(["cache", "delete", workspace], check=False)
+    detail = proc.stdout.strip() or proc.stderr.strip()
+    record(name, proc.returncode == 0, f"cache delete {workspace}: exit {proc.returncode}, {detail}")
 
 
 def run_checks(args, lease_path: Path, workspaces_dir: Path, ollama_base: str, ollama_model: str) -> None:
@@ -182,6 +213,8 @@ def run_checks(args, lease_path: Path, workspaces_dir: Path, ollama_base: str, o
             record("Ollama model loaded before the run", None, f"Ollama unreachable ({exc}); unload evidence skipped")
 
     job_id = cli(["jobs", "enqueue-dummy", "--cpu-seconds", str(args.cpu_seconds), "--gpu-seconds", str(args.gpu_seconds)]).stdout.strip()
+    CREATED["job_id"] = job_id
+    CREATED["workspace"] = cli_json(["jobs", "show", job_id])["workspace_id"]
     record("enqueue-dummy returns a job id", len(job_id) == 32, f"job {job_id}")
 
     def job() -> dict:

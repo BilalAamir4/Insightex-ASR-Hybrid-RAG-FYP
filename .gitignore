@@ -33,3 +33,5 @@ dist/
 /data/
 /books/
 /models/
+# M1 verification run output (copy a run you want to keep into docs/measurements/)
+tools/m1_verify/results/
