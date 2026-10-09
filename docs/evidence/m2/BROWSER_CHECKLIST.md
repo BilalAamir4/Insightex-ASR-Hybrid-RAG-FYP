@@ -24,7 +24,7 @@ Write down the browser and version: ____________________
 | 8 | Open the Day 4 lecture. Press play, then in the browser console run `insightex.seekTo(300)`. | Playback jumps to 5:00 (player shows 5:00). What the speaker says at 5:00 matches the transcript at 300 s: ____________ | |
 | 9 | Start uploading `dummy_3GB.mp4`, then close the tab (or press F5) while the bar is moving. | The browser shows its "Leave site?" warning. Choosing Stay keeps the upload going. When no upload is running, closing gives no warning. | |
 | 10 | Upload `near_silent.mp4`, open it in the player. | A yellow notice under the title: "The audio is very quiet, so the transcript may be poor." | |
-| 11 | Upload all four sync files: `control.mp4`, `delayed_audio.mp4`, `delayed_video.mp4`, `transcode_bframes.mkv`. In each, a white flash and a 1 kHz beep are designed to coincide at 5.0 s. Open each in the player, scrub to 0:04.5 and play. Use wired or built-in speakers (Bluetooth adds its own delay). | Every file looks and sounds simultaneous. Note any lag per file: control ___ / delayed_audio ___ / delayed_video ___ / transcode_bframes ___ | |
+| 11 | Upload all five sync files: `control.mp4`, `delayed_audio.mp4`, `delayed_video.mp4`, `transcode_bframes.mkv`, `copied_bframes.mp4`. In each, a white flash and a 1 kHz beep are designed to coincide at 5.0 s. Open each in the player, scrub to 0:04.5 and play. Use wired or built-in speakers (Bluetooth adds its own delay). | Every file looks and sounds simultaneous. Note any lag per file: control ___ / delayed_audio ___ / delayed_video ___ / transcode_bframes ___ / copied_bframes ___ | |
 
 ## After
 

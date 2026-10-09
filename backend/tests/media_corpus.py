@@ -226,6 +226,14 @@ class Corpus:
         ff("-itsoffset", "1.52", "-i", video, "-i", audio, "-map", "0:v", "-map", "1:a", "-c", "copy", out)
         return out
 
+    def _b_sync_copied_bframes_mp4(self) -> Path:
+        """H.264 with default libx264 B-frames + AAC in MP4, flash and beep at 5.0 s: eligible for copy, but its
+        B-frame edit would skew a player that ignores edit lists, so the engine must transcode it (ADR-0038)."""
+        out = self._p("sync_copied_bframes.mp4")
+        ff("-f", "lavfi", "-i", FLASH_SRC, "-f", "lavfi", "-i", beep_src(FLASH_AT), "-c:v", "libx264", "-preset", "veryfast",
+           "-pix_fmt", "yuv420p", *AAC, "-movflags", "+faststart", "-shortest", out)
+        return out
+
     def _b_sync_bframes_hevc_opus_mkv(self) -> Path:
         """HEVC + Opus without offsets (goes through the libx264 path, which uses B-frames): flash and beep at 5.0 s."""
         need("libx265", "libopus")

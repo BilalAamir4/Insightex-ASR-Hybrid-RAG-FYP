@@ -139,6 +139,7 @@ ACCEPTED = [
     ("sync_video_delayed_mp4", "transcode", "copy", {"START_OFFSET_CORRECTED"}),
     ("sync_control_mp4", "copy", "copy", set()),
     ("sync_bframes_hevc_opus_mkv", "transcode", "transcode", set()),
+    ("sync_copied_bframes_mp4", "transcode", "copy", set()),
     ("sync_ts_offset_mpegts", "copy", "copy", {"START_OFFSET_CORRECTED"}),
     ("sync_hevc_opus_delayed_mkv", "transcode", "transcode", set()),
     ("surround_51", "copy", "transcode", set()),
@@ -169,7 +170,7 @@ def test_accepted_clip(corpus, name, video, audio, warnings, record_property):
 def test_manifest_fields(corpus):
     settings, result, _job = ingest(corpus, "h264_aac_mp4")
     _directory, info = normalised(settings, result.workspace_id)
-    assert info["schema"] == 2 and info["normaliser_version"] == "3" and info["ffmpeg_version"].startswith("ffmpeg version")
+    assert info["schema"] == 2 and info["normaliser_version"] == "4" and info["ffmpeg_version"].startswith("ffmpeg version")
     src = info["source"]
     assert src["kind"] == "upload" and src["via"] == "cli" and src["original_filename"] == "h264_aac.mp4"
     assert src["size_bytes"] == corpus.get("h264_aac_mp4").stat().st_size and len(src["sha256"]) == 64 and src["received_at"]
@@ -249,12 +250,7 @@ def frame_duration_s(path: Path) -> float:
 
 
 SYNC_CLIPS = ["sync_control_mp4", "sync_audio_delayed_mp4", "sync_video_delayed_mp4", "sync_ts_offset_mpegts",
-              "sync_hevc_opus_delayed_mkv", "sync_bframes_hevc_opus_mkv"]
-# Clips whose video is transcoded with libx264 B-frames: video.mp4 carries a NON-empty edit (media_time = the B-frame
-# delay, about 2 frames), and a player that ignores edit lists shows the video that much late. Measured, reported and
-# left open for a decision (ADR-0038, "Open"); the honoured-edit-list and audio.wav assertions below still apply.
-BFRAME_EDIT_CLIPS = {"sync_video_delayed_mp4", "sync_hevc_opus_delayed_mkv", "sync_bframes_hevc_opus_mkv"}
-
+              "sync_hevc_opus_delayed_mkv", "sync_bframes_hevc_opus_mkv", "sync_copied_bframes_mp4"]
 
 def _sync_measure(corpus, name, ignore_editlist: bool):
     source = corpus.get(name)
@@ -289,14 +285,37 @@ def test_flash_and_beep_coincide(corpus, name, record_property):
     assert abs(flash - wav) <= tolerance + 1e-6, f"{name} (audio.wav): flash={flash:.3f}s beep={wav:.3f}s"
 
 
-@pytest.mark.parametrize("name", [
-    pytest.param(n, marks=pytest.mark.xfail(reason="non-empty B-frame edit: a player ignoring edit lists shows the video "
-                                                  "~2 frames late; reported, awaiting a decision (ADR-0038)", strict=True))
-    if n in BFRAME_EDIT_CLIPS else n for n in SYNC_CLIPS])
+@pytest.mark.parametrize("name", SYNC_CLIPS)
 def test_flash_and_beep_coincide_when_edit_lists_are_ignored(corpus, name):
     """A player that ignores edit lists (`-ignore_editlist 1`) must see flash and beep within one frame."""
     _d, flash, beep, tolerance = _sync_measure(corpus, name, True)
     assert abs(flash - beep) <= tolerance + 1e-6, f"{name} (ignoring): flash={flash:.3f}s beep={beep:.3f}s"
+
+
+def test_copy_eligible_clip_with_bframes_is_detected_and_transcoded(corpus):
+    """ADR-0038: the B-frame edit of copied video skews a player that ignores edit lists, so copy becomes transcode."""
+    src_edits = engine.mp4_edit_lists(corpus.get("sync_copied_bframes_mp4"))
+    assert engine.ignored_skew_s(src_edits) > 0.05, "the fixture must carry a B-frame edit for this test to mean anything"
+    settings, result, job = ingest(corpus, "sync_copied_bframes_mp4")
+    assert job.status == "succeeded", job.error
+    _d, info = normalised(settings, result.workspace_id)
+    assert info["decision"]["video"] == "transcode" and info["decision"]["audio"] == "copy"
+    assert any("A/V skew" in r and "B-frames" in r for r in info["decision"]["reasons"]), info["decision"]["reasons"]
+    assert info["verify"]["ignored_edit_list_skew_s"] <= 0.04
+
+
+def test_post_verify_rejects_excess_skew_from_a_non_empty_edit(corpus, tmp_path):
+    """A file that is in sync only through a B-frame edit is SYNC_CHECK_FAILED even if every start time is 0."""
+    from insightex.ingest.settings import IngestSettings
+
+    bad = tmp_path / "bframes_copy.mp4"
+    subprocess.run(["ffmpeg", "-v", "error", "-nostdin", "-y", "-i", str(corpus.get("sync_copied_bframes_mp4")), "-c", "copy",
+                    "-movflags", "+faststart", str(bad)], check=True)
+    wav = tmp_path / "audio.wav"
+    subprocess.run(["ffmpeg", "-v", "error", "-nostdin", "-y", "-i", str(bad), "-map", "0:a:0", "-ac", "1", "-ar", "16000", str(wav)], check=True)
+    with pytest.raises(IngestRejected) as exc:
+        engine.verify_outputs(bad, wav, 15.0, IngestSettings.current())
+    assert exc.value.code == ErrorCode.SYNC_CHECK_FAILED
 
 
 def test_no_track_of_any_sync_clip_has_a_long_empty_edit(corpus):
@@ -429,12 +448,12 @@ def test_same_file_twice_is_deduplicated_then_renormalised_on_a_new_version(corp
     assert Workspaces(settings.jobs.workspaces_dir).read_manifest(first.workspace_id)["stages"]["normalise"] == manifest_before
     assert staging_files(settings) == []
 
-    monkeypatch.setattr(engine, "NORMALISER_VERSION", "4")
-    monkeypatch.setattr(pipeline.NormaliseStage, "version", "4")
+    monkeypatch.setattr(engine, "NORMALISER_VERSION", "5")
+    monkeypatch.setattr(pipeline.NormaliseStage, "version", "5")
     third, job3 = run_file_job(corpus.get("h264_aac_mp4"), settings)
     assert not third.deduplicated and third.workspace_id == first.workspace_id and job3.status == "succeeded"
     _, info = normalised(settings, first.workspace_id)
-    assert info["normaliser_version"] == "4"
+    assert info["normaliser_version"] == "5"
     assert Workspaces(settings.jobs.workspaces_dir).read_manifest(first.workspace_id)["stages"]["normalise"]["key"] != manifest_before["key"]
     assert len(list(settings.jobs.workspaces_dir.iterdir())) == 1
 
