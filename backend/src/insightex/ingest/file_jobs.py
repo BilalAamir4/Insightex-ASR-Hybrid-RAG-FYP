@@ -11,12 +11,14 @@ import re
 import sqlite3
 import threading
 import time
+import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
 from insightex.core.config import Settings
 from insightex.ingest import staging
+from insightex.ingest.errors import ErrorCode, IngestRejected
 from insightex.ingest.settings import IngestSettings
 from insightex.jobs import store
 from insightex.jobs.workspace import Workspaces
@@ -32,6 +34,7 @@ class FileIngest:
     workspace_id: str
     job_id: str | None  # None when an up-to-date lecture already exists and no job was needed
     deduplicated: bool
+    rejected: IngestRejected | None = None  # set when the file was refused before staging; job_id is then a failed job
 
 
 def _current_lecture(workspaces: Workspaces, workspace_id: str) -> bool:
@@ -58,11 +61,16 @@ def enqueue_file(
 
     Order: free-space check, copy while hashing, then (under a lock) look for an active job for the same
     bytes, then an up-to-date finished lecture, else enqueue. A duplicate's staged copy is deleted. An older
-    normaliser version re-normalises into the same workspace. File size (EMPTY_FILE, TOO_LARGE) and the
-    media itself are judged by the job, so the rejection lands in the job record.
+    normaliser version re-normalises into the same workspace. An empty or oversized file is refused from its
+    size alone, before the free-space check and the copy: the result carries `rejected` and a job already in
+    state `failed`. The media itself is judged by the job.
     """
     cfg = IngestSettings.from_settings(settings)
     size = path.stat().st_size
+    try:  # rule 1 on the file as it is: refuse before copying anything, but keep a failed job in the history
+        engine.check_size(size, cfg.max_download_bytes)
+    except IngestRejected as rejected:
+        return _record_rejection(conn, path, rejected, via, original_filename)
     directory = staging.staging_dir(settings)
     directory.mkdir(parents=True, exist_ok=True)
     engine.check_disk(size, directory, cfg)
@@ -89,6 +97,18 @@ def enqueue_file(
         }
         job_id = store.enqueue(conn, KIND, payload, workspace_id)
     return FileIngest(workspace_id, job_id, False)
+
+
+def _record_rejection(conn, path: Path, rejected: IngestRejected, via: str, original_filename: str | None) -> FileIngest:
+    payload = {"staged": None, "original_filename": staging.sanitise_filename(original_filename or path.name), "via": via}
+    job_id = uuid.uuid4().hex
+    text = f"{ErrorCode(rejected.code)}: {rejected.message}"
+    workspace_id = f"rejected-{job_id}"  # a placeholder: the file was never hashed and no workspace exists
+    store.enqueue(
+        conn, KIND, payload, workspace_id, job_id=job_id,
+        failed=(f"fetch failed: IngestRejected: {text}", f"IngestRejected: {text}\ndetails:\n{rejected.details}"),
+    )
+    return FileIngest(workspace_id, job_id, False, rejected)
 
 
 _REJECTED_RE = re.compile(r"IngestRejected: ([A-Z_]+): (.*)")

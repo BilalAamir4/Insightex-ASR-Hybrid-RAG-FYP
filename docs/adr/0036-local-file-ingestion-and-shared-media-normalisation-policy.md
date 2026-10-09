@@ -33,7 +33,7 @@ One engine, two entry points. The decisions below are numbered as in the brief.
 Supporting rules:
 
 - **Staging.** The CLI copies the file into `<ingest.file.staging_dir>/<uuid>.tmp` while hashing, fsyncs, renames it to `<uuid>.part` and fsyncs the directory. The directory defaults to `<paths.data_dir>/staging`, on the same filesystem as the workspaces. Reading from `/mnt/...` works because the file is only read. At worker start, staging files older than `ingest.file.staging_max_age_h` (24 h) that no queued or running job refers to are deleted. A user-supplied file name is display text (sanitised, 200 characters at most) and never reaches a path.
-- **Order of checks.** Free disk space (at least `disk_free_factor` x size plus `disk_free_reserve_bytes`) is checked before the copy and raises `INSUFFICIENT_DISK` to the caller, so no job exists. The size checks (`EMPTY_FILE`, `TOO_LARGE`) and everything after them run in the job, so a rejection reaches the user through the job record.
+- **Order of checks.** `enqueue_file` stats the file first. An empty or oversized file (`EMPTY_FILE`, `TOO_LARGE`) is refused from its size alone, before the free-space check and before any copy; it still records a job in state `failed` (placeholder workspace id `rejected-<job id>`, first stage failed, code and message in the job and stage error), so job history matches the other rejections, and the CLI exits 2. Free disk space (at least `disk_free_factor` x size plus `disk_free_reserve_bytes`) is checked before the copy and raises `INSUFFICIENT_DISK` to the caller, so no job exists for that one. The engine repeats both checks as rules 1 and 2. Everything after them runs in the job, so a media rejection reaches the user through the job record.
 - **Post-verify.** Both outputs are re-probed. `video.mp4` must hold exactly one h264 yuv420p/yuvj420p stream and one aac stream with `moov` before `mdat`; its duration must match the source within `max(2 s, 1%)`; its minimum stream start must be within 0.1 s of zero; and `audio.wav` must be pcm_s16le 16 kHz mono with (wav duration minus the mp4 audio duration) equal to the mp4 audio start time within 0.1 s. Tolerances are config (`ingest.verify.*`).
 - **Warnings** (recorded in `normalise.json`, never fatal): `AUDIO_NEAR_SILENT`, `MULTIPLE_AUDIO_STREAMS`, `VFR_SOURCE`, `ROTATED`, `AV_DURATION_MISMATCH`, `START_OFFSET_CORRECTED`.
 - **Records.** `source.json` carries `kind` (`link` or `upload`), `via` (`cli`; `http` in session 2; null for links), `original_filename`, `size_bytes`, `sha256`, `received_at`. `normalise.json` (`schema: 2`) carries that source block, the probe summary, the decision and reasons, the normaliser and ffmpeg versions, per-step timings, warnings and the post-verify measurements. This is additive: old readers use `duration_s`, which is still there, and the workspace `manifest.json` stays at schema 1.
@@ -45,9 +45,9 @@ One enum (`ingest.errors.ErrorCode`) in the existing unprefixed style. No code a
 
 | Code | Meaning | User message | Raised by |
 |---|---|---|---|
-| `EMPTY_FILE` | 0 bytes | This file is empty. | `normalise` (rule 1) |
-| `TOO_LARGE` | over 4 GiB (`ingest.url.max_download_bytes`) | This video file is too large. | `fetch` (links), `normalise` (rule 1) |
-| `INSUFFICIENT_DISK` | free space below factor x size + reserve | There isn't enough free disk space to process this video. | `enqueue_file` (before the copy), `normalise` (rule 2) |
+| `EMPTY_FILE` | 0 bytes | This file is empty. | `enqueue_file` (failed job, no copy), `normalise` (rule 1) |
+| `TOO_LARGE` | over 4 GiB (`ingest.url.max_download_bytes`) | This video file is too large. | `enqueue_file` (failed job, no copy), `fetch` (links), `normalise` (rule 1) |
+| `INSUFFICIENT_DISK` | free space below factor x size + reserve | There isn't enough free disk space to process this video. | `enqueue_file` (before the copy, no job), `normalise` (rule 2) |
 | `NOT_A_VIDEO` | ffprobe fails, times out (60 s) or finds no streams. Existing code: before M2 it also meant "no video track", which now has its own code | This doesn't look like a video file we can read. | `fetch` (links, wrong content type), `normalise` (rule 3) |
 | `NO_VIDEO_STREAM` | media, but no usable video stream (audio only, cover art only) | This file has no video track. Only video files can be added. | `normalise` (rule 4) |
 | `NO_AUDIO_STREAM` | no audio stream | This video has no audio track, so it can't be transcribed. | `normalise` (rule 4) |
@@ -84,7 +84,7 @@ Test (`backend/tests/integration/test_media_engine.py::test_flash_and_beep_coinc
 - **D5.** A fixed allow-list of extensions or codecs: rejects files ffmpeg handles fine, and trusts file names. Using ffmpeg's own decoder list plus structural checks lets a new codec work without code.
 - **D8.** Lecture id from the file name or a UUID: the same bytes could be ingested twice. A content hash costs one pass over the copy, which is already being read.
 - **D9.** Delete link sources too (the brief asked for this): makes `fetch` uncached, so every repeated link downloads again; rejected by the owner (ADR-0035 stands). Keep uploads: doubles disk use for no gain.
-- **Early size rejection at enqueue.** Cheaper for a 5 GB file (nothing copied), but then no job record holds the code. The disk check stays early because it must precede the copy; session 2's upload can also reject by `Content-Length` before reading the body.
+- **Judging size only inside the job.** The first version copied a file before rejecting it, so a 5 GB file was copied first. Size is now checked at enqueue, without a copy, and a failed job is still recorded so the code is in the history. The disk check raises without a job because it must precede the copy and describes this machine, not the file.
 
 ## Consequences
 

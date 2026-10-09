@@ -52,6 +52,10 @@ def _ingest_file(args: argparse.Namespace, app_settings) -> int:
     conn = db.open_connection(app_settings.jobs.db_path, app_settings.jobs.busy_timeout_ms)
     db.migrate(conn)
     result = enqueue_file(conn, app_settings, path, via="cli")
+    if result.rejected is not None:  # refused from its size before staging; the failed job is in the history
+        print(json.dumps({"lecture_id": None, "job_id": result.job_id, "deduplicated": False, "status": "rejected",
+                          **result.rejected.to_dict()}, ensure_ascii=False))
+        return 2
     out = {"lecture_id": result.workspace_id, "job_id": result.job_id, "deduplicated": result.deduplicated}
     if not args.wait or result.job_id is None:
         print(json.dumps(out))

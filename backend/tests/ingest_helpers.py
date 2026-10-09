@@ -36,7 +36,7 @@ def run_file_job(path, settings: Settings | None = None, conn=None):
     settings = settings or get_settings()
     conn = conn or open_db(settings)
     result = enqueue_file(conn, settings, path, via="cli")
-    if result.job_id is None or result.deduplicated:
+    if result.job_id is None or result.deduplicated or result.rejected is not None:
         return result, None if result.job_id is None else store.get_job(conn, result.job_id)
     claimed = store.claim_next(conn, os.getpid())
     assert claimed is not None and claimed.id == result.job_id

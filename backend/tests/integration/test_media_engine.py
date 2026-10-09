@@ -425,3 +425,57 @@ def test_cli_enqueues_and_reports_duplicates(corpus, capsys):
     second = json.loads(capsys.readouterr().out)
     assert second["deduplicated"] is True and second["job_id"] == first["job_id"]
     assert main(["ingest-file", "/nonexistent/video.mp4", "--confirm-rights"]) == 1
+
+
+# -- size refusals before staging -----------------------------------------------------------------------
+
+def assert_refused_before_staging(settings, result, code):
+    from insightex.jobs import store
+
+    conn = open_db(settings)
+    assert result.rejected is not None and result.rejected.code == code and not result.deduplicated
+    job = store.get_job(conn, result.job_id)
+    assert job.status == "failed" and job.kind == "ingest_file" and job.finished_at
+    assert job.error.startswith(f"fetch failed: IngestRejected: {code}:")
+    assert [s.status for s in job.stages] == ["failed", "pending"] and f"IngestRejected: {code}" in job.stages[0].error
+    assert store.claim_next(conn, 1) is None, "a refused job must not be claimable"
+    assert not settings.ingest.file.staging_dir.exists(), "nothing was written to staging"
+    assert not settings.jobs.workspaces_dir.exists() or list(settings.jobs.workspaces_dir.iterdir()) == []
+    assert conn.execute("SELECT COUNT(*) FROM workspaces").fetchone()[0] == 0
+
+
+def test_empty_file_is_refused_before_staging_with_a_failed_job(corpus):
+    from insightex.ingest.file_jobs import enqueue_file
+
+    settings = get_settings()
+    result = enqueue_file(open_db(settings), settings, corpus.get("empty_mp4"))
+    assert_refused_before_staging(settings, result, ErrorCode.EMPTY_FILE)
+
+
+def test_oversized_file_is_refused_before_staging_with_a_failed_job(corpus, monkeypatch):
+    from insightex.ingest.file_jobs import enqueue_file
+
+    monkeypatch.setenv("INSIGHTEX__INGEST__URL__MAX_DOWNLOAD_BYTES", "100000")
+    clear_settings_cache()
+    settings = get_settings()
+    result = enqueue_file(open_db(settings), settings, corpus.get("h264_aac_mp4"))
+    assert_refused_before_staging(settings, result, ErrorCode.TOO_LARGE)
+
+
+@pytest.mark.parametrize("name,code,env", [
+    ("empty_mp4", "EMPTY_FILE", {}),
+    ("h264_aac_mp4", "TOO_LARGE", {"INSIGHTEX__INGEST__URL__MAX_DOWNLOAD_BYTES": "100000"}),
+])
+def test_cli_refuses_by_size_with_exit_2_and_writes_nothing_to_staging(corpus, capsys, monkeypatch, name, code, env):
+    from insightex.ingest.cli import main
+
+    for k, v in env.items():
+        monkeypatch.setenv(k, v)
+    clear_settings_cache()
+    assert main(["ingest-file", str(corpus.get(name)), "--confirm-rights"]) == 2
+    out = json.loads(capsys.readouterr().out)
+    assert out["code"] == code and out["status"] == "rejected" and out["lecture_id"] is None and out["job_id"]
+    settings = get_settings()
+    assert not settings.ingest.file.staging_dir.exists()
+    job = __import__("insightex.jobs.store", fromlist=["store"]).get_job(open_db(settings), out["job_id"])
+    assert job.status == "failed" and f"IngestRejected: {code}" in job.error
