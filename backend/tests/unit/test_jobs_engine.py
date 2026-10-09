@@ -427,3 +427,27 @@ def test_failing_after_stage_hook_is_non_fatal_and_logged_with_stage_and_job(env
     assert len(lines) == 1
     msg = lines[0].getMessage()
     assert "stage=only" in msg and f"job={job_id}" in msg and "RuntimeError: hook exploded" in msg
+
+
+def test_failing_on_failure_hook_is_logged_with_stage_job_and_staged_path_and_job_stays_failed(env, caplog):
+    class Fail(_Writer):
+        def run(self, ctx) -> None:
+            raise RuntimeError("stage broke")
+
+    def bad_hook(conn, workspaces, job, settings, exc) -> None:
+        raise OSError("cannot clean up")
+
+    settings, conn, _ = env
+    staged = settings.ingest.file.staging_dir / ("a" * 32 + ".part")
+    staged.parent.mkdir(parents=True, exist_ok=True)
+    staged.write_bytes(b"x")
+    register_pipeline("boomfail", [Fail("only", "1")], on_failure=bad_hook)
+    job_id = store.enqueue(conn, "boomfail", {"staged": staged.name}, "ws1")
+    with caplog.at_level("WARNING", logger="insightex.jobs.runner"):
+        _, status = run_next(env)
+    assert status == "failed" and store.get_job(conn, job_id).status == "failed"
+    lines = [r for r in caplog.records if r.levelname == "WARNING" and "on_failure hook failed" in r.getMessage()]
+    assert len(lines) == 1
+    msg = lines[0].getMessage()
+    assert "stage=only" in msg and f"job={job_id}" in msg and "OSError: cannot clean up" in msg
+    assert f"staged file left behind: {staged}" in msg
