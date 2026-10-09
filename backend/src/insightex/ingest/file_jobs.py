@@ -1,6 +1,7 @@
 """Enqueue an `ingest_file` job: stage a copy of a local file, hash it, de-duplicate, queue it (ADR-0036).
 
-The same function serves the CLI now and the HTTP upload in M2 session 2. Validation of the media itself
+`enqueue_file` (CLI) copies a path into staging and calls `enqueue_staged`; the HTTP upload receives the body
+straight into staging and calls `enqueue_staged` too. Validation of the media itself
 (probe, codecs, duration, ...) happens in the job, so a rejection reaches the user through the job record.
 """
 
@@ -76,6 +77,22 @@ def enqueue_file(
     engine.check_disk(size, directory, cfg)
 
     staged = staging.copy_to_staging(path, settings)
+    return enqueue_staged(conn, settings, staged, via=via, original_filename=original_filename or path.name)
+
+
+def enqueue_staged(
+    conn: sqlite3.Connection,
+    settings: Settings,
+    staged: staging.StagedFile,
+    *,
+    via: str,
+    original_filename: str | None,
+) -> FileIngest:
+    """Queue the ingest of a copy that is already in staging (the CLI copied it, or the HTTP upload received it).
+
+    Under a lock: an active job for the same bytes is returned, then an up-to-date finished lecture; in both
+    cases the staged copy is deleted. Otherwise the job is enqueued and owns the staged copy.
+    """
     workspace_id = workspace_id_for_bytes(staged.sha256)
     workspaces = Workspaces(settings.jobs.workspaces_dir)
     with _lock:
@@ -91,7 +108,7 @@ def enqueue_file(
             "staged": staged.name,
             "sha256": staged.sha256,
             "size_bytes": staged.size_bytes,
-            "original_filename": staging.sanitise_filename(original_filename or path.name),
+            "original_filename": staging.sanitise_filename(original_filename),
             "received_at": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
             "via": via,
         }

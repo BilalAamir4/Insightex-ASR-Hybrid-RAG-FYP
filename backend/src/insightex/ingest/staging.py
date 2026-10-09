@@ -54,33 +54,61 @@ def sanitise_filename(name: str | None) -> str | None:
     return base[:_DISPLAY_NAME_MAX] or None
 
 
+class StagedUpload:
+    """A copy being received: bytes go to `<uuid>.tmp` (hashed as they arrive), `finish()` fsyncs and renames it
+    to `<uuid>.part`, `abort()` deletes it. Blocking calls: run them in a worker thread from async code."""
+
+    def __init__(self, settings: Settings) -> None:
+        self._directory = staging_dir(settings)
+        self._directory.mkdir(parents=True, exist_ok=True)
+        self.name = f"{uuid.uuid4().hex}.part"
+        self._final, self._tmp = self._directory / self.name, self._directory / (self.name[:-5] + ".tmp")
+        self._digest = hashlib.sha256()
+        self.size = 0
+        self._file = open(self._tmp, "xb")
+
+    def write(self, block: bytes) -> None:
+        self._digest.update(block)
+        self._file.write(block)
+        self.size += len(block)
+
+    def finish(self) -> StagedFile:
+        try:
+            self._file.flush()
+            os.fsync(self._file.fileno())
+            self._file.close()
+            os.replace(self._tmp, self._final)
+            fd = os.open(self._directory, os.O_RDONLY)
+            try:
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+        except BaseException:
+            self.abort()
+            raise
+        return StagedFile(self.name, self._final, self.size, self._digest.hexdigest())
+
+    def abort(self) -> None:
+        """Close and delete whatever exists, whether or not `finish()` got as far as the rename."""
+        try:
+            self._file.close()
+        finally:
+            self._tmp.unlink(missing_ok=True)
+            self._final.unlink(missing_ok=True)
+
+
 def copy_to_staging(src: Path, settings: Settings) -> StagedFile:
     """Copy `src` into the staging directory, hashing as it goes (chunked); never touches `src` otherwise."""
-    directory = staging_dir(settings)
-    directory.mkdir(parents=True, exist_ok=True)
-    name = f"{uuid.uuid4().hex}.part"
-    final, tmp = directory / name, directory / (name[:-5] + ".tmp")
-    digest = hashlib.sha256()
-    size = 0
     chunk = settings.ingest.file.copy_chunk_bytes
+    upload = StagedUpload(settings)
     try:
-        with open(src, "rb") as fin, open(tmp, "xb") as fout:
+        with open(src, "rb") as fin:
             while block := fin.read(chunk):
-                digest.update(block)
-                fout.write(block)
-                size += len(block)
-            fout.flush()
-            os.fsync(fout.fileno())
-        os.replace(tmp, final)
-        fd = os.open(directory, os.O_RDONLY)
-        try:
-            os.fsync(fd)
-        finally:
-            os.close(fd)
+                upload.write(block)
+        return upload.finish()
     except BaseException:
-        tmp.unlink(missing_ok=True)
+        upload.abort()
         raise
-    return StagedFile(name, final, size, digest.hexdigest())
 
 
 def remove_staged(settings: Settings, name: str) -> None:
