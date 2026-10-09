@@ -65,7 +65,7 @@ class StagedUpload:
         self._final, self._tmp = self._directory / self.name, self._directory / (self.name[:-5] + ".tmp")
         self._digest = hashlib.sha256()
         self.size = 0
-        self._file = open(self._tmp, "xb")
+        self._file = open(self._tmp, "xb")  # noqa: SIM115 - kept open across calls; closed by finish() or abort()
 
     def write(self, block: bytes) -> None:
         self._digest.update(block)
