@@ -364,13 +364,17 @@ def run(args: argparse.Namespace) -> None:
     ok5 = (src.get("kind") == "upload" and src.get("via") == "http" and src.get("sha256") == local_hash
            and bool(decision) and bool(info.get("normaliser_version")) and isinstance(info.get("warnings"), list))
     EVIDENCE["day4"] = {"lecture_id": lecture_id, "decision": decision, "warnings": info.get("warnings"),
-                        "normaliser_version": info.get("normaliser_version"), "normalise_timings_s": info.get("timings_s"),
+                        "normaliser_version": info.get("normaliser_version"),
+                        "ignored_edit_list_skew_s": (info.get("verify") or {}).get("ignored_edit_list_skew_s"),
+                        "video_mp4_edit_lists": (info.get("verify") or {}).get("video_mp4_edit_lists"),
+                        "normalise_timings_s": info.get("timings_s"),
                         "source_json": {k: src.get(k) for k in ("kind", "via", "sha256", "size_bytes", "received_at")}}
     EVIDENCE["timings_s"]["normalise_stage"] = (info.get("timings_s") or {}).get("total")
     record(5, "Day 4 source.json/normalise.json: kind, via, sha256, decision, version, warnings", ok5,
            f"kind={src.get('kind')} via={src.get('via')} sha256 {'matches' if src.get('sha256') == local_hash else 'DIFFERS'} "
            f"decision={decision and {k: decision.get(k) for k in ('video', 'audio')}} "
-           f"normaliser_version={info.get('normaliser_version')} warnings={info.get('warnings')}")
+           f"normaliser_version={info.get('normaliser_version')} warnings={info.get('warnings')} "
+           f"ignored_edit_list_skew_s={(info.get('verify') or {}).get('ignored_edit_list_skew_s')}")
 
     # 6
     jobs_before = jobs_count(api)
