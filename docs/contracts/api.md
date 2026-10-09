@@ -26,6 +26,21 @@ The API enqueues and reads jobs; the worker (`insightex worker`) runs them. On s
 - `deduplicated: true` means a queued or running job for the same workspace (YouTube) or the same normalised URL (other links) was returned.
 - **400**: `RIGHTS_NOT_CONFIRMED` (anything but JSON `true`), `UNSUPPORTED_URL`, `PLAYLIST_NOT_SUPPORTED`. Nothing is enqueued.
 
+`GET /api/ingest/limits` returns `{"max_upload_bytes": 4294967296}` (`ingest.url.max_download_bytes`).
+
+`POST /api/ingest/upload` takes the file as the **raw request body** (not multipart). Request headers:
+
+| Header | Meaning |
+|---|---|
+| `Content-Type: application/octet-stream` | |
+| `Content-Length` | required |
+| `X-Insightex-Filename` | percent-encoded original name; display text only |
+| `X-Insightex-Rights-Confirmed: true` | must be exactly `true` |
+
+Checks run before any body byte is read, in this order: rights missing or not `true` → **400** `RIGHTS_NOT_CONFIRMED`; no valid `Content-Length` → **411** `LENGTH_REQUIRED`; length 0 → **400** `EMPTY_FILE`; over the limit → **413** `TOO_LARGE`; another upload running → **409** `UPLOAD_BUSY`; free-space rule → **507** `INSUFFICIENT_DISK`. These responses carry `Connection: close`. While the body streams, more or fewer bytes than `Content-Length` or a dropped connection → the staged copy is deleted and the answer is **400** `UPLOAD_INTERRUPTED`.
+
+On success: **202** `{"lecture_id": "sha256-<32 hex>", "job_id": "...", "deduplicated": false}`. If a job for the same bytes is already queued or running, that job's id is returned with `deduplicated: true` (202). If an up-to-date lecture already exists: **200** `{"lecture_id": "...", "job_id": null, "deduplicated": true}`. Follow the job with `/api/jobs/{job_id}/events`; a media rejection (`NO_VIDEO_STREAM`, `NO_AUDIO_STREAM`, `NOT_A_VIDEO`, `TOO_SHORT`, ...) appears as the failed `normalise` stage's error (`IngestRejected: <CODE>: <message>`). There is no CORS: other origins cannot call this endpoint from a browser (ADR-0037).
+
 ## Jobs
 
 `GET /api/jobs/{job_id}` (404 `JOB_NOT_FOUND`), `GET /api/jobs?limit=20&status=queued|running|succeeded|failed|cancelled` (newest first, `limit` 1 to 200; 400 for an unknown status):
@@ -61,7 +76,7 @@ A `: keepalive` comment is sent after `api.sse_keepalive_s` of silence. After th
 | Request | Response |
 |---|---|
 | `GET /api/lectures` | `{"lectures": [{"lecture_id", "title", "duration_s", "thumbnail_url", "created_at"}]}`, newest first; only workspaces whose `normalise` stage is complete |
-| `GET /api/lectures/{id}` | the item above plus `video_url` and `external_timestamp_url_template` (`null` unless YouTube) |
+| `GET /api/lectures/{id}` | the item above plus `video_url`, `external_timestamp_url_template` (`null` unless YouTube) and `warnings` (the `{code, detail}` list from `normalise.json`, for example `AUDIO_NEAR_SILENT`, `ROTATED`) |
 | `GET/HEAD /api/lectures/{id}/video` | `video/mp4`, Range requests (`206`, `Content-Range`, `416`) |
 | `GET/HEAD /api/lectures/{id}/thumbnail` | `image/jpeg` |
 | `DELETE /api/lectures/{id}` | **204**; **409** `LECTURE_BUSY` while a queued or running job uses it; 404 `LECTURE_NOT_FOUND` |

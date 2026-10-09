@@ -297,3 +297,13 @@ def test_rejected_fixture_fails_with_its_code_and_leaves_no_lecture_or_staging(c
     assert client.get(f"/api/lectures/{r.json()['lecture_id']}").status_code == 404
     assert staging_files(app_settings) == []
     assert not Workspaces(app_settings.jobs.workspaces_dir).path(r.json()["lecture_id"]).exists()
+
+
+def test_every_error_code_has_a_message_in_the_page():
+    import re
+    from pathlib import Path
+
+    html = (Path(__file__).resolve().parents[3] / "frontend" / "index.html").read_text(encoding="utf-8")
+    block = html[html.index("const ERROR_MESSAGES = {"):html.index("const GENERIC_ERROR")]
+    in_page = set(re.findall(r"^  ([A-Z_]+):", block, re.MULTILINE))
+    assert {str(code) for code in ErrorCode} <= in_page, sorted({str(c) for c in ErrorCode} - in_page)

@@ -14,4 +14,5 @@ paths:
 - The API never runs stages, never takes the exclusive GPU lease and never starts the worker. It enqueues jobs and reads the job database; `insightex worker` (or `scripts/dev_run.sh`) runs them.
 - Endpoints and response shapes: `docs/contracts/api.md`. Field names are stable; add fields, do not rename. Job progress is `GET /api/jobs/{id}/events` (Server-Sent Events that poll the database); the UI falls back to polling `GET /api/jobs/{id}` every 2 s.
 - The library is `/api/lectures*`, backed by workspaces whose `normalise` stage is complete. Media is resolved through the workspace manifest, with Range requests; access times are touched at most once per `api.touch_min_interval_s` per workspace.
+- The ingest page also uploads files with `XMLHttpRequest` (progress, cancel, `beforeunload` guard). All error-code texts are in the one `ERROR_MESSAGES` object in `frontend/index.html`; add a new `ErrorCode` there too. The player shows the lecture's `warnings` as notices.
 - Still to build: ask box and top-3 citations that seek the video.
