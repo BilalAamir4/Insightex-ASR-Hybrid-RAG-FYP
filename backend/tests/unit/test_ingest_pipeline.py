@@ -31,11 +31,13 @@ def test_fetch_and_normalise_produce_valid_outputs(video_server):
 
     out = ws.stage_output_dir(job.workspace_id, "normalise")
     video, audio = ffmpeg.ffprobe(out / "video.mp4"), ffmpeg.ffprobe(out / "audio.wav")
-    assert video.video.codec == "h264" and video.audio.codec == "aac" and 2.5 < video.duration_s < 3.5
+    assert video.video.codec == "h264" and video.audio.codec == "aac" and 11.5 < video.duration_s < 12.5
     assert (audio.audio.sample_rate, audio.audio.channels, audio.audio.codec) == (16000, 1, "pcm_s16le")
     assert (out / "thumbnail.jpg").stat().st_size > 0
     info = json.loads((out / "normalise.json").read_text())
-    assert info["decision"] == "remux" and info["audio"]["sample_rate"] == 16000
+    assert info["decision"]["video"] == "copy" and info["decision"]["audio"] == "copy" and info["schema"] == 2
+    assert info["probe"]["audio"]["sample_rate"] == 44100 and info["source"]["sha256"] == source["sha256"]
+    assert info["source"]["kind"] == "link" and info["normaliser_version"] == "2" and info["warnings"] == []
     assert (out / "video.mp4").read_bytes()[4:8] == b"ftyp"
     conn = open_db(settings)
     assert [(r["id"], r["source_kind"], r["source_ref"]) for r in conn.execute("SELECT * FROM workspaces")] == [
@@ -105,7 +107,7 @@ def test_resubmitting_a_finished_youtube_workspace_is_all_cached(video_server, m
     def fake_probe(parsed, cfg):
         from insightex.ingest.sources.base import SourceMeta
 
-        return SourceMeta(title="Lecture 1", uploader="Prof", duration_s=3.0, size_bytes=video_server.size, ext="mp4")
+        return SourceMeta(title="Lecture 1", uploader="Prof", duration_s=12.0, size_bytes=video_server.size, ext="mp4")
 
     def fake_download(parsed, dest, cfg, meta, on_bytes):
         import httpx
@@ -140,7 +142,7 @@ def test_not_a_video_fails_normalise_and_keeps_fetch(serve_bytes, media):
     settings = get_settings()
     job = run_link_job(serve_bytes(media["garbage"].read_bytes()).url, settings)
     assert job.status == "failed" and [s.status for s in job.stages] == ["succeeded", "failed"]
-    assert "couldn't be read as a video" in job.stages[1].error
+    assert "NOT_A_VIDEO" in job.stages[1].error and "NOT_A_VIDEO" in job.error
     assert job.workspace_id.startswith("sha256-")  # fetch is kept in the content-addressed workspace, ready for retry
 
 

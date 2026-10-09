@@ -2,6 +2,9 @@
 
     insightex probe <url>                         metadata without downloading
     insightex ingest <url> --confirm-rights       enqueue an ingest_link job (a running `insightex worker` does it)
+    insightex ingest-file <path> --confirm-rights [--wait]
+                                                  copy a local video into staging and enqueue an ingest_file job
+                                                  exit 0 ok or already ingested, 2 rejected, 1 internal error
 
 Full error details go to <paths.data_dir>/logs/ingest/ingest.log; the terminal shows the user-facing message.
 """
@@ -18,6 +21,7 @@ from insightex.core.config import get_settings
 from insightex.ingest.link_jobs import enqueue_link
 from insightex.ingest.probe import probe
 from insightex.ingest.errors import ErrorCode, IngestError
+from insightex.ingest.file_jobs import enqueue_file, job_outcome
 from insightex.ingest.settings import IngestSettings
 from insightex.jobs import db
 from insightex.jobs.workspace import Workspaces
@@ -40,6 +44,24 @@ def _setup_logging(verbose: bool, logs_dir: Path) -> Path:
     return log_file
 
 
+def _ingest_file(args: argparse.Namespace, app_settings) -> int:
+    path = Path(args.path).expanduser()
+    if not path.is_file():
+        print(f"error: {path} is not a file", file=sys.stderr)
+        return 1
+    conn = db.open_connection(app_settings.jobs.db_path, app_settings.jobs.busy_timeout_ms)
+    db.migrate(conn)
+    result = enqueue_file(conn, app_settings, path, via="cli")
+    out = {"lecture_id": result.workspace_id, "job_id": result.job_id, "deduplicated": result.deduplicated}
+    if not args.wait or result.job_id is None:
+        print(json.dumps(out))
+        return 0
+    print("waiting for the worker (start it with: insightex worker)", file=sys.stderr)
+    outcome = job_outcome(conn, app_settings, result.job_id, poll_s=app_settings.jobs.poll_interval_s)
+    print(json.dumps({**out, **outcome}, ensure_ascii=False))
+    return {"succeeded": 0, "rejected": 2}.get(outcome["status"], 1)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="insightex")
     parser.add_argument("-v", "--verbose", action="store_true", help="debug logging to the terminal")
@@ -50,6 +72,11 @@ def main(argv: list[str] | None = None) -> int:
     p_ingest.add_argument("url")
     p_ingest.add_argument("--confirm-rights", action="store_true",
                           help="confirm you have the right to use this video (required)")
+    p_file = sub.add_parser("ingest-file", help="copy a local video file in and enqueue an ingest_file job")
+    p_file.add_argument("path")
+    p_file.add_argument("--confirm-rights", action="store_true",
+                        help="confirm you have the right to use this video (required)")
+    p_file.add_argument("--wait", action="store_true", help="block until the job ends and print its outcome")
     args = parser.parse_args(argv)
 
     app_settings = get_settings()
@@ -62,6 +89,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if not args.confirm_rights:
             raise IngestError(ErrorCode.RIGHTS_NOT_CONFIRMED)
+        if args.command == "ingest-file":
+            return _ingest_file(args, app_settings)
         conn = db.open_connection(app_settings.jobs.db_path, app_settings.jobs.busy_timeout_ms)
         db.migrate(conn)
         job_id, workspace_id, deduplicated = enqueue_link(conn, app_settings, args.url)

@@ -99,6 +99,11 @@ class Worker:
         removed = self.workspaces.clean_staging()
         if removed:
             log.info("removed %d abandoned staging directories", removed)
+        from insightex.ingest.staging import sweep_staging  # late: the jobs layer does not depend on ingest otherwise
+
+        stale = sweep_staging(self.conn, self.settings)
+        if stale:
+            log.info("removed %d stale staging files", stale)
         for orphan in cache.sweep_orphan_pending(self.conn, self.workspaces):
             log.info("removed orphaned provisional workspace %s", orphan)
         for job_id, status in store.recover_after_crash(self.conn, self.settings.jobs.max_attempts):

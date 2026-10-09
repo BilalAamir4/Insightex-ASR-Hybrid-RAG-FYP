@@ -137,6 +137,15 @@ class Stage(ABC):
         return None
 
 
+    def after_stage(self, ctx: KeyContext, upstream: dict[str, Path]) -> None:
+        """Called after the stage succeeded or was found cached. `upstream` maps stage names, this one included,
+        to their completed directories.
+
+        For clean-up that is only safe once the outputs are published, such as deleting an input the stage
+        consumed. Must be idempotent: it runs again when the stage is cached. A failure is logged, never fatal.
+        """
+
+
 class GpuLease(ABC):
     """Serialises GPU stages across processes. Session 2 implements it with an OS file lock."""
 
@@ -161,6 +170,10 @@ _SOURCES: dict[str, SourceFor] = {}
 # (payload, workspace_id) -> the string the first stage's key chains from (default: the workspace id).
 ChainRoot = Callable[[dict[str, Any], str], str]
 _CHAIN_ROOTS: dict[str, ChainRoot] = {}
+# (conn, workspaces, job, settings, exc) -> None: runs after a job of the kind failed in a stage, before the
+# runner returns. For clean-up of inputs the pipeline owns (a staged upload that was rejected).
+FailureHook = Callable[..., None]
+_FAILURE_HOOKS: dict[str, FailureHook] = {}
 PENDING_PREFIX = "pending-"
 _BUILTIN_MODULES = ("insightex.jobs.dummy", "insightex.ingest.pipeline")
 _builtins_loaded = False
@@ -173,6 +186,7 @@ def register_pipeline(
     replace: bool = False,
     source_for: SourceFor | None = None,
     chain_root: ChainRoot | None = None,
+    on_failure: FailureHook | None = None,
 ) -> None:
     """Register the ordered, linear stage list that runs for jobs of `kind`.
 
@@ -197,6 +211,10 @@ def register_pipeline(
         _CHAIN_ROOTS[kind] = chain_root
     else:
         _CHAIN_ROOTS.pop(kind, None)
+    if on_failure is not None:
+        _FAILURE_HOOKS[kind] = on_failure
+    else:
+        _FAILURE_HOOKS.pop(kind, None)
 
 
 def get_source_for(kind: str) -> SourceFor | None:
@@ -209,6 +227,12 @@ def get_chain_root(kind: str) -> ChainRoot | None:
     """The `chain_root` callable declared by the pipeline for `kind`, or None."""
     get_pipeline(kind)
     return _CHAIN_ROOTS.get(kind)
+
+
+def get_failure_hook(kind: str) -> FailureHook | None:
+    """The `on_failure` callable declared by the pipeline for `kind`, or None."""
+    get_pipeline(kind)
+    return _FAILURE_HOOKS.get(kind)
 
 
 def get_pipeline(kind: str) -> tuple[Stage, ...]:
