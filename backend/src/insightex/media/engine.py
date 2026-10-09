@@ -133,7 +133,7 @@ def video_args(src: Path, dst: Path, streams: policy.Streams, decision: policy.D
         if decision.downmix:
             args += ["-ac", "2"]
         args += ["-af", "aresample=async=1:first_pts=0"]
-    args += ["-avoid_negative_ts", "make_zero", "-movflags", "+faststart", "-f", "mp4", str(dst)]
+    args += ["-movflags", "+faststart", "-f", "mp4", str(dst)]
     return args
 
 

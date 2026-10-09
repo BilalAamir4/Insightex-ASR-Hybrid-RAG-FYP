@@ -54,15 +54,15 @@ def enqueue_file(
     via: str = "cli",
     original_filename: str | None = None,
 ) -> FileIngest:
-    """Stage `path` and queue its ingest. Raises IngestRejected for an empty or oversized file or too little disk.
+    """Stage `path` and queue its ingest. Raises IngestRejected(INSUFFICIENT_DISK) before anything is copied.
 
-    Order: size and free-space checks, copy while hashing, then (under a lock) look for an active job for
-    the same bytes, then an up-to-date finished lecture, else enqueue. A duplicate's staged copy is deleted.
-    An older normaliser version re-normalises into the same workspace.
+    Order: free-space check, copy while hashing, then (under a lock) look for an active job for the same
+    bytes, then an up-to-date finished lecture, else enqueue. A duplicate's staged copy is deleted. An older
+    normaliser version re-normalises into the same workspace. File size (EMPTY_FILE, TOO_LARGE) and the
+    media itself are judged by the job, so the rejection lands in the job record.
     """
     cfg = IngestSettings.from_settings(settings)
     size = path.stat().st_size
-    engine.check_size(size, cfg.max_download_bytes)
     directory = staging.staging_dir(settings)
     directory.mkdir(parents=True, exist_ok=True)
     engine.check_disk(size, directory, cfg)

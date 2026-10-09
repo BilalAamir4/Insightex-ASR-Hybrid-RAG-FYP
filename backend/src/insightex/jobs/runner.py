@@ -258,9 +258,12 @@ def _publish(workspaces: Workspaces, workspace_id: str, stage: Stage, key: str, 
                 os.close(fd)
     final = workspaces.stage_dir(workspace_id, stage.name, key)
     final.parent.mkdir(parents=True, exist_ok=True)
-    if final.exists():  # a crash between this move and the manifest write left it; same key means same content
-        shutil.rmtree(staging)
+    if final.exists() and all((final / name).exists() for name in stage.outputs):
+        shutil.rmtree(staging)  # a crash between this move and the manifest write left it; same key means same content
     else:
+        # Absent, or present but missing a declared output (an input a later hook deleted, such as an uploaded
+        # original): the fresh outputs win.
+        shutil.rmtree(final, ignore_errors=True)
         os.replace(staging, final)
     previous = workspaces.record_stage(workspace_id, stage.name, key, duration_s, list(stage.outputs))
     if previous and previous != key:  # only after the new manifest is durable
