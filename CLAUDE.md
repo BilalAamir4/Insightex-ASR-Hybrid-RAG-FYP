@@ -15,14 +15,14 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
 
 ## Current state (update this block at every milestone)
 
-- **Phase 0 (Foundation) complete; Phase 1 next.** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
+- **Phase 0 (Foundation) complete; M1 complete (9 Oct 2026); Phase 1 continues with M2 and M4.** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
 - **Done:**
-  - M0b repo scaffold, typed config and decision log (8 Oct 2026): `config/default.yaml`, `insightex config show|validate`, commit-msg hook, ADR-0001 to ADR-0032 in `docs/adr/` (decision log: `docs/adr/README.md`), textbook chosen (ADR-0029: Géron, Hands-On Machine Learning, 2nd Edition). Repo and tag `import-baseline` exist.
+  - M1 core (9 Oct 2026): SQLite job queue + single worker with crash recovery and resume, GPU lease, workspaces with chained stage keys and a cache index with eviction (ADR-0033 to ADR-0035). Link ingestion runs on the runner as the `ingest_link` pipeline (`fetch`, `normalise`); the API exposes jobs, Server-Sent Events progress, the library and delete (`docs/contracts/api.md`). One job system, one workspace layout (`$INSIGHTEX_DATA/workspaces/`). Lectures in the old `lectures/` folder are not read and must be re-ingested. Evidence: `docs/evidence/m1/`.
+  - M0b repo scaffold, typed config and decision log (8 Oct 2026): `config/default.yaml`, `insightex config show|validate`, commit-msg hook, ADRs in `docs/adr/` (decision log: `docs/adr/README.md`), textbook chosen (ADR-0029: Géron, Hands-On Machine Learning, 2nd Edition). Repo and tag `import-baseline` exist.
   - M0 environment verification (7 Oct 2026): cold-boot pass, `scripts/verify_env.sh` 12/12 after a full Windows restart with Ollama started by Task Scheduler. State in `docs/ENVIRONMENT.md`, Ollama contract in `docs/adr/0002-ollama-call-contract.md`.
-  - M3 link ingestion (6 Oct 2026). This covers the engine + CLI, the FastAPI API with one-worker background jobs, and the static HTML ingest/library/player page.
+  - M3 link ingestion (6 Oct 2026), moved onto the runner in M1.
 - **Partial:**
-  - M1: background jobs exist. GPU lease, resume-after-kill and a generic stage runner are still to do. **Next: M1.**
-  - M2: the normalisation path exists. Local file upload is still to do.
+  - M2: the `normalise` stage exists. Local file upload is still to do. **Next: M2, then M4.**
   - M6: API, player and `seekTo(seconds)` exist. Ask box and citations are still to do.
 - **Not started:** the ASR stage (M4), production embeddings/FAISS (M5), concept extraction, the graph, the router and answers.
 - Before starting a module, check its open decisions in `docs/BUILD_ORDER.md` ("Pending decisions by module"). Settle them before building.
@@ -35,7 +35,7 @@ ingest (URL or upload) → ffmpeg normalise → faster-whisper ASR → 30 s wind
                                                         ↘ Ollama concept extraction (JSON Schema) → canonicalise → NetworkX graph
 query → router (graph-first on known concept labels, otherwise vector or merge) → grounded answer with validated citations → `seekTo(seconds)`
 
-Per-lecture workspace: `$INSIGHTEX_DATA/lectures/<lecture_id>/`. It holds `video.mp4`, `audio.wav` (16 kHz mono), `thumbnail.jpg` and `manifest.json` (schema v2). Later stages add their outputs here and record them in the manifest.
+Per-video workspace: `$INSIGHTEX_DATA/workspaces/<workspace_id>/` (`yt-<id>` or `sha256-<32 hex>`), with `manifest.json` and `stages/<stage>/<key>/` per completed stage (`video.mp4`, `audio.wav`, `thumbnail.jpg` come from `normalise`). Later stages add their outputs here; find files with `Workspaces.stage_output_dir`.
 
 ## Commands
 
@@ -44,8 +44,10 @@ Per-lecture workspace: `$INSIGHTEX_DATA/lectures/<lecture_id>/`. It holds `video
 bash ~/insightex/scripts/run_in_env.sh python <script.py> ...
 # Without the wrapper, faster-whisper fails at INFERENCE time with "libcublas.so.12 is not found".
 
-# API + UI (binds 127.0.0.1:8000; host/port from `api:` in config/default.yaml)
-bash ~/insightex/scripts/run_in_env.sh python -m insightex.api
+# Worker (background) + API + UI together (binds 127.0.0.1:8000; host/port from `api:` in config/default.yaml)
+bash ~/insightex/scripts/dev_run.sh
+# The worker is a separate process: `insightex worker`; `insightex gpu status`, `insightex cache list|pin|delete|gc`, `insightex jobs list|show`
+# API alone (jobs only run while a worker runs): bash ~/insightex/scripts/run_in_env.sh python -m insightex.api
 # Backend tests (offline suites; network tests only with `pytest -m network`)
 bash ~/insightex/scripts/run_in_env.sh pytest
 # Frontend tests (Deno from the venv)
@@ -117,7 +119,7 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 | Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` |
 | Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
-| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0032) | `docs/adr/README.md` |
+| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0035) | `docs/adr/README.md` |
 | Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
 | Draft JSON Schema: ASR segment list (id, start, end, text, avg_logprob, no_speech_prob) | `docs/contracts/segments.json` |
 | Current environment state, how to verify (`scripts/verify_env.sh`) | `docs/ENVIRONMENT.md` |

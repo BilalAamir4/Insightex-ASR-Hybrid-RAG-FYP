@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 import threading
 import time
 from pathlib import Path
@@ -40,9 +41,31 @@ FAST = {"cpu_seconds": 0.1, "gpu_seconds": 0.1, "step_seconds": 0.05}
 
 def test_migrate_twice_is_a_noop_the_second_time(env):
     _, conn, _ = env
-    assert db.schema_version(conn) == len(db.MIGRATIONS) == 2
+    assert db.schema_version(conn) == len(db.MIGRATIONS) == 3
     assert db.migrate(conn) == 0
-    assert conn.execute("SELECT COUNT(*) FROM schema_version").fetchone()[0] == 2
+    assert conn.execute("SELECT COUNT(*) FROM schema_version").fetchone()[0] == 3
+
+
+def test_migration_3_keeps_workspace_rows_and_allows_gdrive(tmp_path):
+    conn = db.open_connection(tmp_path / "v2.db", 1000)
+    with db.transaction(conn):
+        conn.execute("CREATE TABLE schema_version (version INTEGER NOT NULL, applied_at TEXT NOT NULL)")
+        for n, script in enumerate(db.MIGRATIONS[:2], start=1):
+            for statement in script.split(";"):
+                if statement.strip():
+                    conn.execute(statement)
+            conn.execute("INSERT INTO schema_version VALUES (?, 'x')", (n,))
+        conn.execute("INSERT INTO workspaces (id, source_kind, source_ref, created_at, last_accessed_at, size_bytes, pinned) "
+                     "VALUES ('yt-abcdefghijk', 'youtube', 'u', 't1', 't2', 7, 1)")
+    assert db.migrate(conn) == 1 and db.schema_version(conn) == 3
+    row = conn.execute("SELECT * FROM workspaces").fetchone()
+    assert (row["id"], row["source_kind"], row["size_bytes"], row["pinned"]) == ("yt-abcdefghijk", "youtube", 7, 1)
+    conn.execute("INSERT INTO workspaces (id, source_kind, source_ref, created_at, last_accessed_at) "
+                 "VALUES ('sha256-x', 'gdrive', 'u', 't', 't')")
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("INSERT INTO workspaces (id, source_kind, source_ref, created_at, last_accessed_at) "
+                     "VALUES ('z', 'bogus', 'u', 't', 't')")
+    assert conn.execute("SELECT name FROM sqlite_master WHERE name = 'idx_workspaces_accessed'").fetchone()
 
 
 def test_connection_pragmas(env):

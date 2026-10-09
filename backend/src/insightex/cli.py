@@ -46,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
 
     jobs_cli.register(sub)
     sub.add_parser("probe", help="print metadata for a link (see: insightex probe <url>)")
-    sub.add_parser("ingest", help="download and process a lecture video (see: insightex ingest <url> --confirm-rights)")
+    sub.add_parser("ingest", help="enqueue a link ingest job (see: insightex ingest <url> --confirm-rights)")
     args = parser.parse_args(argv)
     if args.command in ("db", "worker", "jobs", "gpu", "cache"):
         return jobs_cli.run(args)

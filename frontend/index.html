@@ -27,6 +27,13 @@
   ul.library li { margin: 8px 0; }
   ul.library a { display: flex; gap: 12px; text-decoration: none; color: inherit; border: 1px solid #ccc; padding: 8px; }
   ul.library img { width: 120px; height: auto; background: #eee; }
+  ul.library li { display: flex; gap: 8px; align-items: stretch; }
+  ul.library li a { flex: 1; }
+  ul.library li button.delete { align-self: center; }
+  .stages { list-style: none; padding: 0; margin: 8px 0; }
+  .stages li { display: grid; grid-template-columns: 7rem 8rem 1fr; gap: 8px; align-items: center; margin: 6px 0; }
+  .stages .st-message { grid-column: 2 / -1; color: #555; font-size: 0.9rem; min-height: 1.1em; }
+  .stages .st-error { grid-column: 2 / -1; color: #a00; font-size: 0.9rem; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -65,9 +72,15 @@
     </div>
 
     <div id="progress" hidden>
-      <div id="pr-label"></div>
-      <progress id="pr-bar" max="100"></progress>
-      <div class="note" id="pr-message"></div>
+      <div id="pr-title" role="status"></div>
+      <ul id="pr-stages" class="stages"></ul>
+      <div id="pr-error" class="error" role="alert" hidden></div>
+      <div class="row">
+        <button id="pr-cancel" hidden>Cancel</button>
+        <button id="pr-retry" hidden>Retry</button>
+        <button id="pr-open" hidden>Open in player</button>
+        <button id="pr-dismiss" hidden>Add another</button>
+      </div>
     </div>
   </section>
 
@@ -149,21 +162,44 @@ async function loadLibrary() {
     dur.textContent = formatTimestamp(lec.duration_s) ?? "";
     text.append(title, dur);
     a.append(text);
-    li.append(a);
+    const del = document.createElement("button");
+    del.className = "delete";
+    del.textContent = "Delete";
+    del.addEventListener("click", () => deleteLecture(lec));
+    li.append(a, del);
     list.append(li);
   }
 }
 
+async function deleteLecture(lec) {
+  const name = lec.title || lec.lecture_id;
+  if (!confirm(`Delete "${name}"?\n\nThe processed lecture (video, audio and everything derived from it) is removed from this machine. To use it again you would have to add the link again.`)) return;
+  try {
+    await api(`/api/lectures/${encodeURIComponent(lec.lecture_id)}`, { method: "DELETE" });
+  } catch (e) {
+    alert(e.message);
+  }
+  loadLibrary();
+}
+
 // ---------------------------------------------------------------- home: ingest flow
+let eventSource = null;
 let pollTimer = null;
+let currentJob = null;
 
 function showAddError(message) {
   $("add-error").textContent = message;
   show($("add-error"), Boolean(message));
 }
 
-function resetAdd() {
+function stopWatching() {
+  if (eventSource) { eventSource.close(); eventSource = null; }
   clearTimeout(pollTimer);
+}
+
+function resetAdd() {
+  stopWatching();
+  currentJob = null;
   showAddError("");
   show($("preview"), false);
   show($("progress"), false);
@@ -194,20 +230,32 @@ function initHome() {
 
   $("url").addEventListener("keydown", (e) => { if (e.key === "Enter") $("check").click(); });
   $("rights").addEventListener("change", () => { $("add-btn").disabled = !$("rights").checked; });
-  $("pv-open").addEventListener("click", () => { location.href = playerUrl(probed.lecture_id); });
+  $("pv-open").addEventListener("click", () => { location.href = playerUrl(probed.workspace_id); });
 
   $("add-btn").addEventListener("click", async () => {
     if (!$("rights").checked) return;
     $("add-btn").disabled = true;
     try {
-      const job = await postJson("/api/ingest", { url: $("url").value.trim(), rights_confirmed: true });
-      if (job.job_id === null) { location.href = playerUrl(job.lecture_id); return; }  // already ready
-      startProgress(job.job_id, job.lecture_id);
+      const accepted = await postJson("/api/ingest/link", { url: $("url").value.trim(), rights_confirmed: true });
+      watchJob(accepted.job_id);
     } catch (e) {
       showAddError(e.message);
       $("add-btn").disabled = !$("rights").checked;
     }
   });
+
+  $("pr-cancel").addEventListener("click", async () => {
+    $("pr-cancel").disabled = true;
+    try { await postJson(`/api/jobs/${encodeURIComponent(currentJob.id)}/cancel`, {}); } catch (e) { showAddError(e.message); }
+  });
+  $("pr-retry").addEventListener("click", async () => {
+    try {
+      await postJson(`/api/jobs/${encodeURIComponent(currentJob.id)}/retry`, {});
+      watchJob(currentJob.id);
+    } catch (e) { showAddError(e.message); }
+  });
+  $("pr-open").addEventListener("click", () => { location.href = playerUrl(currentJob.workspace_id); });
+  $("pr-dismiss").addEventListener("click", resetAdd);
 }
 
 function renderPreview(p) {
@@ -224,48 +272,90 @@ function renderPreview(p) {
   show($("preview"));
 }
 
-const STAGE_LABELS = {
-  queued: "Waiting in line", probing: "Reading video details", downloading: "Downloading",
-  transcoding: "Converting video", extracting_audio: "Extracting audio", done: "Done",
+const STAGE_LABELS = { fetch: "Download", normalise: "Convert video and audio" };
+const STATUS_LABELS = {
+  pending: "Waiting", running: "Working", succeeded: "Done", cached: "Done (reused)", failed: "Failed", cancelled: "Cancelled",
 };
+const isTerminal = (status) => ["succeeded", "failed", "cancelled"].includes(status);
 
-function startProgress(jobId, lecture) {
+/** Draw the job document: one row per stage (name, status, progress bar, message) and the action buttons. */
+function renderJob(job) {
+  currentJob = job;
   show($("preview"), false);
   show($("progress"));
   $("check").disabled = true;
   $("url").disabled = true;
-  let netFailures = 0;
+  $("pr-title").textContent = job.status === "queued" ? "Waiting for the worker" : "";
+  const list = $("pr-stages");
+  list.replaceChildren();
+  let failure = null;
+  for (const st of job.stages) {
+    const li = document.createElement("li");
+    const name = document.createElement("span");
+    name.textContent = STAGE_LABELS[st.name] ?? st.name;
+    const status = document.createElement("span");
+    status.textContent = STATUS_LABELS[st.status] ?? st.status;
+    const bar = document.createElement("progress");
+    bar.max = 100;
+    bar.value = Math.round(st.progress * 100);
+    li.append(name, status, bar);
+    const msg = document.createElement("div");
+    msg.className = "st-message";
+    msg.textContent = st.status === "running" ? (st.message ?? "") : "";
+    li.append(msg);
+    if (st.status === "failed" && st.error) {
+      failure = st.error.split("\n")[0];  // first line only; the traceback stays in the worker log
+      const err = document.createElement("div");
+      err.className = "st-error";
+      err.textContent = failure;
+      li.append(err);
+    }
+    list.append(li);
+  }
+  const active = job.status === "queued" || job.status === "running";
+  show($("pr-cancel"), active);
+  $("pr-cancel").disabled = false;
+  show($("pr-retry"), job.status === "failed" || job.status === "cancelled");
+  show($("pr-open"), job.status === "succeeded");
+  show($("pr-dismiss"), isTerminal(job.status));
+  const errorBox = $("pr-error");
+  errorBox.textContent = job.status === "failed" ? (failure ?? job.error ?? "The lecture couldn't be added.")
+    : job.status === "cancelled" ? "Cancelled." : "";
+  show(errorBox, errorBox.textContent !== "");
+  if (job.status === "succeeded") {
+    $("pr-title").textContent = "Ready";
+    loadLibrary();
+  }
+}
 
-  const tick = async () => {
-    let job;
+/** Follow a job: Server-Sent Events first; if the stream errors, poll the job every 2 s until it ends. */
+function watchJob(jobId) {
+  stopWatching();
+  showAddError("");
+  const id = encodeURIComponent(jobId);
+  const poll = async () => {
     try {
-      job = await api(`/api/ingest/${encodeURIComponent(jobId)}`);
-      netFailures = 0;
+      const job = await api(`/api/jobs/${id}`);
+      renderJob(job);
+      if (!isTerminal(job.status)) pollTimer = setTimeout(poll, 2000);
     } catch (e) {
-      if (++netFailures >= 5) { resetAdd(); showAddError(e.message); return; }
-      pollTimer = setTimeout(tick, 1000);
-      return;
+      showAddError(e.message);
+      pollTimer = setTimeout(poll, 2000);
     }
-    if (job.status === "failed") {
-      resetAdd();
-      showAddError(job.error?.message ?? job.message ?? "The lecture couldn't be added.");
-      return;
-    }
-    if (job.status === "done") { location.href = playerUrl(lecture); return; }
-    const bar = $("pr-bar");
-    const label = STAGE_LABELS[job.status === "queued" ? "queued" : job.stage] ?? "Working";
-    if (job.fraction === null || job.fraction === undefined) {
-      bar.removeAttribute("value");  // indeterminate
-      $("pr-label").textContent = label;
-    } else {
-      const pct = Math.round(job.fraction * 100);
-      bar.value = pct;
-      $("pr-label").textContent = `${label}: ${pct}%`;
-    }
-    $("pr-message").textContent = job.message ?? "";
-    pollTimer = setTimeout(tick, 1000);
   };
-  tick();
+  if (typeof EventSource === "undefined") { poll(); return; }
+  const es = new EventSource(`/api/jobs/${id}/events`);
+  eventSource = es;
+  es.addEventListener("status", (ev) => {
+    const job = JSON.parse(ev.data);
+    renderJob(job);
+    if (isTerminal(job.status)) stopWatching();
+  });
+  es.onerror = () => {
+    // The server closes the stream after the final event, which also fires onerror; only fall back if still going.
+    es.close();
+    if (eventSource === es) { eventSource = null; if (!currentJob || !isTerminal(currentJob.status)) poll(); }
+  };
 }
 
 // ---------------------------------------------------------------- player

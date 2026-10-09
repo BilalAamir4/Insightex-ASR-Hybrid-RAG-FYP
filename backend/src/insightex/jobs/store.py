@@ -85,14 +85,17 @@ def _stages_of(conn: sqlite3.Connection, job_id: str) -> list[StageRow]:
     return [StageRow(**{k: r[k] for k in r.keys() if k != "job_id"}) for r in rows]
 
 
-def enqueue(conn: sqlite3.Connection, kind: str, payload: dict[str, Any], workspace_id: str) -> str:
+def enqueue(
+    conn: sqlite3.Connection, kind: str, payload: dict[str, Any], workspace_id: str, job_id: str | None = None
+) -> str:
     """Create a queued job and one pending stage row per stage of the kind's pipeline; return the job id.
 
+    `job_id` lets a caller derive the workspace id from it (`pending-<job id>`); default is a fresh uuid.
     Raises ValueError for a bad workspace id and UnknownJobKind for a kind with no registered pipeline.
     """
     validate_workspace_id(workspace_id)
     pipeline = get_pipeline(kind)
-    job_id, now = uuid.uuid4().hex, utcnow()
+    job_id, now = job_id or uuid.uuid4().hex, utcnow()
     with transaction(conn):
         conn.execute(
             "INSERT INTO jobs (id, kind, status, payload, workspace_id, attempts, created_at, updated_at) "
@@ -278,3 +281,10 @@ def recover_after_crash(conn: sqlite3.Connection, max_attempts: int) -> list[tup
             _reset_stages(conn, row["id"], "AND status = 'running'")
             result.append((row["id"], status))
     return result
+
+
+def set_workspace(conn: sqlite3.Connection, job_id: str, workspace_id: str) -> None:
+    """Point a job at another workspace. Call it inside the caller's transaction (see rebind)."""
+    cur = conn.execute("UPDATE jobs SET workspace_id = ?, updated_at = ? WHERE id = ?", (workspace_id, utcnow(), job_id))
+    if cur.rowcount != 1:
+        raise JobNotFound(job_id)

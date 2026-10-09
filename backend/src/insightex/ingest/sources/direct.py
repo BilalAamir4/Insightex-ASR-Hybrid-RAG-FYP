@@ -5,7 +5,9 @@ from __future__ import annotations
 import logging
 import mimetypes
 import re
+from collections.abc import Callable
 from pathlib import Path, PurePosixPath
+from typing import BinaryIO
 from urllib.parse import unquote, urlsplit
 
 import httpx
@@ -102,7 +104,9 @@ def download(
     on_bytes: BytesCb | None,
     client: httpx.Client | None = None,
     resolver: netguard.Resolver = netguard.system_resolver,
+    wrap_output: Callable[[BinaryIO], BinaryIO] | None = None,
 ) -> Path:
+    """Stream the file into dest_dir. `wrap_output(file)` may return a writer that sees every byte (hashing)."""
     cap = settings.max_download_bytes
     own = client is None
     client = client or netguard.make_client()
@@ -112,7 +116,8 @@ def download(
             checked = check_response(response, settings)  # headers re-checked: the server may have changed
             out = dest_dir / f"source.{checked.ext or 'bin'}"
             received = 0
-            with part.open("wb") as f:
+            with part.open("wb") as raw:
+                f = wrap_output(raw) if wrap_output else raw
                 for chunk in response.iter_bytes(CHUNK):
                     received += len(chunk)
                     if received > cap:

@@ -7,17 +7,14 @@ tests/unit/test_config.py fails if they drift apart.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 
 from insightex.core.config import Settings, get_settings
 
 
 @dataclass(frozen=True)
 class IngestSettings:
-    lectures_dir: Path
     max_duration_s: int = 10800
     max_download_bytes: int = 4 * 1024**3
-    keep_source: bool = False
     max_video_height: int = 1080
     deno_path: str | None = None
     socket_timeout_s: float = 30
@@ -35,10 +32,8 @@ class IngestSettings:
     def from_settings(cls, s: Settings) -> IngestSettings:
         i, u = s.ingest, s.ingest.url
         return cls(
-            lectures_dir=s.paths.lectures_dir,
             max_duration_s=u.max_duration_s,
             max_download_bytes=u.max_download_bytes,
-            keep_source=u.keep_source,
             max_video_height=u.max_video_height,
             deno_path=u.deno_path or None,
             socket_timeout_s=u.socket_timeout_s,

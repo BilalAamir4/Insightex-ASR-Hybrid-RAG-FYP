@@ -24,7 +24,7 @@ The helpers that compute these are in `insightex.sources.identity`. Any id that 
 
 **Privacy rule.** Lecture artifacts (transcript, windows, embeddings, graph) are derived only from the video, are identical for everyone and are cached. User data (questions, answers, notes, quiz attempts, anything tied to a person) is never persisted beyond the session.
 
-**Two layouts for now.** Link ingestion still writes `lectures/<lecture_id>/` (ADR-0025). Workspaces under `workspaces/` are used by the new runner. The next sessions move ingestion onto the runner and remove `lectures/`.
+**One layout.** The `lectures/<lecture_id>/` layout of ADR-0025 is retired: link ingestion runs on the stage runner and writes only to `workspaces/` (ADR-0035). Lectures ingested before that change are left on disk, are never read, and must be re-ingested.
 
 ### Source identity, cache index and eviction
 

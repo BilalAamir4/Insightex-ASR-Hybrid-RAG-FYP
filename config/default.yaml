@@ -4,11 +4,14 @@
 # stay in env/insightex_env.sh and are not settings. Show the merged result: insightex config show
 
 paths:
-  data_dir: ~/insightex-data        # runtime data root; lectures/ and logs/ live under it. Alias env: INSIGHTEX_DATA
+  data_dir: ~/insightex-data        # runtime data root; workspaces/, logs/ and the job database live under it. Alias env: INSIGHTEX_DATA
 
 api:
   host: 127.0.0.1                   # bind address; loopback only, the server refuses 0.0.0.0 and ::
   port: 8000                        # TCP port
+  sse_poll_interval_s: 0.5          # seconds between database reads for each open job event stream
+  sse_keepalive_s: 15               # seconds of silence before a ': keepalive' comment is sent on an event stream
+  touch_min_interval_s: 60          # seconds; minimum gap between cache access-time updates for one workspace when serving media
 
 ingest:
   ffprobe_timeout_s: 120            # seconds before ffprobe is killed
@@ -16,7 +19,6 @@ ingest:
   url:
     max_duration_s: 10800           # seconds (3 h); checked at probe (when known) and after download
     max_download_bytes: 4294967296  # bytes (4 GiB); Content-Length and bytes actually received
-    keep_source: false              # delete the original download after a successful transcode
     max_video_height: 1080          # pixels; taller video is scaled down, yt-dlp format capped to it
     deno_path: null                 # null = the deno wheel installed in the venv
     socket_timeout_s: 30            # seconds; yt-dlp socket timeout

@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import IO
 
 from insightex.core.config import Settings
-from insightex.jobs import db, store
+from insightex.jobs import cache, db, store
 from insightex.jobs.runner import LOG_CONTEXT, run_job
 from insightex.jobs.stages import GpuLease, NullGpuLease
 from insightex.jobs.workspace import Workspaces
@@ -99,6 +99,8 @@ class Worker:
         removed = self.workspaces.clean_staging()
         if removed:
             log.info("removed %d abandoned staging directories", removed)
+        for orphan in cache.sweep_orphan_pending(self.conn, self.workspaces):
+            log.info("removed orphaned provisional workspace %s", orphan)
         for job_id, status in store.recover_after_crash(self.conn, self.settings.jobs.max_attempts):
             LOG_CONTEXT.set((job_id, "-"))
             log.warning("recovered job after worker crash: now %s", status)

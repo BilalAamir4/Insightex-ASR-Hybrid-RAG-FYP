@@ -32,7 +32,7 @@ The panel required one additional feature: ingesting a lecture from a link inste
 **Design.**
 - One path for every source: download the whole file, then play it locally. There is no embedded YouTube player and no audio-only path.
 - Sources are YouTube (including the `/live/` URL shape), public Google Drive and direct URLs. YouTube and Drive go through yt-dlp, with Deno in the venv as yt-dlp's JS runtime; gdown was removed.
-- Storage is `$INSIGHTEX_DATA/lectures/<lecture_id>/`: `video.mp4`, `audio.wav` (16 kHz mono), `thumbnail.jpg` and `manifest.json` (schema v2, with source and decision fields).
+- Storage is `$INSIGHTEX_DATA/workspaces/<workspace_id>/stages/{fetch,normalise}/<key>/`: `source`, `video.mp4`, `audio.wav` (16 kHz mono), `thumbnail.jpg` and the stage JSON files (ADR-0035). The earlier `lectures/` layout is retired; those lectures must be re-ingested.
 - Limits are 3 h and 4 GB. The user must confirm they have the rights to the video. The server runs on `127.0.0.1:8000`.
 - `seekTo(seconds)` is the single player integration point for citations, graph navigation and highlight reels.
 

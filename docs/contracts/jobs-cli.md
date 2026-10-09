@@ -5,6 +5,8 @@ Commands (all load settings once; user errors print `error: <message>` to stderr
 ```
 insightex db migrate
 insightex worker                                   exit 2 if another worker runs; otherwise runs until SIGINT/SIGTERM (exit 0)
+insightex probe URL                                print link metadata as JSON
+insightex ingest URL --confirm-rights              enqueue an ingest_link job; prints {job_id, workspace_id, deduplicated}
 insightex jobs enqueue-dummy [--cpu-seconds N] [--gpu-seconds N] [--label S] [--workspace ID]   prints the job id
 insightex jobs list [--status S] [--limit N] [--json]
 insightex jobs show ID [--json]

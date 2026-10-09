@@ -1,9 +1,9 @@
 # insightex.api.routers
 
-**Purpose:** API route modules.
+**Purpose:** API route modules: `ingest.py` (probe, link), `jobs.py` (job documents, SSE events, cancel, retry), `lectures.py` (library, media, delete).
 
 **Model used:** none
 
 **Feature numbers:** not assigned
 
-**Status:** skeleton only. No code yet; this README is the contract for what belongs here.
+**Status:** implemented; contract in `docs/contracts/api.md`.

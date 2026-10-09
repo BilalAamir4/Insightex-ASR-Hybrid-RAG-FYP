@@ -11,11 +11,11 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 | Module | State |
 |---|---|
 | M0 | **Done (7 Oct 2026)**: `scripts/verify_env.sh` passes 12/12 after a full restart (`docs/ENVIRONMENT.md`) |
-| M0b | **Done (8 Oct 2026)**: repo scaffold, typed config, ADR-0001 to ADR-0032 (`docs/adr/`), textbook chosen (ADR-0029). **Next: M1.** |
-| M1 | Partial: one-worker background jobs exist from link ingestion; GPU lease, resume-after-kill and generic stage runner still to do |
-| M2 | Partial: normalisation path (video.mp4 + 16 kHz mono audio.wav) exists for link ingestion; local file upload still to do |
+| M0b | **Done (8 Oct 2026)**: repo scaffold, typed config, ADR-0001 to ADR-0032 (`docs/adr/`), textbook chosen (ADR-0029) |
+| M1 | **Done (9 Oct 2026)**: SQLite job queue, single worker with crash recovery and resume, GPU lease, workspaces with chained stage keys and cache eviction, and link ingestion on the runner with job progress over HTTP/SSE (ADR-0033 to ADR-0035). Evidence: `docs/evidence/m1/`. |
+| M2 | Partial: the `normalise` stage (video.mp4 + 16 kHz mono audio.wav) exists for link ingestion; local file upload still to do (it should hash the bytes in the API and reuse `normalise`) |
 | M3 | **Done (6 Oct 2026)**; the eval-lecture fetch (4–6 lectures) still has to be run |
-| M6 | Partial: FastAPI API, static HTML ingest/library/player page and `seekTo(seconds)` exist; ask box and citations still to do |
+| M6 | Partial: FastAPI API (ingest, jobs with SSE progress, library, media), static HTML ingest/library/player page and `seekTo(seconds)` exist; ask box and citations still to do |
 | All others | Not started |
 
 ## Phase 0: Foundation (week of 5 Oct)
@@ -91,10 +91,10 @@ These come from the October 2026 review. Settle each one when its module starts.
   - Always set `num_ctx` explicitly. Measure VRAM, tok/s and `ollama ps` at the worst-case prompt (3–5 Urdu windows + 2 textbook chunks).
   - Gate: concept extraction on 10 labelled windows, qwen3.5 vs Gemma 4 E4B. If the two are within noise, use the smaller model for interactive Q&A; using the larger one only for offline extraction is a valid split.
   - Optional lever: KV-cache quantisation.
-- **M1: Job queue.**
+- **M1: Job queue.** Settled (ADR-0033, ADR-0035); kept for the record.
   - A SQLite jobs table, one worker holding the GPU lease, and SSE progress: about 150 lines, no Celery.
   - On worker start, requeue or fail any stale "running" jobs.
-- **M1: Session rule.**
+- **M1: Session rule.** Settled (ADR-0034); kept for the record.
   - Cache the processed workspace per video, keyed by content hash or YouTube ID, and include the pipeline version in the key.
   - "Nothing stored between sessions" becomes a UI/product rule: one video per session, no cross-session or cross-student data, no user history. Phrase it this way at the defense (M20).
 - **M4: Whisper language setting.**

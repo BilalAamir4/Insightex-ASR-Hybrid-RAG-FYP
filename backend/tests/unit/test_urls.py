@@ -36,7 +36,6 @@ def test_youtube_shapes(url):
     p = parse_url(url)
     assert p.source_type == "youtube"
     assert p.canonical_id == f"yt:{VID}"
-    assert p.lecture_id == f"yt_{VID}"
     assert p.normalized_url == f"https://www.youtube.com/watch?v={VID}"
     assert p.external_timestamp_url_template == f"https://www.youtube.com/watch?v={VID}&t={{t}}s"
     assert p.source_url == url.strip()
@@ -93,7 +92,6 @@ def test_drive_shapes(url):
     p = parse_url(url)
     assert p.source_type == "gdrive"
     assert p.canonical_id == f"gdrive:{DRIVE}"
-    assert p.lecture_id == f"gdrive_{DRIVE}"
     assert p.normalized_url == f"https://drive.google.com/file/d/{DRIVE}/view"
     assert p.external_timestamp_url_template is None
 
@@ -124,7 +122,6 @@ def test_direct_url_canonical_id_and_normalization():
     assert a.normalized_url == b.normalized_url == "https://example.com/videos/Lecture%201.mp4?a=1&b=2"
     digest = hashlib.sha256(a.normalized_url.encode()).hexdigest()[:16]
     assert a.canonical_id == f"url:{digest}"
-    assert a.lecture_id == f"url_{digest}"
     assert a.external_timestamp_url_template is None
     # The URL used for fetching stays as pasted.
     assert a.source_url == "HTTPS://Example.COM:443/videos/Lecture%201.mp4?b=2&a=1#frag"

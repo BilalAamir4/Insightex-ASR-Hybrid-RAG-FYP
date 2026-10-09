@@ -8,10 +8,12 @@ Optional expected error codes for links that should fail: INSIGHTEX_TEST_<NAME>_
 import os
 
 import pytest
+from ingest_helpers import run_link_job
 
-from insightex.ingest.engine import ingest, probe
-from insightex.ingest.errors import IngestError
+from insightex.core.config import get_settings
+from insightex.ingest.probe import probe
 from insightex.ingest.settings import IngestSettings
+from insightex.jobs.workspace import Workspaces
 
 pytestmark = pytest.mark.network
 
@@ -26,20 +28,20 @@ def _case(name):
 
 
 @pytest.mark.parametrize("name", CASES)
-def test_probe_and_ingest(name, tmp_path):
+def test_probe_and_ingest(name):
     url, expect = _case(name)
-    settings = IngestSettings(lectures_dir=tmp_path / "lectures")
+    settings = get_settings()
+    workspaces = Workspaces(settings.jobs.workspaces_dir)
+    ingest_settings = IngestSettings.from_settings(settings)
     if expect:
-        with pytest.raises(IngestError) as e:
-            probe(url, settings=settings)
-            ingest(url, rights_confirmed=True, settings=settings)
-        assert e.value.code == expect
+        job = run_link_job(url, settings)
+        assert job.status == "failed" and expect in (job.error or "") + "".join(s.error or "" for s in job.stages)
         return
-    result = probe(url, settings=settings)
-    assert result.exists_locally is False
-    manifest = ingest(url, rights_confirmed=True, settings=settings)
-    assert manifest.status == "ready"
-    lecture = settings.lectures_dir / manifest.lecture_id
-    for name_ in ("video.mp4", "audio.wav", "manifest.json"):
-        assert (lecture / name_).is_file()
-    assert probe(url, settings=settings).exists_locally is True
+    assert probe(url, ingest_settings, workspaces).exists_locally is False
+    job = run_link_job(url, settings)
+    assert job.status == "succeeded", job.error
+    out = workspaces.stage_output_dir(job.workspace_id, "normalise")
+    for name_ in ("video.mp4", "audio.wav", "thumbnail.jpg"):
+        assert (out / name_).is_file()
+    if name == "YT":
+        assert probe(url, ingest_settings, workspaces).exists_locally is True
