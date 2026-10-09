@@ -357,3 +357,56 @@ def test_manifest_write_is_atomic_and_leaves_no_temp_files(env):
     ws.set_source("ws1", {"kind": "test"})
     names = sorted(p.name for p in (settings.jobs.workspaces_dir / "ws1").iterdir())
     assert names == ["manifest.json"] and ws.read_manifest("ws1")["source"] == {"kind": "test"}
+
+
+class _Consumed(Stage):
+    """Writes out.txt (a different body each run); a hook deletes it after publish, like an uploaded original."""
+
+    name, version, outputs = "consume", "1", ("out.txt",)
+    runs = 0
+    seen: list[str] = []
+
+    def config_fingerprint(self, ctx: KeyContext):
+        return {}
+
+    def run(self, ctx: StageContext) -> None:
+        type(self).runs += 1
+        (ctx.staging_dir / "out.txt").write_text(f"run {type(self).runs}")
+
+    def after_stage(self, ctx, upstream) -> None:
+        path = upstream[self.name] / "out.txt"
+        type(self).seen.append(path.read_text())  # raises (and is swallowed) if the fresh output was not published
+        path.unlink()
+
+
+def test_publish_replaces_a_same_key_directory_whose_output_was_deleted(env):
+    """Regression (ADR-0036): the old _publish kept the existing same-key directory and threw the fresh output away,
+    so the second run published a directory without out.txt and the next stage found nothing to read."""
+    _, conn, ws = env
+    _Consumed.runs, _Consumed.seen = 0, []
+    register_pipeline("consumed", [_Consumed()])
+    for expected in (1, 2):
+        store.enqueue(conn, "consumed", {}, "ws1")
+        _, status = run_next(env)
+        assert status == "succeeded"
+        directory = ws.stage_output_dir("ws1", "consume")
+        assert _Consumed.runs == expected
+        assert not (directory / "out.txt").exists()  # the hook deleted it again after publishing
+    assert _Consumed.seen == ["run 1", "run 2"]  # the second run's fresh output was published
+    manifest_key = ws.read_manifest("ws1")["stages"]["consume"]["key"]
+    assert [p.name for p in (ws.path("ws1") / "stages" / "consume").iterdir()] == [manifest_key]
+
+
+def test_publish_discards_staging_when_the_existing_directory_is_complete(env):
+    from insightex.jobs.runner import _publish
+
+    _, _, ws = env
+    stage = _Writer("only", "1")
+    final = ws.stage_dir("ws1", "only", "0123456789abcdef")
+    final.mkdir(parents=True)
+    (final / "out.txt").write_text("old")
+    staging = ws.staging_dir("ws1", "only", "0123456789abcdef", 1)
+    staging.mkdir(parents=True)
+    (staging / "out.txt").write_text("new")
+    _publish(ws, "ws1", stage, "0123456789abcdef", staging, 0.1)
+    assert (final / "out.txt").read_text() == "old" and not staging.exists()
