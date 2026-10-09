@@ -34,6 +34,16 @@
   .stages li { display: grid; grid-template-columns: 7rem 8rem 1fr; gap: 8px; align-items: center; margin: 6px 0; }
   .stages .st-message { grid-column: 2 / -1; color: #555; font-size: 0.9rem; min-height: 1.1em; }
   .stages .st-error { grid-column: 2 / -1; color: #a00; font-size: 0.9rem; }
+  .add-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 680px) { .add-grid { grid-template-columns: 1fr; } }
+  .add-grid h3 { margin: 0 0 8px; font-size: 1rem; }
+  .dropzone { border: 2px dashed #888; padding: 20px 12px; text-align: center; cursor: pointer; color: #444; margin: 8px 0; }
+  .dropzone:hover, .dropzone.over { background: #eef3ff; border-color: #36c; }
+  .dropzone:focus-visible { outline: 3px solid #36c; outline-offset: 2px; }
+  .dropzone[aria-disabled=true] { cursor: not-allowed; opacity: 0.6; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .notice { background: #fff8e1; border: 1px solid #e0c060; padding: 6px 10px; margin: 6px 0; font-size: 0.9rem; }
+  .note-ok { background: #eaf6ea; border: 1px solid #7bb27b; padding: 6px 10px; margin: 6px 0; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -47,10 +57,36 @@
 <main id="home" hidden>
   <section id="add">
     <h2>Add a lecture</h2>
-    <label for="url">Paste a YouTube, Google Drive or direct video link</label>
-    <div class="row">
-      <input type="text" id="url" placeholder="https://..." autocomplete="off">
-      <button id="check">Check link</button>
+    <div class="add-grid">
+    <div id="link-box">
+      <h3>From a link</h3>
+      <label for="url">Paste a YouTube, Google Drive or direct video link</label>
+      <div class="row">
+        <input type="text" id="url" placeholder="https://..." autocomplete="off">
+        <button id="check">Check link</button>
+      </div>
+    </div>
+
+    <div id="upload-box">
+      <h3>Upload a file</h3>
+      <input type="file" id="file" class="sr-only" tabindex="-1" aria-label="Choose a video file"
+             accept="video/*,.mkv,.webm,.wmv,.flv,.ts,.mpg,.mov,.avi">
+      <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-describedby="dz-hint">
+        <span id="dz-hint">Drop a video here, or press Enter to choose a file</span>
+      </div>
+      <div id="file-info" class="meta" aria-live="polite"></div>
+      <label><input type="checkbox" id="up-rights"> I own this lecture or have permission to use it.</label>
+      <div class="row">
+        <button id="up-btn" disabled>Upload</button>
+        <button id="up-cancel" hidden>Cancel upload</button>
+      </div>
+      <div id="up-progress" hidden>
+        <progress id="up-bar" max="100" value="0" aria-label="Upload progress"></progress>
+        <div id="up-status" class="meta"></div>
+      </div>
+      <div id="up-live" class="sr-only" role="status" aria-live="polite"></div>
+      <div id="up-error" class="error" role="alert" aria-live="assertive" hidden></div>
+    </div>
     </div>
     <div id="add-error" class="error" role="alert" hidden></div>
 
@@ -72,7 +108,7 @@
     </div>
 
     <div id="progress" hidden>
-      <div id="pr-title" role="status"></div>
+      <div id="pr-title" role="status" aria-live="polite"></div>
       <ul id="pr-stages" class="stages"></ul>
       <div id="pr-error" class="error" role="alert" hidden></div>
       <div class="row">
@@ -94,6 +130,8 @@
 <!-- Player -->
 <main id="player" hidden>
   <h2 id="pl-title"></h2>
+  <div id="pl-existing" class="note-ok" role="status" hidden>This lecture is already in your library.</div>
+  <div id="pl-warnings" aria-label="Notices about this video"></div>
   <div class="meta" id="pl-duration"></div>
   <video id="video" controls preload="metadata"></video>
   <div class="row">
@@ -123,13 +161,70 @@ async function api(path, options) {
   }
   let body = null;
   try { body = await res.json(); } catch { /* non-JSON body */ }
-  if (!res.ok) throw new Error(body?.error?.message ?? "Something went wrong. Please try again.");
+  if (!res.ok) {
+    const err = new Error(describeError(body?.error?.code, body?.error?.message));
+    err.code = body?.error?.code;
+    throw err;
+  }
   return body;
 }
 
 const postJson = (path, data) => api(path, {
   method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
 });
+
+// ---------------------------------------------------------------- error and warning messages
+/** One message per error code the server can return (ingest/errors.py ErrorCode, plus the client's own). */
+const ERROR_MESSAGES = {
+  UNSUPPORTED_URL: "This link isn't supported. Paste a YouTube, Google Drive or direct video link.",
+  PLAYLIST_NOT_SUPPORTED: "Playlists aren't supported. Open the single video you want and paste its link.",
+  LIVE_NOT_SUPPORTED: "Live or upcoming streams can't be added. Try again once the recording is published.",
+  PRIVATE_OR_LOGIN_REQUIRED: "This video is private or needs a sign-in. Only publicly viewable videos can be added.",
+  AGE_RESTRICTED: "This video is age-restricted and can't be added.",
+  GEO_BLOCKED: "This video isn't available in this region, so it can't be added.",
+  DRIVE_NOT_SHARED: "This Google Drive file isn't shared. Set sharing to \"Anyone with the link\" and try again.",
+  DRIVE_QUOTA_EXCEEDED: "Google Drive has limited downloads of this file for now. Try later, or upload the file instead.",
+  TOO_LONG: "This video is too long (the limit is 3 hours).",
+  TOO_LARGE: "This file is too large to upload.",
+  NOT_A_VIDEO: "This doesn't look like a video file we can read. Try an MP4, MKV, WebM or MOV file.",
+  NO_AUDIO_STREAM: "This video has no sound track, so it can't be transcribed.",
+  BLOCKED_ADDRESS: "This link points to a private or local network address and can't be used.",
+  RIGHTS_NOT_CONFIRMED: "Please confirm you have the right to use this video first.",
+  NETWORK_ERROR: "We couldn't reach the video's server. Check the link and try again.",
+  DOWNLOAD_FAILED: "The video couldn't be downloaded. Please try again later.",
+  TRANSCODE_FAILED: "The video couldn't be processed. The file may be damaged.",
+  NO_VIDEO_STREAM: "This file has no picture, only sound. Upload a video file.",
+  EMPTY_FILE: "This file is empty.",
+  INSUFFICIENT_DISK: "There isn't enough free disk space to process this video.",
+  UNSUPPORTED_CODEC: "This video uses a format we can't read. Convert it to MP4 (H.264) and try again.",
+  DURATION_UNKNOWN: "We couldn't tell how long this video is, so it can't be added.",
+  TOO_SHORT: "This video is too short (it must be at least 10 seconds).",
+  TRUNCATED: "This video looks cut off or damaged: the processed copy is much shorter than the original.",
+  SYNC_CHECK_FAILED: "We couldn't line up the sound with the picture in this video, so it can't be added.",
+  LENGTH_REQUIRED: "The upload didn't say how large the file is. Please try again.",
+  UPLOAD_BUSY: "Another upload is already in progress. Try again when it has finished.",
+  UPLOAD_INTERRUPTED: "The upload was interrupted. Please try again.",
+  // raised by this page
+  CLIENT_NETWORK: "Couldn't reach the Insightex server. Is it running?",
+  CLIENT_CANCELLED: "Upload cancelled.",
+};
+const GENERIC_ERROR = "Something went wrong. Please try again.";
+const describeError = (code, serverMessage) =>
+  ERROR_MESSAGES[code] ?? `${serverMessage || GENERIC_ERROR}${code ? ` (${code})` : ""}`;
+
+/** Warnings written by the normaliser (normalise.json) shown as notices on the player. */
+const WARNING_MESSAGES = {
+  AUDIO_NEAR_SILENT: "The audio is very quiet, so the transcript may be poor.",
+  ROTATED: "This video was recorded rotated; it has been turned upright.",
+  MULTIPLE_AUDIO_STREAMS: "The file has several audio tracks; the first suitable one was used.",
+  VFR_SOURCE: "The video has a variable frame rate and was converted to a steady one.",
+  START_OFFSET_CORRECTED: "The sound and picture started at slightly different times; this was corrected.",
+  AV_DURATION_MISMATCH: "The sound and picture differ in length by more than a second.",
+};
+const describeWarning = (w) => WARNING_MESSAGES[w.code] ?? `Notice: ${w.code}${w.detail ? ` (${w.detail})` : ""}`;
+
+/** The error code inside a stage error line such as "IngestRejected: NO_VIDEO_STREAM: ...", else null. */
+const codeInStageError = (line) => /^IngestRejected: ([A-Z_]+):/.exec(line)?.[1] ?? null;
 
 // ---------------------------------------------------------------- routing
 const params = new URLSearchParams(location.search);
@@ -205,11 +300,13 @@ function resetAdd() {
   show($("progress"), false);
   $("check").disabled = false;
   $("url").disabled = false;
+  resetUpload();
 }
 
 function initHome() {
   show($("home"));
   loadLibrary();
+  initUpload();
   let probed = null;
 
   $("check").addEventListener("click", async () => {
@@ -285,6 +382,7 @@ function renderJob(job) {
   show($("progress"));
   $("check").disabled = true;
   $("url").disabled = true;
+  setUploadEnabled(false);
   $("pr-title").textContent = job.status === "queued" ? "Waiting for the worker" : "";
   const list = $("pr-stages");
   list.replaceChildren();
@@ -292,7 +390,7 @@ function renderJob(job) {
   for (const st of job.stages) {
     const li = document.createElement("li");
     const name = document.createElement("span");
-    name.textContent = STAGE_LABELS[st.name] ?? st.name;
+    name.textContent = (job.kind === "ingest_file" && st.name === "fetch") ? "Receive file" : (STAGE_LABELS[st.name] ?? st.name);
     const status = document.createElement("span");
     status.textContent = STATUS_LABELS[st.status] ?? st.status;
     const bar = document.createElement("progress");
@@ -304,7 +402,9 @@ function renderJob(job) {
     msg.textContent = st.status === "running" ? (st.message ?? "") : "";
     li.append(msg);
     if (st.status === "failed" && st.error) {
-      failure = st.error.split("\n")[0];  // first line only; the traceback stays in the worker log
+      const first = st.error.split("\n")[0];  // first line only; the traceback stays in the worker log
+      const code = codeInStageError(first);
+      failure = code ? describeError(code, first) : first;
       const err = document.createElement("div");
       err.className = "st-error";
       err.textContent = failure;
@@ -358,6 +458,143 @@ function watchJob(jobId) {
   };
 }
 
+// ---------------------------------------------------------------- home: upload a file
+let maxUploadBytes = null;
+let chosenFile = null;
+let activeXhr = null;
+
+const formatBytes = (n) => n >= 1024 ** 3 ? `${(n / 1024 ** 3).toFixed(2)} GB`
+  : n >= 1024 ** 2 ? `${(n / 1024 ** 2).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
+
+const warnBeforeUnload = (e) => { e.preventDefault(); e.returnValue = ""; };
+
+function showUploadError(message) {
+  $("up-error").textContent = message;
+  show($("up-error"), Boolean(message));
+}
+
+function updateUploadButton() {
+  $("up-btn").disabled = !(chosenFile && $("up-rights").checked && !activeXhr);
+}
+
+function setUploadEnabled(on) {
+  $("dropzone").setAttribute("aria-disabled", String(!on));
+  $("file").disabled = !on;
+  $("up-rights").disabled = !on;
+  if (!on) $("up-btn").disabled = true; else updateUploadButton();
+}
+
+function resetUpload() {
+  if (activeXhr) return;
+  chosenFile = null;
+  $("file").value = "";
+  $("file-info").textContent = "";
+  $("up-rights").checked = false;
+  show($("up-progress"), false);
+  show($("up-cancel"), false);
+  showUploadError("");
+  setUploadEnabled(true);
+}
+
+function chooseFile(file) {
+  showUploadError("");
+  chosenFile = null;
+  $("file-info").textContent = "";
+  if (!file) { updateUploadButton(); return; }
+  if (file.size === 0) showUploadError(describeError("EMPTY_FILE"));
+  else if (maxUploadBytes !== null && file.size > maxUploadBytes) {
+    showUploadError(`${describeError("TOO_LARGE")} (${formatBytes(file.size)}; the limit is ${formatBytes(maxUploadBytes)}.)`);
+  } else {
+    chosenFile = file;
+    $("file-info").textContent = `${file.name} (${formatBytes(file.size)})`;
+  }
+  updateUploadButton();
+}
+
+function startUpload() {
+  const file = chosenFile;
+  if (!file || !$("up-rights").checked || activeXhr) return;
+  showUploadError("");
+  showAddError("");
+  const xhr = new XMLHttpRequest();
+  activeXhr = xhr;
+  xhr.open("POST", "/api/ingest/upload");
+  xhr.setRequestHeader("Content-Type", "application/octet-stream");
+  xhr.setRequestHeader("X-Insightex-Filename", encodeURIComponent(file.name.slice(0, 200)));
+  xhr.setRequestHeader("X-Insightex-Rights-Confirmed", "true");  // the browser adds Content-Length for a File
+  setUploadEnabled(false);
+  show($("up-cancel"), true);
+  show($("up-progress"), true);
+  $("up-bar").value = 0;
+  $("up-status").textContent = "Starting...";
+  window.addEventListener("beforeunload", warnBeforeUnload);
+
+  const samples = [];  // {t, loaded} over the last few seconds, for the speed readout
+  let lastAnnounced = -1;
+  xhr.upload.onprogress = (ev) => {
+    if (!ev.lengthComputable) return;
+    const now = performance.now();
+    samples.push({ t: now, loaded: ev.loaded });
+    while (samples.length > 2 && now - samples[0].t > 3000) samples.shift();
+    const first = samples[0];
+    const speed = now > first.t ? (ev.loaded - first.loaded) / ((now - first.t) / 1000) : 0;
+    const pct = Math.floor((ev.loaded / ev.total) * 100);
+    $("up-bar").value = pct;
+    $("up-status").textContent = `${pct}% (${formatBytes(ev.loaded)} of ${formatBytes(ev.total)})` +
+      (speed > 0 ? ` at ${(speed / 1024 ** 2).toFixed(1)} MB/s` : "");
+    if (pct - lastAnnounced >= 10) { lastAnnounced = pct; $("up-live").textContent = `Upload ${pct} percent`; }
+  };
+
+  const finish = () => {
+    activeXhr = null;
+    window.removeEventListener("beforeunload", warnBeforeUnload);
+    show($("up-cancel"), false);
+    setUploadEnabled(true);
+  };
+  xhr.onerror = () => { finish(); show($("up-progress"), false); showUploadError(describeError("CLIENT_NETWORK")); };
+  xhr.onabort = () => { finish(); show($("up-progress"), false); showUploadError(describeError("CLIENT_CANCELLED")); };
+  xhr.onload = () => {
+    finish();
+    let body = null;
+    try { body = JSON.parse(xhr.responseText); } catch { /* not JSON */ }
+    if (xhr.status === 202 && body?.job_id) {
+      show($("up-progress"), false);
+      watchJob(body.job_id);
+    } else if (xhr.status === 200 && body?.deduplicated) {
+      location.href = `${playerUrl(body.lecture_id)}&existing=1`;
+    } else {
+      show($("up-progress"), false);
+      showUploadError(describeError(body?.error?.code, body?.error?.message));
+    }
+  };
+  xhr.send(file);
+}
+
+async function initUpload() {
+  try { maxUploadBytes = (await api("/api/ingest/limits")).max_upload_bytes; } catch { /* the server still checks */ }
+  const zone = $("dropzone"), input = $("file");
+  const enabled = () => zone.getAttribute("aria-disabled") !== "true";
+  zone.addEventListener("click", () => { if (enabled()) input.click(); });
+  zone.addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ") && enabled()) { e.preventDefault(); input.click(); }
+  });
+  input.addEventListener("change", () => chooseFile(input.files[0] ?? null));
+  for (const type of ["dragenter", "dragover"]) {
+    zone.addEventListener(type, (e) => { e.preventDefault(); if (enabled()) zone.classList.add("over"); });
+  }
+  for (const type of ["dragleave", "drop"]) zone.addEventListener(type, () => zone.classList.remove("over"));
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (!enabled()) return;
+    const files = e.dataTransfer?.files;
+    chooseFile(files && files.length ? files[0] : null);
+    if (files && files.length > 1) $("file-info").textContent += " - only the first file is used";
+  });
+  $("up-rights").addEventListener("change", updateUploadButton);
+  $("up-btn").addEventListener("click", startUpload);
+  $("up-cancel").addEventListener("click", () => { if (activeXhr) activeXhr.abort(); });
+}
+
 // ---------------------------------------------------------------- player
 /**
  * seekTo(seconds): the ONLY place the page changes playback position programmatically.
@@ -381,6 +618,14 @@ async function initPlayer(id) {
     return;
   }
   document.title = `${lecture.title || "Lecture"} - Insightex`;
+  show($("pl-existing"), params.get("existing") === "1");
+  for (const w of lecture.warnings ?? []) {
+    const note = document.createElement("div");
+    note.className = "notice";
+    note.setAttribute("role", "note");
+    note.textContent = describeWarning(w);
+    $("pl-warnings").append(note);
+  }
   $("pl-title").textContent = lecture.title || lecture.lecture_id;
   const dur = formatTimestamp(lecture.duration_s);
   $("pl-duration").textContent = dur ? `Duration ${dur}` : "";
