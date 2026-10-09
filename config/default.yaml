@@ -14,8 +14,24 @@ api:
   touch_min_interval_s: 60          # seconds; minimum gap between cache access-time updates for one workspace when serving media
 
 ingest:
-  ffprobe_timeout_s: 120            # seconds before ffprobe is killed
+  ffprobe_timeout_s: 60             # seconds before ffprobe is killed
   max_url_length: 2048              # characters; longer URLs are rejected
+  min_duration_s: 10                # seconds; shorter media is rejected (TOO_SHORT), links and files alike
+  silence_warn_dbfs: -50            # dBFS; audio.wav with a lower mean volume gets the AUDIO_NEAR_SILENT warning
+  disk_free_factor: 2.5             # multiple of the source size that must be free on the data filesystem
+  disk_free_reserve_bytes: 1073741824  # bytes (1 GiB) added to the free-space requirement
+  ffmpeg_timeout_factor: 3          # multiple of the media duration allowed for one ffmpeg run
+  ffmpeg_timeout_min_s: 300         # seconds; lower bound of the ffmpeg run timeout
+  verify:                           # checks on video.mp4 / audio.wav after normalising
+    duration_tolerance_s: 2         # seconds; allowed |video.mp4 - source| duration difference (or duration_tolerance_frac, if larger)
+    duration_tolerance_frac: 0.01   # fraction of the source duration; see duration_tolerance_s
+    sync_tolerance_s: 0.1           # seconds; allowed stream start offset and audio-padding error in video.mp4
+    av_mismatch_warn_s: 1.0         # seconds; |audio.wav - video.mp4| duration above this adds AV_DURATION_MISMATCH
+  file:                             # local-file ingest only (ADR-0036)
+    keep_original: false            # keep the uploaded original in the workspace after a successful normalise (links always keep theirs, ADR-0035)
+    staging_dir: null               # copies being received; null = <paths.data_dir>/staging. Same filesystem as workspaces
+    staging_max_age_h: 24           # hours; older staging files not used by a queued or running job are deleted at worker start
+    copy_chunk_bytes: 8388608       # bytes (8 MiB) per read when copying and hashing a file
   url:
     max_duration_s: 10800           # seconds (3 h); checked at probe (when known) and after download
     max_download_bytes: 4294967296  # bytes (4 GiB); Content-Length and bytes actually received
@@ -25,8 +41,11 @@ ingest:
     connect_timeout_s: 15           # seconds; direct-download connect and pool-wait timeout
     read_timeout_s: 60              # seconds; direct-download read and write timeout
   transcode:
-    preset: medium                  # libx264 preset
+    preset: veryfast                # libx264 preset
     crf: 23                         # libx264 constant rate factor (lower = better quality)
+    max_height: 1080                # pixels; transcoded video taller than this is scaled down (copied video keeps its size)
+    audio_bitrate_kbps: 160         # kbit/s; AAC bitrate when audio is transcoded
+    keyframe_interval_s: 2          # seconds between forced keyframes in transcoded video
   thumbnail:
     max_width: 1280                 # pixels; frames wider than this are scaled down
     quality: 3                      # ffmpeg JPEG -q:v (2 best .. 31 worst)

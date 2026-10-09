@@ -11,7 +11,7 @@ E = ErrorCode
 
 def test_every_code_has_a_message():
     assert set(DEFAULT_MESSAGES) == set(ErrorCode)
-    assert len(ErrorCode) == 17
+    assert len(ErrorCode) == 28
     err = IngestError("TOO_LONG")
     assert err.code is E.TOO_LONG and err.to_dict() == {"code": "TOO_LONG", "message": DEFAULT_MESSAGES[E.TOO_LONG]}
 
