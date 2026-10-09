@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import logging
-
-from fastapi import APIRouter, Request
 from typing import Any
 
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
 
 from insightex.api.deps import connection, settings_of, workspaces_of

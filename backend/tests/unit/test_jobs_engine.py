@@ -6,7 +6,7 @@ import json
 import sqlite3
 import threading
 import time
-from pathlib import Path
+from typing import ClassVar
 
 import pytest
 
@@ -186,7 +186,7 @@ def test_rerun_of_same_workspace_is_fully_cached(env):
 
 
 def test_changing_label_changes_both_keys_reruns_both_and_removes_old_key_dirs(env):
-    settings, conn, ws = env
+    settings, conn, _ws = env
     first = store.enqueue(conn, "dummy", {**FAST, "label": "a"}, "ws1")
     run_next(env)
     old = {s.name: s.stage_key for s in store.get_job(conn, first).stages}
@@ -262,7 +262,7 @@ def test_stage_missing_a_declared_output_fails_and_moves_nothing(env):
 
 
 def test_unknown_kind_and_pipeline_mismatch_fail_the_job(env):
-    settings, conn, ws = env
+    _settings, conn, _ws = env
     job_id = store.enqueue(conn, "dummy", FAST, "ws1")
     conn.execute("UPDATE job_stages SET name = 'renamed' WHERE job_id = ? AND idx = 1", (job_id,))
     _, status = run_next(env)
@@ -295,7 +295,7 @@ class _SelfCancelling(Stage):
 
 
 def test_cooperative_cancel_of_running_job(env):
-    settings, conn, ws = env
+    settings, conn, _ws = env
     register_pipeline("spinner", [_SelfCancelling(), _Writer("after", "1")])
     job_id = store.enqueue(conn, "spinner", {}, "ws1")
     _, status = run_next(env)
@@ -315,7 +315,7 @@ def test_cancel_is_noticed_between_stages(env):
 
 
 def test_worker_stop_requeues_job_and_restores_attempts(env):
-    settings, conn, ws = env
+    settings, conn, _ws = env
     job_id = store.enqueue(conn, "dummy", {**FAST, "cpu_seconds": 5}, "ws1")
     calls = {"n": 0}
 
@@ -364,7 +364,7 @@ class _Consumed(Stage):
 
     name, version, outputs = "consume", "1", ("out.txt",)
     runs = 0
-    seen: list[str] = []
+    seen: ClassVar[list[str]] = []
 
     def config_fingerprint(self, ctx: KeyContext):
         return {}

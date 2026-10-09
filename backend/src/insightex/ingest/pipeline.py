@@ -17,10 +17,9 @@ from typing import Any, BinaryIO
 
 import yt_dlp
 
-from insightex.ingest import netguard
+from insightex.ingest import netguard, staging
 from insightex.ingest.errors import ErrorCode, IngestError, IngestRejected
 from insightex.ingest.probe import SOURCES, check_duration
-from insightex.ingest import staging
 from insightex.ingest.settings import IngestSettings
 from insightex.ingest.urls import ParsedUrl, parse_url
 from insightex.jobs.stages import (
@@ -33,7 +32,12 @@ from insightex.jobs.stages import (
 )
 from insightex.media import engine
 from insightex.media.engine import NORMALISER_VERSION
-from insightex.sources.identity import HashingWriter, sha256_file, workspace_id_for_bytes, workspace_id_for_youtube
+from insightex.sources.identity import (
+    HashingWriter,
+    sha256_file,
+    workspace_id_for_bytes,
+    workspace_id_for_youtube,
+)
 
 log = logging.getLogger(__name__)
 

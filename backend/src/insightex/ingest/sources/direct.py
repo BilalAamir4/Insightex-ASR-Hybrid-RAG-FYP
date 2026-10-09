@@ -42,7 +42,7 @@ def _ext_from_url(url: str) -> str | None:
 
 def _filename(response: httpx.Response) -> str | None:
     cd = response.headers.get("content-disposition") or ""
-    m = re.search(r"filename\*=(?:UTF-8'')?([^;]+)", cd, re.I) or re.search(r'filename="?([^";]+)"?', cd, re.I)
+    m = re.search(r"filename\*=(?:UTF-8'')?([^;]+)", cd, re.IGNORECASE) or re.search(r'filename="?([^";]+)"?', cd, re.IGNORECASE)
     if m:
         return unquote(m.group(1).strip()) or None
     name = PurePosixPath(unquote(urlsplit(str(response.url)).path)).name

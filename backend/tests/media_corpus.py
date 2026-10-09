@@ -34,7 +34,7 @@ class EncoderMissing(Exception):
 
 @functools.cache
 def encoders() -> frozenset[str]:
-    out = subprocess.run(["ffmpeg", "-hide_banner", "-encoders"], capture_output=True, text=True).stdout
+    out = subprocess.run(["ffmpeg", "-hide_banner", "-encoders"], capture_output=True, text=True, check=False).stdout
     return frozenset(parts[1] for line in out.splitlines() if len(parts := line.split()) >= 2 and parts[0].startswith(("V", "A")))
 
 
@@ -46,7 +46,7 @@ def need(*names: str) -> None:
 
 def ff(*args: str | Path) -> None:
     proc = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y", *map(str, args)],
-                          capture_output=True, text=True)
+                          capture_output=True, text=True, check=False)
     if proc.returncode != 0:
         raise RuntimeError(f"ffmpeg failed: {' '.join(map(str, args))}\n{proc.stderr}")
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, ClassVar
 
 import pytest
 
@@ -28,7 +28,7 @@ class First(Stage):
     name = "first"
     version = "1"
     outputs = ("first.txt",)
-    runs: list[str] = []
+    runs: ClassVar[list[str]] = []
 
     def config_fingerprint(self, ctx: KeyContext) -> dict[str, Any]:
         return {}
@@ -186,7 +186,7 @@ def test_crash_during_merge_leaves_an_orphan_that_the_startup_sweep_removes(env,
 
 
 def test_sweep_keeps_provisional_workspaces_that_a_job_still_references(env):
-    settings, conn, ws = env
+    _settings, conn, ws = env
     submit(conn, "cccc")  # queued job, directory not created yet
     ws.path("pending-cccc").mkdir(parents=True)
     ws.path("pending-orphan").mkdir()
@@ -199,7 +199,7 @@ def test_sweep_keeps_provisional_workspaces_that_a_job_still_references(env):
 def test_worker_startup_runs_the_sweep(env):
     from insightex.jobs.worker import Worker
 
-    settings, conn, ws = env
+    settings, _conn, ws = env
     ws.path("pending-orphan").mkdir(parents=True)
     worker = Worker(settings)
     worker.startup()

@@ -43,7 +43,7 @@ Progress = Callable[[float, str], None]
 
 @functools.cache
 def available_decoders() -> frozenset[str]:
-    out = subprocess.run([ffmpeg.FFMPEG, "-hide_banner", "-decoders"], capture_output=True, text=True, timeout=30).stdout
+    out = subprocess.run([ffmpeg.FFMPEG, "-hide_banner", "-decoders"], capture_output=True, text=True, timeout=30, check=False).stdout
     names = set()
     for line in out.splitlines():
         parts = line.split()
@@ -54,7 +54,7 @@ def available_decoders() -> frozenset[str]:
 
 @functools.cache
 def ffmpeg_version() -> str:
-    out = subprocess.run([ffmpeg.FFMPEG, "-version"], capture_output=True, text=True, timeout=30).stdout
+    out = subprocess.run([ffmpeg.FFMPEG, "-version"], capture_output=True, text=True, timeout=30, check=False).stdout
     return out.splitlines()[0] if out else "unknown"
 
 
@@ -85,7 +85,7 @@ def probe_raw(path: Path, cfg: IngestSettings) -> dict[str, Any]:
     """`ffprobe -show_format -show_streams` as a dictionary. Failure, timeout or unreadable JSON is NOT_A_VIDEO."""
     cmd = [ffmpeg.FFPROBE, "-v", "error", "-print_format", "json", "-show_format", "-show_streams", str(path)]
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=cfg.ffprobe_timeout_s)
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=cfg.ffprobe_timeout_s, check=False)
     except subprocess.TimeoutExpired as exc:
         raise IngestRejected(ErrorCode.NOT_A_VIDEO, details=f"ffprobe timed out after {cfg.ffprobe_timeout_s} s") from exc
     if proc.returncode != 0:
@@ -238,7 +238,7 @@ def mean_volume_db(audio: Path) -> float | None:
     """volumedetect mean_volume of a WAV in dBFS; None if it could not be measured."""
     proc = subprocess.run(
         [ffmpeg.FFMPEG, "-hide_banner", "-nostdin", "-i", str(audio), "-af", "volumedetect", "-f", "null", "-"],
-        capture_output=True, text=True, timeout=300,
+        capture_output=True, text=True, timeout=300, check=False,
     )
     m = _MEAN_VOLUME_RE.search(proc.stderr)
     if not m:

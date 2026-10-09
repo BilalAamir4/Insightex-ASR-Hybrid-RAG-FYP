@@ -73,9 +73,8 @@ def test_redirect_to_private_address_blocked():
         raise AssertionError("must not connect to the internal host")
 
     r = _resolver({"public.example": ["93.184.216.34"], "internal.example": ["192.168.1.10"]})
-    with _client(handler) as client, pytest.raises(IngestError) as e:
-        with netguard.guarded_stream(client, "https://public.example/v.mp4", r):
-            pass
+    with _client(handler) as client, pytest.raises(IngestError) as e, netguard.guarded_stream(client, "https://public.example/v.mp4", r):
+        pass
     assert e.value.code == ErrorCode.BLOCKED_ADDRESS
 
 
@@ -83,9 +82,8 @@ def test_relative_redirect_to_ip_literal_blocked():
     def handler(request):
         return httpx.Response(301, headers={"location": "http://127.0.0.1:9000/v.mp4"})
 
-    with _client(handler) as client, pytest.raises(IngestError) as e:
-        with netguard.guarded_stream(client, "https://public.example/v.mp4", _resolver({"public.example": ["93.184.216.34"]})):
-            pass
+    with _client(handler) as client, pytest.raises(IngestError) as e, netguard.guarded_stream(client, "https://public.example/v.mp4", _resolver({"public.example": ["93.184.216.34"]})):
+        pass
     assert e.value.code == ErrorCode.BLOCKED_ADDRESS
 
 
@@ -93,9 +91,8 @@ def test_redirect_to_other_scheme_rejected():
     def handler(request):
         return httpx.Response(302, headers={"location": "file:///etc/passwd"})
 
-    with _client(handler) as client, pytest.raises(IngestError) as e:
-        with netguard.guarded_stream(client, "https://public.example/v.mp4", _resolver({"public.example": ["93.184.216.34"]})):
-            pass
+    with _client(handler) as client, pytest.raises(IngestError) as e, netguard.guarded_stream(client, "https://public.example/v.mp4", _resolver({"public.example": ["93.184.216.34"]})):
+        pass
     assert e.value.code == ErrorCode.UNSUPPORTED_URL
 
 
@@ -111,9 +108,8 @@ def test_public_redirect_chain_followed():
         return httpx.Response(200, headers={"content-type": "video/mp4"}, content=b"x")
 
     r = _resolver({"public.example": ["93.184.216.34"], "cdn.example": ["93.184.216.35"]})
-    with _client(handler) as client:
-        with netguard.guarded_stream(client, "https://public.example/a", r) as resp:
-            assert resp.status_code == 200
+    with _client(handler) as client, netguard.guarded_stream(client, "https://public.example/a", r) as resp:
+        assert resp.status_code == 200
     assert seen == ["https://public.example/a", "https://public.example/b", "https://cdn.example/c.mp4"]
 
 
@@ -121,7 +117,6 @@ def test_redirect_loop_stops():
     def handler(request):
         return httpx.Response(302, headers={"location": "https://public.example/loop"})
 
-    with _client(handler) as client, pytest.raises(IngestError) as e:
-        with netguard.guarded_stream(client, "https://public.example/loop", _resolver({"public.example": ["93.184.216.34"]})):
-            pass
+    with _client(handler) as client, pytest.raises(IngestError) as e, netguard.guarded_stream(client, "https://public.example/loop", _resolver({"public.example": ["93.184.216.34"]})):
+        pass
     assert e.value.code == ErrorCode.DOWNLOAD_FAILED

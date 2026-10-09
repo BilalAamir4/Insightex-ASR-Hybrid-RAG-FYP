@@ -101,7 +101,7 @@ def test_drive_shapes(url):
     [
         "https://drive.google.com/drive/folders/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456",
         "https://drive.google.com/file/d/short/view",
-        "https://drive.google.com/file/d/{}/copy".format(DRIVE),
+        f"https://drive.google.com/file/d/{DRIVE}/copy",
         "https://drive.google.com/",
         "https://docs.google.com/document/d/abc/edit",
         "https://classroom.google.com/c/123",

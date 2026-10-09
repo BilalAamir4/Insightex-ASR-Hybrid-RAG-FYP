@@ -124,7 +124,7 @@ def _ingest_settings(settings=None):
 def ffprobe(path: Path, settings=None) -> MediaInfo:
     cmd = [FFPROBE, "-v", "error", "-print_format", "json", "-show_format", "-show_streams", str(path)]
     proc = subprocess.run(cmd, capture_output=True, text=True,
-                          timeout=_ingest_settings(settings).ffprobe_timeout_s)
+                          timeout=_ingest_settings(settings).ffprobe_timeout_s, check=False)
     if proc.returncode != 0:
         raise FFmpegError(f"ffprobe failed on {path.name}", proc.stderr[-4000:])
     try:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import json
 import threading
 import time
@@ -81,7 +82,7 @@ def test_events_follow_the_database_in_order_and_close_after_the_terminal_event(
     statuses = [d["status"] for d in docs]
     assert statuses == sorted(statuses, key=["queued", "running", "succeeded"].index)
     assert any(d["stages"][0]["progress"] == 0.4 and d["stages"][0]["message"] == "40%" for d in docs)
-    assert all(a != b for a, b in zip(docs, docs[1:]))  # only changes are sent
+    assert all(a != b for a, b in itertools.pairwise(docs))  # only changes are sent
 
 
 def test_a_finished_job_gets_exactly_one_event_then_the_stream_closes(fast_client):

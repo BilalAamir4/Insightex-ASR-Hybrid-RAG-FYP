@@ -116,7 +116,7 @@ def _ensure_model(client: httpx.Client, base: str, model: str) -> None:
     _checked_models.add((base, model))
 
 
-def chat_json(
+def chat_json[T: BaseModel](
     messages: list[dict],
     schema: type[T],
     num_ctx: int,

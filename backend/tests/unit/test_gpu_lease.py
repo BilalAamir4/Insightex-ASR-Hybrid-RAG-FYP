@@ -34,28 +34,22 @@ def no_ollama(monkeypatch):
 def test_exclusive_blocks_exclusive_and_shared(settings):
     lease = FileGpuLease(settings)
     with lease.exclusive("a", None):
-        with pytest.raises(GpuBusy):
-            with FileGpuLease(settings).exclusive("b", 0.05):
-                pass
-        with pytest.raises(GpuBusy):
-            with FileGpuLease(settings).shared("c", 0.05):
-                pass
+        with pytest.raises(GpuBusy), FileGpuLease(settings).exclusive("b", 0.05):
+            pass
+        with pytest.raises(GpuBusy), FileGpuLease(settings).shared("c", 0.05):
+            pass
     with FileGpuLease(settings).exclusive("d", 0.05):
         pass
 
 
 def test_shared_allows_shared_but_blocks_exclusive(settings):
-    with FileGpuLease(settings).shared("q1", 0.1), FileGpuLease(settings).shared("q2", 0.1):
-        with pytest.raises(GpuBusy):
-            with FileGpuLease(settings).exclusive("w", 0.05):
-                pass
+    with FileGpuLease(settings).shared("q1", 0.1), FileGpuLease(settings).shared("q2", 0.1), pytest.raises(GpuBusy), FileGpuLease(settings).exclusive("w", 0.05):
+        pass
 
 
 def test_timeout_carries_holder_info(settings):
-    with FileGpuLease(settings).exclusive("job1:stage", None):
-        with pytest.raises(GpuBusy) as err:
-            with FileGpuLease(settings).shared("q", 0.05):
-                pass
+    with FileGpuLease(settings).exclusive("job1:stage", None), pytest.raises(GpuBusy) as err, FileGpuLease(settings).shared("q", 0.05):
+        pass
     holder = err.value.holder
     assert holder["pid"] == os.getpid() and holder["mode"] == "exclusive" and holder["purpose"] == "job1:stage"
     assert holder["acquired_at"].endswith("Z")
@@ -104,9 +98,8 @@ def test_kill_dash_9_releases_the_lease(settings):
     child = subprocess.Popen([sys.executable, "-I", "-c", child_code, str(path)], stdout=subprocess.PIPE, text=True)
     try:
         assert child.stdout.readline().strip() == "held"
-        with pytest.raises(GpuBusy):
-            with FileGpuLease(settings).exclusive("p", 0.05):
-                pass
+        with pytest.raises(GpuBusy), FileGpuLease(settings).exclusive("p", 0.05):
+            pass
         child.send_signal(signal.SIGKILL)
         child.wait(timeout=10)
         start = time.monotonic()
@@ -121,10 +114,8 @@ def test_kill_dash_9_releases_the_lease(settings):
 def test_should_stop_interrupts_the_wait(settings):
     stop = threading.Event()
     threading.Timer(0.1, stop.set).start()
-    with FileGpuLease(settings).exclusive("holder", None):
-        with pytest.raises(WorkerStopping):
-            with FileGpuLease(settings, should_stop=stop.is_set).exclusive("waiter", None):
-                pass
+    with FileGpuLease(settings).exclusive("holder", None), pytest.raises(WorkerStopping), FileGpuLease(settings, should_stop=stop.is_set).exclusive("waiter", None):
+        pass
 
 
 # -- Ollama unload (mocked HTTP; the real client function runs) ------------------------------------
@@ -162,9 +153,8 @@ def test_unload_success_posts_keep_alive_zero(settings, monkeypatch):
 def test_model_still_loaded_raises_and_releases(settings, monkeypatch):
     monkeypatch.undo()
     _mock_ollama(monkeypatch, ps_models=lambda: [settings.ollama.model])
-    with pytest.raises(GpuUnavailable, match="still loaded"):
-        with FileGpuLease(settings).exclusive("p", None):
-            pytest.fail("body must not run")
+    with pytest.raises(GpuUnavailable, match="still loaded"), FileGpuLease(settings).exclusive("p", None):
+        pytest.fail("body must not run")
     assert gl.status(settings.gpu.lease_path)["state"] == "free"
     assert not gl.holder_path(settings.gpu.lease_path).exists()
 
@@ -173,9 +163,8 @@ def test_unreachable_ollama_logs_and_continues(settings, monkeypatch, caplog):
     monkeypatch.undo()
     _mock_ollama(monkeypatch, ps_models=list, post_ok=False)
     ran = False
-    with caplog.at_level("WARNING", logger="insightex.jobs.gpu_lease"):
-        with FileGpuLease(settings).exclusive("p", None):
-            ran = True
+    with caplog.at_level("WARNING", logger="insightex.jobs.gpu_lease"), FileGpuLease(settings).exclusive("p", None):
+        ran = True
     assert ran and "ollama unreachable" in caplog.text
 
 

@@ -7,17 +7,16 @@ import os
 import signal
 import subprocess
 import sys
-import threading
 import time
 
 import pytest
+from ingest_helpers import open_db
+from media_corpus import Corpus
 
 from insightex.core.config import clear_settings_cache, get_settings
 from insightex.ingest.cli import main
 from insightex.ingest.file_jobs import enqueue_file
 from insightex.jobs import store
-from ingest_helpers import open_db
-from media_corpus import Corpus
 
 pytestmark = [pytest.mark.media, pytest.mark.slow]
 

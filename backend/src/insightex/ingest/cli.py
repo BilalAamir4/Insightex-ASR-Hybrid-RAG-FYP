@@ -18,10 +18,10 @@ import sys
 from pathlib import Path
 
 from insightex.core.config import get_settings
-from insightex.ingest.link_jobs import enqueue_link
-from insightex.ingest.probe import probe
 from insightex.ingest.errors import ErrorCode, IngestError
 from insightex.ingest.file_jobs import enqueue_file, job_outcome
+from insightex.ingest.link_jobs import enqueue_link
+from insightex.ingest.probe import probe
 from insightex.ingest.settings import IngestSettings
 from insightex.jobs import db
 from insightex.jobs.workspace import Workspaces

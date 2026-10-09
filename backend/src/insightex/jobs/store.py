@@ -82,7 +82,7 @@ def _job_from_row(row: sqlite3.Row, stages: list[StageRow] | None = None) -> Job
 
 def _stages_of(conn: sqlite3.Connection, job_id: str) -> list[StageRow]:
     rows = conn.execute("SELECT * FROM job_stages WHERE job_id = ? ORDER BY idx", (job_id,)).fetchall()
-    return [StageRow(**{k: r[k] for k in r.keys() if k != "job_id"}) for r in rows]
+    return [StageRow(**{k: r[k] for k in r.keys() if k != "job_id"}) for r in rows]  # noqa: SIM118 - sqlite3.Row iterates values, not keys
 
 
 def enqueue(

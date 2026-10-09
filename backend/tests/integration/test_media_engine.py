@@ -12,12 +12,12 @@ import wave
 from pathlib import Path
 
 import pytest
+from ingest_helpers import open_db, run_file_job
+from media_corpus import FLASH_AT, Corpus, probe
 
 from insightex.core.config import clear_settings_cache, get_settings
 from insightex.ingest.errors import ErrorCode, IngestRejected
 from insightex.jobs.workspace import Workspaces
-from ingest_helpers import open_db, run_file_job
-from media_corpus import FLASH_AT, Corpus, probe
 
 pytestmark = pytest.mark.media
 
@@ -140,8 +140,8 @@ def test_accepted_clip(corpus, name, video, audio, warnings, record_property):
 
 
 def test_manifest_fields(corpus):
-    settings, result, job = ingest(corpus, "h264_aac_mp4")
-    directory, info = normalised(settings, result.workspace_id)
+    settings, result, _job = ingest(corpus, "h264_aac_mp4")
+    _directory, info = normalised(settings, result.workspace_id)
     assert info["schema"] == 2 and info["normaliser_version"] == "2" and info["ffmpeg_version"].startswith("ffmpeg version")
     src = info["source"]
     assert src["kind"] == "upload" and src["via"] == "cli" and src["original_filename"] == "h264_aac.mp4"
@@ -159,7 +159,7 @@ def test_interlaced_clip_is_detected_and_deinterlaced(corpus):
     order = next(s for s in src["streams"] if s["codec_type"] == "video").get("field_order")
     if order not in ("tt", "bb", "tb", "bt"):
         pytest.skip(f"ffprobe reports field_order={order!r} for the mpeg2 fixture")
-    settings, result, job = ingest(corpus, "mpeg2_interlaced_mpg")
+    settings, result, _job = ingest(corpus, "mpeg2_interlaced_mpg")
     _, info = normalised(settings, result.workspace_id)
     assert info["probe"]["video"]["field_order"] == order
     assert any("interlaced" in r for r in info["decision"]["reasons"])
@@ -390,9 +390,9 @@ def test_filename_is_display_only(corpus, tmp_path):
     assert sanitise_filename("a\\b\\lecture 1.mp4") == "lecture 1.mp4"
     assert sanitise_filename("x\x00y\n.mp4") == "xy.mp4"
     assert sanitise_filename("") is None and len(sanitise_filename("é" * 500)) == 200
-    odd = tmp_path / "ل ec‮tu re ; $(rm -rf).mp4"
+    odd = tmp_path / ("\u0644 ec" + chr(0x202E) + "tu re ; $(rm -rf).mp4")
     odd.write_bytes(corpus.get("h264_aac_mp4").read_bytes())
-    settings, result, job = ingest_path(odd)
+    _settings, result, job = ingest_path(odd)
     assert job.status == "succeeded"
     assert result.workspace_id.startswith("sha256-") and ";" not in result.workspace_id
 

@@ -22,7 +22,9 @@ from pathlib import Path
 from insightex.core.config import Settings
 from insightex.jobs import cache, store
 from insightex.jobs.db import utcnow
+from insightex.jobs.rebind import rebind
 from insightex.jobs.stages import (
+    PENDING_PREFIX,
     GpuLease,
     JobCancelled,
     KeyContext,
@@ -31,14 +33,12 @@ from insightex.jobs.stages import (
     StageContext,
     UnknownJobKind,
     WorkerStopping,
-    PENDING_PREFIX,
     get_chain_root,
     get_failure_hook,
     get_pipeline,
     get_source_for,
     stage_key,
 )
-from insightex.jobs.rebind import rebind
 from insightex.jobs.workspace import Workspaces
 
 log = logging.getLogger(__name__)
@@ -113,7 +113,7 @@ def run_job(
 def _cache_step(what: str, fn, *args) -> None:
     try:
         fn(*args)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - cache bookkeeping must never change a job's outcome
         log.warning("cache %s failed: %s: %s", what, type(exc).__name__, exc)
 
 
@@ -150,7 +150,7 @@ def _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop) -> st
         key_ctx = KeyContext(job.id, job.payload, job.workspace_id, settings)
         try:
             key = stage_key(stage.name, stage.version, stage.config_fingerprint(key_ctx), upstream_key)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - a bad fingerprint fails the job, not the worker
             return _fail(conn, job, idx, exc, settings, workspaces)
         store.update_stage(conn, job.id, idx, stage_key=key)
         outputs = list(stage.outputs)
@@ -179,7 +179,7 @@ def _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop) -> st
                     LOG_CONTEXT.set((job.id, stage.name))
                     rebind(conn, workspaces, job.id, job.workspace_id, target, stage.name)
                     job = dataclasses.replace(job, workspace_id=target)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 - a failed rebind fails the job, not the worker
                 return _fail(conn, job, idx, exc, settings, workspaces)
         upstream_dirs = {n: workspaces.stage_dir(job.workspace_id, n, k) for n, k in upstream_keys.items()}
         upstream_key = key
@@ -224,7 +224,7 @@ def _run_stage(
     except WorkerStopping:
         shutil.rmtree(staging, ignore_errors=True)
         return _stop(conn, job)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - any stage error fails the job and is recorded
         shutil.rmtree(staging, ignore_errors=True)
         return _fail(conn, job, idx, exc, settings, workspaces)
     store.update_stage(conn, job.id, idx, status="succeeded", progress=1.0, finished_at=utcnow())
@@ -236,7 +236,7 @@ def _after_stage(stage: Stage, key_ctx: KeyContext, job, key: str, workspaces: W
     try:
         own = {**upstream_dirs, stage.name: workspaces.stage_dir(job.workspace_id, stage.name, key)}
         stage.after_stage(key_ctx, own)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - a clean-up hook must never fail a job
         log.warning("after_stage hook of %s failed: %s: %s", stage.name, type(exc).__name__, exc)
 
 
@@ -279,7 +279,7 @@ def _fail(conn, job, idx: int, exc: BaseException, settings: Settings, workspace
         hook = get_failure_hook(job.kind)
         if hook is not None:
             hook(conn, workspaces, job, settings, exc)
-    except Exception as hook_exc:
+    except Exception as hook_exc:  # noqa: BLE001 - a failure hook must never mask the original failure
         log.warning("failure hook for %s failed: %s: %s", job.kind, type(hook_exc).__name__, hook_exc)
     return "failed"
 
