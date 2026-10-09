@@ -410,3 +410,20 @@ def test_publish_discards_staging_when_the_existing_directory_is_complete(env):
     (staging / "out.txt").write_text("new")
     _publish(ws, "ws1", stage, "0123456789abcdef", staging, 0.1)
     assert (final / "out.txt").read_text() == "old" and not staging.exists()
+
+
+def test_failing_after_stage_hook_is_non_fatal_and_logged_with_stage_and_job(env, caplog):
+    class Boom(_Writer):
+        def after_stage(self, ctx, upstream) -> None:
+            raise RuntimeError("hook exploded")
+
+    _, conn, _ = env
+    register_pipeline("boomhook", [Boom("only", "1")])
+    job_id = store.enqueue(conn, "boomhook", {}, "ws1")
+    with caplog.at_level("WARNING", logger="insightex.jobs.runner"):
+        _, status = run_next(env)
+    assert status == "succeeded"
+    lines = [r for r in caplog.records if r.levelname == "WARNING" and "after_stage hook failed" in r.getMessage()]
+    assert len(lines) == 1
+    msg = lines[0].getMessage()
+    assert "stage=only" in msg and f"job={job_id}" in msg and "RuntimeError: hook exploded" in msg

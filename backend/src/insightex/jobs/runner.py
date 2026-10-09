@@ -237,7 +237,7 @@ def _after_stage(stage: Stage, key_ctx: KeyContext, job, key: str, workspaces: W
         own = {**upstream_dirs, stage.name: workspaces.stage_dir(job.workspace_id, stage.name, key)}
         stage.after_stage(key_ctx, own)
     except Exception as exc:  # noqa: BLE001 - a clean-up hook must never fail a job
-        log.warning("after_stage hook of %s failed: %s: %s", stage.name, type(exc).__name__, exc)
+        log.warning("after_stage hook failed (non-fatal): stage=%s job=%s: %s: %s", stage.name, job.id, type(exc).__name__, exc)
 
 
 def _verify_outputs(stage: Stage, staging: Path) -> None:

@@ -10,6 +10,9 @@ description = "Timestamp-grounded knowledge base for code-switched (Urdu + Engli
 requires-python = ">=3.12"
 dependencies = ["fastapi", "httpx", "pydantic>=2", "pymupdf", "PyYAML", "uvicorn", "yt-dlp"]
 
+[project.optional-dependencies]
+dev = ["ruff==0.16.10"]  # pinned so lint results are reproducible; also pinned in requirements.lock.txt
+
 [project.scripts]
 insightex = "insightex.cli:main"
 
