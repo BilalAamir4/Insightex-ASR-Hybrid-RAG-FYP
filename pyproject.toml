@@ -28,6 +28,7 @@ pythonpath = ["backend/src"]
 markers = [
     "network: needs internet access and real URLs (skipped by default)",
     "slow: spawns real worker processes and kills them; takes several seconds",
+    "media: builds synthetic clips with ffmpeg and runs the real normalise engine (run alone: pytest -m media)",
     "real_env: opts out of the autouse settings isolation in backend/tests/conftest.py",
 ]
 addopts = "-m 'not network'"

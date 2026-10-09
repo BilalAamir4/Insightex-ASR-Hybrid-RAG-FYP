@@ -227,3 +227,64 @@ def test_inputs_are_not_mutated():
     before = copy.deepcopy(p)
     validate(p)
     assert p == before
+
+
+# -- ffmpeg arguments ---------------------------------------------------------------------------
+
+def _args(vdecision, adecision, **kw):
+    from pathlib import Path
+
+    from insightex.ingest.settings import IngestSettings
+    from insightex.media import engine
+
+    streams = policy.Streams(video(index=0, **kw), audio(index=2), 1)
+    d = policy.Decision(vdecision, adecision, deinterlace=kw.get("field_order") in policy.INTERLACED_FIELD_ORDERS,
+                        downmix=False)
+    return engine.video_args(Path("in.mkv"), Path("out.part"), streams, d, IngestSettings())
+
+
+def test_arguments_never_use_make_zero():
+    """ADR-0036: make_zero moved B-frame decode delay into presentation time (58 ms skew); do not bring it back."""
+    for v, a in (("copy", "copy"), ("transcode", "transcode"), ("copy", "transcode"), ("transcode", "copy")):
+        assert "make_zero" not in _args(v, a) and "-avoid_negative_ts" not in _args(v, a)
+
+
+def test_copy_arguments_map_exactly_two_streams_and_drop_the_rest():
+    args = _args("copy", "copy")
+    assert args[args.index("-map") + 1] == "0:0" and "0:2" in args
+    assert args.count("-map") == 2 and {"-sn", "-dn"} <= set(args)
+    assert args[args.index("-map_chapters") + 1] == "-1" and "-c:v" in args and args[args.index("-c:v") + 1] == "copy"
+    assert "+faststart" in args and "-vf" not in args and "-af" not in args
+
+
+def test_transcode_arguments_follow_d3():
+    args = _args("transcode", "transcode", field_order="tt")
+    joined = " ".join(args)
+    assert "-vf yadif,scale=w=-2:h='min(1080,trunc(ih/2)*2)'" in joined
+    assert "-c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p -profile:v high" in joined
+    assert "-force_key_frames expr:gte(t,n_forced*2)" in joined and "-fps_mode vfr" in joined
+    assert "-c:a aac -b:a 160k -ar 48000" in joined and "-af aresample=async=1:first_pts=0" in joined
+    assert "-ac" not in args  # stereo or mono source audio is not mixed
+
+
+def test_progressive_transcode_has_no_yadif_and_surround_is_downmixed():
+    from pathlib import Path
+
+    from insightex.ingest.settings import IngestSettings
+    from insightex.media import engine
+
+    assert "yadif" not in " ".join(_args("transcode", "copy"))
+    streams = policy.Streams(video(), audio(channels=6), 1)
+    d = policy.decide(streams.video, streams.audio)
+    args = engine.video_args(Path("in"), Path("out"), streams, d, IngestSettings())
+    assert args[args.index("-ac") + 1] == "2"
+
+
+def test_audio_wav_is_extracted_from_video_mp4_with_padding():
+    from pathlib import Path
+
+    from insightex.media import engine
+
+    args = engine.audio_args(Path("video.mp4"), Path("audio.wav.part"))
+    assert args[:2] == ["-i", "video.mp4"] and "aresample=async=1:first_pts=0" in args
+    assert args[args.index("-ac") + 1] == "1" and args[args.index("-ar") + 1] == "16000" and "pcm_s16le" in args
