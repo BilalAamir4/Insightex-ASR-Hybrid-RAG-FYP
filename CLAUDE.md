@@ -119,7 +119,7 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 | Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` |
 | Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
-| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0037) | `docs/adr/README.md` |
+| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0038) | `docs/adr/README.md` |
 | Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
 | Draft JSON Schema: ASR segment list (id, start, end, text, avg_logprob, no_speech_prob) | `docs/contracts/segments.json` |
 | Current environment state, how to verify (`scripts/verify_env.sh`) | `docs/ENVIRONMENT.md` |

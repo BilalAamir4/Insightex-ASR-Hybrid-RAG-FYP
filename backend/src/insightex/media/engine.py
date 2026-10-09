@@ -31,7 +31,7 @@ from insightex.media import ffmpeg, policy
 
 log = logging.getLogger(__name__)
 
-NORMALISER_VERSION = "2"  # bump when a change here alters video.mp4 / audio.wav / normalise.json; feeds the stage key
+NORMALISER_VERSION = "3"  # bump when a change here alters video.mp4 / audio.wav / normalise.json; feeds the stage key
 VIDEO_NAME, AUDIO_NAME, THUMB_NAME = "video.mp4", "audio.wav", "thumbnail.jpg"
 STDERR_LINES = 20
 _MEAN_VOLUME_RE = re.compile(r"mean_volume:\s*(-?[0-9.]+|-inf)\s*dB")
@@ -117,7 +117,9 @@ def video_args(src: Path, dst: Path, streams: policy.Streams, decision: policy.D
     if decision.video == "copy":
         args += ["-c:v", "copy"]
     else:
-        filters = (["yadif"] if decision.deinterlace else []) + [
+        hold = ([f"setpts=PTS-STARTPTS,tpad=start_duration={decision.video_pad_s:g}:start_mode=clone"]
+                if decision.video_pad_s > 0 else [])
+        filters = hold + (["yadif"] if decision.deinterlace else []) + [
             f"scale=w=-2:h='min({cfg.transcode_max_height},trunc(ih/2)*2)'"
         ]
         args += [
@@ -169,6 +171,90 @@ def moov_before_mdat(path: Path) -> bool:
     return b"moov" in first and b"mdat" in first and first[b"moov"] < first[b"mdat"]
 
 
+def _boxes(data: bytes, start: int, end: int):
+    """(type, body start, box end) of each box in data[start:end]."""
+    pos = start
+    while pos + 8 <= end:
+        length = int.from_bytes(data[pos:pos + 4], "big")
+        kind = data[pos + 4:pos + 8].decode("latin1")
+        header = 8
+        if length == 1:
+            length, header = int.from_bytes(data[pos + 8:pos + 16], "big"), 16
+        elif length == 0:
+            length = end - pos
+        if length < header:
+            return
+        yield kind, pos + header, min(pos + length, end)
+        pos += length
+
+
+def mp4_edit_lists(path: Path) -> list[dict[str, Any]]:
+    """Per track of an MP4 with `moov` first: {"handler": "vide"|"soun"|..., "edits": [{"media_time", "segment_duration"}]}.
+
+    `media_time` -1 is an empty edit (the track is delayed by `segment_s` seconds); other values are priming or
+    B-frame delay (the track's first sample is skipped into).
+    """
+    data = path.read_bytes() if path.stat().st_size < 64 * 1024 * 1024 else _read_moov(path)
+    tracks: list[dict[str, Any]] = []
+    for kind, body, end in _boxes(data, 0, len(data)):
+        if kind != "moov":
+            continue
+        movie_timescale = 1000
+        for kind2, body2, _ in _boxes(data, body, end):
+            if kind2 == "mvhd":
+                movie_timescale = int.from_bytes(data[body2 + (12 if data[body2] == 0 else 20):][:4], "big") or 1000
+        for kind2, body2, end2 in _boxes(data, body, end):
+            if kind2 != "trak":
+                continue
+            track: dict[str, Any] = {"handler": None, "edits": []}
+            for kind3, body3, end3 in _boxes(data, body2, end2):
+                if kind3 == "mdia":
+                    for kind4, body4, _ in _boxes(data, body3, end3):
+                        if kind4 == "hdlr":
+                            track["handler"] = data[body4 + 8:body4 + 12].decode("latin1")
+                elif kind3 == "edts":
+                    for kind4, body4, end4 in _boxes(data, body3, end3):
+                        if kind4 != "elst":
+                            continue
+                        version = data[body4]
+                        count = int.from_bytes(data[body4 + 4:body4 + 8], "big")
+                        pos = body4 + 8
+                        for _ in range(count):
+                            if version == 1:
+                                seg = int.from_bytes(data[pos:pos + 8], "big")
+                                media = int.from_bytes(data[pos + 8:pos + 16], "big", signed=True)
+                                pos += 20
+                            else:
+                                seg = int.from_bytes(data[pos:pos + 4], "big")
+                                media = int.from_bytes(data[pos + 4:pos + 8], "big", signed=True)
+                                pos += 12
+                            track["edits"].append({"media_time": media, "segment_duration": seg,
+                                                   "segment_s": round(seg / movie_timescale, 4)})
+            tracks.append(track)
+    return tracks
+
+
+def _read_moov(path: Path) -> bytes:
+    """Just the top-level `moov` box of a large file (faststart puts it first), wrapped so `_boxes` can walk it."""
+    with path.open("rb") as f:
+        pos, size = 0, path.stat().st_size
+        while pos + 8 <= size:
+            f.seek(pos)
+            header = f.read(16)
+            length = int.from_bytes(header[:4], "big")
+            if length == 1:
+                length = int.from_bytes(header[8:16], "big")
+            elif length == 0:
+                length = size - pos
+            if length < 8:
+                break
+            if header[4:8] == b"moov":
+                f.seek(pos)
+                return f.read(length)
+            pos += length
+    return b""
+
+
 def _fnum(value: Any) -> float | None:
     try:
         f = float(value)
@@ -199,9 +285,20 @@ def verify_outputs(video: Path, audio: Path, source_duration: float, cfg: Ingest
     if abs(out_duration - source_duration) > tolerance:
         raise IngestRejected(ErrorCode.TRUNCATED, details=f"video.mp4 {out_duration:.2f} s vs source {source_duration:.2f} s")
 
+    # ADR-0038: neither track may rely on an empty edit longer than one frame, and both must start within one frame
+    # of 0, so a player that ignores edit lists is off by at most a frame (sub-frame empty edits, such as an Opus
+    # pre-skip of a few ms, are left alone).
     starts = [policy.start_time_of(s) for s in (vids[0], auds[0])]
-    if min(starts) < -cfg.sync_tolerance_s or min(starts) > cfg.sync_tolerance_s:
-        raise IngestRejected(ErrorCode.SYNC_CHECK_FAILED, details=f"video.mp4 stream start times {starts}")
+    frame_s = policy.frame_duration_s(vids[0], cfg.sync_tolerance_s)
+    edits = mp4_edit_lists(video)
+    eps = 0.0005  # float rounding of start times and edit durations, seconds
+    empty = [track["handler"] for track in edits
+             if any(e["media_time"] == -1 and e["segment_s"] > frame_s + eps for e in track["edits"])]
+    if empty or max(abs(t) for t in starts) > frame_s + eps:
+        raise IngestRejected(
+            ErrorCode.SYNC_CHECK_FAILED,
+            details=f"video.mp4 stream start times {starts} (limit {frame_s:.4f} s); tracks with an empty edit: {empty}",
+        )
 
     try:
         with wave.open(str(audio), "rb") as w:
@@ -228,6 +325,7 @@ def verify_outputs(video: Path, audio: Path, source_duration: float, cfg: Ingest
         "audio_wav_duration_s": round(wav_dur, 3),
         "video_mp4_audio_duration_s": round(a_dur, 3),
         "video_mp4_start_times_s": [round(t, 3) for t in starts],
+        "video_mp4_edit_lists": edits,
         "audio_start_s": round(a_start, 3),
         "padding_s": round(padding, 3),
         "moov_before_mdat": True,
@@ -296,7 +394,7 @@ def normalise_media(
     streams, duration = policy.validate_probe(
         probe, decoders=available_decoders(), min_duration_s=cfg.min_duration_s, max_duration_s=cfg.max_duration_s
     )
-    decision = policy.decide(streams.video, streams.audio)
+    decision = policy.decide(streams.video, streams.audio, policy.frame_duration_s(streams.video, cfg.sync_tolerance_s))
     warnings = policy.source_warnings(streams, cfg.sync_tolerance_s)
     t = lap("probe", t)
 

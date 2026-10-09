@@ -34,6 +34,7 @@ class Decision:
     reasons: list[str] = field(default_factory=list)
     deinterlace: bool = False
     downmix: bool = False  # transcoded audio with more than 2 channels is mixed down to stereo
+    video_pad_s: float = 0.0  # video starts this many seconds after audio: hold its first frame for this long (transcode only)
 
 
 def _disposition(stream: dict[str, Any], key: str) -> bool:
@@ -105,8 +106,32 @@ def validate_probe(
     return Streams(video, audio, audio_count), duration
 
 
-def decide(video: dict[str, Any], audio: dict[str, Any]) -> Decision:
-    """D2: copy a stream only if every condition holds; `reasons` names each condition that failed."""
+DEFAULT_FPS = 25.0
+
+
+def _rate(value: Any) -> float | None:
+    """A frame rate such as "30000/1001" or "25" as a float; None if missing, zero or malformed."""
+    try:
+        num, _, den = str(value).partition("/")
+        rate = float(num) / (float(den) if den else 1.0)
+    except (ValueError, ZeroDivisionError):
+        return None
+    return rate if math.isfinite(rate) and rate > 0 else None
+
+
+def frame_duration_s(video: dict[str, Any], cap_s: float) -> float:
+    """One video frame in seconds (25 fps if the rate is unknown), never more than `cap_s` (the sync tolerance)."""
+    rate = _rate(video.get("avg_frame_rate")) or _rate(video.get("r_frame_rate")) or DEFAULT_FPS
+    return min(1.0 / rate, cap_s)
+
+
+def decide(video: dict[str, Any], audio: dict[str, Any], frame_s: float | None = None) -> Decision:
+    """D2: copy a stream only if every condition holds; `reasons` names each condition that failed.
+
+    With `frame_s` (one video frame), a stream that starts later than the other by more than a frame is
+    transcoded so that neither track of video.mp4 needs an empty edit to stay in sync (ADR-0038): late audio is
+    re-encoded with leading silence, late video is re-encoded with its first frame held for the offset.
+    """
     reasons: list[str] = []
     if video.get("codec_name") != "h264":
         reasons.append(f"video codec {video.get('codec_name')} is not h264")
@@ -121,6 +146,11 @@ def decide(video: dict[str, Any], audio: dict[str, Any]) -> Decision:
     interlaced = field_order in INTERLACED_FIELD_ORDERS
     if interlaced:
         reasons.append(f"video field_order {field_order} is interlaced")
+    offset = start_time_of(audio) - start_time_of(video)  # > 0: audio starts after video
+    video_pad_s = 0.0
+    if frame_s is not None and -offset > frame_s:
+        video_pad_s = round(-offset, 3)
+        reasons.append(f"video starts {-offset:.3f} s after audio; first frame held for that time")
     video_reasons = len(reasons)
 
     channels = int(audio.get("channels") or 0)
@@ -133,12 +163,15 @@ def decide(video: dict[str, Any], audio: dict[str, Any]) -> Decision:
     sample_rate = int(_float(audio.get("sample_rate")) or 0)
     if sample_rate not in AUDIO_COPY_SAMPLE_RATES:
         reasons.append(f"audio sample rate {sample_rate} is not 44100/48000")
+    if frame_s is not None and offset > frame_s:
+        reasons.append(f"audio starts {offset:.3f} s after video; re-encoded with leading silence")
     return Decision(
         video="transcode" if video_reasons else "copy",
         audio="transcode" if len(reasons) > video_reasons else "copy",
         reasons=reasons,
         deinterlace=interlaced,
         downmix=channels > 2,
+        video_pad_s=video_pad_s,
     )
 
 

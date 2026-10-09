@@ -207,6 +207,20 @@ def beep_time(wav_path: Path) -> float:
     raise Abort("no beep found in audio.wav")
 
 
+def beep_time_in_mp4(video: Path, ignore_editlist: bool) -> float:
+    """Beep onset in video.mp4's audio track, decoded with timestamps honoured or with edit lists ignored."""
+    pre = ["-ignore_editlist", "1"] if ignore_editlist else []
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-nostdin", *pre, "-i", str(video), "-map", "0:a:0",
+                          "-af", "aresample=async=1:first_pts=0", "-ac", "1", "-ar", "16000", "-f", "s16le", "-"],
+                         capture_output=True, check=True).stdout
+    samples = array("h")
+    samples.frombytes(raw[: len(raw) // 2 * 2])
+    for i, v in enumerate(samples):
+        if abs(v) > 0.25 * 32767:
+            return i / 16000
+    raise Abort("no beep found in video.mp4")
+
+
 def sha256_of(path: Path) -> str:
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -294,7 +308,6 @@ def run(args: argparse.Namespace) -> None:
 
     # 2
     local_hash = sha256_of(day4)
-    before_jobs = jobs_count(api)
     marks: list[str] = []
 
     def progress(sent: int, size: int, secs: float) -> None:
@@ -409,9 +422,14 @@ def run(args: argparse.Namespace) -> None:
         if sync_job and sync_job["status"] == "succeeded" and d:
             f, b = flash_time(d / "video.mp4"), beep_time(d / "audio.wav")
             limit = 1.0 / FPS  # one frame of the fixture's frame rate
-            EVIDENCE["sync"] = {"flash_s": f, "beep_s": b, "offset_ms": round((b - f) * 1000, 1), "limit_ms": limit * 1000}
-            record(9, "flash/beep fixture with audio delayed 1.5 s: |flash-beep| <= one frame", abs(f - b) <= limit,
-                   f"flash {f:.3f} s, beep {b:.3f} s, offset {(b - f) * 1000:+.1f} ms (limit {limit * 1000:.0f} ms)")
+            b_ignore = beep_time_in_mp4(d / "video.mp4", True)
+            EVIDENCE["sync"] = {"flash_s": f, "beep_wav_s": b, "beep_mp4_edit_lists_ignored_s": b_ignore,
+                                "offset_wav_ms": round((b - f) * 1000, 1),
+                                "offset_edit_lists_ignored_ms": round((b_ignore - f) * 1000, 1), "limit_ms": limit * 1000}
+            record(9, "flash/beep fixture with audio delayed 1.5 s: |flash-beep| <= one frame (audio.wav and video.mp4 with edit lists ignored)",
+                   abs(f - b) <= limit and abs(f - b_ignore) <= limit,
+                   f"flash {f:.3f} s, beep {b:.3f} s, offset {(b - f) * 1000:+.1f} ms; edit lists ignored: beep {b_ignore:.3f} s, "
+                   f"offset {(b_ignore - f) * 1000:+.1f} ms (limit {limit * 1000:.0f} ms)")
         else:
             record(9, "flash/beep fixture with audio delayed 1.5 s: |flash-beep| <= one frame", False,
                    f"HTTP {status}, job {sync_job and sync_job['status']} {sync_job and error_text(sync_job)[:150]}")

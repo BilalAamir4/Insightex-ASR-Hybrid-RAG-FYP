@@ -18,8 +18,14 @@ DUR = 12  # seconds; above ingest.min_duration_s (10)
 
 # A/V sync clips: black video with a white full-frame flash from 5.0 to 5.2 s, and a 1 kHz beep over the same span.
 FLASH_AT, FLASH_LEN = 5.0, 0.2
-FLASH_SRC = (f"color=c=black:s={SIZE}:r=25:d=15,"
-             f"drawbox=x=0:y=0:w=iw:h=ih:color=white:t=fill:enable='between(t,{FLASH_AT},{FLASH_AT + FLASH_LEN})'")
+
+
+def flash_src(at: float = FLASH_AT, duration: float = 15) -> str:
+    return (f"color=c=black:s={SIZE}:r=25:d={duration},"
+            f"drawbox=x=0:y=0:w=iw:h=ih:color=white:t=fill:enable='between(t,{at},{at + FLASH_LEN})'")
+
+
+FLASH_SRC = flash_src()
 
 
 def beep_src(onset: float, rate: int = 48000, duration: float = 15) -> str:
@@ -200,6 +206,35 @@ class Corpus:
         ff("-f", "lavfi", "-i", beep_src(FLASH_AT - 1.5), *AAC, audio)
         out = self._p("sync_delayed.mp4")
         ff("-i", self._flash_video_mp4(), "-itsoffset", "1.5", "-i", audio, "-map", "0:v", "-map", "1:a", "-c", "copy", out)
+        return out
+
+    def _b_sync_control_mp4(self) -> Path:
+        """No offsets anywhere: flash and beep both at 5.0 s on both timelines."""
+        audio = self._p("beep_5_ctl.m4a")
+        ff("-f", "lavfi", "-i", beep_src(FLASH_AT), *AAC, audio)
+        out = self._p("sync_control.mp4")
+        ff("-i", self._flash_video_mp4(), "-i", audio, "-map", "0:v", "-map", "1:a", "-c", "copy", out)
+        return out
+
+    def _b_sync_video_delayed_mp4(self) -> Path:
+        """Container timeline: flash and beep both at 5.0 s, but the VIDEO stream starts 1.52 s (38 frames) late."""
+        video = self._p("flash_3_48.mp4")
+        ff("-f", "lavfi", "-i", flash_src(FLASH_AT - 1.52), *X264, video)
+        audio = self._p("beep_5_vd.m4a")
+        ff("-f", "lavfi", "-i", beep_src(FLASH_AT), *AAC, audio)
+        out = self._p("sync_video_delayed.mp4")
+        ff("-itsoffset", "1.52", "-i", video, "-i", audio, "-map", "0:v", "-map", "1:a", "-c", "copy", out)
+        return out
+
+    def _b_sync_bframes_hevc_opus_mkv(self) -> Path:
+        """HEVC + Opus without offsets (goes through the libx264 path, which uses B-frames): flash and beep at 5.0 s."""
+        need("libx265", "libopus")
+        video = self._p("flash_hevc_nooff.mkv")
+        ff("-f", "lavfi", "-i", FLASH_SRC, *X265, video)
+        audio = self._p("beep_5.opus")
+        ff("-f", "lavfi", "-i", beep_src(FLASH_AT), "-c:a", "libopus", audio)
+        out = self._p("sync_bframes.mkv")
+        ff("-i", video, "-i", audio, "-map", "0:v", "-map", "1:a", "-c", "copy", out)
         return out
 
     def _b_sync_ts_offset_mpegts(self) -> Path:

@@ -37,7 +37,7 @@ def test_fetch_and_normalise_produce_valid_outputs(video_server):
     info = json.loads((out / "normalise.json").read_text())
     assert info["decision"]["video"] == "copy" and info["decision"]["audio"] == "copy" and info["schema"] == 2
     assert info["probe"]["audio"]["sample_rate"] == 44100 and info["source"]["sha256"] == source["sha256"]
-    assert info["source"]["kind"] == "link" and info["normaliser_version"] == "2" and info["warnings"] == []
+    assert info["source"]["kind"] == "link" and info["normaliser_version"] == "3" and info["warnings"] == []
     assert (out / "video.mp4").read_bytes()[4:8] == b"ftyp"
     conn = open_db(settings)
     assert [(r["id"], r["source_kind"], r["source_ref"]) for r in conn.execute("SELECT * FROM workspaces")] == [

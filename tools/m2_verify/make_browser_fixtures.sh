@@ -12,11 +12,26 @@ A=(-f lavfi -i "sine=frequency=440:sample_rate=44100:duration=20")
 X=(-c:v libx264 -preset ultrafast -pix_fmt yuv420p -c:a aac)
 ff "${A[@]}" -c:a aac "$out/audio_only.m4a"
 ff "${V[@]}" -f lavfi -i "sine=frequency=440:sample_rate=44100:duration=20,volume=0.0003" "${X[@]}" -shortest "$out/near_silent.mp4"
-# Flash at 5.0 s and beep at 5.0 s on the container clock; the audio stream starts 1.5 s late (the MP4 edit-list case).
-ff -f lavfi -i "color=c=black:s=640x360:r=25:d=15,drawbox=x=0:y=0:w=iw:h=ih:color=white:t=fill:enable='between(t,5.0,5.2)'" \
-   -c:v libx264 -preset ultrafast -pix_fmt yuv420p "$out/_flash.mp4"
-ff -f lavfi -i "aevalsrc=exprs='if(between(t\,3.5\,3.7)\,0.5*sin(2*PI*1000*t)\,0)':s=48000:d=15" -c:a aac "$out/_beep.m4a"
-ff -i "$out/_flash.mp4" -itsoffset 1.5 -i "$out/_beep.m4a" -map 0:v -map 1:a -c copy "$out/flash_beep_delayed_audio.mp4"
-rm -f "$out/_flash.mp4" "$out/_beep.m4a"
+# Four flash/beep files. In each, a white flash (5.0-5.2 s) and a 1 kHz beep (5.0-5.2 s) coincide on the container
+# clock, so a correct player shows them simultaneous. They differ in how the file stores the timeline:
+FLASH="color=c=black:s=640x360:r=25:d=15,drawbox=x=0:y=0:w=iw:h=ih:color=white:t=fill:enable='between(t,5.0,5.2)'"
+FLASH_EARLY="color=c=black:s=640x360:r=25:d=15,drawbox=x=0:y=0:w=iw:h=ih:color=white:t=fill:enable='between(t,3.48,3.68)'"
+beep() { echo "aevalsrc=exprs='if(between(t\,$1\,$2)\,0.5*sin(2*PI*1000*t)\,0)':s=48000:d=15"; }
+X264=(-c:v libx264 -preset ultrafast -pix_fmt yuv420p)
+# 1. control: no offsets anywhere.
+ff -f lavfi -i "$FLASH" "${X264[@]}" "$out/_v.mp4"
+ff -f lavfi -i "$(beep 5.0 5.2)" -c:a aac "$out/_a.m4a"
+ff -i "$out/_v.mp4" -i "$out/_a.m4a" -map 0:v -map 1:a -c copy "$out/control.mp4"
+# 2. delayed_audio: the audio stream starts 1.5 s late (its beep is at 3.5 s in its own timeline).
+ff -f lavfi -i "$(beep 3.5 3.7)" -c:a aac "$out/_a2.m4a"
+ff -i "$out/_v.mp4" -itsoffset 1.5 -i "$out/_a2.m4a" -map 0:v -map 1:a -c copy "$out/delayed_audio.mp4"
+# 3. delayed_video: the video stream starts 1.52 s late (its flash is at 3.48 s in its own timeline).
+ff -f lavfi -i "$FLASH_EARLY" "${X264[@]}" "$out/_v2.mp4"
+ff -itsoffset 1.52 -i "$out/_v2.mp4" -i "$out/_a.m4a" -map 0:v -map 1:a -c copy "$out/delayed_video.mp4"
+# 4. transcode_bframes: HEVC + Opus, so it goes through the libx264 path (which uses B-frames).
+ff -f lavfi -i "$FLASH" -c:v libx265 -preset ultrafast -x265-params log-level=error "$out/_v3.mkv"
+ff -f lavfi -i "$(beep 5.0 5.2)" -c:a libopus "$out/_a3.opus"
+ff -i "$out/_v3.mkv" -i "$out/_a3.opus" -map 0:v -map 1:a -c copy "$out/transcode_bframes.mkv"
+rm -f "$out"/_v*.mp4 "$out"/_v3.mkv "$out"/_a*.m4a "$out"/_a3.opus
 head -c 3221225472 /dev/zero > "$out/dummy_3GB.mp4"
 ls -la "$out"

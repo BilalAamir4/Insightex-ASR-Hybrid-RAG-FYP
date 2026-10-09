@@ -58,3 +58,4 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0035](0035-link-ingestion-on-the-runner.md) | Link ingestion on the runner: chain root, provisional workspace, rebind | Accepted | M1 | Amends ADR-0034 (first-stage upstream key, `gdrive` source kind) |
 | [0036](0036-local-file-ingestion-and-shared-media-normalisation-policy.md) | Local-file ingestion and shared media normalisation policy | Accepted | M2 | Amends ADR-0035 (`normalise` is shared; uploaded originals are deleted, link originals are kept) |
 | [0037](0037-http-upload-transport.md) | HTTP upload transport: raw streamed body, one upload at a time, no CORS | Accepted | M2 | |
+| [0038](0038-no-empty-edits-in-video-mp4.md) | video.mp4 must not rely on an empty edit to stay in sync | Accepted | M2 | Amends ADR-0036 (late audio or video is re-encoded; new post-verify rule) |
