@@ -35,6 +35,12 @@ class LinkAccepted(BaseModel):
     deduplicated: bool
 
 
+class UploadAccepted(BaseModel):
+    lecture_id: str
+    job_id: str | None
+    deduplicated: bool
+
+
 class LectureItem(BaseModel):
     lecture_id: str
     title: str | None
@@ -45,6 +51,7 @@ class LectureItem(BaseModel):
 
 class LectureOut(LectureItem):
     video_url: str
+    warnings: list[dict] = []
     external_timestamp_url_template: str | None
 
 

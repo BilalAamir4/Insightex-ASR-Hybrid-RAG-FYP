@@ -78,7 +78,9 @@ def get_lecture(lecture_id: str, request: Request):
     item = _item(workspaces, lecture_id, directory, row["created_at"] if row else None)
     fetched = workspaces.stage_output_dir(lecture_id, "fetch")
     template = _json(fetched / SOURCE_JSON).get("external_timestamp_url_template") if fetched else None
+    warnings = _json(directory / NORMALISE_JSON).get("warnings")
     return LectureOut(**item.model_dump(), video_url=f"/api/lectures/{lecture_id}/video",
+                      warnings=warnings if isinstance(warnings, list) else [],
                       external_timestamp_url_template=template)
 
 
