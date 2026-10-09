@@ -82,15 +82,22 @@ def _job_from_row(row: sqlite3.Row, stages: list[StageRow] | None = None) -> Job
 
 def _stages_of(conn: sqlite3.Connection, job_id: str) -> list[StageRow]:
     rows = conn.execute("SELECT * FROM job_stages WHERE job_id = ? ORDER BY idx", (job_id,)).fetchall()
-    return [StageRow(**{k: r[k] for k in r.keys() if k != "job_id"}) for r in rows]
+    return [StageRow(**{k: r[k] for k in r.keys() if k != "job_id"}) for r in rows]  # noqa: SIM118 - sqlite3.Row iterates values, not keys
 
 
 def enqueue(
-    conn: sqlite3.Connection, kind: str, payload: dict[str, Any], workspace_id: str, job_id: str | None = None
+    conn: sqlite3.Connection,
+    kind: str,
+    payload: dict[str, Any],
+    workspace_id: str,
+    job_id: str | None = None,
+    failed: tuple[str, str] | None = None,
 ) -> str:
     """Create a queued job and one pending stage row per stage of the kind's pipeline; return the job id.
 
     `job_id` lets a caller derive the workspace id from it (`pending-<job id>`); default is a fresh uuid.
+    `failed=(job_error, first_stage_error)` records a job that was rejected before it could run: it is inserted
+    as `failed` (never claimable), its first stage failed and the rest pending, as after a stage failure.
     Raises ValueError for a bad workspace id and UnknownJobKind for a kind with no registered pipeline.
     """
     validate_workspace_id(workspace_id)
@@ -98,13 +105,15 @@ def enqueue(
     job_id, now = job_id or uuid.uuid4().hex, utcnow()
     with transaction(conn):
         conn.execute(
-            "INSERT INTO jobs (id, kind, status, payload, workspace_id, attempts, created_at, updated_at) "
-            "VALUES (?, ?, 'queued', ?, ?, 0, ?, ?)",
-            (job_id, kind, json.dumps(payload, sort_keys=True), workspace_id, now, now),
+            "INSERT INTO jobs (id, kind, status, payload, workspace_id, attempts, error, created_at, finished_at, "
+            "updated_at) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)",
+            (job_id, kind, "failed" if failed else "queued", json.dumps(payload, sort_keys=True), workspace_id,
+             failed[0] if failed else None, now, now if failed else None, now),
         )
         conn.executemany(
-            "INSERT INTO job_stages (job_id, idx, name, status) VALUES (?, ?, ?, 'pending')",
-            [(job_id, i, s.name) for i, s in enumerate(pipeline)],
+            "INSERT INTO job_stages (job_id, idx, name, status, error, finished_at) VALUES (?, ?, ?, ?, ?, ?)",
+            [(job_id, i, s.name, "failed" if failed and i == 0 else "pending", failed[1] if failed and i == 0 else None,
+              now if failed and i == 0 else None) for i, s in enumerate(pipeline)],
         )
     return job_id
 

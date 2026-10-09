@@ -56,3 +56,4 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0033](0033-job-queue-worker-and-resume-model.md) | Job queue, worker and resume model | Accepted | M1 | Supersedes ADR-0022 |
 | [0034](0034-workspace-identity-chained-stage-keys-and-privacy-rule.md) | Workspace identity, chained stage keys and privacy rule | Accepted | M1 | Supersedes ADR-0023 |
 | [0035](0035-link-ingestion-on-the-runner.md) | Link ingestion on the runner: chain root, provisional workspace, rebind | Accepted | M1 | Amends ADR-0034 (first-stage upstream key, `gdrive` source kind) |
+| [0036](0036-local-file-ingestion-and-shared-media-normalisation-policy.md) | Local-file ingestion and shared media normalisation policy | Accepted | M2 | Amends ADR-0035 (`normalise` is shared; uploaded originals are deleted, link originals are kept) |

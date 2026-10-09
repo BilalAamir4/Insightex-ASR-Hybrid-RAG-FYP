@@ -27,3 +27,18 @@ def run_link_job(url: str, settings: Settings | None = None, conn=None) -> store
     assert claimed is not None and claimed.id == job_id
     run_job(conn, claimed, settings, Workspaces(settings.jobs.workspaces_dir))
     return store.get_job(conn, job_id)
+
+
+def run_file_job(path, settings: Settings | None = None, conn=None):
+    """Stage `path`, enqueue it, run the job in-process. Returns (FileIngest, Job or None when no job was needed)."""
+    from insightex.ingest.file_jobs import enqueue_file
+
+    settings = settings or get_settings()
+    conn = conn or open_db(settings)
+    result = enqueue_file(conn, settings, path, via="cli")
+    if result.job_id is None or result.deduplicated or result.rejected is not None:
+        return result, None if result.job_id is None else store.get_job(conn, result.job_id)
+    claimed = store.claim_next(conn, os.getpid())
+    assert claimed is not None and claimed.id == result.job_id
+    run_job(conn, claimed, settings, Workspaces(settings.jobs.workspaces_dir))
+    return result, store.get_job(conn, result.job_id)

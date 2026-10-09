@@ -6,7 +6,7 @@ import json
 import sqlite3
 import threading
 import time
-from pathlib import Path
+from typing import ClassVar
 
 import pytest
 
@@ -186,7 +186,7 @@ def test_rerun_of_same_workspace_is_fully_cached(env):
 
 
 def test_changing_label_changes_both_keys_reruns_both_and_removes_old_key_dirs(env):
-    settings, conn, ws = env
+    settings, conn, _ws = env
     first = store.enqueue(conn, "dummy", {**FAST, "label": "a"}, "ws1")
     run_next(env)
     old = {s.name: s.stage_key for s in store.get_job(conn, first).stages}
@@ -262,7 +262,7 @@ def test_stage_missing_a_declared_output_fails_and_moves_nothing(env):
 
 
 def test_unknown_kind_and_pipeline_mismatch_fail_the_job(env):
-    settings, conn, ws = env
+    _settings, conn, _ws = env
     job_id = store.enqueue(conn, "dummy", FAST, "ws1")
     conn.execute("UPDATE job_stages SET name = 'renamed' WHERE job_id = ? AND idx = 1", (job_id,))
     _, status = run_next(env)
@@ -295,7 +295,7 @@ class _SelfCancelling(Stage):
 
 
 def test_cooperative_cancel_of_running_job(env):
-    settings, conn, ws = env
+    settings, conn, _ws = env
     register_pipeline("spinner", [_SelfCancelling(), _Writer("after", "1")])
     job_id = store.enqueue(conn, "spinner", {}, "ws1")
     _, status = run_next(env)
@@ -315,7 +315,7 @@ def test_cancel_is_noticed_between_stages(env):
 
 
 def test_worker_stop_requeues_job_and_restores_attempts(env):
-    settings, conn, ws = env
+    settings, conn, _ws = env
     job_id = store.enqueue(conn, "dummy", {**FAST, "cpu_seconds": 5}, "ws1")
     calls = {"n": 0}
 
@@ -357,3 +357,73 @@ def test_manifest_write_is_atomic_and_leaves_no_temp_files(env):
     ws.set_source("ws1", {"kind": "test"})
     names = sorted(p.name for p in (settings.jobs.workspaces_dir / "ws1").iterdir())
     assert names == ["manifest.json"] and ws.read_manifest("ws1")["source"] == {"kind": "test"}
+
+
+class _Consumed(Stage):
+    """Writes out.txt (a different body each run); a hook deletes it after publish, like an uploaded original."""
+
+    name, version, outputs = "consume", "1", ("out.txt",)
+    runs = 0
+    seen: ClassVar[list[str]] = []
+
+    def config_fingerprint(self, ctx: KeyContext):
+        return {}
+
+    def run(self, ctx: StageContext) -> None:
+        type(self).runs += 1
+        (ctx.staging_dir / "out.txt").write_text(f"run {type(self).runs}")
+
+    def after_stage(self, ctx, upstream) -> None:
+        path = upstream[self.name] / "out.txt"
+        type(self).seen.append(path.read_text())  # raises (and is swallowed) if the fresh output was not published
+        path.unlink()
+
+
+def test_publish_replaces_a_same_key_directory_whose_output_was_deleted(env):
+    """Regression (ADR-0036): the old _publish kept the existing same-key directory and threw the fresh output away,
+    so the second run published a directory without out.txt and the next stage found nothing to read."""
+    _, conn, ws = env
+    _Consumed.runs, _Consumed.seen = 0, []
+    register_pipeline("consumed", [_Consumed()])
+    for expected in (1, 2):
+        store.enqueue(conn, "consumed", {}, "ws1")
+        _, status = run_next(env)
+        assert status == "succeeded"
+        directory = ws.stage_output_dir("ws1", "consume")
+        assert _Consumed.runs == expected
+        assert not (directory / "out.txt").exists()  # the hook deleted it again after publishing
+    assert _Consumed.seen == ["run 1", "run 2"]  # the second run's fresh output was published
+    manifest_key = ws.read_manifest("ws1")["stages"]["consume"]["key"]
+    assert [p.name for p in (ws.path("ws1") / "stages" / "consume").iterdir()] == [manifest_key]
+
+
+def test_publish_discards_staging_when_the_existing_directory_is_complete(env):
+    from insightex.jobs.runner import _publish
+
+    _, _, ws = env
+    stage = _Writer("only", "1")
+    final = ws.stage_dir("ws1", "only", "0123456789abcdef")
+    final.mkdir(parents=True)
+    (final / "out.txt").write_text("old")
+    staging = ws.staging_dir("ws1", "only", "0123456789abcdef", 1)
+    staging.mkdir(parents=True)
+    (staging / "out.txt").write_text("new")
+    _publish(ws, "ws1", stage, "0123456789abcdef", staging, 0.1)
+    assert (final / "out.txt").read_text() == "old" and not staging.exists()
+
+
+def test_failing_after_stage_hook_is_non_fatal_and_logged_with_stage_and_job(env, caplog):
+    class Boom(_Writer):
+        def after_stage(self, ctx, upstream) -> None:
+            raise RuntimeError("hook exploded")
+
+    _, conn, _ = env
+    register_pipeline("boomhook", [Boom("only", "1")])
+    job_id = store.enqueue(conn, "boomhook", {}, "ws1")
+    with caplog.at_level("WARNING", logger="insightex.jobs.runner"):
+        _, status = run_next(env)
+    assert status == "succeeded"
+    lines = [r for r in caplog.records if r.levelname == "WARNING" and "after_stage hook failed" in r.getMessage()]
+    assert len(lines) == 1
+    msg = lines[0].getMessage()
+    assert "stage=only" in msg and f"job={job_id}" in msg and "RuntimeError: hook exploded" in msg

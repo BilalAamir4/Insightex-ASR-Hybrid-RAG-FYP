@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from pydantic import ValidationError
 
 from insightex.core.config import (
     ConfigError,
@@ -133,7 +134,7 @@ def test_explicit_overrides_beat_env(monkeypatch):
 
 
 def test_settings_are_frozen():
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         load_settings().api.port = 1
 
 

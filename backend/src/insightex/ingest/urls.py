@@ -10,7 +10,6 @@ from urllib.parse import parse_qs, parse_qsl, quote, unquote, urlencode, urlspli
 from insightex.ingest.errors import ErrorCode, IngestError
 from insightex.ingest.settings import IngestSettings
 
-
 YOUTUBE_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
 DRIVE_ID_RE = re.compile(r"^[A-Za-z0-9_-]{25,64}$")
 _SCHEME_RE = re.compile(r"^([A-Za-z][A-Za-z0-9+.-]*):")

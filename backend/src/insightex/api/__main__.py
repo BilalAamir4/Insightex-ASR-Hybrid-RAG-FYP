@@ -9,7 +9,7 @@ from pathlib import Path
 import uvicorn
 
 from insightex.api.app import create_app
-from insightex.core.config import ConfigError, Settings, get_settings
+from insightex.core.config import ConfigError, get_settings
 
 _REFUSED_HOSTS = {"0.0.0.0", "::", ""}
 

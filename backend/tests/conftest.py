@@ -38,8 +38,8 @@ def _ffmpeg(*args: str) -> None:
     subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *args], check=True)
 
 
-_SRC_V = ["-f", "lavfi", "-i", "testsrc2=size=320x240:rate=25:duration=3"]
-_SRC_A = ["-f", "lavfi", "-i", "sine=frequency=440:sample_rate=44100:duration=3"]
+_SRC_V = ["-f", "lavfi", "-i", "testsrc2=size=320x240:rate=25:duration=12"]
+_SRC_A = ["-f", "lavfi", "-i", "sine=frequency=440:sample_rate=44100:duration=12"]
 
 
 @pytest.fixture(scope="session")

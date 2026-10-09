@@ -7,7 +7,7 @@
     insightex gpu status         GPU lease free or busy
     insightex cache ...          list, delete, pin, unpin, gc
     insightex jobs ...           enqueue-dummy, list, show, cancel, retry (insightex.jobs.cli)
-    insightex probe|ingest ...   link ingestion (insightex.ingest.cli)
+    insightex probe|ingest|ingest-file ...   link and local-file ingestion (insightex.ingest.cli)
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ def _config(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
-    if argv and argv[0] in ("probe", "ingest", "-v", "--verbose"):
+    if argv and argv[0] in ("probe", "ingest", "ingest-file", "-v", "--verbose"):
         from insightex.ingest.cli import main as ingest_main
 
         return ingest_main(argv)
@@ -47,6 +47,7 @@ def main(argv: list[str] | None = None) -> int:
     jobs_cli.register(sub)
     sub.add_parser("probe", help="print metadata for a link (see: insightex probe <url>)")
     sub.add_parser("ingest", help="enqueue a link ingest job (see: insightex ingest <url> --confirm-rights)")
+    sub.add_parser("ingest-file", help="ingest a local video (see: insightex ingest-file <path> --confirm-rights)")
     args = parser.parse_args(argv)
     if args.command in ("db", "worker", "jobs", "gpu", "cache"):
         return jobs_cli.run(args)

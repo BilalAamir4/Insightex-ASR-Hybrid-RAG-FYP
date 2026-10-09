@@ -59,7 +59,7 @@ class WorkerLocked(RuntimeError):
 def acquire_worker_lock(run_dir: Path) -> IO[str]:
     """Take the exclusive, non-blocking worker lock and write our pid into it. Keep the returned file open."""
     run_dir.mkdir(parents=True, exist_ok=True)
-    f = open(run_dir / "worker.lock", "a+")
+    f = open(run_dir / "worker.lock", "a+")  # noqa: SIM115 - held open for the process lifetime; the kernel drops the flock on exit
     try:
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError:
@@ -99,6 +99,13 @@ class Worker:
         removed = self.workspaces.clean_staging()
         if removed:
             log.info("removed %d abandoned staging directories", removed)
+        from insightex.ingest.staging import (
+            sweep_staging,  # late: the jobs layer does not depend on ingest otherwise
+        )
+
+        stale = sweep_staging(self.conn, self.settings)
+        if stale:
+            log.info("removed %d stale staging files", stale)
         for orphan in cache.sweep_orphan_pending(self.conn, self.workspaces):
             log.info("removed orphaned provisional workspace %s", orphan)
         for job_id, status in store.recover_after_crash(self.conn, self.settings.jobs.max_attempts):

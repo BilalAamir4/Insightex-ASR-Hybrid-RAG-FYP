@@ -22,7 +22,7 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
   - M0 environment verification (7 Oct 2026): cold-boot pass, `scripts/verify_env.sh` 12/12 after a full Windows restart with Ollama started by Task Scheduler. State in `docs/ENVIRONMENT.md`, Ollama contract in `docs/adr/0002-ollama-call-contract.md`.
   - M3 link ingestion (6 Oct 2026), moved onto the runner in M1.
 - **Partial:**
-  - M2: the `normalise` stage exists. Local file upload is still to do. **Next: M2, then M4.**
+  - M2 (session 1 of 2 done, 9 Oct 2026): one shared normalise engine (`media/engine.py`, ADR-0036) serves links and files; `insightex ingest-file <path> --confirm-rights [--wait]` ingests a local video; closed error-code set; `audio.wav` is derived from `video.mp4` and A/V sync is tested to one frame. **Still to do (session 2): HTTP upload endpoint, UI, `tools/m2_verify`, the Day 4 run. Then M4.**
   - M6: API, player and `seekTo(seconds)` exist. Ask box and citations are still to do.
 - **Not started:** the ASR stage (M4), production embeddings/FAISS (M5), concept extraction, the graph, the router and answers.
 - Before starting a module, check its open decisions in `docs/BUILD_ORDER.md` ("Pending decisions by module"). Settle them before building.

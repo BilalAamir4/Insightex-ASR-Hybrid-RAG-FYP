@@ -65,6 +65,9 @@ class IngestUrl(_Section):
 class Transcode(_Section):
     preset: str
     crf: int
+    max_height: int
+    audio_bitrate_kbps: int
+    keyframe_interval_s: float
 
 
 class Thumbnail(_Section):
@@ -73,12 +76,39 @@ class Thumbnail(_Section):
     max_bytes: int
 
 
+class Verify(_Section):
+    duration_tolerance_s: float
+    duration_tolerance_frac: float
+    sync_tolerance_s: float
+    av_mismatch_warn_s: float
+
+
+class IngestFile(_Section):
+    keep_original: bool
+    staging_dir: Path
+    staging_max_age_h: float
+    copy_chunk_bytes: int
+
+    @field_validator("staging_dir", mode="after")
+    @classmethod
+    def _local_absolute(cls, v: Path) -> Path:
+        return _local_path(v)
+
+
 class Ingest(_Section):
     url: IngestUrl
     transcode: Transcode
     thumbnail: Thumbnail
+    verify: Verify
+    file: IngestFile
     ffprobe_timeout_s: float
     max_url_length: int
+    min_duration_s: float
+    silence_warn_dbfs: float
+    disk_free_factor: float
+    disk_free_reserve_bytes: int
+    ffmpeg_timeout_factor: float
+    ffmpeg_timeout_min_s: float
 
 
 class Ollama(_Section):
@@ -183,6 +213,10 @@ class Settings(_Section):
                 gpu = data.get("gpu")
                 if isinstance(gpu, dict) and gpu.get("lease_path") is None:
                     data = {**data, "gpu": {**gpu, "lease_path": str(Path(str(jobs["run_dir"])) / "gpu.lock")}}
+                ingest = data.get("ingest")
+                file_cfg = ingest.get("file") if isinstance(ingest, dict) else None
+                if isinstance(file_cfg, dict) and file_cfg.get("staging_dir") is None:
+                    data = {**data, "ingest": {**ingest, "file": {**file_cfg, "staging_dir": str(Path(str(data_dir)) / "staging")}}}
         return data
 
 

@@ -6,6 +6,7 @@ import json
 import logging
 import subprocess
 import tempfile
+import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -20,10 +21,6 @@ FFPROBE = "ffprobe"
 ASR_SAMPLE_RATE = 16000
 ASR_CHANNELS = 1
 ASR_CODEC = "pcm_s16le"
-
-REMUX_PIX_FMTS = {"yuv420p", "yuvj420p"}
-MAX_TRANSCODE_FPS = 60.0
-DEFAULT_FPS = 30.0
 
 # fraction in [0, 1] or None when the total is unknown
 FractionCb = Callable[[float | None], None]
@@ -127,70 +124,13 @@ def _ingest_settings(settings=None):
 def ffprobe(path: Path, settings=None) -> MediaInfo:
     cmd = [FFPROBE, "-v", "error", "-print_format", "json", "-show_format", "-show_streams", str(path)]
     proc = subprocess.run(cmd, capture_output=True, text=True,
-                          timeout=_ingest_settings(settings).ffprobe_timeout_s)
+                          timeout=_ingest_settings(settings).ffprobe_timeout_s, check=False)
     if proc.returncode != 0:
         raise FFmpegError(f"ffprobe failed on {path.name}", proc.stderr[-4000:])
     try:
         return parse_ffprobe_json(json.loads(proc.stdout or "{}"))
     except ValueError as exc:
         raise FFmpegError(f"ffprobe returned invalid JSON for {path.name}", proc.stdout[-2000:]) from exc
-
-
-def decide_processing(info: MediaInfo, max_height: int | None = None) -> str:
-    """"remux" when the file already is H.264 (8-bit 4:2:0) + AAC in an MP4/MOV container within
-    max_height, else "transcode"."""
-    v, a = info.video, info.audio
-    if v is None or a is None:
-        return "transcode"
-    max_height = _ingest_settings().max_video_height if max_height is None else max_height
-    in_mp4 = "mp4" in info.format_name.split(",")
-    display_height = v.width if v.rotation in (90, 270) else v.height
-    ok = (
-        in_mp4
-        and v.codec == "h264"
-        and (v.pix_fmt in REMUX_PIX_FMTS)
-        and display_height <= max_height
-        and a.codec == "aac"
-    )
-    return "remux" if ok else "transcode"
-
-
-def transcode_fps(info: MediaInfo) -> float:
-    fps = info.video.fps if info.video else None
-    if not fps or fps < 1:
-        return DEFAULT_FPS
-    return min(fps, MAX_TRANSCODE_FPS)
-
-
-def remux_args(src: Path, dst: Path) -> list[str]:
-    return [
-        "-i", str(src), "-map", "0:v:0", "-map", "0:a:0", "-sn", "-dn",
-        "-c", "copy", "-movflags", "+faststart", "-f", "mp4", str(dst),
-    ]
-
-
-def transcode_args(src: Path, dst: Path, info: MediaInfo, max_height: int | None = None, settings=None) -> list[str]:
-    cfg = _ingest_settings(settings)
-    max_height = cfg.max_video_height if max_height is None else max_height
-    fps = transcode_fps(info)
-    # ffmpeg auto-rotates on decode, so ih is the displayed height. Even dimensions for yuv420p.
-    vf = f"scale=w=-2:h='trunc(min({max_height},ih)/2)*2',setsar=1"
-    return [
-        "-i", str(src), "-map", "0:v:0", "-map", "0:a:0", "-sn", "-dn",
-        "-vf", vf,
-        # Variable frame rate (phones, OBS) becomes constant: timestamps stay on the wall clock.
-        "-fps_mode", "cfr", "-r", f"{fps:.3f}".rstrip("0").rstrip("."),
-        "-c:v", "libx264", "-preset", cfg.preset, "-crf", str(cfg.crf), "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "128k", "-ac", "2",
-        "-movflags", "+faststart", "-f", "mp4", str(dst),
-    ]
-
-
-def audio_args(src: Path, dst: Path) -> list[str]:
-    return [
-        "-i", str(src), "-map", "0:a:0", "-vn",
-        "-ac", str(ASR_CHANNELS), "-ar", str(ASR_SAMPLE_RATE), "-c:a", ASR_CODEC, "-f", "wav", str(dst),
-    ]
 
 
 def parse_progress_line(line: str, total_s: float | None) -> float | None:
@@ -205,16 +145,32 @@ def parse_progress_line(line: str, total_s: float | None) -> float | None:
     return max(0.0, min(1.0, us / 1_000_000 / total_s))
 
 
+class FFmpegTimeout(FFmpegError):
+    """ffmpeg did not finish within its time limit and was killed."""
+
+
 def run_ffmpeg(
     args: list[str],
     total_s: float | None = None,
     on_fraction: FractionCb | None = None,
     min_interval_s: float = 0.5,
+    timeout_s: float | None = None,
 ) -> None:
+    """Run ffmpeg with an argument list. Raises FFmpegError (FFmpegTimeout after `timeout_s`), with the stderr tail attached."""
     cmd = [FFMPEG, "-hide_banner", "-nostdin", "-y", "-loglevel", "error", "-nostats", "-progress", "pipe:1", *args]
     log.debug("running %s", cmd)
     with tempfile.TemporaryFile(mode="w+") as err:
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=err, text=True)
+        timed_out = threading.Event()
+
+        def _kill() -> None:
+            timed_out.set()
+            proc.kill()
+
+        timer = threading.Timer(timeout_s, _kill) if timeout_s else None
+        if timer:
+            timer.daemon = True
+            timer.start()
         last = 0.0
         assert proc.stdout is not None
         try:
@@ -229,9 +185,15 @@ def run_ffmpeg(
             proc.kill()
             proc.wait()
             raise
+        finally:
+            if timer:
+                timer.cancel()
+        err.seek(0)
+        tail = err.read()[-4000:]
+        if timed_out.is_set():
+            raise FFmpegTimeout(f"ffmpeg timed out after {timeout_s:.0f}s", tail)
         if proc.returncode != 0:
-            err.seek(0)
-            raise FFmpegError(f"ffmpeg exited with {proc.returncode}", err.read()[-4000:])
+            raise FFmpegError(f"ffmpeg exited with {proc.returncode}", tail)
     if on_fraction:
         on_fraction(1.0)
 

@@ -10,13 +10,15 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shutil
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, BinaryIO
 
 import yt_dlp
 
-from insightex.ingest import netguard
-from insightex.ingest.errors import ErrorCode, IngestError
+from insightex.ingest import netguard, staging
+from insightex.ingest.errors import ErrorCode, IngestError, IngestRejected
 from insightex.ingest.probe import SOURCES, check_duration
 from insightex.ingest.settings import IngestSettings
 from insightex.ingest.urls import ParsedUrl, parse_url
@@ -28,14 +30,21 @@ from insightex.jobs.stages import (
     WorkerStopping,
     register_pipeline,
 )
-from insightex.media import ffmpeg
-from insightex.sources.identity import HashingWriter, sha256_file, workspace_id_for_bytes, workspace_id_for_youtube
+from insightex.media import engine
+from insightex.media.engine import NORMALISER_VERSION
+from insightex.sources.identity import (
+    HashingWriter,
+    sha256_file,
+    workspace_id_for_bytes,
+    workspace_id_for_youtube,
+)
 
 log = logging.getLogger(__name__)
 
 SOURCE_NAME, SOURCE_JSON = "source", "source.json"
 VIDEO_NAME, AUDIO_NAME, THUMB_NAME, NORMALISE_JSON = "video.mp4", "audio.wav", "thumbnail.jpg", "normalise.json"
 THUMB_SRC_NAME = "thumbnail.src"
+SOURCE_BLOCK_KEYS = ("kind", "via", "original_filename", "size_bytes", "sha256", "received_at")
 _URL_MAX_LENGTH = 1 << 20  # length limits are enforced at the API; here the URL was already accepted
 
 
@@ -120,6 +129,10 @@ class FetchStage(Stage):
                 (ctx.staging_dir / THUMB_SRC_NAME).unlink(missing_ok=True)
 
         _write_json(ctx.staging_dir / SOURCE_JSON, {
+            "kind": "link",
+            "via": None,
+            "original_filename": None,
+            "received_at": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
             "url": ctx.payload["url"],
             "normalized_url": parsed.normalized_url,
             "source_type": parsed.source_type,
@@ -160,17 +173,21 @@ def _fetch_small(url: str, dst: Path, limit: int, settings: IngestSettings) -> N
 
 
 class NormaliseStage(Stage):
+    """The shared second stage of `ingest_link` and `ingest_file`: a thin wrapper around `media.engine.normalise_media`."""
+
     name = "normalise"
-    version = "1"
+    version = NORMALISER_VERSION
     needs_gpu = False
     outputs = (VIDEO_NAME, AUDIO_NAME, THUMB_NAME, NORMALISE_JSON)
 
     def config_fingerprint(self, ctx: KeyContext) -> dict[str, Any]:
         i = ctx.settings.ingest
         return {
-            "max_video_height": i.url.max_video_height,
             "preset": i.transcode.preset,
             "crf": i.transcode.crf,
+            "max_height": i.transcode.max_height,
+            "audio_bitrate_kbps": i.transcode.audio_bitrate_kbps,
+            "keyframe_interval_s": i.transcode.keyframe_interval_s,
             "thumb_max_width": i.thumbnail.max_width,
             "thumb_quality": i.thumbnail.quality,
         }
@@ -178,89 +195,70 @@ class NormaliseStage(Stage):
     def run(self, ctx: StageContext) -> None:
         cfg = IngestSettings.from_settings(ctx.settings)
         fetched = ctx.upstream["fetch"]
-        source = fetched / SOURCE_NAME
-        out_dir = ctx.staging_dir
-        try:
-            info = ffmpeg.ffprobe(source, cfg)
-        except ffmpeg.FFmpegError as exc:
-            log.warning("ffprobe rejected the source: %s\n%s", exc, exc.stderr)
-            raise IngestError(ErrorCode.NOT_A_VIDEO, "This file couldn't be read as a video.") from exc
-        if info.video is None:
-            raise IngestError(ErrorCode.NOT_A_VIDEO, "This file has no video track.")
-        if info.audio is None:
-            raise IngestError(ErrorCode.NO_AUDIO_STREAM)
-        check_duration(info.duration_s, cfg)
-        ctx.progress(0.0, "Reading video details")
-
-        def stage_progress(lo: float, hi: float, message: str):
-            return lambda frac: ctx.progress(lo + (hi - lo) * (frac or 0.0), message)
-
-        mode = ffmpeg.decide_processing(info, cfg.max_video_height)
-        video = out_dir / VIDEO_NAME
-        try:
-            if mode == "remux":
-                try:
-                    ffmpeg.run_ffmpeg(ffmpeg.remux_args(source, video), info.duration_s,
-                                      stage_progress(0.0, 0.8, "Copying video"))
-                except ffmpeg.FFmpegError as exc:
-                    log.warning("remux failed, falling back to transcode: %s\n%s", exc, exc.stderr)
-                    mode = "transcode"
-            if mode == "transcode":
-                ffmpeg.run_ffmpeg(ffmpeg.transcode_args(source, video, info, cfg.max_video_height, cfg),
-                                  info.duration_s, stage_progress(0.0, 0.8, "Converting video"))
-            out = ffmpeg.ffprobe(video, cfg)
-        except ffmpeg.FFmpegError as exc:
-            log.error("transcode failed: %s\n%s", exc, exc.stderr)
-            raise IngestError(ErrorCode.TRANSCODE_FAILED) from exc
-        if out.video is None or out.audio is None:
-            raise IngestError(ErrorCode.TRANSCODE_FAILED)
-
-        # Audio comes from video.mp4, so ASR timestamps share the player's timeline.
-        audio = out_dir / AUDIO_NAME
-        try:
-            ffmpeg.run_ffmpeg(ffmpeg.audio_args(video, audio), out.duration_s,
-                              stage_progress(0.8, 0.95, "Extracting audio for transcription"))
-            wav = ffmpeg.ffprobe(audio, cfg)
-        except ffmpeg.FFmpegError as exc:
-            log.error("audio extraction failed: %s\n%s", exc, exc.stderr)
-            raise IngestError(ErrorCode.TRANSCODE_FAILED) from exc
-        if (wav.audio is None or wav.audio.sample_rate != ffmpeg.ASR_SAMPLE_RATE
-                or wav.audio.channels != ffmpeg.ASR_CHANNELS):
-            raise IngestError(ErrorCode.TRANSCODE_FAILED)
-
-        ctx.progress(0.95, "Saving thumbnail")
-        self._thumbnail(video, fetched / THUMB_SRC_NAME, out_dir / THUMB_NAME, out.duration_s, cfg)
-        _write_json(out_dir / NORMALISE_JSON, {
-            "decision": mode,
-            "duration_s": round(out.duration_s, 3) if out.duration_s else None,
-            "source": {
-                "codec": info.video.codec, "width": info.video.width, "height": info.video.height,
-                "fps": round(info.video.fps, 3) if info.video.fps else None, "container": info.format_name,
-            },
-            "video": {
-                "codec": out.video.codec, "width": out.video.width, "height": out.video.height,
-                "fps": round(out.video.fps, 3) if out.video.fps else None,
-            },
-            "audio": {"sample_rate": ffmpeg.ASR_SAMPLE_RATE, "channels": ffmpeg.ASR_CHANNELS, "codec": ffmpeg.ASR_CODEC},
+        source_info = _read_json(fetched / SOURCE_JSON)
+        record = engine.normalise_media(
+            fetched / SOURCE_NAME, ctx.staging_dir, cfg,
+            max_bytes=cfg.max_download_bytes, thumbnail_src=fetched / THUMB_SRC_NAME, progress=ctx.progress,
+        )
+        _write_json(ctx.staging_dir / NORMALISE_JSON, {
+            "schema": 2,
+            "duration_s": record["verify"]["video_mp4_duration_s"],
+            "source": {k: source_info.get(k) for k in SOURCE_BLOCK_KEYS},
+            **record,
         })
-        ctx.progress(1.0, "Done")
 
-    @staticmethod
-    def _thumbnail(video: Path, source_image: Path, dst: Path, duration_s: float | None, cfg: IngestSettings) -> None:
-        """Source thumbnail if fetch saved one, else a frame at 10% of the duration."""
-        if source_image.is_file():
-            try:
-                ffmpeg.image_to_jpeg(source_image, dst, cfg)
-                return
-            except (ffmpeg.FFmpegError, OSError) as exc:
-                log.info("source thumbnail unusable (%s); using a video frame", exc)
+    def after_stage(self, ctx: KeyContext, upstream: dict[str, Path]) -> None:
+        """An uploaded original is deleted once `video.mp4` is published, unless ingest.file.keep_original (ADR-0036).
+
+        A link's `source` is kept (ADR-0035): it cannot be re-fetched cheaply. Idempotent.
+        """
+        fetched = upstream.get("fetch")
+        if fetched is None or ctx.settings.ingest.file.keep_original:
+            return
+        if _read_json(fetched / SOURCE_JSON).get("kind") == "upload":
+            (fetched / SOURCE_NAME).unlink(missing_ok=True)
+
+
+class UploadFetchStage(Stage):
+    """First stage of `ingest_file`: adopt the staged copy (hard link, else copy) as this workspace's `source`."""
+
+    name = "fetch"
+    version = "1"
+    needs_gpu = False
+    outputs = (SOURCE_NAME, SOURCE_JSON)
+
+    def config_fingerprint(self, ctx: KeyContext) -> dict[str, Any]:
+        return {"sha256": ctx.payload["sha256"]}
+
+    def run(self, ctx: StageContext) -> None:
+        staged = staging.staged_path(ctx.settings, ctx.payload["staged"])
+        if not staged.is_file():
+            raise FileNotFoundError(f"staged copy {staged.name} is missing")
+        dst = ctx.staging_dir / SOURCE_NAME
         try:
-            ffmpeg.extract_frame_jpeg(video, dst, (duration_s or 0) * 0.10, cfg)
-        except ffmpeg.FFmpegError as exc:
-            log.warning("thumbnail frame extraction failed: %s\n%s", exc, exc.stderr)
-            raise IngestError(ErrorCode.TRANSCODE_FAILED, "A thumbnail couldn't be created.") from exc
-        if not dst.is_file():
-            raise IngestError(ErrorCode.TRANSCODE_FAILED, "A thumbnail couldn't be created.")
+            os.link(staged, dst)  # the staged copy is deleted in after_stage, once this stage is published
+        except OSError:
+            shutil.copyfile(staged, dst)
+        ctx.progress(0.5, "Received file")
+        _write_json(ctx.staging_dir / SOURCE_JSON, {
+            "kind": "upload",
+            "via": ctx.payload.get("via"),
+            "source_type": "upload",
+            "original_filename": ctx.payload.get("original_filename"),
+            "title": _display_title(ctx.payload.get("original_filename")),
+            "size_bytes": ctx.payload["size_bytes"],
+            "sha256": ctx.payload["sha256"],
+            "received_at": ctx.payload.get("received_at"),
+            "url": None, "normalized_url": None, "uploader": None, "duration_s": None, "ext": None, "downloader": None,
+            "external_timestamp_url_template": None,
+        })
+
+    def after_stage(self, ctx: KeyContext, upstream: dict[str, Path]) -> None:
+        staging.remove_staged(ctx.settings, ctx.payload["staged"])
+
+
+def _display_title(filename: str | None) -> str | None:
+    return Path(filename).stem or filename if filename else None
 
 
 def source_for(payload: dict[str, Any]) -> tuple[str, str]:
@@ -279,4 +277,25 @@ def chain_root(payload: dict[str, Any], workspace_id: str) -> str:
     return workspace_id_for_youtube(parsed.media_id) if parsed.source_type == "youtube" else parsed.normalized_url
 
 
+def file_source_for(payload: dict[str, Any]) -> tuple[str, str]:
+    """Cache-index source of an `ingest_file` job: ("upload", the display name or the content hash)."""
+    return "upload", payload.get("original_filename") or payload["sha256"]
+
+
+def reject_cleanup(conn, workspaces, job, settings, exc: BaseException) -> None:
+    """A rejected upload leaves nothing behind: no staged copy, no workspace, no cache row.
+
+    A workspace that already holds a finished `normalise` (re-normalising an older lecture) is left alone.
+    Internal errors keep the staged copy so the job can be retried.
+    """
+    if not isinstance(exc, IngestRejected):
+        return
+    staging.remove_staged(settings, job.payload.get("staged", ""))
+    if workspaces.stage_output_dir(job.workspace_id, "normalise") is None:
+        shutil.rmtree(workspaces.path(job.workspace_id), ignore_errors=True)
+        conn.execute("DELETE FROM workspaces WHERE id = ?", (job.workspace_id,))
+
+
 register_pipeline("ingest_link", [FetchStage(), NormaliseStage()], source_for=source_for, chain_root=chain_root)
+register_pipeline("ingest_file", [UploadFetchStage(), NormaliseStage()], source_for=file_source_for,
+                  on_failure=reject_cleanup)

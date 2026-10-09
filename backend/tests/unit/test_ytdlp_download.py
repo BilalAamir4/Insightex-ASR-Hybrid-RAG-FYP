@@ -54,7 +54,7 @@ class _NoLengthHandler(http.server.BaseHTTPRequestHandler):
 
     body = b""
 
-    def do_GET(self):  # noqa: N802
+    def do_GET(self):
         self.send_response(200)
         self.send_header("Content-Type", "video/mp4")
         self.end_headers()

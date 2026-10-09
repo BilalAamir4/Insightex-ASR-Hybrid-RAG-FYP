@@ -10,6 +10,9 @@ description = "Timestamp-grounded knowledge base for code-switched (Urdu + Engli
 requires-python = ">=3.12"
 dependencies = ["fastapi", "httpx", "pydantic>=2", "pymupdf", "PyYAML", "uvicorn", "yt-dlp"]
 
+[project.optional-dependencies]
+dev = ["ruff==0.16.10"]  # pinned so lint results are reproducible; also pinned in requirements.lock.txt
+
 [project.scripts]
 insightex = "insightex.cli:main"
 
@@ -28,6 +31,7 @@ pythonpath = ["backend/src"]
 markers = [
     "network: needs internet access and real URLs (skipped by default)",
     "slow: spawns real worker processes and kills them; takes several seconds",
+    "media: builds synthetic clips with ffmpeg and runs the real normalise engine (run alone: pytest -m media)",
     "real_env: opts out of the autouse settings isolation in backend/tests/conftest.py",
 ]
 addopts = "-m 'not network'"
