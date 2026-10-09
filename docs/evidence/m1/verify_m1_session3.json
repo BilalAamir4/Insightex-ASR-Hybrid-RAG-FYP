@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-10-08T21:33:09Z",
+  "git_commit": "78f049caab14459eaf457275e489c66ea1f72f56",
+  "checks": [
+    {
+      "name": "Ollama model loaded before the run",
+      "status": "pass",
+      "evidence": "qwen3.5:latest in /api/ps: True"
+    },
+    {
+      "name": "enqueue-dummy returns a job id",
+      "status": "pass",
+      "evidence": "job 71f4d28dd9a34bbcaf27fd2ae2ee49fd"
+    },
+    {
+      "name": "worker claims the job; dummy_cpu succeeded",
+      "status": "pass",
+      "evidence": "worker pid 78644, dummy_cpu=succeeded"
+    },
+    {
+      "name": "lease is held while dummy_gpu runs",
+      "status": "pass",
+      "evidence": "non-blocking flock(LOCK_EX) failed; gpu status: busy, holder {'pid': 78644, 'mode': 'exclusive', 'purpose': '71f4d28dd9a34bbcaf27fd2ae2ee49fd:dummy_gpu', 'acquired_at': '2026-10-08T21:32:47.366Z'}"
+    },
+    {
+      "name": "Ollama model unloaded while dummy_gpu holds the lease",
+      "status": "pass",
+      "evidence": "qwen3.5:latest in /api/ps: False"
+    },
+    {
+      "name": "after SIGKILL: job row still running, lease free",
+      "status": "pass",
+      "evidence": "job status running; flock acquired and released: True"
+    },
+    {
+      "name": "recovered job succeeded with dummy_cpu cached, attempts 2",
+      "status": "pass",
+      "evidence": "status succeeded, stages {'dummy_cpu': 'cached', 'dummy_gpu': 'succeeded'}, attempts 2"
+    },
+    {
+      "name": "no .staging entries remain",
+      "status": "pass",
+      "evidence": "0 entries in /home/bilal_aamir/insightex-data/workspaces/dummy-75156328/.staging"
+    },
+    {
+      "name": "worker stops on SIGTERM with exit 0",
+      "status": "pass",
+      "evidence": "exit code 0"
+    },
+    {
+      "name": "dummy workspace deleted with cache delete",
+      "status": "pass",
+      "evidence": "cache delete dummy-75156328: exit 0, deleted"
+    }
+  ],
+  "passed": 10,
+  "total": 10,
+  "all_passed": true
+}
