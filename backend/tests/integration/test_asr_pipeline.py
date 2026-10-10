@@ -47,3 +47,23 @@ def test_second_language_wins_and_one_transcript_stays_current(media, fake_asr):
     with TestClient(create_app(settings)) as client:
         lecture = client.get(f"/api/lectures/{first.workspace_id}").json()
     assert lecture["language"] == {"id": "english", "label": "English", "tier": "untested"}
+
+
+def test_upload_resumes_after_an_interruption_during_asr(media, fake_asr):
+    """normalise deletes the uploaded original (ADR-0036); a crash in asr must not strand the job."""
+    from insightex.ingest.file_jobs import enqueue_file
+    from insightex.jobs import store
+    from insightex.jobs.runner import run_job
+    from insightex.jobs.stages import WorkerStopping
+
+    settings = get_settings()
+    conn = open_db(settings)
+    result = enqueue_file(conn, settings, media["h264_aac_mp4"], language="hindi")
+    fake_asr[0].error = WorkerStopping()  # the worker is told to stop while ASR runs
+    ws = Workspaces(settings.jobs.workspaces_dir)
+    assert run_job(conn, store.claim_next(conn, 1), settings, ws) == "queued"
+    assert not (ws.stage_output_dir(result.workspace_id, "fetch") / "source").exists()  # consumed by normalise
+    fake_asr[0].error = None
+    assert run_job(conn, store.claim_next(conn, 1), settings, ws) == "succeeded"
+    job = store.get_job(conn, result.job_id)
+    assert [s.status for s in job.stages] == ["cached", "cached", "succeeded"], [s.error for s in job.stages]

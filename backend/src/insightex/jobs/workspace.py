@@ -153,6 +153,11 @@ class Workspaces:
         directory = self.stage_dir(workspace_id, stage_name, stage_key)
         return all((directory / name).exists() for name in outputs)
 
+    def stage_recorded(self, workspace_id: str, stage_name: str, stage_key: str) -> bool:
+        """True if the manifest holds this stage at this key (whether or not every output file still exists)."""
+        entry = self.read_manifest(workspace_id)["stages"].get(stage_name)
+        return bool(entry) and entry.get("key") == stage_key and self.stage_dir(workspace_id, stage_name, stage_key).is_dir()
+
     def stage_output_dir(self, workspace_id: str, stage_name: str) -> Path | None:
         """Directory of the stage's current completed outputs, or None if it has not completed.
 

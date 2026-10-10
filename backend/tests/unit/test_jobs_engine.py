@@ -248,6 +248,39 @@ def test_retry_after_failure_in_stage_two_shows_stage_one_cached(env):
     assert retried.attempts == 1
 
 
+class _Consumer(_Writer):
+    """Deletes the first stage's output once published, as normalise deletes an uploaded original."""
+
+    def after_stage(self, ctx, upstream):
+        (upstream["first"] / "out.txt").unlink(missing_ok=True)
+
+
+def test_stage_whose_output_a_later_hook_consumed_counts_as_cached_when_the_next_stage_is_done(env):
+    _, conn, ws = env
+    state = {"fail": True}
+    register_pipeline("consumed_by_next", [_Writer("first", "1"), _Consumer("second", "1"),
+                                   _Writer("third", "1", fail_when=lambda: state["fail"])], replace=True)
+    job_id = store.enqueue(conn, "consumed_by_next", {}, "ws1")
+    run_next(env)
+    assert not (ws.stage_output_dir("ws1", "first") / "out.txt").exists()  # consumed
+    state["fail"] = False
+    store.retry(conn, job_id)
+    _, status = run_next(env)
+    assert status == "succeeded"
+    assert [s.status for s in store.get_job(conn, job_id).stages] == ["cached", "cached", "succeeded"]
+
+
+def test_consumed_stage_reruns_when_the_next_stage_must_rerun(env):
+    _, conn, _ = env
+    register_pipeline("consumed_rerun", [_Writer("first", "1"), _Consumer("second", "1", fingerprint_key="v")], replace=True)
+    store.enqueue(conn, "consumed_rerun", {"v": 1}, "ws1")
+    run_next(env)
+    store.enqueue(conn, "consumed_rerun", {"v": 2}, "ws1")  # second's key changes: first must produce its output again
+    job, status = run_next(env)
+    assert status == "succeeded"
+    assert [s.status for s in store.get_job(conn, job.id).stages] == ["succeeded", "succeeded"]
+
+
 def test_stage_missing_a_declared_output_fails_and_moves_nothing(env):
     settings, conn, ws = env
     register_pipeline("forgetful", [_Writer("only", "1", write=False)])

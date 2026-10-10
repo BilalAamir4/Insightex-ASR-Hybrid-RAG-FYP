@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import fcntl
 import hashlib
+import http.client
 import itertools
 import json
 import os
@@ -126,12 +127,29 @@ class System:
     def post_json(self, path: str, body: dict) -> tuple[int, dict | None]:
         return self._req("POST", path, json.dumps(body).encode(), {"Content-Type": "application/json"})
 
-    def upload(self, path: Path, language: str | None) -> tuple[int, dict | None]:
-        headers = {"Content-Type": "application/octet-stream", "X-Insightex-Rights-Confirmed": "true",
-                   "X-Insightex-Filename": path.name, "Content-Length": str(path.stat().st_size)}
-        if language is not None:
-            headers["X-Insightex-Language"] = language
-        return self._req("POST", "/api/ingest/upload", path.read_bytes(), headers)
+    def upload_refused(self, path: Path, language: str | None) -> tuple[int, dict | None]:
+        """Send only the upload's headers and read the answer. The server checks the language before reading any body
+        byte and closes the connection, so a client that sends the body sees a reset instead of the 400."""
+        conn = http.client.HTTPConnection("127.0.0.1", self.args.port, timeout=30)
+        try:
+            conn.putrequest("POST", "/api/ingest/upload")
+            headers = {"Content-Type": "application/octet-stream", "X-Insightex-Rights-Confirmed": "true",
+                       "X-Insightex-Filename": path.name, "Content-Length": str(path.stat().st_size)}
+            if language is not None:
+                headers["X-Insightex-Language"] = language
+            for k, v in headers.items():
+                conn.putheader(k, v)
+            conn.endheaders()
+            resp = conn.getresponse()
+            body = resp.read()
+            try:
+                return resp.status, json.loads(body or b"null")
+            except ValueError:
+                return resp.status, None
+        except (OSError, http.client.HTTPException):
+            return 0, None
+        finally:
+            conn.close()
 
     def _req(self, method: str, path: str, data: bytes | None = None, headers: dict | None = None):
         req = urllib.request.Request(self.base + path, data=data, method=method, headers=headers or {})
@@ -330,9 +348,9 @@ def run(args: argparse.Namespace, sysm: System, tmp: Path) -> None:
                                                "language": "klingon"})
     checks.append(("link, klingon", s, (b or {}).get("error", {}).get("code"), "UNKNOWN_LANGUAGE"))
     unknown_msg = (b or {}).get("error", {}).get("message", "")
-    s, b = sysm.upload(clip, None)
+    s, b = sysm.upload_refused(clip, None)
     checks.append(("upload, no language", s, (b or {}).get("error", {}).get("code"), "MISSING_LANGUAGE"))
-    s, b = sysm.upload(clip, "klingon")
+    s, b = sysm.upload_refused(clip, "klingon")
     checks.append(("upload, klingon", s, (b or {}).get("error", {}).get("code"), "UNKNOWN_LANGUAGE"))
     rc, out = sysm.ingest_file(clip, None)
     checks.append(("CLI, no --language", 400 if rc == 2 else rc, out.get("error", {}).get("code"), "MISSING_LANGUAGE"))
