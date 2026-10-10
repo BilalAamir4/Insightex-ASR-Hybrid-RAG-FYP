@@ -187,6 +187,90 @@ class Cache(_Section):
     max_bytes: int
 
 
+class VadParameters(_Section):
+    threshold: float
+    neg_threshold: float | None
+    min_speech_duration_ms: int
+    max_speech_duration_s: float
+    min_silence_duration_ms: int
+    speech_pad_ms: int
+
+
+class Transcribe(_Section):
+    """Every keyword argument of `WhisperModel.transcribe` except `language` (ADR-0042). Defaults: the M4 gate."""
+
+    task: str
+    beam_size: int
+    best_of: int
+    patience: float
+    length_penalty: float
+    repetition_penalty: float
+    no_repeat_ngram_size: int
+    temperature: list[float]
+    compression_ratio_threshold: float | None
+    log_prob_threshold: float | None
+    no_speech_threshold: float | None
+    condition_on_previous_text: bool
+    prompt_reset_on_temperature: float
+    initial_prompt: str | None
+    prefix: str | None
+    suppress_blank: bool
+    suppress_tokens: list[int] | None
+    without_timestamps: bool
+    max_initial_timestamp: float
+    word_timestamps: bool
+    prepend_punctuations: str
+    append_punctuations: str
+    multilingual: bool
+    max_new_tokens: int | None
+    chunk_length: int | None
+    clip_timestamps: str | list[float]
+    hallucination_silence_threshold: float | None
+    hotwords: str | None
+    language_detection_threshold: float | None
+    language_detection_segments: int
+    log_progress: bool
+    vad_filter: bool
+    vad_parameters: VadParameters
+
+    @field_validator("task")
+    @classmethod
+    def _transcribe_only(cls, v: str) -> str:
+        if v != "transcribe":
+            raise ValueError("task must be 'transcribe'; transcripts stay in the spoken language (ADR-0041)")
+        return v
+
+
+class Asr(_Section):
+    """ASR stage (ADR-0042). `languages_file` is resolved against the repo root when relative."""
+
+    languages_file: Path
+    model: str
+    model_repo: str
+    model_revision: str
+    device: str
+    device_index: int
+    compute_type: str
+    cpu_threads: int
+    num_workers: int
+    min_free_vram_mib: int
+    timeout_min_s: float
+    timeout_factor: float
+    kill_grace_s: float
+    vram_poll_interval_s: float
+    progress_min_interval_s: float
+    progress_min_step: float
+    empty_min_duration_s: float
+    warn_compression_ratio: float
+    transcribe: Transcribe
+
+    @field_validator("languages_file", mode="after")
+    @classmethod
+    def _under_repo(cls, v: Path) -> Path:
+        v = Path(os.path.expandvars(str(v))).expanduser()
+        return v if v.is_absolute() else repo_root() / v
+
+
 class Settings(_Section):
     paths: Paths
     api: Api
@@ -197,6 +281,7 @@ class Settings(_Section):
     gpu: Gpu
     sources: Sources
     cache: Cache
+    asr: Asr
 
     @model_validator(mode="before")
     @classmethod

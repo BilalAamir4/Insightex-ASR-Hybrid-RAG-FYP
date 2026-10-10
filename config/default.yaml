@@ -92,3 +92,63 @@ sources:                            # source identity: docs/adr/0034-*.md
 
 cache:                              # workspace cache: docs/adr/0034-*.md
   max_bytes: 42949672960            # bytes (40 GiB); least-recently-accessed unpinned workspaces are evicted above this
+
+asr:                                # ASR stage (M4 session 2): docs/adr/0042-*.md. Whisper options are the M4 gate's (ADR-0039)
+  languages_file: config/languages.yaml  # selectable lecture languages (ADR-0040); relative paths are under the repo root
+  model: large-v3                   # Whisper checkpoint name, recorded in transcript.json
+  model_repo: Systran/faster-whisper-large-v3  # Hugging Face repo of the CTranslate2 model, loaded from the offline cache only
+  model_revision: edaa852ec7e145841d8ffdb056a99866b5f0a478  # HF snapshot hash to load; pinned so a cache update cannot change outputs
+  device: cuda                      # CTranslate2 device
+  device_index: 0                   # GPU index
+  compute_type: float16             # CTranslate2 compute type
+  cpu_threads: 0                    # CTranslate2 CPU threads (0 = library default)
+  num_workers: 1                    # CTranslate2 workers per model
+  min_free_vram_mib: 5500           # MiB; free VRAM (nvidia-smi) required before the subprocess starts, else INSUFFICIENT_VRAM
+  timeout_min_s: 600                # seconds; lower bound of the transcription subprocess timeout
+  timeout_factor: 1.0               # multiple of the audio duration allowed for the subprocess (timeout = max(min, factor x duration))
+  kill_grace_s: 5                   # seconds between SIGTERM and SIGKILL when the subprocess is stopped
+  vram_poll_interval_s: 1.0         # seconds between nvidia-smi reads for the peak-VRAM statistic
+  progress_min_interval_s: 2        # seconds; a progress update needs at least this much time since the last one
+  progress_min_step: 0.02           # fraction (2 percentage points); a progress update also needs at least this much progress
+  empty_min_duration_s: 30          # seconds; an empty transcript fails the stage only for audio longer than this
+  warn_compression_ratio: 2.4       # segments with a higher compression ratio get the HIGH_COMPRESSION_RATIO warning
+  transcribe:                       # every option passed to WhisperModel.transcribe except `language`; gate values, library defaults made explicit
+    task: transcribe                # never translate
+    beam_size: 5                    # beam width
+    best_of: 5                      # candidates when sampling at temperature > 0
+    patience: 1.0                   # beam search patience factor
+    length_penalty: 1.0             # exponential length penalty
+    repetition_penalty: 1.0         # penalty on repeated tokens (1 = none)
+    no_repeat_ngram_size: 0         # tokens; 0 = no n-gram blocking
+    temperature: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]  # fallback temperatures, tried in order when a segment fails the thresholds below
+    compression_ratio_threshold: 2.4  # gzip ratio above which a segment is retried at the next temperature
+    log_prob_threshold: -1.0        # average log probability below which a segment is retried
+    no_speech_threshold: 0.6        # probability above which a silent-looking segment is skipped
+    condition_on_previous_text: true  # feed the previous segment's text as the prompt
+    prompt_reset_on_temperature: 0.5  # temperature above which the prompt is reset
+    initial_prompt: null            # text prompt for the first window
+    prefix: null                    # forced prefix of the first window
+    suppress_blank: true            # suppress a blank first token
+    suppress_tokens: [-1]           # token ids to suppress; -1 = the model's default set
+    without_timestamps: false       # sample timestamp tokens
+    max_initial_timestamp: 1.0      # seconds; latest allowed first timestamp
+    word_timestamps: true           # per-word start/end/probability
+    prepend_punctuations: "\"'“¿([{-"  # merged into the next word when word_timestamps
+    append_punctuations: "\"'.。,，!！?？:：”)]}、"  # merged into the previous word when word_timestamps
+    multilingual: false             # per-segment language detection off
+    max_new_tokens: null            # tokens per window; null = model limit
+    chunk_length: null              # seconds per window; null = the feature extractor's 30 s
+    clip_timestamps: "0"            # seconds; "0" = the whole file
+    hallucination_silence_threshold: null  # seconds; null = off
+    hotwords: null                  # hint words; null = none
+    language_detection_threshold: 0.5  # unused when the language is set; pinned anyway
+    language_detection_segments: 1  # unused when the language is set; pinned anyway
+    log_progress: false             # library progress bar off
+    vad_filter: true                # Silero VAD removes non-speech before decoding
+    vad_parameters:
+      threshold: 0.5                # speech probability threshold
+      neg_threshold: null           # silence threshold; null = threshold - 0.15
+      min_speech_duration_ms: 0     # milliseconds; shorter speech chunks are dropped
+      max_speech_duration_s: .inf   # seconds; longer chunks are split (.inf = never; stored as "inf" in JSON)
+      min_silence_duration_ms: 2000  # milliseconds of silence that end a speech chunk
+      speech_pad_ms: 400            # milliseconds of padding around each speech chunk
