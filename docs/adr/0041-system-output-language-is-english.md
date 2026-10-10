@@ -1,6 +1,6 @@
 # ADR-0041: System output language is English
 
-Status: Proposed
+Status: Accepted
 Date decided: 2026-10-10
 Date recorded: 2026-10-10
 Module: Project
@@ -42,5 +42,7 @@ Lectures are spoken in Hindi, Urdu, English or a mix, and since ADR-0040 the spo
 - No measurement yet for the open questions; they are gates for M5, M7 and M11.
 
 ## Gate / revisit when
+
+Accepted 2026-10-10: the M4 session 2 verification passed (`tools/m4_verify` 12/12, `docs/evidence/m4/`) and the manual checklist was approved. The conditions below were the acceptance gate; the revisit triggers still apply.
 
 Accepted together with ADR-0040 and ADR-0042 when the M4 session 2 manual checklist is approved. Revisit if M5 Test A shows English questions fail to retrieve native-script windows (then per-window translation is evaluated), if M7 shows the LLM cannot read the transcripts, or if the supervisor requires output in Urdu.

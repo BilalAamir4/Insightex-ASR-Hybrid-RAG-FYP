@@ -1,6 +1,6 @@
 # ADR-0040: Lecture language selection and Whisper language mapping
 
-Status: Proposed
+Status: Accepted
 Date decided: 2026-10-10
 Date recorded: 2026-10-10
 Module: M4
@@ -45,5 +45,7 @@ ADR-0039 chose `language="ur"` from a gate on one lecture, Day 4. Day 4 is Hindi
 - End-to-end check: `tools/m4_verify` (checks 1, 11, 12) and `docs/evidence/m4/`.
 
 ## Gate / revisit when
+
+Accepted 2026-10-10: the M4 session 2 verification passed (`tools/m4_verify` 12/12, `docs/evidence/m4/`) and the manual checklist was approved. The conditions below were the acceptance gate; the revisit triggers still apply.
 
 Accepted when the M4 session 2 verification passes (`tools/m4_verify` checks 1, 11 and 12) and the human completes `docs/evidence/m4/manual_checklist.md` (dropdown, groups, badge). Revisit a language's tier whenever its promotion gate is run; revisit the whole design if auto-detect is re-measured and passes the dropped-speech rule.

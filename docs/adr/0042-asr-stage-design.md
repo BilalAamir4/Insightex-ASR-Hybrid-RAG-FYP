@@ -1,6 +1,6 @@
 # ADR-0042: ASR stage design
 
-Status: Proposed
+Status: Accepted
 Date decided: 2026-10-10
 Date recorded: 2026-10-10
 Module: M4
@@ -53,5 +53,7 @@ Each decision with its reason:
 - Verification: `tools/m4_verify` results in `docs/evidence/m4/`.
 
 ## Gate / revisit when
+
+Accepted 2026-10-10: the M4 session 2 verification passed (`tools/m4_verify` 12/12, `docs/evidence/m4/`) and the manual checklist was approved. The conditions below were the acceptance gate; the revisit triggers still apply.
 
 Accepted when all twelve `tools/m4_verify` checks pass (check 4 may WARN only with an explained audio difference), `tools/m1_verify` and `tools/m2_verify` still pass, and the human approves `docs/evidence/m4/manual_checklist.md`. Revisit when a second lecture is gated, when faster-whisper is upgraded, or when Q&A (M11) starts using the GPU while lectures are being ingested.
