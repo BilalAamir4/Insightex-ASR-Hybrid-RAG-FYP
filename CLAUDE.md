@@ -15,8 +15,9 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
 
 ## Current state (update this block at every milestone)
 
-- **Phase 0 (Foundation) complete; M1, M2 and M3 complete; Phase 1 continues with M4 (ASR stage + WER gate).** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
+- **Phase 0 (Foundation) complete; M1 to M4 complete; Phase 1 continues with M5 (windows, embeddings, FAISS).** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
 - **Done:**
+  - M4 ASR stage (10 Oct 2026): `asr` runs after `normalise` in both ingest pipelines. Whisper large-v3 runs in a subprocess per job under the GPU lease and writes `transcript.json` and `transcript.vtt` (schema `docs/contracts/transcript.schema.json`; the VTT is a developer check only). **Every submission needs a language** (CLI `--language`, link API `language`, upload header `X-Insightex-Language`, a required dropdown): chosen per lecture from `config/languages.yaml`, no default, no auto-detect (ADR-0040). Hindi (Whisper code `ur`, evidence ADR-0039) is the only tested language; all others are untested and shown with an "Untested language" badge; untested lectures are excluded from thesis evaluation numbers. Users read English only; transcripts are internal and never shown (ADR-0041). Stage design: ADR-0042. `tools/m4_verify` 12/12 (Day 4: 351 segments identical to the gate, RTF 0.113, peak 4,523 MiB above baseline); evidence `docs/evidence/m4/`.
   - M2 upload ingestion (10 Oct 2026): `insightex ingest-file` (CLI) and `POST /api/ingest/upload` (raw streamed body, ADR-0037) feed one shared normalisation engine (`normalise_media`, `NORMALISER_VERSION` 4) that link ingestion also uses. Validation and the closed error-code table are in ADR-0036. The A/V sync invariant is in ADR-0038 (see "Decisions already made"). `tools/m2_verify` 13/13 on the Day 4 lecture; the by-hand browser checklist passed after the ADR-0038 fix. Evidence: `docs/evidence/m2/`.
   - M1 core (9 Oct 2026): SQLite job queue + single worker with crash recovery and resume, GPU lease, workspaces with chained stage keys and a cache index with eviction (ADR-0033 to ADR-0035). Link ingestion runs on the runner as the `ingest_link` pipeline (`fetch`, `normalise`); the API exposes jobs, Server-Sent Events progress, the library and delete (`docs/contracts/api.md`). One job system, one workspace layout (`$INSIGHTEX_DATA/workspaces/`). Lectures in the old `lectures/` folder are not read and must be re-ingested. Evidence: `docs/evidence/m1/`.
   - M0b repo scaffold, typed config and decision log (8 Oct 2026): `config/default.yaml`, `insightex config show|validate`, commit-msg hook, ADRs in `docs/adr/` (decision log: `docs/adr/README.md`), textbook chosen (ADR-0029: Géron, Hands-On Machine Learning, 2nd Edition). Repo and tag `import-baseline` exist.
@@ -24,19 +25,19 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
   - M3 link ingestion (6 Oct 2026), moved onto the runner in M1.
 - **Partial:**
   - M6: API, player, upload form and `seekTo(seconds)` exist. Ask box and citations are still to do.
-- **Not started:** the ASR stage (M4), production embeddings/FAISS (M5), concept extraction, the graph, the router and answers.
-- **Before M4's WER gate:** re-ingest the eval lectures through normaliser v4. Older `audio.wav` files predate the start-offset padding, so their timings may be shifted.
+- **Not started:** production embeddings/FAISS (M5), concept extraction, the graph, the router and answers.
+- **Before any further WER gate (language promotion, ADR-0040):** re-ingest the eval lectures through normaliser v4. Older `audio.wav` files predate the start-offset padding, so their timings may be shifted. Lectures added before M4 session 2 have no transcript and show "Not transcribed"; add them again with a language.
 - Before starting a module, check its open decisions in `docs/BUILD_ORDER.md` ("Pending decisions by module"). Settle them before building.
 
 ## Pipeline (target)
 
 Each stage runs as its own process (see the GPU contract below).
 
-ingest (URL or upload) → ffmpeg normalise → faster-whisper ASR → 30 s windows → BGE-M3 dense + sparse → FAISS `IndexFlatIP`
+ingest (URL or upload, with the lecture's language) → fetch → ffmpeg normalise → asr (faster-whisper) → 30 s windows → BGE-M3 dense + sparse → FAISS `IndexFlatIP`
                                                         ↘ Ollama concept extraction (JSON Schema) → canonicalise → NetworkX graph
 query → router (graph-first on known concept labels, otherwise vector or merge) → grounded answer with validated citations → `seekTo(seconds)`
 
-Per-video workspace: `$INSIGHTEX_DATA/workspaces/<workspace_id>/` (`yt-<id>` or `sha256-<32 hex>`), with `manifest.json` and `stages/<stage>/<key>/` per completed stage (`video.mp4`, `audio.wav`, `thumbnail.jpg` and `normalise.json` come from `normalise`; `source.json` describes the source). Later stages add their outputs here; find files with `Workspaces.stage_output_dir`.
+Per-video workspace: `$INSIGHTEX_DATA/workspaces/<workspace_id>/` (`yt-<id>` or `sha256-<32 hex>`), with `manifest.json` and `stages/<stage>/<key>/` per completed stage (`video.mp4`, `audio.wav`, `thumbnail.jpg` and `normalise.json` come from `normalise`; `source.json` describes the source). Later stages add their outputs here; `asr` adds `transcript.json` (the source of truth) and `transcript.vtt`. Find files with `Workspaces.stage_output_dir`.
 
 ## Commands
 
@@ -48,7 +49,7 @@ bash ~/insightex/scripts/run_in_env.sh python <script.py> ...
 # Worker (background) + API + UI together (binds 127.0.0.1:8000; host/port from `api:` in config/default.yaml)
 bash ~/insightex/scripts/dev_run.sh
 # The worker is a separate process: `insightex worker`; `insightex gpu status`, `insightex cache list|pin|delete|gc`, `insightex jobs list|show`
-# Ingest a local file: `insightex ingest-file <path> --confirm-rights [--wait]` (exit 0 ok/deduplicated, 2 rejected, 1 internal error)
+# Ingest a local file: `insightex ingest-file <path> --confirm-rights --language <id> [--wait]` (exit 0 ok/deduplicated, 2 rejected, 1 internal error); ids: `insightex languages list`
 # API alone (jobs only run while a worker runs): bash ~/insightex/scripts/run_in_env.sh python -m insightex.api
 # Backend tests (offline suites; network tests only with `pytest -m network`; media fixtures only with `-m media`)
 bash ~/insightex/scripts/run_in_env.sh pytest
@@ -101,7 +102,7 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
   - Any change to normalisation must keep the flash/beep sync tests passing, both honouring and ignoring edit lists, and must bump `NORMALISER_VERSION`.
 - **Infrastructure:** no Celery, Redis, Docker Compose or Neo4j until the core pipeline is validated. Use SQLite jobs with one worker.
 - Read `docs/reports/Embedding_Report.md` and `docs/reports/OCR_report.md` before changing anything they cover.
-- **Whisper:** large-v3, `language="ur"` (ADR-0039; M4 session 1 done, the production ASR stage is session 2).
+- **Whisper:** large-v3 (ADR-0039). The language is chosen per lecture from a two-tier list; Hindi -> `ur` is the only tested entry, every other language is untested, there is no default and no auto-detect (ADR-0040). Everything users read is English (ADR-0041). Stage design and failure codes: ADR-0042. A language moves to tested only through the WER gate in ADR-0040.
 - **Still open:** LLM choice (qwen3.5 vs Gemma 4 E4B, M7), textbook (M0b), reranker, Test B and Test C.
 
 ## Working norms
@@ -131,7 +132,7 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 | Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` |
 | Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
-| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0038) | `docs/adr/README.md` |
+| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0042) | `docs/adr/README.md` |
 | API contract (ingest link/upload, jobs, SSE, library) | `docs/contracts/api.md` |
 | Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
 | Draft JSON Schema: ASR segment list (id, start, end, text, avg_logprob, no_speech_prob) | `docs/contracts/segments.json` |
