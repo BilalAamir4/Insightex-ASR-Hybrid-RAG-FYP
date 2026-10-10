@@ -1,6 +1,6 @@
 # Environment (current state)
 
-Last verified: 2026-10-07, after a full Windows restart (boot 23:30:30). `bash scripts/verify_env.sh` passed 12 of 12 from a fresh login shell. This replaces `docs/reports/ENV_AUDIT_REPORT.md` (still in git history). Labels: **MEASURED** = measured on the date shown; **CARRIED OVER** = measured earlier (2 to 4 Oct 2026) and not re-run.
+Last verified: 2026-10-10, after M2 (lockfile gained ruff). `bash scripts/verify_env.sh` passed 12 of 12 from a fresh login shell (report `20261010T054412.json`). Earlier full-restart verification: 2026-10-07, boot 23:30:30. This replaces `docs/reports/ENV_AUDIT_REPORT.md` (still in git history). Labels: **MEASURED** = measured on the date shown; **CARRIED OVER** = measured earlier (2 to 4 Oct 2026) and not re-run.
 
 ## 1. Machine / OS
 
@@ -14,7 +14,7 @@ Last verified: 2026-10-07, after a full Windows restart (boot 23:30:30). `bash s
 |---|---|---|
 | `E:\FYP` (`/mnt/e/FYP`) | Heavy storage and backup | `cache\` (master model cache), `LLMs\` (Ollama models), `wsl\` (the ext4 vhdx), `docker\`, `start_ollama.ps1`. Do not search, modify or delete `cache`, `LLMs`, `wsl`, `docker`. Never point runtime caches here (DrvFS loads are 3.5x to 7.4x slower; carried over). |
 | `~/insightex` | Code (git repo, remote `Insightex-ASR-Hybrid-RAG-FYP`, tag `import-baseline`) | On the ext4 vhdx stored under `E:\FYP\wsl`. |
-| `~/insightex-data` | Runtime data (`workspaces/`, `insightex.db`, `run/`, `eval/`, `logs/`, `env_reports/`; the old `lectures/` is no longer read) | `INSIGHTEX_DATA`. |
+| `~/insightex-data` | Runtime data (`workspaces/`, `staging/`, `insightex.db`, `run/`, `eval/`, `logs/`, `env_reports/`; the old `lectures/` is no longer read) | `INSIGHTEX_DATA`. `staging/` holds uploads and copied files before ingest; it should be empty when idle, and the worker deletes staging files older than 24 h at start. |
 | `~/cache/huggingface` | Runtime HF cache (ext4) | `HF_HOME`. Holds bge-m3, faster-whisper medium and large-v3. Master copy on `E:\FYP\cache`. |
 | `~/envs/insightex`, `~/envs/paddleocr-vl` | Python venvs | PaddleOCR has its own venv. |
 
@@ -33,8 +33,10 @@ The venv `activate` script (`~/envs/insightex/bin/activate`, last line) sources 
 ## 4. Venv and lockfile
 
 - `~/envs/insightex`: Python 3.12; torch 2.11.0+cu128, faster-whisper 1.2.1, ctranslate2 4.8.2, sentence-transformers 6.1.0, transformers 5.18.0, faiss-cpu 1.15.1, networkx 3.6.1, pydantic 2.13.5, httpx 0.28.1.
-- `requirements.lock.txt` (repo root, 94 packages) is the pin set. It **intentionally omits the editable `insightex` install** (this repo), and `pip freeze` itself omits `pip`, `setuptools` and `wheel`. `tools/verify_env.py` ignores exactly those four and fails on any other mismatch.
+- `requirements.lock.txt` (repo root, 96 packages) is the pin set. It **intentionally omits the editable `insightex` install** (this repo), and `pip freeze` itself omits `pip`, `setuptools` and `wheel`. `tools/verify_env.py` ignores exactly those four and fails on any other mismatch.
+- Dev tools: `ruff==0.16.10`, pinned in the `dev` extra of `pyproject.toml` and in the lockfile (added 9 Oct 2026). Install with `pip install -e '.[dev]'`.
 - No installs, upgrades or removals without asking. `FlagEmbedding` is not installed (and not locked); `tools/bench_models/loadtimes/verify_6b_loadtimes.py` needs it for its bge-m3 step and fails there.
+- ffmpeg/ffprobe: Ubuntu native 6.1.1. Normalisation (ADR-0036 to ADR-0038) requires the `libx264` and `aac` encoders. The media test fixtures also use `libx265`, `libvpx-vp9`, `libaom-av1`, `libsvtav1`, `mpeg2video`, `wmv2`, `libopus`, `libmp3lame` and `mjpeg`. All were present when checked on 9 Oct 2026 (`ffmpeg -hide_banner -encoders`). Normalisation is CPU-only and takes no GPU lease.
 
 ## 5. Ollama
 
@@ -64,6 +66,8 @@ Summary: `chat_json(messages, schema, num_ctx, num_predict=1024, ...)` in `backe
 | bge-m3 peak VRAM | 3,089 MiB | 2 Oct 2026, CARRIED OVER (the bake-off measured 1,141.7 MB, see `Embedding_Report.md`) |
 | **Confirmed on Ollama 0.35.1** (version read from `/api/version` by the probe) | the 8192 / 6,905-token case was re-run after the restart: 100% GPU, `done_reason` `stop`, valid JSON, 786 output tokens, peak 7,682 MiB, 510 MiB free, 52.1 tok/s, load 29.7 s (baseline 1,081 MiB). The earlier long-prompt runs were made before the restart, and the Ollama version they ran on was not recorded. | 2026-10-07 23:44, same measurements file |
 | `tools/verify_env.py` after full restart | 12 of 12 passed | 2026-10-07, report `$INSIGHTEX_DATA/env_reports/20261007T233720.json` |
+| `tools/verify_env.py` after M2 | 12 of 12 passed; idle baseline 1,382 MiB; `chat_json` 100% GPU at 65.4 tok/s (33-token prompt only) | 2026-10-10, report `$INSIGHTEX_DATA/env_reports/20261010T054412.json` |
+| Idle VRAM observed 2026-10-10 | 1,382 to 1,601 MiB, above the 600 to 1,273 MiB recorded on 2026-10-07 | 2026-10-10, `verify_env.py` runs; the long-prompt headroom was **not re-measured** at this baseline |
 
 GPU contract (hard): never two CUDA stages at once; each stage is its own process and exits fully before the next starts. At query time the GPU belongs to Ollama; bge-m3 query encoding and the reranker run on CPU inside the API process (planned, M5).
 
@@ -86,6 +90,7 @@ GPU contract (hard): never two CUDA stages at once; each stage is its own proces
 - **Urdu token cost.** Urdu script costs far more tokens per character than English; the budget rule's 1.5 chars/token for Arabic script is a guess. No Urdu-script prompt has been run through the probe, so context headroom for real Urdu lectures is unmeasured.
 - **Ollama updates itself** (Windows auto-update). Version moved from 0.33.3 to 0.35.1 between audits; a new version can change memory use or the CPU/GPU split. Re-run `tools/ollama_contract_probe.py` after any Ollama update.
 - Extraction quality is not evaluated (see M7 open items in the ADR).
+- **Ollama state is not guaranteed at login.** On 2026-10-10 Ollama was not running, and once started, `qwen3.5:latest` was found loaded at `context_length` 4096 (Ollama's default, so not loaded by Insightex, which always sets `num_ctx`). Cause not identified. Before GPU work, check `/api/ps` and unload with `curl -s localhost:11434/api/generate -d '{"model":"qwen3.5:latest","keep_alive":0}'`. If the model reappears unprompted, find the Windows client loading it.
 
 ## 11. How to verify
 
@@ -101,9 +106,12 @@ It prints a PASS/FAIL/SKIP table and writes `$INSIGHTEX_DATA/env_reports/<timest
 bash ~/insightex/scripts/dev_run.sh          # worker in the background, API + UI in the foreground (http://127.0.0.1:8000)
 ```
 
-- The worker (`insightex worker`) is a **separate process** from the API. The API only enqueues jobs and reads their state; without a worker, a submitted link stays "Waiting for the worker". `dev_run.sh` starts one unless another already holds `<run_dir>/worker.lock`, and stops the one it started when you press Ctrl-C. Worker log: `$INSIGHTEX_DATA/logs/worker.log`.
+- The worker (`insightex worker`) is a **separate process** from the API. The API only enqueues jobs and reads their state; without a worker, a submitted link or upload stays "Waiting for the worker". `dev_run.sh` starts one unless another already holds `<run_dir>/worker.lock`, and stops the one it started when you press Ctrl-C. Worker log: `$INSIGHTEX_DATA/logs/worker.log`.
+- **Restart after code changes.** A running server and worker keep the code they started with. After pulling or merging, stop `dev_run.sh` (Ctrl-C) and start it again.
 - `insightex gpu status [--json]` shows whether the GPU lease is free or busy and who holds it (also `run_dir`, `workspaces_dir` and the Ollama settings).
 - Cache: `insightex cache list | delete ID | pin ID | unpin ID | gc` (the library's Delete button is `cache delete`). The cache is capped by `cache.max_bytes`; least recently used unpinned workspaces are evicted after each successful job.
-- Pin evaluation lectures so eviction never removes them: `insightex cache pin yt-<video id>` (the id is shown by `insightex cache list`).
-- Jobs: `insightex jobs list | show ID | cancel ID | retry ID`; `insightex ingest URL --confirm-rights` enqueues a link from the shell.
-- Lectures ingested before M1 session 3 live in `~/insightex-data/lectures/`. They are not migrated and not read; add them again by link.
+- Pin evaluation lectures so eviction never removes them: `insightex cache pin <workspace id>`. The id is `yt-<video id>` for YouTube links and `sha256-<32 hex>` for uploads and other files; `insightex cache list` shows it.
+- Jobs: `insightex jobs list | show ID | cancel ID | retry ID`.
+- Ingest from the shell: `insightex ingest URL --confirm-rights` for a link, `insightex ingest-file PATH --confirm-rights [--wait]` for a local file (exit 0 ok or deduplicated, 2 rejected, 1 internal error). The original file is never moved or modified. In the browser, use the upload form; the file picker shows video files only (switch the dialog to "All Files" to pick anything else).
+- Uploading the same bytes again returns the existing lecture instead of reprocessing. After a `NORMALISER_VERSION` bump it re-normalises in place.
+- Lectures ingested before M1 session 3 live in `~/insightex-data/lectures/`. They are not migrated and not read; add them again by link or upload.

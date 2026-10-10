@@ -13,9 +13,9 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 | M0 | **Done (7 Oct 2026)**: `scripts/verify_env.sh` passes 12/12 after a full restart (`docs/ENVIRONMENT.md`) |
 | M0b | **Done (8 Oct 2026)**: repo scaffold, typed config, ADR-0001 to ADR-0032 (`docs/adr/`), textbook chosen (ADR-0029) |
 | M1 | **Done (9 Oct 2026)**: SQLite job queue, single worker with crash recovery and resume, GPU lease, workspaces with chained stage keys and cache eviction, and link ingestion on the runner with job progress over HTTP/SSE (ADR-0033 to ADR-0035). Evidence: `docs/evidence/m1/`. |
-| M2 | **Done in code (9 Oct 2026)**: shared normalise engine and CLI file ingest (ADR-0036), HTTP upload endpoint and upload form (ADR-0037), `tools/m2_verify` 13/13 on the Day 4 lecture (`docs/evidence/m2/`). Open: the by-hand browser checklist `docs/evidence/m2/BROWSER_CHECKLIST.md` |
-| M3 | **Done (6 Oct 2026)**; the eval-lecture fetch (4–6 lectures) still has to be run |
-| M6 | Partial: FastAPI API (ingest, jobs with SSE progress, library, media), static HTML ingest/library/player page and `seekTo(seconds)` exist; ask box and citations still to do |
+| M2 | **Done (10 Oct 2026)**: shared normalise engine and CLI file ingest (ADR-0036), HTTP upload endpoint and upload form (ADR-0037), A/V sync invariant that holds even in players that ignore MP4 edit lists (ADR-0038), `NORMALISER_VERSION` 4. `tools/m2_verify` 13/13 on the Day 4 lecture; by-hand browser checklist passed (`docs/evidence/m2/`). |
+| M3 | **Done (6 Oct 2026)**; the eval-lecture fetch (4–6 lectures) still has to be run (it now goes through normaliser v4) |
+| M6 | Partial: FastAPI API (ingest by link or upload, jobs with SSE progress, library, media), static HTML ingest/upload/library/player page and `seekTo(seconds)` exist; ask box and citations still to do |
 | All others | Not started |
 
 ## Phase 0: Foundation (week of 5 Oct)
@@ -29,10 +29,11 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 
 - **M1: Core.** Workspace + manifest, SQLite job queue, GPU lease, single worker, CLI.
   Exit: a dummy two-stage job runs, resumes after being killed, and holds the lease.
-- **M2: Ingest (upload).** ffprobe validation, then ffmpeg normalisation to `video.mp4` (H.264/AAC) and a 16 kHz mono `audio.wav` derived from it (ADR-0036).
+- **M2: Ingest (upload).** ffprobe validation, then ffmpeg normalisation to `video.mp4` (H.264/AAC) and a 16 kHz mono `audio.wav` derived from it (ADR-0036), in sync within one frame even when a player ignores edit lists (ADR-0038).
   Exit: the Day 4 lecture normalises, and odd codecs are rejected cleanly.
 - **M3: Ingest (URL).** Done. Design and open items are in `docs/features/README.md`.
 - **M4: ASR stage + WER gate** in `tools/eval_wer`.
+  - Prerequisite: re-ingest the eval lectures (Day 4 first) through normaliser v4 before measuring. Older `audio.wav` files predate the start-offset padding, so their timings may be shifted. Carried-over WER numbers on old audio count as not re-run.
   Exit: the checkpoint and language decision is recorded as an ADR, with numbers.
 - **M5: Windows + embedding (dense and sparse) + FAISS.**
   - Prerequisite for the sparse-weight work: `FlagEmbedding` is **not installed** and is not in `requirements.lock.txt`. Installing it needs the user's approval and a lockfile update (then re-run `scripts/verify_env.sh`). `tools/bench_models/loadtimes/verify_6b_loadtimes.py` fails at its bge-m3 step for the same reason.
@@ -97,6 +98,11 @@ These come from the October 2026 review. Settle each one when its module starts.
 - **M1: Session rule.** Settled (ADR-0034); kept for the record.
   - Cache the processed workspace per video, keyed by content hash or YouTube ID, and include the pipeline version in the key.
   - "Nothing stored between sessions" becomes a UI/product rule: one video per session, no cross-session or cross-student data, no user history. Phrase it this way at the defense (M20).
+- **M2: Upload ingestion and normalisation.** Settled (ADR-0036 to ADR-0038); kept for the record.
+  - One engine for link and file sources; per-stream copy-or-transcode on CPU (libx264, no GPU lease); transcodes capped at 1080 lines.
+  - Raw streamed upload body (no multipart), SHA-256 dedupe, one upload at a time, no CORS middleware.
+  - `audio.wav` derived from `video.mp4` with start padding; sync within one frame even when a player ignores edit lists (libx264 `bframes=0`; copied video re-encoded when its ignored-edit-list skew exceeds the bound). Cost: about 3–19% larger transcodes, and more files transcoded instead of copied.
+  - Closed, unprefixed error codes. Uploaded originals deleted unless `ingest.file.keep_original`; link sources kept (ADR-0035).
 - **M4: Whisper language setting.**
   - Earlier notes conflict. One says auto-detect beat forced `ur` because forcing dropped lines; another says forcing `ur` was needed because auto produced Devanagari.
   - Decide in the WER gate: medium and large-v3 × forced `ur` / auto-detect (4 configs, with large-v3-turbo as a 5th if time allows).
@@ -117,6 +123,9 @@ These come from the October 2026 review. Settle each one when its module starts.
 - **M10: Page numbering.**
   - Store both the PDF page index and the printed page label (PyMuPDF `page.get_label()`, which may be empty if the PDF defines no labels).
   - Without this, the ±2-page criterion breaks silently.
+- **M19: Storage cleanup and quota.** Open (noted in ADR-0036).
+  - Workspaces are bounded by `cache.max_bytes` (least-recently-used unpinned workspaces are evicted after each successful job). ADR-0036 still lists storage cleanup as open: check its wording for exactly what remains (for example, kept link sources inside pinned workspaces, or anything stored outside workspaces).
+  - Settle what is genuinely unbounded, if anything, before the demo period, and test it on a fresh boot as part of M19's exit.
 - **Visual gate / V1–V3: Effort.**
   - Use a fixed time box: one owner, about 1 day a week, and a hard gate that decides continue vs freeze.
   - Scene detection + PP-OCR are cheap; PaddleOCR-VL is the time sink.

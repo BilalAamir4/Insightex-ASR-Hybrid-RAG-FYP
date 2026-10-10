@@ -14,17 +14,17 @@ Write down the browser and version: ____________________
 
 | # | Step | Expected | Result (pass/fail, notes) |
 |---|---|---|---|
-| 1 | Under "Upload a file", click the drop zone (or press Enter on it), pick the Day 4 file from `E:\`. Tick the rights box. Click Upload. | File name and size shown. Upload button stays disabled until the box is ticked. After the upload the job view appears (Receive file, Convert video and audio) and ends at "Ready". Lecture is in the library. | |
-| 2 | Delete that lecture, then drag `lecture_test.mp4` from Explorer onto the drop zone. Tick the box, upload. | Same outcome as step 1. The zone highlights while you drag over it. | |
-| 3 | Upload `dummy_3GB.mp4` (tick the box) and watch the bar. | The bar moves; text shows percent, MB sent of total, and MB/s. | |
-| 4 | Upload `dummy_3GB.mp4` again, click **Cancel upload** at about 30%. Then in WSL run `ls ~/insightex-data/staging`. Then upload `near_silent.mp4`. | Message "Upload cancelled." Staging folder is empty within a few seconds. The new upload works (no "another upload in progress"). | |
-| 5 | Upload the Day 4 file again (after step 1/2 left it in the library). | Page opens the lecture with the note "This lecture is already in your library." No new job in `insightex jobs list`. | |
-| 6 | Upload `audio_only.m4a`. In the file dialog, switch the type filter from "Video files" to **"All Files"** first, or the file won't be listed. | Job fails with a clear message ("This file has no picture, only sound. Upload a video file."). No lecture is added. | |
-| 7 | Choose any file but leave the rights box unticked. Try to press Upload; try Enter/Space on the button. | Upload button is disabled and nothing is sent. Ticking the box enables it; unticking disables it again. | |
-| 8 | Open the Day 4 lecture. Press play, then in the browser console run `insightex.seekTo(300)`. | Playback jumps to 5:00 (player shows 5:00). What the speaker says at 5:00 matches the transcript at 300 s: ____________ | |
-| 9 | Start uploading `dummy_3GB.mp4`, then close the tab (or press F5) while the bar is moving. | The browser shows its "Leave site?" warning. Choosing Stay keeps the upload going. When no upload is running, closing gives no warning. | |
-| 10 | Upload `near_silent.mp4`, open it in the player. | A yellow notice under the title: "The audio is very quiet, so the transcript may be poor." | |
-| 11 | Upload all five sync files: `control.mp4`, `delayed_audio.mp4`, `delayed_video.mp4`, `transcode_bframes.mkv`, `copied_bframes.mp4`. In each, a white flash and a 1 kHz beep are designed to coincide at 5.0 s. Open each in the player, scrub to 0:04.5 and play. Use wired or built-in speakers (Bluetooth adds its own delay). | Every file looks and sounds simultaneous. Note any lag per file: control ___ / delayed_audio ___ / delayed_video ___ / transcode_bframes ___ / copied_bframes ___ | |
+| 1 | Under "Upload a file", click the drop zone (or press Enter on it), pick the Day 4 file from `E:\`. Tick the rights box. Click Upload. | File name and size shown. Upload button stays disabled until the box is ticked. After the upload the job view appears (Receive file, Convert video and audio) and ends at "Ready". Lecture is in the library. |Pass |
+| 2 | Delete that lecture, then drag `lecture_test.mp4` from Explorer onto the drop zone. Tick the box, upload. | Same outcome as step 1. The zone highlights while you drag over it. | Pass|
+| 3 | Upload `dummy_3GB.mp4` (tick the box) and watch the bar. | The bar moves; text shows percent, MB sent of total, and MB/s. |Pass |
+| 4 | Upload `dummy_3GB.mp4` again, click **Cancel upload** at about 30%. Then in WSL run `ls ~/insightex-data/staging`. Then upload `near_silent.mp4`. | Message "Upload cancelled." Staging folder is empty within a few seconds. The new upload works (no "another upload in progress"). |Pass |
+| 5 | Upload the Day 4 file again (after step 1/2 left it in the library). | Page opens the lecture with the note "This lecture is already in your library." No new job in `insightex jobs list`. |Pass |
+| 6 | Upload `audio_only.m4a`. In the file dialog, switch the type filter from "Video files" to **"All Files"** first, or the file won't be listed. | Job fails with a clear message ("This file has no picture, only sound. Upload a video file."). No lecture is added. |Pass |
+| 7 | Choose any file but leave the rights box unticked. Try to press Upload; try Enter/Space on the button. | Upload button is disabled and nothing is sent. Ticking the box enables it; unticking disables it again. |Pass |
+| 8 | Open the Day 4 lecture. Press play, then in the browser console run `insightex.seekTo(300)`. | Playback jumps to 5:00 (player shows 5:00). What the speaker says at 5:00 matches the transcript at 300 s: ____________ |Pass |
+| 9 | Start uploading `dummy_3GB.mp4`, then close the tab (or press F5) while the bar is moving. | The browser shows its "Leave site?" warning. Choosing Stay keeps the upload going. When no upload is running, closing gives no warning. |Pass |
+| 10 | Upload `near_silent.mp4`, open it in the player. | A yellow notice under the title: "The audio is very quiet, so the transcript may be poor." |Pass |
+| 11 | Upload all five sync files: `control.mp4`, `delayed_audio.mp4`, `delayed_video.mp4`, `transcode_bframes.mkv`, `copied_bframes.mp4`. In each, a white flash and a 1 kHz beep are designed to coincide at 5.0 s. Open each in the player, scrub to 0:04.5 and play. Use wired or built-in speakers (Bluetooth adds its own delay). | Every file looks and sounds simultaneous. Note any lag per file: control ___ / delayed_audio ___ / delayed_video ___ / transcode_bframes ___ / copied_bframes ___ |Pass |
 
 ## After
 

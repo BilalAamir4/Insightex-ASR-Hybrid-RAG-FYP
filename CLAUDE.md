@@ -15,16 +15,17 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
 
 ## Current state (update this block at every milestone)
 
-- **Phase 0 (Foundation) complete; M1 and M2 complete (9 Oct 2026, M2 pending the by-hand browser checklist); Phase 1 continues with M4.** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
+- **Phase 0 (Foundation) complete; M1, M2 and M3 complete; Phase 1 continues with M4 (ASR stage + WER gate).** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
 - **Done:**
+  - M2 upload ingestion (10 Oct 2026): `insightex ingest-file` (CLI) and `POST /api/ingest/upload` (raw streamed body, ADR-0037) feed one shared normalisation engine (`normalise_media`, `NORMALISER_VERSION` 4) that link ingestion also uses. Validation and the closed error-code table are in ADR-0036. The A/V sync invariant is in ADR-0038 (see "Decisions already made"). `tools/m2_verify` 13/13 on the Day 4 lecture; the by-hand browser checklist passed after the ADR-0038 fix. Evidence: `docs/evidence/m2/`.
   - M1 core (9 Oct 2026): SQLite job queue + single worker with crash recovery and resume, GPU lease, workspaces with chained stage keys and a cache index with eviction (ADR-0033 to ADR-0035). Link ingestion runs on the runner as the `ingest_link` pipeline (`fetch`, `normalise`); the API exposes jobs, Server-Sent Events progress, the library and delete (`docs/contracts/api.md`). One job system, one workspace layout (`$INSIGHTEX_DATA/workspaces/`). Lectures in the old `lectures/` folder are not read and must be re-ingested. Evidence: `docs/evidence/m1/`.
   - M0b repo scaffold, typed config and decision log (8 Oct 2026): `config/default.yaml`, `insightex config show|validate`, commit-msg hook, ADRs in `docs/adr/` (decision log: `docs/adr/README.md`), textbook chosen (ADR-0029: Géron, Hands-On Machine Learning, 2nd Edition). Repo and tag `import-baseline` exist.
   - M0 environment verification (7 Oct 2026): cold-boot pass, `scripts/verify_env.sh` 12/12 after a full Windows restart with Ollama started by Task Scheduler. State in `docs/ENVIRONMENT.md`, Ollama contract in `docs/adr/0002-ollama-call-contract.md`.
   - M3 link ingestion (6 Oct 2026), moved onto the runner in M1.
 - **Partial:**
-  - M2 is done in code (9 Oct 2026): `POST /api/ingest/upload` (raw streamed body, ADR-0037) and the upload form hand off to the same engine and `enqueue_staged` as the CLI. `tools/m2_verify` passed 13/13 on the Day 4 lecture (evidence: `docs/evidence/m2/`). **Still to do: Bilal runs `docs/evidence/m2/BROWSER_CHECKLIST.md` in a Windows browser. Then M4.**
-  - M6: API, player and `seekTo(seconds)` exist. Ask box and citations are still to do.
+  - M6: API, player, upload form and `seekTo(seconds)` exist. Ask box and citations are still to do.
 - **Not started:** the ASR stage (M4), production embeddings/FAISS (M5), concept extraction, the graph, the router and answers.
+- **Before M4's WER gate:** re-ingest the eval lectures through normaliser v4. Older `audio.wav` files predate the start-offset padding, so their timings may be shifted.
 - Before starting a module, check its open decisions in `docs/BUILD_ORDER.md` ("Pending decisions by module"). Settle them before building.
 
 ## Pipeline (target)
@@ -35,7 +36,7 @@ ingest (URL or upload) → ffmpeg normalise → faster-whisper ASR → 30 s wind
                                                         ↘ Ollama concept extraction (JSON Schema) → canonicalise → NetworkX graph
 query → router (graph-first on known concept labels, otherwise vector or merge) → grounded answer with validated citations → `seekTo(seconds)`
 
-Per-video workspace: `$INSIGHTEX_DATA/workspaces/<workspace_id>/` (`yt-<id>` or `sha256-<32 hex>`), with `manifest.json` and `stages/<stage>/<key>/` per completed stage (`video.mp4`, `audio.wav`, `thumbnail.jpg` come from `normalise`). Later stages add their outputs here; find files with `Workspaces.stage_output_dir`.
+Per-video workspace: `$INSIGHTEX_DATA/workspaces/<workspace_id>/` (`yt-<id>` or `sha256-<32 hex>`), with `manifest.json` and `stages/<stage>/<key>/` per completed stage (`video.mp4`, `audio.wav`, `thumbnail.jpg` and `normalise.json` come from `normalise`; `source.json` describes the source). Later stages add their outputs here; find files with `Workspaces.stage_output_dir`.
 
 ## Commands
 
@@ -47,11 +48,14 @@ bash ~/insightex/scripts/run_in_env.sh python <script.py> ...
 # Worker (background) + API + UI together (binds 127.0.0.1:8000; host/port from `api:` in config/default.yaml)
 bash ~/insightex/scripts/dev_run.sh
 # The worker is a separate process: `insightex worker`; `insightex gpu status`, `insightex cache list|pin|delete|gc`, `insightex jobs list|show`
+# Ingest a local file: `insightex ingest-file <path> --confirm-rights [--wait]` (exit 0 ok/deduplicated, 2 rejected, 1 internal error)
 # API alone (jobs only run while a worker runs): bash ~/insightex/scripts/run_in_env.sh python -m insightex.api
-# Backend tests (offline suites; network tests only with `pytest -m network`)
+# Backend tests (offline suites; network tests only with `pytest -m network`; media fixtures only with `-m media`)
 bash ~/insightex/scripts/run_in_env.sh pytest
 # Frontend tests (Deno from the venv)
 bash ~/insightex/scripts/test_frontend.sh
+# Lint (ruff pinned in the `dev` extra: pip install -e '.[dev]'); tools/ still has pre-existing findings
+bash ~/insightex/scripts/run_in_env.sh ruff check
 ```
 
 Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash -lc "..."`), because quoting breaks `$` and `&&`.
@@ -81,6 +85,7 @@ Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash
   - In a `finally` block, call `unload()` (`keep_alive: 0`, then poll `/api/ps` until the model is gone).
   - Full contract and measurements: `docs/adr/0002-ollama-call-contract.md`.
 - Query time (planned, M5): the GPU belongs to Ollama. BGE-M3 query encoding and the reranker run on CPU inside the API process.
+- Normalisation (ffmpeg, libx264) is CPU-only and takes no GPU lease.
 
 ## Decisions already made (don't relitigate without new evidence)
 
@@ -89,7 +94,11 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 - **Embeddings:** `BAAI/bge-m3`, on 30 s non-overlapping windows of native-script Whisper text. Never embed Roman Urdu; it is used only for WER.
 - **Retrieval:** L2-normalised embeddings searched with `IndexFlatIP`. A hit means the retrieved window strictly overlaps the labelled range.
 - **Bake-off numbers:** use only `docs/reports/embedding_bakeoff/results_seq1024/`. When re-running, pass `--max-seq-length 1024`. Older artefacts are in tag `import-baseline`.
-- **Link ingestion:** a single path for every source, which is to download fully and play locally (no embedded YouTube player).
+- **Link ingestion:** a single path for every source, which is to download fully and play locally (no embedded YouTube player). Link sources are kept after normalising (ADR-0035); uploaded originals are deleted unless `ingest.file.keep_original`.
+- **Media normalisation (ADR-0036 to ADR-0038):** every source goes through `normalise_media`. Never add a second normalisation path.
+  - `audio.wav` (16 kHz mono) is always derived from `video.mp4` with start padding, never from the source, so transcript time equals player time.
+  - `video.mp4` must stay within one frame of A/V sync even in a player that ignores all MP4 edit lists (bound: one frame or the AAC priming, whichever is larger). So libx264 runs with `bframes=0`, copied video is re-encoded when its ignored-edit-list skew exceeds the bound, and `-avoid_negative_ts make_zero` is not used.
+  - Any change to normalisation must keep the flash/beep sync tests passing, both honouring and ignoring edit lists, and must bump `NORMALISER_VERSION`.
 - **Infrastructure:** no Celery, Redis, Docker Compose or Neo4j until the core pipeline is validated. Use SQLite jobs with one worker.
 - Read `docs/reports/Embedding_Report.md` and `docs/reports/OCR_report.md` before changing anything they cover.
 - **Still open:** Whisper checkpoint and language setting (M4), LLM choice (qwen3.5 vs Gemma 4 E4B, M7), textbook (M0b), reranker, Test B and Test C.
@@ -108,6 +117,8 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
   - Frame risky technical claims as decision gates with a measurable exit, not as assertions.
 - No hardcoded tunables in `backend/src/`. A new tunable goes into `config/default.yaml` with a comment (one line, with unit) and is read through the typed settings object (`insightex.core.config`). Entry points load settings once and pass them down.
 - Every new or changed project decision gets an ADR in `docs/adr/` (template: `docs/adr/template.md`). A new decision gets a new ADR; a changed decision gets a new ADR that supersedes the old one, and the old ADR is never rewritten beyond its status line.
+- Anything a browser plays needs a by-hand browser check before its module closes; ffmpeg-based measurements do not prove browser behaviour (ADR-0038).
+- After any automated lint fix, run the full test suite (a ruff autofix once broke `sqlite3.Row` access).
 - Git: do not add a Claude co-author trailer to commits.
 
 ## Where to look
@@ -120,6 +131,7 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 | Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
 | Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0038) | `docs/adr/README.md` |
+| API contract (ingest link/upload, jobs, SSE, library) | `docs/contracts/api.md` |
 | Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
 | Draft JSON Schema: ASR segment list (id, start, end, text, avg_logprob, no_speech_prob) | `docs/contracts/segments.json` |
 | Current environment state, how to verify (`scripts/verify_env.sh`) | `docs/ENVIRONMENT.md` |
