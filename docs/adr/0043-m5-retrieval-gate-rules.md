@@ -15,7 +15,7 @@ M5 builds windowing, BGE-M3 embedding and FAISS retrieval (ADR-0001). Several de
 
 **Test data.** `tools/eval_retrieval/gold_spans.json`, frozen at commit `0f5e5ab` and never edited by M5. 47 queries on the Day 4 lecture; spans are in seconds; `pair_of` links 23 Roman Urdu twins to their partners. All results are provisional until Test A runs on more lectures in M9.
 
-**Hit rule.** A retrieved window is a hit if it covers at least 50% of any one gold span of that query. Before taking the top 3, drop any window that overlaps a higher-ranked window by more than 50%. Primary metric: Recall@3. MRR is reported alongside and never decides a gate.
+**Hit rule.** A retrieved window is a hit if it covers at least 50% of any one gold span of that query. Before taking the top 3, drop any window that overlaps a higher-ranked kept window by more than 0 s (windows that only touch at an edge do not overlap), so the top 3 are three distinct moments. (Amended 2026-10-11, before G3: the first draft dropped a window only when it overlapped a higher-ranked one by more than 50% of its own length; with a 15 s stride neighbours overlap by about 50%, so that rule would decide duplicates by segment-snapping noise.) Primary metric: Recall@3. MRR is reported alongside and never decides a gate.
 
 **Net-count rule.** For configs A (current or simpler) and B (candidate), count per query wins (B hit, A miss) and losses (A hit, B miss). Adopt B only if wins - losses >= 2. Anything less is a tie, and a tie keeps A. Gates G2 and G3 use 24 queries: A01 to A23 plus A28. The `...r` twins and A24 to A27 (twins of A02, A20, A16 and A18) are excluded there because paired questions flip together; A28 has no twin and is independent. Recall@3 for the English-only set (sets `en` and `hard`) is reported at every gate, so absolute English performance stays visible.
 
@@ -32,6 +32,7 @@ M5 builds windowing, BGE-M3 embedding and FAISS retrieval (ADR-0001). Several de
 ## Alternatives considered
 
 - **Hit by any overlap (the bake-off rule).** Rewards windows that touch a span by a fraction of a second, which gets easier as windows grow.
+- **Drop a window only when it overlaps a higher-ranked one by more than 50%.** With a 15 s stride the overlap of neighbours sits at about 50%, so the outcome would depend on where segment edges fall.
 - **Adopt B on any improvement.** With 28 queries one flip is 3.6 points of Recall@3, which is within noise; the net >= 2 rule requires a margin.
 - **Include twins (and A24 to A27) in G2 and G3.** A question and its Roman twin usually flip together, so they would count one effect twice.
 
