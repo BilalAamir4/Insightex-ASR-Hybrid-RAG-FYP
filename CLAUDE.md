@@ -101,7 +101,8 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
   - Any change to normalisation must keep the flash/beep sync tests passing, both honouring and ignoring edit lists, and must bump `NORMALISER_VERSION`.
 - **Infrastructure:** no Celery, Redis, Docker Compose or Neo4j until the core pipeline is validated. Use SQLite jobs with one worker.
 - Read `docs/reports/Embedding_Report.md` and `docs/reports/OCR_report.md` before changing anything they cover.
-- **Still open:** Whisper checkpoint and language setting (M4), LLM choice (qwen3.5 vs Gemma 4 E4B, M7), textbook (M0b), reranker, Test B and Test C.
+- **Whisper:** large-v3, `language="ur"` (ADR-0039; M4 session 1 done, the production ASR stage is session 2).
+- **Still open:** LLM choice (qwen3.5 vs Gemma 4 E4B, M7), textbook (M0b), reranker, Test B and Test C.
 
 ## Working norms
 

@@ -1,0 +1,204 @@
+hlw qyewortr janal prmayei hmarye atchhrri Martin lrnng hye awr nam dnyug qiamt hye awr
+asanye ali bknye wala mlna ik bar mnasbi lrnnga hye awr ih wh min shamlh ihi tkhliqh hwtye hin
+tthik hye kh sw phtchlye widdiw min hm nye ttayeps afis ghirh lrnng prra tha jhan ph hm nye
+mwsid trf dikhtye thye mwsid trf bnayei kye khasit kw ahsasi mqam ka tabqi
+anfarsmntt aj bhi am lwk ttayeps af mshinl lrnng hi prrhnye walye hin
+brrh aj jw ttayeps dks krin gye wh ik kmplittli dfrntt tchis kye awpr bis ddawtt hwga
+tthik hye sw aj jw am lwk ttayeps prrhnye walye mshinl lrnng kye wh as tchiz ph
+ddpindd krta hye kh mshinl lrnng mwddl ttrin kisye hwta hye tthik hye
+tthik hye kbhi bhi ap kwyei software bnatye hw tw wh ap kye mshin pr bittha nhin rhta
+wh ap kye customers kye pas jana tchahiyeye awr as ka ik hi triqh hye kh ap apnye
+code kw ksi server pr run kraw js ka ddpi ddrs ap kye customers kye pas hwga wh as ddpi ddrs ph
+htt krin gye awr ap kye application kw access kr payein gye mshinl lrnng as no different jb ap
+mshinl lrnng kye software bnatye hw tw ap as kw bhi server pr deploy krtye hw awr jw
+server ka jw environment hye jhan ph ap ka code run kr rha hwta hye as kw production
+environment bwltye jb ap as kw code kr rhye hwtye hw apnye mshin pr tw as kw development
+environment bwltye hin tthik hye now mshinl lrnng kye jw software hwtye hin ia mshinl
+lrnng jw hwta hye wh server ph alg alg dhng sye behave krta hye ia alg alg dhng sye
+tchlta hye tthik hye asi kye basis ph hm lwg ddw different types aj prrnye walye mshinl lrnng kye one
+of them is batch learning ia phr batch machine learning js kw mlw offline learning bhi
+awr sikndd one is online machine learning ia phr online learning tthik hye tw an dwnwn
+kw hm bht detail min prrin gye kiwnkh to be honest ih important hye kiwnkh at the end ap
+srf mshinl lrnng models bnayeye kye apnye mshin pr nhin rkhnye walye apnye kmpiwttr pr
+nhin rkhnye walye ap as kw server ph deploy krw gye so that other people can use it tw ap kw
+idea hwna tchahiye kh batch awr online learning min kia difference tthik hye so that's the intro part
+jw ap pwrye kye ap alain bti kw ik sath lye krti hw machine learning kw train krnye kye lyeye
+machine learning maddl kw train krnye kye lyeye mtlb batch kye js min jb ap
+training krwat rhtye hw tw ap apna pwrye data kw utilized krti hw
+there is no incremental training Aug poker training ka mtlb ap tchhwttye tchhwttye
+ltt kye sath ttrin krtye hw
+tthik hye
+ab sns jw dditta hwta hye
+jnrli agr ap ksi ril wrl prwdd pr kam kr rhw
+tw dditta jw hwga wh brra hwga
+jnrli brra hi hwta hye
+tw bht brra dditta kw
+agr ap srwr pr ttrin krnye jaw
+nw ddawtt ap kr sktye hw isa
+brra isa kwyei krta nhin hye
+kiwnkh itt wdd bhi karsli awr ttayem ttikn
+tw jnrli jw btch lrng hwta hye
+jhan ph ap pwrye dditta kye sath ik sath ttrin kr rhw
+wh ap aflayen krtye hw apnye mshin pr
+dditta sayenttstt, mshin lrng anjinyer
+as kw apnye mshin pr ttrin krta hye
+awr jb wh mwddl ttrin hwjata hye
+tw jw sikha hwa mwddl hye
+as kw attha kye ap prwddkshn anwarmntt min ddaltye hw
+tw ih btch lrng hwta hye
+jhan ap pwrye dditta kye sath pr asttrin khtkw kr rhye hin
+ap mwddl ttrin krtye hw apnye mshin pr
+dditta awr jb asttrin khwl rhye hin
+tw asin sil pr phntch kr rhye hin
+ih btch lrng ki mntqh hye
+min ap kye mzidl min as kw dkha rhi hye
+tw ih btch lrng hwta hye
+ap pwrye dditta hye
+ih ap kye mwddl hye
+ap ditta pr ddaltye hw
+dditta ttrin hwjata hye
+trin hwlye kye b'd ap tstt dye mwddl
+ap srf
+bhi swrr kh jw min nye
+ttrin kia hye wh shih hye kia nhin
+agr ap swrr hin tw ap asye srwr prrhin
+ih srwr hye
+tthik hye awr
+awwr dye ap ka mashin lrng mwddl
+rng krta rhye ga jb bhi
+ktchh bhi jw siart dye ga ap ka
+mashin lrng mwddl prddkshnz krtye rhye
+ga ih ktchh bhi ktchh hye likn
+ap nittfks min kam krtye hw awr ap kw ik
+rikminddishn anjin mnana hye jw
+asisr kw mwddi silktt krye krkye btayeye
+tw an daks ap kia krw gye wh
+rikminddishn anjin kw ttrin krw gye apnye mashin pr
+awr as kw attha kye nittfks kye srwr pr
+ddal dwgye jhan pr asisr jb jb ayein gye
+tw ap ka ssttm attwmittkli an kw
+mwddi sjs krta rhye ga
+bhta min ap kw ik
+tchiz min smjh min a rha
+hwga as tchiz ka prablm ih hye
+kh ap ka mwddl asttatik hye
+jb wh ik bar sikh gia tw sikh gia
+wh ktchh nia nhin sikh rha
+as kye b'd wh prani tchizwn kye awpr hi kam kr rha
+brrha prablm
+as aprwtch as ki ap ka jw
+bzns snayeriw hye wh iwlwf krtye rhtye
+han hm nittfks ka bat kr rhye hin
+nittfks ka ap nye rikminddishn anjin jw
+bnaia tha likn sye ap nye aj bnaia
+tw aj nittfks kye dditta bis min jtni
+ap nye sb kw knsiddr krkye bnaia
+likn nittfks tw hr hftye nyei mwddiz add krta jata hye
+tw ap ka rikminddishn anjin
+tchahta hye kh
+as kye barye min niw mwddiz ankarpwritt
+min khh rha hwn kh ap ka mashin liddng
+mwddl kw kwnsttnttli iwlwf krtye rhna prrye ga
+dditta kye sath kiwnkh agr ap isa nhin krw gye
+tw phr kia fayedh?
+niw mwddiz kye awpr ap ka rikminddishn kam hi nhin kr rha
+sim kam imil spm klasfayer min bhi hw skta hye
+ap ka imil spm klasfayer
+aj ki dditt sye
+aj ki dditt kye sath sye aktm ap ddw dditt hye
+bht ap nye ik bar srwr pr ddal dia
+as kye b'd kwyei ttrinng nhin hwyei
+ap nye ik sal tk bisi tchhwrr dia
+bht as ik sal min tw jw markittirz hwtye hin
+sb sye brra brra prabwim jw hm bittshn arnng kye sath hye
+wh ih hye kh ap kw
+apnye mwddl kw ri ttrin krwatye rhna prrta hye
+tthik hye
+jnrli pipl kia krtye hin?
+wh ih pirwiddikli krtye hin
+wh
+nia dditth lye kr atye hin
+ih dditth pwrye ttayem
+apdditt hw rha hwta hye
+ih apdditt hw rha hwta hye
+ksi bhi friqnsi pr apdditt hw skta hye
+pwra dditth agr bht brra hw gia tw wh ttrin hi nhin hw payeye ga
+tthik hye
+hardd widd limittishn
+hardd widd limittishn ka bat kia hye
+kbhi kbhi hw skta hye ap ka mashin linddng mwddl
+ksi isi jgh ph tchl rha hye
+jhan sye ap ka ansttntt knikttiwtti nhin hye
+tw ap isa nhin kr sktye kh
+ap trn sye mwddl kw lye kye aw
+jnhin nyeye dditth ph ttrin krw phr aplwdd krw
+ap kye pas ih fsltti nhin hye
+min ap kw ik dw sinayeryewz dita hwn
+likn sye ap nye kwyei isa
+ddifns
+ddifns ip bnayeye jw
+armi walye is kr rhye hin
+ik dm iksttrim ksi sinayeryew min
+lye lddak jisi jgh ph wh lwg ap ka
+mashin linddng ip iws kr rhye hin
+agr ap kw ktchh krnye ki lyeye
+tw whan ph anttrntt akss nhin hye
+tw ap ka jw mwddl hye wh an kye
+fwn ph rng kr rha hye
+tw ik bar jw tchla gia
+tw jb tk wh lwg waps nhin atye ia
+anttrntt knikttiwtti walye zwn min
+nhin atye tb tk ap as kw waps
+pwl ddawn kr kye dditt nhin kr sktye
+tw whan ph limittishn
+nitch simlrli ap nye ik swttkwyer bnayeye
+jw ksi sittlayett ph ap kw bhijna hye
+ia ksi ddrwn min ap nye ddal rkha hye
+wh ddrwn abhi pth nhin kwn sye jgh ph atth rha hye
+tw as trh ki snaryewz min jhan ph ap kye pas knikttiwtti nhin hye
+apnye mwddl sye bat krnye ki
+tw ap atna friqwntt
+apdditts nhin lye sktye tw as trh ki jghwn ph
+btch lrng fil kr rha hwta hye
+tthrdd as awiliblitti
+ab min nye ap kw bwla kh ap jm'ili kia krtye
+24 ars kye pirwidd min
+abhi as kw
+la kr kye dkhata hye
+ap ka jw swshl nitt wrpng wipsayeitt hye
+wh niwz fil jnritt krta hye
+an dye biss af iwzr ka anttrstt
+likn ihan ph ap nye btch lrng
+lga rkha hye tw wh 24
+ghnttye kye b'd hi apdditt hwta hye nyeye dditta kye
+awpr ab malw sddli sye ktchh
+atchank sye ktchh bat fayel gyei
+ap kye nitt wrpye ktchh bhi hwskta hye
+anddin gwrmntt nye ktchh
+niwz nkl kye ayei
+tw ab ih ik isa niwz hye js kye barye min
+sbhi lwg anttrsttdd hwn gye
+min bhi anttrsttdd hwn ga kwyei akhr bhi anttrsttdd hwn ga
+alw mira prifrns jnrli spwrtts hwta hye
+bl sns abhi di mwnttayeishn
+mirye kw bhi afiktt kr rha hye tw min as min anttrsttdd hwn
+bl mirye anttrstt apdditt ktni dil kye
+b'd hwn gye 24 ars kye b'd
+niwz min rwzin kr rha hwn
+min niwz min rwzin kr rha hwn
+jb apdditt wh
+ml nhin skta
+kiwn kh mira ssttm hi hye
+jw 24 ars kye b'd hi rspwndd krye ga
+bl sns anddiw min prwblwm kia hye
+kh 24 ars kye b'd jb ssttm apdditt hwn ga
+mira niwz mirye kwyei pwra ml jayeye ga
+di mwnttayeishn kye niwz sye
+jw kia jw hm atna a cherish tspanng bhi nhin hye jw tchw bis ghnttye prlye
+anprntta ab atna abn khlim bhi nhin hye tw as snayeiw min bhi ap
+khi si as trh qisye batsh lrnng fil kr rhye tthik hye tw bitchlrng
+mwsli pipl used bitchlrng bht sarye snayeiwz min likn
+min roux asiaw specific iwz jhan pr bitchlrng
+as tthik hye awrtta prwmi kilitt kr ditye hye tw as trh
+as kye snariwz min ik dwsra aprwtch hwta hye js kw hm bwltye hin
+an layen lrng jw hm nikstt askrs krin gye

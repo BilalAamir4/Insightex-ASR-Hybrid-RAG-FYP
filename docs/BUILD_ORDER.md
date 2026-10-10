@@ -33,6 +33,7 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
   Exit: the Day 4 lecture normalises, and odd codecs are rejected cleanly.
 - **M3: Ingest (URL).** Done. Design and open items are in `docs/features/README.md`.
 - **M4: ASR stage + WER gate** in `tools/eval_wer`.
+  - **Session 1 done (10 Oct 2026):** the WER gate chose large-v3 with `language="ur"` (ADR-0039, Accepted; large-v3-turbo not evaluated). Evidence: `tools/eval_wer/results/m4/`. **Session 2 (production ASR stage) is next:** record the temperature-fallback setting and per-segment temperature in the transcript artifact.
   - Prerequisite: re-ingest the eval lectures (Day 4 first) through normaliser v4 before measuring. Older `audio.wav` files predate the start-offset padding, so their timings may be shifted. Carried-over WER numbers on old audio count as not re-run.
   Exit: the checkpoint and language decision is recorded as an ADR, with numbers.
 - **M5: Windows + embedding (dense and sparse) + FAISS.**
@@ -103,7 +104,7 @@ These come from the October 2026 review. Settle each one when its module starts.
   - Raw streamed upload body (no multipart), SHA-256 dedupe, one upload at a time, no CORS middleware.
   - `audio.wav` derived from `video.mp4` with start padding; sync within one frame even when a player ignores edit lists (libx264 `bframes=0`; copied video re-encoded when its ignored-edit-list skew exceeds the bound). Cost: about 3–19% larger transcodes, and more files transcoded instead of copied.
   - Closed, unprefixed error codes. Uploaded originals deleted unless `ingest.file.keep_original`; link sources kept (ADR-0035).
-- **M4: Whisper language setting.**
+- **M4: Whisper language setting.** Settled by ADR-0039 (large-v3, `ur`); the notes below are the history.
   - Earlier notes conflict. One says auto-detect beat forced `ur` because forcing dropped lines; another says forcing `ur` was needed because auto produced Devanagari.
   - Decide in the WER gate: medium and large-v3 × forced `ur` / auto-detect (4 configs, with large-v3-turbo as a 5th if time allows).
   - Confirm `task=transcribe`, not translate. Count dropped segments explicitly. Enable `word_timestamps=True`.

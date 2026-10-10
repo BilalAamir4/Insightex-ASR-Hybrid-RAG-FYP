@@ -1,6 +1,6 @@
 # ADR-0014: ASR checkpoint and language setting
 
-Status: Proposed
+Status: Superseded by ADR-0039
 Date decided: not recorded; before 2026-10-08
 Date recorded: 2026-10-08
 Module: M4
