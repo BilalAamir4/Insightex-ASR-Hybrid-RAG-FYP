@@ -1,11 +1,11 @@
 # ADR-0039: ASR checkpoint and language setting: large-v3 with `language="ur"`
 
-Status: Proposed
-Date decided: not decided; pending human confirmation of the gate results
+Status: Accepted
+Date decided: 2026-10-10
 Date recorded: 2026-10-10
 Module: M4
 
-Supersedes ADR-0014 once Accepted.
+Supersedes ADR-0014.
 
 ## Context
 
@@ -15,7 +15,7 @@ The old Gemini-transliteration pipeline numbers (Whisper Urdu script, Gemini tra
 
 ## Decision
 
-Proposed: **large-v3 (`Systran/faster-whisper-large-v3`), `language="ur"`, `task="transcribe"`, float16**. Pending human confirmation.
+**large-v3 (`Systran/faster-whisper-large-v3`), `language="ur"`, `task="transcribe"`, float16**. The human confirmed the disqualifications (medium ur, medium auto, large-v3 auto) on 2026-10-10.
 
 Method summary: faster-whisper 1.2.1, beam 5, `vad_filter=True`, `word_timestamps=True`, other parameters at library defaults (listed in `results.md`); each config in its own subprocess after one discarded warm-up; uroman romanisation; L1 and L2 normalisation (L2 decides, frozen at commit `c883b9e`); word alignment with exact CER; independent energy-VAD dropped-speech check; Latin-script drift check; paired block bootstrap for ties. Everything is in `tools/eval_wer/results/m4/` and reruns with one command (`tools/eval_wer/README.md`).
 
@@ -23,7 +23,7 @@ Method summary: faster-whisper 1.2.1, beam 5, `vad_filter=True`, `word_timestamp
 |---|---|---|---|---|---|---|---|---|
 | medium ur | 92.9% | 68.4% | 47.3% | 21.9% (32.1 s) | 5.6% | 0.240 | 3294 MiB | disqualified: dropped speech |
 | medium auto | 67.6% | 67.6% | 53.0% | 5.1% (2.1 s) | 100% | 0.049 | 2974 MiB | disqualified: translates to English |
-| large-v3 ur | 57.7% | 24.7% | 6.6% | 1.9% (1.0 s) | 39.4% | 0.119 | 4638 MiB | proposed winner |
+| large-v3 ur | 57.7% | 24.7% | 6.6% | 1.9% (1.0 s) | 39.4% | 0.119 | 4638 MiB | winner |
 | large-v3 auto | 27.9% | 18.2% | 11.1% | 5.7% (10.2 s) | 40.4% | 0.180 | 5310 MiB | disqualified: dropped speech |
 
 Reasons are in `results/m4/decision.md`, with the passages in `flagged.md`. In short:
@@ -76,16 +76,33 @@ L2 WER and CER disagree between the two large-v3 configs (auto lower WER, ur low
    `kya`/`ka` (27 tokens) is the main meaningful collision; `fir`/`for`/`four` and `but`/`bat` are the others. The rules are frozen and were not tuned after seeing results.
 3. **English terms written in Urdu script do not fully match the English-spelled reference** (for example `machine` gives `mcnE` in the reference but `mshn` from the Urdu-script `مشین`). This pushes the WER of `ur` configs up, while the collisions above push it down. The two effects are not separated.
 4. **The WER/CER split between scripts is structural.** Devanagari romanises with full vowels and Urdu script omits short vowels, so L2 favours auto-detect at word level and `ur` at character level. A second lecture would not resolve it. The choice between scripts is a product decision (target users read Urdu script).
-5. One lecture, one speaker, one run per config. medium `ur` changed a lot between two runs (sampled temperature fallback); large-v3 run-to-run variation was not measured.
+5. One lecture and one speaker. medium `ur` changed a lot between two runs (Latin share 66.5% to 5.6%, dropped speech 11.2% to 21.9%) because decoding falls back to sampled temperatures. For the winner, run-to-run variation was measured (table below) and was nil on this lecture; other lectures were not tested.
 6. The reference is human-typed and not time-aligned; its English/Hindi spelling choices are the author's. It has no `[unclear]` markers, so the wildcard path in the aligner was only tested on synthetic data.
 7. The Latin-script drift check has no reference English share (no lexicon was available); it compares configs and lists the longest Latin stretches for human reading.
 8. The audio was extracted with the M2 normaliser's audio arguments directly from the source mp4, not through the full `normalise_media` path (no `video.mp4`). Word error rates do not depend on this; timestamps may differ slightly from a normalised workspace.
 9. The energy VAD is a crude independent check. Its threshold (noise floor + 12 dB) classes 94% of the lecture as speech.
 
+## Run-to-run variation of the winner
+
+Fixed pass rule, set before the runs: the winner stands if mean dropped speech over 3 runs is at most 2% and no run has a gap of 10 s or more. `tools/eval_wer/variance.py`, `results/m4/variance.md`.
+
+| run | L2 WER | L2 CER | dropped speech | longest gap | segments | segments with temperature fallback |
+|---|---|---|---|---|---|---|
+| 1 (gate run) | 24.7% | 6.6% | 1.95% | 1.0 s | 351 | not recorded (field added later) |
+| 2 | 24.7% | 6.6% | 1.95% | 1.0 s | 351 | 0 |
+| 3 | 24.7% | 6.6% | 1.95% | 1.0 s | 351 | 0 |
+| min / mean / max | 24.7 / 24.7 / 24.7% | 6.6 / 6.6 / 6.6% | 1.95 / 1.95 / 1.95% | 1.0 / 1.0 / 1.0 s | | |
+
+**PASS.** The three runs have identical segment text. The margin on the dropped-speech threshold is thin (1.95% against 2%); that is a property of the lecture and the VAD, not of run-to-run noise.
+
+## Note for M4 session 2 (production ASR stage)
+
+Transcription is **not deterministic** in general, because faster-whisper falls back to sampled temperatures (0.2 to 1.0) when a segment fails the log-probability or compression-ratio checks (medium `ur` showed this). The winner showed no fallback in runs 2 and 3. The production stage must record the temperature-fallback setting (`temperatures`, `log_prob_threshold`, `compression_ratio_threshold`, `condition_on_previous_text`) and the per-segment `temperature` (and `compression_ratio`) in the transcript artifact, so a transcript can be explained and compared later.
+
 ## Evidence
 
-`tools/eval_wer/results/m4/`: `results.md`, `decision.md`, `flagged.md`, `samples.md`, `vad_clip30s.md`, per-config `raw.json`, `romanised.txt`, `normalised_l1.txt`, `normalised_l2.txt`, and `preview_stop1/` (the stop-point-1 raw outputs showing medium auto translating). Code: commits `3abb0b5`, `c883b9e` (frozen L2 rules), `c028253` and later on branch `m4-s1-wer-gate`.
+`tools/eval_wer/results/m4/`: `results.md`, `decision.md`, `flagged.md`, `samples.md`, `vad_clip30s.md`, per-config `raw.json`, `romanised.txt`, `normalised_l1.txt`, `normalised_l2.txt`, and `preview_stop1/` (the stop-point-1 raw outputs showing medium auto translating). Code: commits `3abb0b5`, `c883b9e` (frozen L2 rules), `c028253` and later on branch `m4-s1-wer-gate` (merged to `main`).
 
 ## Gate / revisit when
 
-Revisit if large-v3-turbo is added to the cache and tested, if a second lecture shows large-v3 `ur` dropping speech, or if the product chooses Roman or Devanagari output. Accepting this ADR needs the human to confirm the disqualifications in `decision.md`.
+Revisit if large-v3-turbo is added to the cache and tested, if a second lecture shows large-v3 `ur` dropping speech, or if the product chooses Roman or Devanagari output. The disqualifications are recorded in `tools/eval_wer/results/m4/decision.md`.

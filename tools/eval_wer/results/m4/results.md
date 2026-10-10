@@ -62,3 +62,6 @@ L2 collision rate on the reference: 78/555 distinct words = 14.1% (see `refwords
 - VAD options: VadOptions(threshold=0.5, neg_threshold=None, min_speech_duration_ms=0, max_speech_duration_s=inf, min_silence_duration_ms=2000, speech_pad_ms=400)
 - warm-up: one discarded transcription of the 30 s clip per run (model loaded once per config subprocess)
 - romanisation: uroman, word by word; L1/L2 per `textnorm.py`; alignment per `gate_metrics.py`; CER is computed on space-free strings (exact Levenshtein) after dropping wildcard-absorbed and trimmed tokens
+
+Note: the VAD pause check on the 30 s clip (pauses near 7.6-8.1 s and 16.9-17.5 s) was skipped by decision; no decision depends on it.
+Run-to-run variation of the winner: `variance.md`.

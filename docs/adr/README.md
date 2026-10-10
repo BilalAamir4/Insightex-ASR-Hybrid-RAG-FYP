@@ -34,7 +34,7 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0011](0011-gpu-discipline-one-model-in-vram.md) | GPU discipline: one model in VRAM at a time | Accepted | Project | |
 | [0012](0012-llm-selection-and-vram-headroom.md) | LLM selection and VRAM headroom | Proposed | M7 / M11 | |
 | [0013](0013-asr-engine-faster-whisper.md) | ASR engine: faster-whisper | Accepted | M4 | |
-| [0014](0014-asr-checkpoint-and-language-setting.md) | ASR checkpoint and language setting | Proposed | M4 | |
+| [0014](0014-asr-checkpoint-and-language-setting.md) | ASR checkpoint and language setting | Superseded by ADR-0039 | M4 | Superseded by ADR-0039 |
 | [0015](0015-query-time-embedding-on-cpu.md) | Query-time embedding on CPU | Proposed | M5 | |
 | [0016](0016-dense-sparse-retrieval-rrf.md) | Dense + sparse retrieval with Reciprocal Rank Fusion | Proposed | M5 / M9 | |
 | [0017](0017-window-edges-and-overlap.md) | Window edges and overlap | Proposed | M5 | |
@@ -59,4 +59,4 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0036](0036-local-file-ingestion-and-shared-media-normalisation-policy.md) | Local-file ingestion and shared media normalisation policy | Accepted | M2 | Amends ADR-0035 (`normalise` is shared; uploaded originals are deleted, link originals are kept) |
 | [0037](0037-http-upload-transport.md) | HTTP upload transport: raw streamed body, one upload at a time, no CORS | Accepted | M2 | |
 | [0038](0038-no-empty-edits-in-video-mp4.md) | video.mp4 must not rely on an empty edit to stay in sync | Accepted | M2 | Amends ADR-0036 (late audio or video is re-encoded; new post-verify rule) |
-| [0039](0039-asr-checkpoint-and-language-setting-decision.md) | ASR checkpoint and language setting: large-v3 with `language="ur"` | Proposed | M4 | Will supersede ADR-0014 when Accepted |
+| [0039](0039-asr-checkpoint-and-language-setting-decision.md) | ASR checkpoint and language setting: large-v3 with `language="ur"` | Accepted | M4 | Supersedes ADR-0014 |

@@ -22,6 +22,7 @@ def run(model, audio, language):
         out.append(dict(
             id=s.id, start=round(s.start, 3), end=round(s.end, 3), text=s.text,
             avg_logprob=s.avg_logprob, no_speech_prob=s.no_speech_prob,
+            temperature=s.temperature, compression_ratio=s.compression_ratio,
             words=[dict(start=round(w.start, 3), end=round(w.end, 3), word=w.word,
                         probability=round(w.probability, 4)) for w in (s.words or [])]))
     return out, info
