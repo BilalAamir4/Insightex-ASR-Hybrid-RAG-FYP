@@ -14,9 +14,8 @@
 from __future__ import annotations
 
 import argparse
-import sys
-
 import json
+import sys
 
 from insightex.core.config import ConfigError, load_settings_with_sources, render_effective
 

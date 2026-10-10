@@ -19,7 +19,12 @@ from typing import Any
 from insightex.asr import transcript as tr
 from insightex.asr.gpu import GpuQueryError, Vram, query_vram
 from insightex.asr.languages import Language, LanguageConfigError, languages_for
-from insightex.asr.transcriber import AsrError, SubprocessTranscriber, TranscribeRequest, Transcriber
+from insightex.asr.transcriber import (
+    AsrError,
+    SubprocessTranscriber,
+    Transcriber,
+    TranscribeRequest,
+)
 from insightex.core.config import Settings
 from insightex.ingest.errors import ErrorCode
 from insightex.jobs.stages import KeyContext, Stage, StageContext

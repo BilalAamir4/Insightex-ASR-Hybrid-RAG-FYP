@@ -18,9 +18,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from insightex.asr.languages import require_language
-from insightex.core.config import Settings
 from insightex.asr.stage import AsrStage
 from insightex.asr.transcript import SCHEMA_VERSION, TRANSCRIPT_JSON
+from insightex.core.config import Settings
 from insightex.ingest import staging
 from insightex.ingest.errors import ErrorCode, IngestRejected
 from insightex.ingest.settings import IngestSettings

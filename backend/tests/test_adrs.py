@@ -12,7 +12,10 @@ SECTIONS = [
     "## Evidence",
     "## Gate / revisit when",
 ]
-STATUS_RE = re.compile(r"^Status: (Proposed|Accepted|Deprecated|Superseded by ADR-\d{4})$", re.MULTILINE)
+# "Accepted; <part> amended by ADR-XXXX" is the status-line pointer of a partly amended ADR (ADR-0039 -> ADR-0040).
+STATUS_RE = re.compile(
+    r"^Status: (Proposed|Accepted(; [^\n]* amended by ADR-\d{4})?|Deprecated|Superseded by ADR-\d{4})$", re.MULTILINE
+)
 NAME_RE = re.compile(r"^(\d{4})-[a-z0-9-]+\.md$")
 INDEX_ROW_RE = re.compile(r"^\| \[(\d{4})\]\(([^)]+)\) \|", re.MULTILINE)
 
