@@ -17,11 +17,11 @@ M5 builds windowing, BGE-M3 embedding and FAISS retrieval (ADR-0001). Several de
 
 **Hit rule.** A retrieved window is a hit if it covers at least 50% of any one gold span of that query. Before taking the top 3, drop any window that overlaps a higher-ranked window by more than 50%. Primary metric: Recall@3. MRR is reported alongside and never decides a gate.
 
-**Net-count rule.** For configs A (current or simpler) and B (candidate), count per query wins (B hit, A miss) and losses (A hit, B miss). Adopt B only if wins - losses >= 2. Anything less is a tie, and a tie keeps A. Gates G2 and G3 use only the 28 original queries (A01 to A28); the `...r` twins are excluded there because paired questions flip together.
+**Net-count rule.** For configs A (current or simpler) and B (candidate), count per query wins (B hit, A miss) and losses (A hit, B miss). Adopt B only if wins - losses >= 2. Anything less is a tie, and a tie keeps A. Gates G2 and G3 use 24 queries: A01 to A23 plus A28. The `...r` twins and A24 to A27 (twins of A02, A20, A16 and A18) are excluded there because paired questions flip together; A28 has no twin and is independent. Recall@3 for the English-only set (sets `en` and `hard`) is reported at every gate, so absolute English performance stays visible.
 
 **Gates, run in this order, each reported and approved before the next:**
 
-- **G0 baseline.** Fixed 30 s windows, dense only, GPU encoding, run through production code. It must give identical per-query hits to the bake-off scorer (`tools/eval_embeddings`, archived in tag `import-baseline`) run on the same windows and the new gold.
+- **G0 baseline.** Fixed 30 s windows, dense only, GPU encoding, run through production code. It is checked against the legacy bake-off encoder (restored from tag `import-baseline` into a scratch directory, not into the repo) by ranking, not by hits: the same window texts go through the legacy encoder and the production path (both GPU), and G0 passes if, for every query, the top-10 window order is identical and cosine scores match within 1e-4. Any differing query is reported. As a sanity check, the restored legacy scorer is first run on its own windows and its own hit rule and must reproduce the bake-off's recorded result. Production is then scored with the hit rule and gold above; that is the baseline G3 compares against.
 - **G3 windows.** 30 s windows snapped to Whisper segment boundaries (decided), no overlap (A) against 15 s stride (B). Dense only.
 - **G2 sparse.** On the G3 winner, dense only (A) against dense + sparse fused with Reciprocal Rank Fusion, k=60 (B). Use FlagEmbedding `BGEM3FlagModel` (one pass gives both). If B ties, keep dense only, leave the sparse code in `tools/`, and the report drops the sparse tie-break claim.
 - **G1 CPU queries.** On the final config, queries encoded on CPU (fp32) against GPU. Equivalence gate: pass if every query's dense cosine(CPU, GPU) >= 0.999 and no query changes hit or miss. Any failure: stop and report; no default is chosen.
@@ -33,12 +33,12 @@ M5 builds windowing, BGE-M3 embedding and FAISS retrieval (ADR-0001). Several de
 
 - **Hit by any overlap (the bake-off rule).** Rewards windows that touch a span by a fraction of a second, which gets easier as windows grow.
 - **Adopt B on any improvement.** With 28 queries one flip is 3.6 points of Recall@3, which is within noise; the net >= 2 rule requires a margin.
-- **Include twins in G2 and G3.** A question and its Roman twin usually flip together, so they would count one effect twice.
+- **Include twins (and A24 to A27) in G2 and G3.** A question and its Roman twin usually flip together, so they would count one effect twice.
 
 ## Consequences
 
 - Every adoption in M5 is a net count on named queries, not a judgement on a mean.
-- The first 28 ids contain five Roman queries (A24 to A28); A24 to A27 are twins of A02, A20, A16 and A18, so those four pairs can flip together inside G2 and G3. The rule is kept as written; the per-query tables show it.
+- The first 28 ids contain five Roman queries (A24 to A28); A24 to A27 are twins of A02, A20, A16 and A18, so G2 and G3 exclude them (24 queries). This amendment was made before any experiment ran.
 - A tie always keeps the simpler config, so sparse retrieval and 15 s stride can only enter with measured evidence.
 
 ## Evidence
