@@ -161,8 +161,9 @@ index:                              # index stage (M5): docs/adr/0043-*.md (gate
   dtype: float16                    # model precision on the GPU (the bake-off's; the query side may differ, see retrieval.query_dtype)
   max_seq_length: 1024              # tokens; longer window text is truncated (bake-off seq1024)
   batch_size: 16                    # texts per encoder batch
-  window_s: 30                      # seconds; length of a window
-  stride_s: 30                      # seconds between window starts (= window_s: no overlap)
+  window_s: 30                      # seconds; target length of a window
+  stride_s: 30                      # seconds between window starts (= window_s: no overlap; smaller: overlapping windows)
+  snap_to_segments: true            # true: window edges are Whisper segment boundaries (length within a segment of window_s); false: fixed time grid
   min_free_vram_mib: 2500           # MiB; free VRAM (nvidia-smi) required before the subprocess starts, else INSUFFICIENT_VRAM
   timeout_min_s: 600                # seconds; the encoder subprocess is killed after this long
   kill_grace_s: 5                   # seconds between SIGTERM and SIGKILL when the subprocess is stopped
@@ -172,5 +173,5 @@ retrieval:                          # query side (M5): docs/adr/0043-*.md
   query_device: cpu                 # device that encodes questions in the API process; the GPU belongs to Ollama at query time
   query_dtype: float32              # model precision for question encoding
   candidates: 10                    # windows returned by one raw search, best first
-  dedupe_overlap: 0.5               # fraction; a window overlapping a higher-ranked one by more than this is dropped (deduplicated search)
+  dedupe_min_overlap_s: 0           # seconds; a window overlapping a higher-ranked kept one by more than this is dropped (deduplicated search)
 

@@ -62,8 +62,16 @@ def run(env, payload, settings=None):
     return store.get_job(conn, job_id)
 
 
-def test_index_files_and_meta(env):
+def test_snapped_windows_are_the_default(env):
     job = run(env, {"n": 7})
+    assert job.status == "succeeded", job.error
+    index = load_index(env[2].stage_output_dir(WS, "index"))
+    assert [(w["start"], w["end"]) for w in index.windows] == [(0.0, 29.5), (30.0, 59.5), (60.0, 69.5)]
+    assert index.meta["windows"]["snap_to_segments"] is True
+
+
+def test_index_files_and_meta(env):
+    job = run(env, {"n": 7}, settings=load_settings({"jobs": {"progress_min_interval_s": 0.0}, "index": {"snap_to_segments": False}}))
     assert job.status == "succeeded", job.error
     directory = env[2].stage_output_dir(WS, "index")
     assert sorted(p.name for p in directory.iterdir()) == ["dense.faiss", "index.json", "windows.json"]  # no scratch left over

@@ -22,7 +22,7 @@ from insightex.index.encoder import Encoder, EncodeRequest, IndexStageError, Sub
 from insightex.ingest.errors import ErrorCode
 from insightex.jobs.stages import KeyContext, Stage, StageContext
 from insightex.windows.build import SCHEMA_VERSION as WINDOWS_SCHEMA_VERSION
-from insightex.windows.build import build_windows
+from insightex.windows.build import build_snapped_windows, build_windows
 
 log = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class IndexStage(Stage):
         return {
             "model_repo": i.model_repo, "model_revision": i.model_revision, "device": i.device, "dtype": i.dtype,
             "max_seq_length": i.max_seq_length, "batch_size": i.batch_size, "window_s": i.window_s,
-            "stride_s": i.stride_s, "libraries": library_versions(), "windows_schema_version": WINDOWS_SCHEMA_VERSION,
+            "stride_s": i.stride_s, "snap_to_segments": i.snap_to_segments, "libraries": library_versions(), "windows_schema_version": WINDOWS_SCHEMA_VERSION,
         }
 
     def run(self, ctx: StageContext) -> None:
@@ -76,8 +76,11 @@ class IndexStage(Stage):
 
         i = ctx.settings.index
         doc = json.loads((ctx.upstream["asr"] / tr.TRANSCRIPT_JSON).read_text(encoding="utf-8"))
-        windows = build_windows(doc["segments"], window_s=i.window_s, stride_s=i.stride_s,
-                                duration_s=float(doc["audio"]["duration_s"]))
+        if i.snap_to_segments:
+            windows = build_snapped_windows(doc["segments"], window_s=i.window_s, stride_s=i.stride_s)
+        else:
+            windows = build_windows(doc["segments"], window_s=i.window_s, stride_s=i.stride_s,
+                                    duration_s=float(doc["audio"]["duration_s"]))
         if not windows:
             raise IndexStageError(ErrorCode.NO_WINDOWS, details=f"{len(doc['segments'])} segments, none with text")
 
@@ -115,7 +118,7 @@ class IndexStage(Stage):
             "schema_version": WINDOWS_SCHEMA_VERSION, "stage_version": self.version,
             "model": {"repo": i.model_repo, "revision": i.model_revision, "dtype": i.dtype, "device": i.device,
                       "max_seq_length": i.max_seq_length, "dim": result.dim},
-            "windows": {"window_s": i.window_s, "stride_s": i.stride_s, "count": len(windows), "n_truncated": result.n_truncated},
+            "windows": {"window_s": i.window_s, "stride_s": i.stride_s, "snap_to_segments": i.snap_to_segments, "count": len(windows), "n_truncated": result.n_truncated},
             "transcript": {"language": doc["language"], "segments": len(doc["segments"]),
                            "audio_sha256": doc["audio"]["sha256"]},
             "libraries": library_versions(),

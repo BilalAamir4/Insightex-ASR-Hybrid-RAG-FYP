@@ -283,6 +283,7 @@ class Index(_Section):
     batch_size: int
     window_s: float
     stride_s: float
+    snap_to_segments: bool
     min_free_vram_mib: int
     timeout_min_s: float
     kill_grace_s: float
@@ -302,7 +303,7 @@ class Retrieval(_Section):
     query_device: str
     query_dtype: str
     candidates: int
-    dedupe_overlap: float
+    dedupe_min_overlap_s: float
 
 
 class Settings(_Section):

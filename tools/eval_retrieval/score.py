@@ -9,7 +9,7 @@ Production code is reached only through the CLI (`insightex search ... --k N` pr
 
 Rules (ADR-0043):
 - Hit: a window covers >= 50% of any one gold span of the query (overlap seconds / span length).
-- Before taking the top 3, drop any window that overlaps a higher-ranked kept window by more than 50% of its own length.
+- Before taking the top 3, drop any window that overlaps a higher-ranked kept window by more than 0 s (touching edges are fine).
 - Recall@3 is the primary metric; MRR (first hit rank in the de-duplicated list, 0 if none) is reported, never decides.
 - Net count: wins (B hit, A miss) minus losses (A hit, B miss) >= 2 adopts B; anything less keeps A.
 """
@@ -24,7 +24,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 HIT_COVERAGE = 0.5
-DEDUPE_OVERLAP = 0.5
+DEDUPE_MIN_OVERLAP_S = 0.0  # a window overlapping a higher-ranked kept one by more than this is dropped
 TOP_N = 3
 
 # Query subsets. g23 = the 24 queries ADR-0043 uses for gates G2 and G3 (A01-A23 + A28).
@@ -43,8 +43,7 @@ def overlap(a0: float, a1: float, b0: float, b1: float) -> float:
 def dedupe(hits: list[dict]) -> list[dict]:
     kept: list[dict] = []
     for h in hits:
-        length = h["end"] - h["start"]
-        if length > 0 and any(overlap(h["start"], h["end"], k["start"], k["end"]) > DEDUPE_OVERLAP * length for k in kept):
+        if any(overlap(h["start"], h["end"], k["start"], k["end"]) > DEDUPE_MIN_OVERLAP_S for k in kept):
             continue
         kept.append(h)
     return kept

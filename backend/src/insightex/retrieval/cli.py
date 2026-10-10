@@ -4,7 +4,7 @@
     insightex search <lecture_id> --queries-file q.json    a JSON list of {"id": ..., "question": ...}
 
 Prints one JSON document: the index's metadata, how the questions were encoded, and the best `--k` windows per
-question (raw, in score order; `--dedupe` applies the overlap rule of `retrieval.dedupe_overlap`). This is the
+question (raw, in score order; `--dedupe` applies the overlap rule of `retrieval.dedupe_min_overlap_s`). This is the
 only way the evaluation scorer in tools/eval_retrieval reaches production code. `--device cuda` takes the
 exclusive GPU lease, which unloads the Ollama model first (ADR-0033); the default device is the configured
 query device (CPU).
@@ -83,7 +83,7 @@ def main(argv: list[str]) -> int:
     results = []
     for q, hits in zip(questions, ranked, strict=True):
         if args.dedupe:
-            hits = s.dedupe(hits, settings.retrieval.dedupe_overlap)
+            hits = s.dedupe(hits, settings.retrieval.dedupe_min_overlap_s)
         results.append({"id": q["id"], "question": q["question"],
                         "hits": [{"rank": h.rank, "window_id": h.window_id, "start": h.start, "end": h.end,
                                   "score": h.score} for h in hits]})

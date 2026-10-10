@@ -2,7 +2,7 @@
 
 `QueryEncoder` loads BGE-M3 once, on the CPU in float32 by default (`retrieval.query_*`): at query time the GPU
 belongs to Ollama. `search` is an exact inner-product search over one lecture's FAISS index. `dedupe` drops a
-window that overlaps a higher-ranked one by more than `retrieval.dedupe_overlap` of its own length.
+window that overlaps a higher-ranked kept one by more than `retrieval.dedupe_min_overlap_s` seconds (0: any overlap).
 """
 
 from __future__ import annotations
@@ -71,13 +71,12 @@ def search(index: LectureIndex, vectors, k: int) -> list[list[Hit]]:
     return out
 
 
-def dedupe(hits: list[Hit], max_overlap: float) -> list[Hit]:
+def dedupe(hits: list[Hit], min_overlap_s: float) -> list[Hit]:
     """Keep hits in rank order, dropping any that overlap an already kept (higher-ranked) hit by more than
-    `max_overlap` of its own length. Ranks are renumbered."""
+    `min_overlap_s` seconds (0: any overlap; windows that only touch are distinct). Ranks are renumbered."""
     kept: list[Hit] = []
     for h in hits:
-        length = h.end - h.start
-        if length > 0 and any(min(h.end, k.end) - max(h.start, k.start) > max_overlap * length for k in kept):
+        if any(min(h.end, k.end) - max(h.start, k.start) > min_overlap_s for k in kept):
             continue
         kept.append(h)
     return [Hit(r, h.window_id, h.start, h.end, h.score) for r, h in enumerate(kept, start=1)]

@@ -59,3 +59,48 @@ def build_windows(segments: list[dict[str, Any]], *, window_s: float, stride_s: 
             ))
         k += 1
     return out
+
+
+def build_snapped_windows(segments: list[dict[str, Any]], *, window_s: float, stride_s: float) -> list[Window]:
+    """Windows whose edges are segment boundaries (ADR-0043 gate G3).
+
+    A window starts at a segment's start and ends at the end of the segment that lies closest to `start + window_s`
+    (among segments starting before that point; ties go to the earlier one); it always holds at least one segment.
+    Window start and end are the first segment's start and the last segment's end, so silence between windows is not
+    covered. The next window starts:
+
+    - `stride_s == window_s` (no overlap): at the segment after the last one included;
+    - otherwise: at the segment whose start is closest to `start + stride_s` (ties go to the later one), always
+      after the current start.
+
+    Windowing stops once a window contains the last segment, because later windows would lie inside it.
+    Empty segments are skipped; window ids count the windows.
+    """
+    segs = [(s, window_text(s["text"])) for s in segments]
+    segs = [(s, t) for s, t in segs if t]
+    out: list[Window] = []
+    i = 0
+    while i < len(segs):
+        t0 = float(segs[i][0]["start"])
+        target = t0 + window_s
+        last = i
+        best = abs(float(segs[i][0]["end"]) - target)
+        for j in range(i + 1, len(segs)):
+            if float(segs[j][0]["start"]) >= target:
+                break
+            gap = abs(float(segs[j][0]["end"]) - target)
+            if gap < best:
+                last, best = j, gap
+        members = segs[i:last + 1]
+        out.append(Window(
+            id=len(out), start=t0, end=float(members[-1][0]["end"]), first_segment=int(members[0][0]["id"]),
+            last_segment=int(members[-1][0]["id"]), n_segments=len(members), text=" ".join(t for _, t in members),
+        ))
+        if last == len(segs) - 1:
+            break
+        if stride_s == window_s:
+            i = last + 1
+        else:
+            want = t0 + stride_s
+            i = min(range(i + 1, len(segs)), key=lambda k: (abs(float(segs[k][0]["start"]) - want), -k))
+    return out
