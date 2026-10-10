@@ -1,0 +1,715 @@
+[
+  {
+    "id": "A01",
+    "set": "en",
+    "question": "How does the lecturer define \"production\" in simple terms?",
+    "spans": [
+      [
+        51.8,
+        59.1
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Production = the server your code runs on."
+  },
+  {
+    "id": "A02",
+    "set": "en",
+    "question": "What is the difference between a production environment and a development environment?",
+    "spans": [
+      [
+        80.5,
+        92.9
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Server environment = production; own machine = development. End extended to include 'bolte hain'."
+  },
+  {
+    "id": "A03",
+    "set": "en",
+    "question": "Why isn't batch learning trained directly on the server?",
+    "spans": [
+      [
+        172.6,
+        186.7
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Real-world data is big; training it on the server is possible but costly and time-taking. Start moved back to include the 'data is big' reason."
+  },
+  {
+    "id": "A04",
+    "set": "en",
+    "question": "Why does a recommendation engine like Netflix's need to keep updating?",
+    "spans": [
+      [
+        301.9,
+        314.8
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Netflix adds new movies weekly, engine must grow. Trimmed; the rest restates it."
+  },
+  {
+    "id": "A05",
+    "set": "en",
+    "question": "How does the email spam classifier example show a weakness of batch learning?",
+    "spans": [
+      [
+        325.6,
+        351.5
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Frozen for a year, spammers change techniques, model goes obsolete. End trimmed before 'sab se bara problem'."
+  },
+  {
+    "id": "A06",
+    "set": "en",
+    "question": "What is the hardware limitation problem with batch learning?",
+    "spans": [
+      [
+        498.1,
+        517.2
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "No instant connectivity, so cannot pull down, retrain and re-upload. End trimmed before the scenarios lead-in."
+  },
+  {
+    "id": "A07",
+    "set": "en",
+    "question": "What example shows the availability problem of batch learning?",
+    "spans": [
+      [
+        587.5,
+        609.0
+      ],
+      [
+        644.4,
+        670.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Problem is named 'third is availability' at 9:38. Span 1: news-feed site updated every 24 h. Span 2: breaking news arrives late, then floods the feed."
+  },
+  {
+    "id": "A08",
+    "set": "en",
+    "question": "What does the lecturer say about the previous video on types of machine learning?",
+    "spans": [
+      [
+        13.1,
+        30.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Previous video: types by amount of supervision."
+  },
+  {
+    "id": "A09",
+    "set": "en",
+    "question": "Why does software need to be deployed on a server for customers to use it?",
+    "spans": [
+      [
+        59.5,
+        77.0
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Software must reach customers; run it on a server with an IP address."
+  },
+  {
+    "id": "A10",
+    "set": "en",
+    "question": "What is incremental training and why doesn't batch learning use it?",
+    "spans": [
+      [
+        160.4,
+        169.2
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Definition: training in small pieces vs whole lot. Summary span dropped (no definition). Lecture never really explains the 'why'."
+  },
+  {
+    "id": "A11",
+    "set": "en",
+    "question": "How does the lecturer draw the batch learning flow from data to model to server?",
+    "spans": [
+      [
+        219.9,
+        245.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Drawing: data -> model -> test -> server. Trimmed from 34 s."
+  },
+  {
+    "id": "A12",
+    "set": "en",
+    "question": "How often do people typically retrain batch learning models?",
+    "spans": [
+      [
+        401.7,
+        426.2
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "24 h / week / month / 6 months, depends on data size; generally weekly or 24 h. Old span 1 dropped: it was about how often data updates, not retraining."
+  },
+  {
+    "id": "A13",
+    "set": "en",
+    "question": "Where does the data scientist train a batch model and where does the trained model go?",
+    "spans": [
+      [
+        186.7,
+        202.8
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Trained offline on own machine, then moved to production."
+  },
+  {
+    "id": "A14",
+    "set": "en",
+    "question": "Which two types of machine learning will be covered in this video?",
+    "spans": [
+      [
+        104.2,
+        116.3
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Batch (offline) and online learning."
+  },
+  {
+    "id": "A15",
+    "set": "en",
+    "question": "How does the lecturer describe training a Netflix recommendation engine and putting it on the server?",
+    "spans": [
+      [
+        256.8,
+        275.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Train on own machine, put on Netflix server. End trimmed before 'but I guess'."
+  },
+  {
+    "id": "A16",
+    "set": "hard",
+    "question": "Why can't a model on a remote device just be refreshed when new data arrives?",
+    "spans": [
+      [
+        500.4,
+        517.2
+      ],
+      [
+        541.3,
+        551.0
+      ],
+      [
+        552.4,
+        577.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Span 1: no connectivity. Span 2: defense app. Span 3 added: satellite / drone."
+  },
+  {
+    "id": "A17",
+    "set": "hard",
+    "question": "What goes wrong when a model learns once and then stays frozen?",
+    "spans": [
+      [
+        280.1,
+        290.5
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Model is static, learns nothing new."
+  },
+  {
+    "id": "A18",
+    "set": "hard",
+    "question": "Why would a daily-refreshed system show stale content during breaking news?",
+    "spans": [
+      [
+        644.4,
+        670.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Responds only after 24 h, then floods with news no longer important."
+  },
+  {
+    "id": "A19",
+    "set": "hard",
+    "question": "What happens when the dataset becomes too big for the available tools?",
+    "spans": [
+      [
+        474.9,
+        497.8
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Tools cannot process it, model cannot be trained."
+  },
+  {
+    "id": "A20",
+    "set": "hard",
+    "question": "How do teams stop a deployed model from going out of date?",
+    "spans": [
+      [
+        354.9,
+        364.2
+      ],
+      [
+        384.0,
+        401.7
+      ],
+      [
+        443.9,
+        452.8
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Retrain periodically; merge old+new data, retrain, test, redeploy in cycles. Span 1 start fixed; span 3 added (summary: pull down, retrain, put back periodically)."
+  },
+  {
+    "id": "A21",
+    "set": "hard",
+    "question": "What is the basis for the types of machine learning discussed today, compared with the supervision-based ones?",
+    "spans": [
+      [
+        30.4,
+        48.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Today's types based on a different thing: how the model trains, especially in production. Replaces the 4.6 s fragment with the passage that makes the comparison."
+  },
+  {
+    "id": "A22",
+    "set": "hard",
+    "question": "Why does knowing this difference matter for someone who builds models?",
+    "spans": [
+      [
+        118.5,
+        134.1
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Models get deployed to servers for others to use."
+  },
+  {
+    "id": "A23",
+    "set": "hard",
+    "question": "What does the lecturer say happens when a platform's user base keeps doubling?",
+    "spans": [
+      [
+        466.6,
+        484.9
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Fast scaling -> data grows -> existing tools cannot process it, becomes big data. Edges fixed."
+  },
+  {
+    "id": "A24",
+    "set": "roman",
+    "question": "production environment kya hota hai",
+    "spans": [
+      [
+        80.5,
+        92.9
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Same answer as A02.",
+    "pair_of": "A02"
+  },
+  {
+    "id": "A25",
+    "set": "roman",
+    "question": "batch learning mein model ko dobara train kyun karna parta hai",
+    "spans": [
+      [
+        314.8,
+        325.6
+      ],
+      [
+        351.5,
+        358.7
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Model must keep evolving with data; biggest problem is constant retraining. Sorted.",
+    "pair_of": "A20"
+  },
+  {
+    "id": "A26",
+    "set": "roman",
+    "question": "satellite ya drone par batch learning kyun fail ho jati hai",
+    "spans": [
+      [
+        552.4,
+        577.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "No connectivity, no frequent updates.",
+    "pair_of": "A16"
+  },
+  {
+    "id": "A27",
+    "set": "roman",
+    "question": "news feed update hone mein 24 ghante kyun lagte hain",
+    "spans": [
+      [
+        578.9,
+        586.2
+      ],
+      [
+        603.2,
+        609.0
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Model is updated on a 24 h cycle; batch learning means it updates only after 24 h. Old span 2 dropped (no reason given).",
+    "pair_of": "A18"
+  },
+  {
+    "id": "A28",
+    "set": "roman",
+    "question": "batch learning mein pura data ek saath kaise use hota hai",
+    "spans": [
+      [
+        146.8,
+        169.2
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Whole data used together, no small pieces. Extended through 'whole lot'."
+  },
+  {
+    "id": "A01r",
+    "set": "roman",
+    "pair_of": "A01",
+    "question": "production ko simple alfaaz mein kaise define kiya hai",
+    "spans": [
+      [
+        51.8,
+        59.1
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A01; same gold span."
+  },
+  {
+    "id": "A03r",
+    "set": "roman",
+    "pair_of": "A03",
+    "question": "batch learning ko seedha server pe train kyun nahi karte",
+    "spans": [
+      [
+        172.6,
+        186.7
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A03; same gold span."
+  },
+  {
+    "id": "A04r",
+    "set": "roman",
+    "pair_of": "A04",
+    "question": "Netflix jaisa recommendation engine baar baar update kyun karna parta hai",
+    "spans": [
+      [
+        301.9,
+        314.8
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A04; same gold span."
+  },
+  {
+    "id": "A05r",
+    "set": "roman",
+    "pair_of": "A05",
+    "question": "email spam classifier wali example se batch learning ki kya kamzori pata chalti hai",
+    "spans": [
+      [
+        325.6,
+        351.5
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A05; same gold span."
+  },
+  {
+    "id": "A06r",
+    "set": "roman",
+    "pair_of": "A06",
+    "question": "batch learning mein hardware limitation wala masla kya hai",
+    "spans": [
+      [
+        498.1,
+        517.2
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A06; same gold span."
+  },
+  {
+    "id": "A07r",
+    "set": "roman",
+    "pair_of": "A07",
+    "question": "batch learning ki availability problem kis example se samjhai hai",
+    "spans": [
+      [
+        587.5,
+        609.0
+      ],
+      [
+        644.4,
+        670.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A07; same gold span."
+  },
+  {
+    "id": "A08r",
+    "set": "roman",
+    "pair_of": "A08",
+    "question": "pichli video mein types of machine learning ke baare mein kya bataya tha",
+    "spans": [
+      [
+        13.1,
+        30.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A08; same gold span."
+  },
+  {
+    "id": "A09r",
+    "set": "roman",
+    "pair_of": "A09",
+    "question": "customers ke use ke liye software ko server pe deploy kyun karna parta hai",
+    "spans": [
+      [
+        59.5,
+        77.0
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A09; same gold span."
+  },
+  {
+    "id": "A10r",
+    "set": "roman",
+    "pair_of": "A10",
+    "question": "incremental training kya hoti hai aur batch learning isay use kyun nahi karti",
+    "spans": [
+      [
+        160.4,
+        169.2
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A10; same gold span."
+  },
+  {
+    "id": "A11r",
+    "set": "roman",
+    "pair_of": "A11",
+    "question": "batch learning ka flow data se model aur server tak kaise draw kiya hai",
+    "spans": [
+      [
+        219.9,
+        245.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A11; same gold span."
+  },
+  {
+    "id": "A12r",
+    "set": "roman",
+    "pair_of": "A12",
+    "question": "am taur par log batch learning models  ko kitni bar dubarah retrain krtay hain?",
+    "spans": [
+      [
+        401.7,
+        426.2
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A12; same gold span."
+  },
+  {
+    "id": "A13r",
+    "set": "roman",
+    "pair_of": "A13",
+    "question": "data scientist batch model kahan train karta hai aur trained model kahan jata hai",
+    "spans": [
+      [
+        186.7,
+        202.8
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A13; same gold span."
+  },
+  {
+    "id": "A14r",
+    "set": "roman",
+    "pair_of": "A14",
+    "question": "is video mein machine learning ki kaunsi do types parhayi jayengi",
+    "spans": [
+      [
+        104.2,
+        116.3
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A14; same gold span."
+  },
+  {
+    "id": "A15r",
+    "set": "roman",
+    "pair_of": "A15",
+    "question": "Lecturer Netflix recommendation engine ko train kar ke server pe dalne ko kis tarah bayan kar raha hai",
+    "spans": [
+      [
+        256.8,
+        275.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A15; same gold span."
+  },
+  {
+    "id": "A17r",
+    "set": "roman",
+    "pair_of": "A17",
+    "question": "agar model ek dafa seekh ke wahin ruk jaye to kya masla hota hai",
+    "spans": [
+      [
+        280.1,
+        290.5
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A17; same gold span."
+  },
+  {
+    "id": "A19r",
+    "set": "roman",
+    "pair_of": "A19",
+    "question": "jab data itna bara ho jaye ke tools handle na kar sakein to kya hota hai",
+    "spans": [
+      [
+        474.9,
+        497.8
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A19; same gold span."
+  },
+  {
+    "id": "A21r",
+    "set": "roman",
+    "pair_of": "A21",
+    "question": "aaj wali types kis cheez pe based hain, supervision wali types ke muqable mein",
+    "spans": [
+      [
+        30.4,
+        48.4
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A21; same gold span."
+  },
+  {
+    "id": "A22r",
+    "set": "roman",
+    "pair_of": "A22",
+    "question": "model banane wale ke liye yeh difference janna kyun zaroori hai",
+    "spans": [
+      [
+        118.5,
+        134.1
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A22; same gold span."
+  },
+  {
+    "id": "A23r",
+    "set": "roman",
+    "pair_of": "A23",
+    "question": "Lecturer k mutabiq , Agar platform ke users har mahine double hote jayein to kya hota hai,",
+    "spans": [
+      [
+        466.6,
+        484.9
+      ]
+    ],
+    "verified": true,
+    "verified_by": "transcript",
+    "note": "Roman Urdu twin of A23; same gold span."
+  }
+]
