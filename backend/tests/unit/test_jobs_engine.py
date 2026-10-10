@@ -248,6 +248,127 @@ def test_retry_after_failure_in_stage_two_shows_stage_one_cached(env):
     assert retried.attempts == 1
 
 
+class _Consumer(_Writer):
+    """Deletes the first stage's output once published, as normalise deletes an uploaded original."""
+
+    def after_stage(self, ctx, upstream):
+        (upstream["first"] / "out.txt").unlink(missing_ok=True)
+
+
+def test_stage_whose_output_a_later_hook_consumed_counts_as_cached_when_the_next_stage_is_done(env):
+    _, conn, ws = env
+    state = {"fail": True}
+    register_pipeline("consumed_by_next", [_Writer("first", "1"), _Consumer("second", "1"),
+                                   _Writer("third", "1", fail_when=lambda: state["fail"])], replace=True)
+    job_id = store.enqueue(conn, "consumed_by_next", {}, "ws1")
+    run_next(env)
+    assert not (ws.stage_output_dir("ws1", "first") / "out.txt").exists()  # consumed
+    state["fail"] = False
+    store.retry(conn, job_id)
+    _, status = run_next(env)
+    assert status == "succeeded"
+    assert [s.status for s in store.get_job(conn, job_id).stages] == ["cached", "cached", "succeeded"]
+
+
+def test_consumed_stage_reruns_when_the_next_stage_must_rerun(env):
+    _, conn, _ = env
+    register_pipeline("consumed_rerun", [_Writer("first", "1"), _Consumer("second", "1", fingerprint_key="v")], replace=True)
+    store.enqueue(conn, "consumed_rerun", {"v": 1}, "ws1")
+    run_next(env)
+    store.enqueue(conn, "consumed_rerun", {"v": 2}, "ws1")  # second's key changes: first must produce its output again
+    job, status = run_next(env)
+    assert status == "succeeded"
+    assert [s.status for s in store.get_job(conn, job.id).stages] == ["succeeded", "succeeded"]
+
+
+class _CountingSource(_Writer):
+    """First stage that reads an input file named in the payload (like fetch reading the staged upload)."""
+
+    runs: ClassVar[list[str]] = []
+
+    def run(self, ctx: StageContext) -> None:
+        source = ctx.payload["input"]
+        _CountingSource.runs.append(ctx.job_id)
+        with open(source, encoding="utf-8") as f:  # FileNotFoundError when the input is gone
+            (ctx.staging_dir / "out.txt").write_text(f.read())
+
+
+def _consumed_pipeline(kind, third_fingerprint=None):
+    register_pipeline(kind, [_CountingSource("first", "1"), _Consumer("second", "1", fingerprint_key=third_fingerprint),
+                             _Writer("third", "1", fingerprint_key=third_fingerprint)], replace=True)
+
+
+def test_consumed_stage_is_not_run_again_when_the_next_stage_is_complete(env, tmp_path):
+    """(a) The earlier stage is recorded at its key, a later hook deleted its output, and the next stage is complete
+    at the matching chained key: it counts as cached and its run (which needs the now-missing input) is skipped."""
+    _, conn, ws = env
+    source = tmp_path / "input.txt"
+    source.write_text("data")
+    _CountingSource.runs.clear()
+    _consumed_pipeline("consumed_cached")
+    store.enqueue(conn, "consumed_cached", {"input": str(source)}, "ws1")
+    run_next(env)
+    assert len(_CountingSource.runs) == 1 and not (ws.stage_output_dir("ws1", "first") / "out.txt").exists()
+    source.unlink()  # the input is gone for good, as after an upload's staged copy is removed
+    job_id = store.enqueue(conn, "consumed_cached", {"input": str(source)}, "ws1")
+    _, status = run_next(env)
+    job = store.get_job(conn, job_id)
+    assert status == "succeeded" and [s.status for s in job.stages] == ["cached", "cached", "cached"]
+    assert len(_CountingSource.runs) == 1  # not run again
+
+
+def test_consumed_stage_reruns_when_the_next_stage_key_no_longer_matches(env, tmp_path):
+    """(b) The next stage's chained key differs from the one in the manifest, so the next stage is not complete:
+    the earlier stage is not counted as cached and runs again (its input still exists)."""
+    _, conn, _ = env
+    source = tmp_path / "input.txt"
+    source.write_text("data")
+    _CountingSource.runs.clear()
+    _consumed_pipeline("consumed_stale_next")
+    store.enqueue(conn, "consumed_stale_next", {"input": str(source)}, "ws1")
+    run_next(env)
+    # Same first stage; `second` and `third` now depend on payload["v"], so their keys change.
+    _consumed_pipeline("consumed_stale_next", third_fingerprint="v")
+    job_id = store.enqueue(conn, "consumed_stale_next", {"input": str(source), "v": 2}, "ws1")
+    _, status = run_next(env)
+    assert status == "succeeded"
+    assert [s.status for s in store.get_job(conn, job_id).stages] == ["succeeded", "succeeded", "succeeded"]
+    assert len(_CountingSource.runs) == 2
+
+
+def test_consumed_stage_fails_with_the_stage_error_when_the_next_stage_is_incomplete_and_the_input_is_gone(env, tmp_path):
+    """(b) The next stage's output is missing and the input is gone: the earlier stage is not treated as cached, so the
+    job fails at it with its own clear error, exactly as before the change."""
+    _, conn, ws = env
+    source = tmp_path / "input.txt"
+    source.write_text("data")
+    _CountingSource.runs.clear()
+    _consumed_pipeline("consumed_gone")
+    store.enqueue(conn, "consumed_gone", {"input": str(source)}, "ws1")
+    run_next(env)
+    source.unlink()
+    for path in ws.stage_output_dir("ws1", "second").iterdir():  # `second` is first's direct successor: now incomplete
+        path.unlink()
+    job_id = store.enqueue(conn, "consumed_gone", {"input": str(source)}, "ws1")
+    _, status = run_next(env)
+    job = store.get_job(conn, job_id)
+    assert status == "failed" and [s.status for s in job.stages] == ["failed", "pending", "pending"]
+    assert "FileNotFoundError" in job.stages[0].error and "first failed" in job.error
+    assert len(_CountingSource.runs) == 2  # it was attempted again, not skipped
+
+
+def test_the_last_stage_is_never_counted_as_cached_because_of_a_missing_next_stage(env):
+    """There is no later stage to vouch for the last stage: lost outputs mean it reruns."""
+    _, conn, ws = env
+    register_pipeline("consumed_last", [_Writer("only", "1")], replace=True)
+    store.enqueue(conn, "consumed_last", {}, "ws1")
+    run_next(env)
+    (ws.stage_output_dir("ws1", "only") / "out.txt").unlink()
+    job_id = store.enqueue(conn, "consumed_last", {}, "ws1")
+    _, status = run_next(env)
+    assert status == "succeeded" and [s.status for s in store.get_job(conn, job_id).stages] == ["succeeded"]
+
+
 def test_stage_missing_a_declared_output_fails_and_moves_nothing(env):
     settings, conn, ws = env
     register_pipeline("forgetful", [_Writer("only", "1", write=False)])

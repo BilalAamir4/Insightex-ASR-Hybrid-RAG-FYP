@@ -12,7 +12,10 @@ SECTIONS = [
     "## Evidence",
     "## Gate / revisit when",
 ]
-STATUS_RE = re.compile(r"^Status: (Proposed|Accepted|Deprecated|Superseded by ADR-\d{4})$", re.MULTILINE)
+# "Accepted; <part> amended by ADR-XXXX" is the status-line pointer of a partly amended ADR (ADR-0039 -> ADR-0040).
+STATUS_RE = re.compile(
+    r"^Status: (Proposed|Accepted(; [^\n]* amended by ADR-\d{4})?|Deprecated|Superseded by ADR-\d{4})$", re.MULTILINE
+)
 NAME_RE = re.compile(r"^(\d{4})-[a-z0-9-]+\.md$")
 INDEX_ROW_RE = re.compile(r"^\| \[(\d{4})\]\(([^)]+)\) \|", re.MULTILINE)
 
@@ -70,3 +73,57 @@ def test_numbers_unique_and_contiguous_from_0001():
     numbers = [int(NAME_RE.match(p.name).group(1)) for p in adr_files()]
     assert len(numbers) == len(set(numbers)), "duplicate ADR number"
     assert numbers == list(range(1, len(numbers) + 1)), "ADR numbers are not contiguous from 0001"
+
+
+# -- the status line grammar ------------------------------------------------------------------------------------
+
+
+def status_ok(line: str) -> bool:
+    return STATUS_RE.search(line) is not None
+
+
+def test_status_line_accepts_the_plain_values_and_the_amendment_pointer():
+    for line in ("Status: Proposed", "Status: Accepted", "Status: Deprecated", "Status: Superseded by ADR-0014",
+                 "Status: Accepted; language setting amended by ADR-0040",
+                 "Status: Accepted; the cache key amended by ADR-0102"):
+        assert status_ok(line), line
+
+
+def test_status_line_rejects_everything_else():
+    """Only "Accepted" may carry a "; <part> amended by ADR-NNNN" note, written exactly that way."""
+    for line in (
+        "Status: Proposed; language setting amended by ADR-0040",       # only Accepted carries a note
+        "Status: Deprecated; language setting amended by ADR-0040",
+        "Status: Superseded by ADR-0014; language setting amended by ADR-0040",
+        "Status: Accepted;",                                              # no note
+        "Status: Accepted; ",
+        "Status: Accepted; language setting",                             # a note that is not an amendment pointer
+        "Status: Accepted; language setting amended",                     # no ADR number
+        "Status: Accepted; language setting amended by ADR-40",           # number is four digits
+        "Status: Accepted; language setting amended by ADR-0040 and more",  # nothing after the number
+        "Status: Accepted; amended by ADR-0040",                          # the amended part must be named
+        "Status: Accepted;language setting amended by ADR-0040",          # "; " with the space
+        "Status: Accepted, language setting amended by ADR-0040",
+        "Status: Accepted (language setting amended by ADR-0040)",
+        "Status: Accepted amended by ADR-0040",
+        "Status: Accepted; Superseded by ADR-0040",
+        "Status: accepted",
+        "Status: Accepted ",                                              # trailing space
+        "Status: Acepted",
+        "Status: Superseded by ADR-14",
+        "Status: Superseded",
+        "Status: ",
+        "Status:Accepted",
+    ):
+        assert not status_ok(line), line
+
+
+def test_amendment_pointers_name_an_existing_later_adr():
+    for path in adr_files():
+        text = path.read_text(encoding="utf-8")
+        m = re.search(r"^Status: Accepted; .* amended by ADR-(\d{4})$", text, re.MULTILINE)
+        if m:
+            amender = int(m.group(1))
+            own = int(NAME_RE.match(path.name).group(1))
+            assert amender > own, f"{path.name}: amended by an earlier or the same ADR"
+            assert any(p.name.startswith(f"{amender:04d}-") for p in adr_files()), f"{path.name}: ADR-{amender:04d} not found"

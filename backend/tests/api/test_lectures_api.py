@@ -18,7 +18,7 @@ def test_library_lists_only_workspaces_with_a_completed_normalise(client, make_l
     item = body["lectures"][0]
     assert item["title"] == "Ready lecture" and item["duration_s"] == 60.5
     assert item["thumbnail_url"] == f"/api/lectures/{LID}/thumbnail"
-    assert set(item) == {"lecture_id", "title", "duration_s", "thumbnail_url", "created_at"}
+    assert set(item) == {"lecture_id", "title", "duration_s", "thumbnail_url", "created_at", "language"}
 
 
 def test_empty_library(client):
@@ -101,7 +101,7 @@ def test_delete_unknown_is_404(client):
 
 def test_delete_is_409_while_a_job_is_queued_or_running(client, make_lecture, conn, workspaces):
     make_lecture(LID)
-    job_id = client.post("/api/ingest/link", json={"url": "https://youtu.be/readyvideo1", "rights_confirmed": True}).json()["job_id"]
+    job_id = client.post("/api/ingest/link", json={"url": "https://youtu.be/readyvideo1", "rights_confirmed": True, "language": "hindi"}).json()["job_id"]
     r = client.delete(f"/api/lectures/{LID}")
     assert r.status_code == 409 and r.json()["error"]["code"] == "LECTURE_BUSY"
     assert workspaces.path(LID).exists()

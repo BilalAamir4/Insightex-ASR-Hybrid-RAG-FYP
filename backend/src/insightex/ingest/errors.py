@@ -36,6 +36,16 @@ class ErrorCode(StrEnum):
     LENGTH_REQUIRED = "LENGTH_REQUIRED"
     UPLOAD_BUSY = "UPLOAD_BUSY"
     UPLOAD_INTERRUPTED = "UPLOAD_INTERRUPTED"
+    # Added by M4 session 2 (ADR-0040, ADR-0042): the lecture language and the ASR stage.
+    MISSING_LANGUAGE = "MISSING_LANGUAGE"
+    UNKNOWN_LANGUAGE = "UNKNOWN_LANGUAGE"
+    INSUFFICIENT_VRAM = "INSUFFICIENT_VRAM"
+    GPU_NOT_AVAILABLE = "GPU_NOT_AVAILABLE"
+    MODEL_LOAD_FAILED = "MODEL_LOAD_FAILED"
+    GPU_OUT_OF_MEMORY = "GPU_OUT_OF_MEMORY"
+    TRANSCRIBE_CRASHED = "TRANSCRIBE_CRASHED"
+    TRANSCRIBE_TIMEOUT = "TRANSCRIBE_TIMEOUT"
+    EMPTY_TRANSCRIPT = "EMPTY_TRANSCRIPT"
 
 
 DEFAULT_MESSAGES: dict[ErrorCode, str] = {
@@ -84,6 +94,28 @@ DEFAULT_MESSAGES: dict[ErrorCode, str] = {
     ErrorCode.LENGTH_REQUIRED: "The upload didn't say how large the file is.",
     ErrorCode.UPLOAD_BUSY: "Another upload is already in progress. Try again when it has finished.",
     ErrorCode.UPLOAD_INTERRUPTED: "The upload was interrupted. Please try again.",
+    ErrorCode.MISSING_LANGUAGE: "Choose the language spoken in the lecture, then add it again.",
+    ErrorCode.UNKNOWN_LANGUAGE: "That lecture language isn't in the list. Choose one of the listed languages and add it again.",
+    ErrorCode.INSUFFICIENT_VRAM: (
+        "The graphics card doesn't have enough free memory to transcribe right now. "
+        "Close other programs that use it, then retry the job."
+    ),
+    ErrorCode.GPU_NOT_AVAILABLE: (
+        "The graphics card couldn't be checked, so the lecture can't be transcribed. "
+        "Make sure the NVIDIA driver works (nvidia-smi), then retry the job."
+    ),
+    ErrorCode.MODEL_LOAD_FAILED: (
+        "The speech recognition model couldn't be loaded. Check that it is in the model cache, then retry the job."
+    ),
+    ErrorCode.GPU_OUT_OF_MEMORY: (
+        "The graphics card ran out of memory while transcribing. Close other programs that use it, then retry the job."
+    ),
+    ErrorCode.TRANSCRIBE_CRASHED: "Transcription stopped unexpectedly. Retry the job; if it fails again, check the worker log.",
+    ErrorCode.TRANSCRIBE_TIMEOUT: "Transcription took too long and was stopped. Retry the job when the computer is less busy.",
+    ErrorCode.EMPTY_TRANSCRIPT: (
+        "No speech was recognised in this lecture. Check that it has audible speech and that the right language "
+        "was chosen, then add it again."
+    ),
 }
 
 

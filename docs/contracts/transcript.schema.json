@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "insightex/transcript.schema.json",
+  "$comment": "transcript.json written by the asr stage (ADR-0042), schema_version 1. Times are seconds on the audio.wav timeline (= video timeline, ADR-0038), rounded to milliseconds. Text is exactly what Whisper returned. Supersedes the draft segments.json.",
+  "title": "Transcript",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "stage_version", "language", "model", "params", "libraries", "audio", "stats", "warnings", "segments"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "stage_version": {"type": "string"},
+    "language": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "label", "whisper_language", "tier_at_processing"],
+      "properties": {
+        "id": {"type": "string"},
+        "label": {"type": "string"},
+        "whisper_language": {"type": "string"},
+        "tier_at_processing": {"enum": ["tested", "untested"]}
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["name", "revision", "device", "compute_type"],
+      "properties": {
+        "name": {"type": "string"},
+        "repo": {"type": "string"},
+        "revision": {"type": "string"},
+        "device": {"type": "string"},
+        "compute_type": {"type": "string"}
+      }
+    },
+    "params": {"type": "object", "required": ["language"], "description": "Every option passed to WhisperModel.transcribe; infinity is the string \"inf\"."},
+    "libraries": {
+      "type": "object", "required": ["faster_whisper", "ctranslate2"],
+      "properties": {"faster_whisper": {"type": "string"}, "ctranslate2": {"type": "string"}}
+    },
+    "audio": {
+      "type": "object", "additionalProperties": false, "required": ["path", "duration_s", "sha256"],
+      "properties": {
+        "path": {"type": "string", "description": "workspace-relative"},
+        "duration_s": {"type": "number", "minimum": 0},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "stats": {
+      "type": "object", "additionalProperties": false,
+      "required": ["segment_count", "fallback_segment_count", "high_compression_segment_count", "wall_time_s", "rtf", "peak_vram_mib"],
+      "properties": {
+        "segment_count": {"type": "integer", "minimum": 0},
+        "fallback_segment_count": {"type": "integer", "minimum": 0},
+        "high_compression_segment_count": {"type": "integer", "minimum": 0},
+        "wall_time_s": {"type": "number", "minimum": 0, "description": "transcription time, model load excluded"},
+        "rtf": {"type": ["number", "null"]},
+        "peak_vram_mib": {"type": ["integer", "null"], "description": "peak nvidia-smi memory.used during the subprocess minus the pre-start reading"}
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["code", "message", "segment_ids"],
+        "properties": {
+          "code": {"enum": ["TEMPERATURE_FALLBACK", "HIGH_COMPRESSION_RATIO"]},
+          "message": {"type": "string"},
+          "segment_ids": {"type": "array", "items": {"type": "integer"}}
+        }
+      }
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "start", "end", "text", "avg_logprob", "no_speech_prob", "compression_ratio", "temperature", "words"],
+        "properties": {
+          "id": {"type": "integer"},
+          "start": {"type": "number", "minimum": 0},
+          "end": {"type": "number", "minimum": 0},
+          "text": {"type": "string"},
+          "avg_logprob": {"type": "number"},
+          "no_speech_prob": {"type": "number"},
+          "compression_ratio": {"type": "number"},
+          "temperature": {"type": "number", "minimum": 0},
+          "words": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false, "required": ["start", "end", "word", "probability"],
+              "properties": {
+                "start": {"type": "number"}, "end": {"type": "number"},
+                "word": {"type": "string"}, "probability": {"type": "number"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

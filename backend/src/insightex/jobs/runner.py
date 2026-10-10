@@ -156,7 +156,9 @@ def _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop) -> st
         outputs = list(stage.outputs)
 
         requested: list[str | None] = []
-        if workspaces.stage_is_complete(job.workspace_id, stage.name, key, outputs):
+        if workspaces.stage_is_complete(job.workspace_id, stage.name, key, outputs) or _consumed_but_done(
+            pipeline, idx, key, key_ctx, workspaces, job.workspace_id
+        ):
             store.update_stage(
                 conn, job.id, idx, status="cached", progress=1.0, message=None, error=None, finished_at=utcnow()
             )
@@ -188,6 +190,28 @@ def _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop) -> st
     LOG_CONTEXT.set((job.id, "-"))
     log.info("job succeeded")
     return "succeeded"
+
+
+def _consumed_but_done(pipeline, idx: int, key: str, key_ctx: KeyContext, workspaces: Workspaces, workspace_id: str) -> bool:
+    """True if the stage is recorded at `key` but a later hook removed some of its outputs, and the next stage is
+    already complete at its chained key.
+
+    An uploaded original is deleted once `normalise` is published (ADR-0036), so after a crash in a later stage
+    (`asr`) `fetch` looks incomplete and its staged input is gone. Its result is already used downstream, so it
+    counts as cached instead of failing the resumed job.
+    """
+    stage = pipeline[idx]
+    if idx + 1 >= len(pipeline) or not workspaces.stage_recorded(workspace_id, stage.name, key):
+        return False
+    nxt = pipeline[idx + 1]
+    try:
+        next_key = stage_key(nxt.name, nxt.version, nxt.config_fingerprint(key_ctx), key)
+    except Exception:  # noqa: BLE001 - the next stage reports its own fingerprint error when it is reached
+        return False
+    if not workspaces.stage_is_complete(workspace_id, nxt.name, next_key, list(nxt.outputs)):
+        return False
+    log.info("stage %s counted as cached: outputs consumed by %s, which is complete", stage.name, nxt.name)
+    return True
 
 
 def _run_stage(
@@ -265,7 +289,9 @@ def _publish(workspaces: Workspaces, workspace_id: str, stage: Stage, key: str, 
         # original): the fresh outputs win.
         shutil.rmtree(final, ignore_errors=True)
         os.replace(staging, final)
-    previous = workspaces.record_stage(workspace_id, stage.name, key, duration_s, list(stage.outputs))
+    previous = workspaces.record_stage(
+        workspace_id, stage.name, key, duration_s, list(stage.outputs), extra=stage.manifest_extra(final)
+    )
     if previous and previous != key:  # only after the new manifest is durable
         workspaces.remove_stage_key_dir(workspace_id, stage.name, previous)
 

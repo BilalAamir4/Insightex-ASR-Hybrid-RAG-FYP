@@ -136,6 +136,12 @@ class Stage(ABC):
         """
         return None
 
+    def manifest_extra(self, stage_dir: Path) -> dict[str, Any]:
+        """Extra fields for this stage's manifest entry, read from its published outputs (default: none).
+
+        Called once after a successful run, never on a cache hit (the entry already holds them).
+        """
+        return {}
 
     def after_stage(self, ctx: KeyContext, upstream: dict[str, Path]) -> None:
         """Called after the stage succeeded or was found cached. `upstream` maps stage names, this one included,

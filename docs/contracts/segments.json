@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "DRAFT. Source: the sample JSON in whisper_large_v3_first10min.json (307 segments; first entry: id 1, start 0.0, end 2.04, text, avg_logprob -0.138, no_speech_prob 0.019). Field types come from that sample only; required/optional status and value ranges are not decided.",
+  "$comment": "SUPERSEDED by transcript.schema.json (M4 session 2, ADR-0042); kept for history. DRAFT. Source: the sample JSON in whisper_large_v3_first10min.json (307 segments; first entry: id 1, start 0.0, end 2.04, text, avg_logprob -0.138, no_speech_prob 0.019). Field types come from that sample only; required/optional status and value ranges are not decided.",
   "title": "AsrSegments",
   "type": "array",
   "items": {

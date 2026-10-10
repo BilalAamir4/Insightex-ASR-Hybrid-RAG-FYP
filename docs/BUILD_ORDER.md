@@ -14,7 +14,8 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 | M0b | **Done (8 Oct 2026)**: repo scaffold, typed config, ADR-0001 to ADR-0032 (`docs/adr/`), textbook chosen (ADR-0029) |
 | M1 | **Done (9 Oct 2026)**: SQLite job queue, single worker with crash recovery and resume, GPU lease, workspaces with chained stage keys and cache eviction, and link ingestion on the runner with job progress over HTTP/SSE (ADR-0033 to ADR-0035). Evidence: `docs/evidence/m1/`. |
 | M2 | **Done (10 Oct 2026)**: shared normalise engine and CLI file ingest (ADR-0036), HTTP upload endpoint and upload form (ADR-0037), A/V sync invariant that holds even in players that ignore MP4 edit lists (ADR-0038), `NORMALISER_VERSION` 4. `tools/m2_verify` 13/13 on the Day 4 lecture; by-hand browser checklist passed (`docs/evidence/m2/`). |
-| M3 | **Done (6 Oct 2026)**; the eval-lecture fetch (4–6 lectures) still has to be run (it now goes through normaliser v4) |
+| M3 | **Done (6 Oct 2026)**; the eval-lecture fetch (4–6 lectures) still has to be run (it now goes through normaliser v4). It also supplies the language gates of ADR-0040: 3 lectures from different speakers per language, a 5-minute excerpt from the middle of each. Urdu and English stay untested until those gates pass. |
+| M4 | **Done (10 Oct 2026)**: session 1, the WER gate chose large-v3 (ADR-0039); session 2, the production `asr` stage with the lecture language chosen per lecture from a two-tier list, English as the system output language, and the stage design (ADR-0040 to ADR-0042). `tools/m4_verify` 12/12, with check 4 an exact match to the gate (351 segments, 0 differing; the workspace `audio.wav` is byte-identical to the gate input). Manual checklist passed. Evidence: `docs/evidence/m4/`, `tools/eval_wer/results/m4/`. |
 | M6 | Partial: FastAPI API (ingest by link or upload, jobs with SSE progress, library, media), static HTML ingest/upload/library/player page and `seekTo(seconds)` exist; ask box and citations still to do |
 | All others | Not started |
 
@@ -32,12 +33,15 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 - **M2: Ingest (upload).** ffprobe validation, then ffmpeg normalisation to `video.mp4` (H.264/AAC) and a 16 kHz mono `audio.wav` derived from it (ADR-0036), in sync within one frame even when a player ignores edit lists (ADR-0038).
   Exit: the Day 4 lecture normalises, and odd codecs are rejected cleanly.
 - **M3: Ingest (URL).** Done. Design and open items are in `docs/features/README.md`.
-- **M4: ASR stage + WER gate** in `tools/eval_wer`.
-  - **Session 1 done (10 Oct 2026):** the WER gate chose large-v3 with `language="ur"` (ADR-0039, Accepted; large-v3-turbo not evaluated). Evidence: `tools/eval_wer/results/m4/`. **Session 2 (production ASR stage) is next:** record the temperature-fallback setting and per-segment temperature in the transcript artifact.
-  - Prerequisite: re-ingest the eval lectures (Day 4 first) through normaliser v4 before measuring. Older `audio.wav` files predate the start-offset padding, so their timings may be shifted. Carried-over WER numbers on old audio count as not re-run.
-  Exit: the checkpoint and language decision is recorded as an ADR, with numbers.
+- **M4: ASR stage + WER gate** in `tools/eval_wer`. Done (10 Oct 2026).
+  - **Session 1 (10 Oct 2026):** the WER gate chose the checkpoint, large-v3 (ADR-0039; large-v3-turbo not evaluated). Evidence: `tools/eval_wer/results/m4/`.
+  - **Session 2 (10 Oct 2026):** the production `asr` stage (ADR-0042) runs after `normalise` in both ingest pipelines. The language is **chosen per lecture** from a two-tier list (ADR-0040, `config/languages.yaml`): Hindi (Whisper code `ur`, the gate's winning config) is the only tested entry; every other faster-whisper language is untested and marked in the UI. No auto-detect and no default. Everything users read is English; transcripts are internal (ADR-0041). Day 4: 351 segments, RTF 0.113, peak 4,523 MiB above baseline, identical to the gate. Evidence: `docs/evidence/m4/`.
+  - Re-ingest the eval lectures through normaliser v4 before measuring: older `audio.wav` files predate the start-offset padding, so their timings may be shifted. Carried-over WER numbers on old audio count as not re-run.
+  - A language moves to tested only through the WER gate in ADR-0040 (3 lectures from 3 speakers, 5-minute excerpts); this needs the eval-lecture fetch (M3).
+  Exit: the checkpoint and language decisions are recorded as ADRs, with numbers; `tools/m4_verify` passes.
 - **M5: Windows + embedding (dense and sparse) + FAISS.**
   - Prerequisite for the sparse-weight work: `FlagEmbedding` is **not installed** and is not in `requirements.lock.txt`. Installing it needs the user's approval and a lockfile update (then re-run `scripts/verify_env.sh`). `tools/bench_models/loadtimes/verify_6b_loadtimes.py` fails at its bge-m3 step for the same reason.
+  - Open question from ADR-0041, measured here and not decided yet: rerun Test A with **English questions** over native-script transcripts. Cross-language search is a gate: if English questions fail to retrieve the right windows, per-window English translation becomes a candidate stage (its own ADR).
   Exit: Test A reproduces through production code, and the CPU-query gate passes.
 - **M6: Minimal API and UI.** Upload or link, progress, player, ask box, top-3 citations that seek the video.
   Exit: paste link → wait → ask → click → the video jumps to the right moment.
@@ -45,6 +49,7 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 ## Phase 2: Knowledge layer (to ~20 Dec)
 
 - **M7: LLM extraction** with JSON Schema output: concepts, relations, importance (for F4) and `is_recap` (for F20).
+  - Open question from ADR-0041: LLM input. Decide between the original-language transcript and a per-window English translation, from measured extraction quality.
   Exit: precision/recall against hand-labelled concepts on 2 lectures, and the LLM choice decided.
 - **M8: Concept canonicalisation + graph build.**
   Exit: duplicate-node rate measured on 2 lectures, and the graph JSON passes schema checks.
@@ -53,6 +58,7 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 - **M10: Book ingest** (PyMuPDF with page labels) + timestamp↔page fusion → F1, F2.
   Exit: Test B within ±2 pages on at least 20 queries.
 - **M11: Grounded answer service** with citation validation, plus a frame grabbed at the cited timestamp → F6 Baseline.
+  - Open question from ADR-0041: citation text shown to users next to an English answer (original-language excerpt, English translation, or timestamp only). Also, an answer that cites a lecture processed with an untested language shows the same "Untested language" badge (ADR-0040).
   Exit: no answer cites a window outside its retrieved set.
 - **Visual gate (end of December).** Run scene detection + PP-OCR on 30 frames. If the output is usable on most slide frames, continue the Optional track; otherwise freeze the visual pipeline as a documented limitation. Run the PaddleOCR-VL bake-off only if the gate passes and Phase 3 is on schedule.
 
@@ -68,6 +74,7 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 ## Phase 4: Evaluation, hardening, demo (mid-March to May)
 
 - **M17: Full evaluation run** (WER, retrieval A/B/C, extraction P/R, F4 flag P/R, answer faithfulness, latency, VRAM).
+  - Lectures processed with an untested language are excluded from the evaluation numbers (ADR-0040).
   Exit: one results table per proposal metric.
 - **M18: User study** with students and teachers (SUS + task success).
   Exit: ethics and consent completed before recruiting.
@@ -104,7 +111,7 @@ These come from the October 2026 review. Settle each one when its module starts.
   - Raw streamed upload body (no multipart), SHA-256 dedupe, one upload at a time, no CORS middleware.
   - `audio.wav` derived from `video.mp4` with start padding; sync within one frame even when a player ignores edit lists (libx264 `bframes=0`; copied video re-encoded when its ignored-edit-list skew exceeds the bound). Cost: about 3–19% larger transcodes, and more files transcoded instead of copied.
   - Closed, unprefixed error codes. Uploaded originals deleted unless `ingest.file.keep_original`; link sources kept (ADR-0035).
-- **M4: Whisper language setting.** Settled by ADR-0039 (large-v3, `ur`); the notes below are the history.
+- **M4: Whisper language setting.** Settled by ADR-0039 (checkpoint: large-v3) and ADR-0040 (per-lecture language mapping: Hindi -> `ur` tested, all other languages untested); the notes below are the history.
   - Earlier notes conflict. One says auto-detect beat forced `ur` because forcing dropped lines; another says forcing `ur` was needed because auto produced Devanagari.
   - Decide in the WER gate: medium and large-v3 × forced `ur` / auto-detect (4 configs, with large-v3-turbo as a 5th if time allows).
   - Confirm `task=transcribe`, not translate. Count dropped segments explicitly. Enable `word_timestamps=True`.

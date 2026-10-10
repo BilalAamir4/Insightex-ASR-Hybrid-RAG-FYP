@@ -1,8 +1,9 @@
-"""The `ingest_link` pipeline: `fetch` (download the whole file) then `normalise` (H.264/AAC mp4 + 16 kHz audio).
+"""The `ingest_link` pipeline: `fetch` (download the whole file), `normalise` (H.264/AAC mp4 + 16 kHz audio), then `asr`.
 
-Both stages are CPU stages. The logic is the former `engine.ingest`, split at the download boundary so each
-half is cached on its own (ADR-0034). Payload: {"url": str}. Outputs land in the workspace under
-stages/fetch/<key>/ and stages/normalise/<key>/.
+`fetch` and `normalise` are CPU stages; the logic is the former `engine.ingest`, split at the download boundary so
+each half is cached on its own (ADR-0034). `asr` (insightex.asr.stage, ADR-0042) is the GPU stage that both
+pipelines share. Payload: {"url": str, "language": str}. Outputs land in the workspace under
+stages/fetch/<key>/, stages/normalise/<key>/ and stages/asr/<key>/.
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from typing import Any, BinaryIO
 
 import yt_dlp
 
+from insightex.asr.stage import AsrStage
 from insightex.ingest import netguard, staging
 from insightex.ingest.errors import ErrorCode, IngestError, IngestRejected
 from insightex.ingest.probe import SOURCES, check_duration
@@ -296,6 +298,7 @@ def reject_cleanup(conn, workspaces, job, settings, exc: BaseException) -> None:
         conn.execute("DELETE FROM workspaces WHERE id = ?", (job.workspace_id,))
 
 
-register_pipeline("ingest_link", [FetchStage(), NormaliseStage()], source_for=source_for, chain_root=chain_root)
-register_pipeline("ingest_file", [UploadFetchStage(), NormaliseStage()], source_for=file_source_for,
+register_pipeline("ingest_link", [FetchStage(), NormaliseStage(), AsrStage()], source_for=source_for,
+                  chain_root=chain_root)
+register_pipeline("ingest_file", [UploadFetchStage(), NormaliseStage(), AsrStage()], source_for=file_source_for,
                   on_failure=reject_cleanup)

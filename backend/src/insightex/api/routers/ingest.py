@@ -19,6 +19,7 @@ from pydantic import BaseModel
 from insightex.api.deps import connection, settings_of, workspaces_of
 from insightex.api.errors import error_response, ingest_error_response
 from insightex.api.models import LinkAccepted, UploadAccepted
+from insightex.asr.languages import require_language
 from insightex.ingest import probe as probe_mod
 from insightex.ingest import staging
 from insightex.ingest.errors import DEFAULT_MESSAGES, ErrorCode, IngestError, IngestRejected
@@ -37,6 +38,7 @@ class ProbeBody(BaseModel):
 class LinkBody(BaseModel):
     url: str
     rights_confirmed: Any = False  # anything but the JSON value true is a 400, not a 422
+    language: Any = None  # a language id from GET /api/languages; missing or unknown is a 400, not a 422
 
 
 @router.post("/probe")
@@ -60,7 +62,7 @@ def ingest_link(body: LinkBody, request: Request):
         return ingest_error_response(IngestError(ErrorCode.RIGHTS_NOT_CONFIRMED))
     settings = settings_of(request)
     try:
-        job_id, workspace_id, deduplicated = enqueue_link(connection(settings), settings, body.url)
+        job_id, workspace_id, deduplicated = enqueue_link(connection(settings), settings, body.url, body.language)
     except IngestError as exc:
         return ingest_error_response(exc)
     return LinkAccepted(job_id=job_id, workspace_id=workspace_id, deduplicated=deduplicated)
@@ -76,14 +78,16 @@ _STATUS = {
     ErrorCode.UPLOAD_BUSY: 409,
     ErrorCode.INSUFFICIENT_DISK: 507,
     ErrorCode.UPLOAD_INTERRUPTED: 400,
+    ErrorCode.MISSING_LANGUAGE: 400,
+    ErrorCode.UNKNOWN_LANGUAGE: 400,
 }
 _upload_slot = threading.Lock()  # one upload at a time; held from the busy check until every exit path has cleaned up
 
 
-def _refuse(code: ErrorCode, details: str = ""):
+def _refuse(code: ErrorCode, details: str = "", message: str | None = None):
     if details:
         log.warning("upload refused: %s (%s)", code, details)
-    response = error_response(code, DEFAULT_MESSAGES[code], _STATUS[code])
+    response = error_response(code, message or DEFAULT_MESSAGES[code], _STATUS[code])
     response.headers["Connection"] = "close"  # the body was not read: do not keep the connection for reuse
     return response
 
@@ -101,6 +105,11 @@ async def upload(request: Request):
     cfg = request.app.state.ingest_settings
     if request.headers.get("x-insightex-rights-confirmed", "").strip() != "true":
         return _refuse(ErrorCode.RIGHTS_NOT_CONFIRMED)
+    language = unquote(request.headers.get("x-insightex-language", "")).strip() or None
+    try:
+        require_language(settings, language)
+    except IngestError as exc:
+        return _refuse(exc.code, message=exc.message)
     raw_length = request.headers.get("content-length", "").strip()
     if not raw_length.isascii() or not raw_length.isdigit():
         return _refuse(ErrorCode.LENGTH_REQUIRED)
@@ -126,7 +135,7 @@ async def upload(request: Request):
             return _refuse(ErrorCode.UPLOAD_INTERRUPTED)
         staged = await anyio.to_thread.run_sync(staged_upload.finish)
         staged_upload = None  # now owned by enqueue_staged (the job, or deleted as a duplicate)
-        result = await anyio.to_thread.run_sync(_enqueue, settings, staged, filename)
+        result = await anyio.to_thread.run_sync(_enqueue, settings, staged, filename, language)
     except Exception:
         log.exception("upload failed unexpectedly")
         return error_response("INTERNAL_ERROR", "The upload couldn't be processed. Please try again.", 500)
@@ -138,8 +147,8 @@ async def upload(request: Request):
     return JSONResponse(body, status_code=200 if result.job_id is None else 202)
 
 
-def _enqueue(settings, staged, filename: str):
-    return enqueue_staged(connection(settings), settings, staged, via="http", original_filename=filename)
+def _enqueue(settings, staged, filename: str, language: str):
+    return enqueue_staged(connection(settings), settings, staged, language=language, via="http", original_filename=filename)
 
 
 async def _receive(request: Request, target: staging.StagedUpload, length: int, flush_bytes: int) -> int | None:

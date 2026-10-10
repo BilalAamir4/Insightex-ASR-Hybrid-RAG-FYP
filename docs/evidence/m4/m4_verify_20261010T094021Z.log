@@ -1,0 +1,74 @@
+m4_verify: isolated data /home/bilal_aamir/insightex-data/m4_verify_run, API http://127.0.0.1:8011, shared GPU lease /home/bilal_aamir/insightex-data/run/gpu.lock
+      clip fixture: /tmp/m4_verify_sgzqopxh/clip_30s.mp4 (1336980 bytes, video testsrc2 + clip_30s.wav)
+PASS  1. large-v3 in the offline cache; language config loads and validates: snapshot /home/bilal_aamir/cache/huggingface/hub/models--Systran--faster-whisper-large-v3/snapshots/edaa852ec7e145841d8ffdb056a99866b5f0a478 model.bin present; config validate exit 0 (config OK (languages: 1 tested, 99 untested, from /home/bilal_aamir/insightex/config/languages.yaml)); tested ['hindi'], untested 99
+FAIL  11. missing and unknown language rejected with clear messages; no job queued: link, no language -> 400 MISSING_LANGUAGE; link, klingon -> 400 UNKNOWN_LANGUAGE; upload, no language -> 0 None; upload, klingon -> 0 None; CLI, no --language -> 400 MISSING_LANGUAGE; CLI, --language klingon -> 400 UNKNOWN_LANGUAGE; jobs before/after 0/0; staging empty; message: '"klingon" isn\'t one of the listed lecture languages. Choose a language from the list (see GET /api/languages or `insightex languages list`) and add the lecture again.'
+      fetch=pending:0% normalise=pending:0% asr=pending:0%
+      fetch=succeeded:100% normalise=running:0% asr=pending:0%
+      fetch=succeeded:100% normalise=running:4% asr=pending:0%
+      fetch=succeeded:100% normalise=running:87% asr=pending:0%
+      fetch=succeeded:100% normalise=running:91% asr=pending:0%
+      fetch=succeeded:100% normalise=running:97% asr=pending:0%
+      fetch=succeeded:100% normalise=running:100% asr=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:2%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:4%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:8%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:13%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:17%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:21%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:26%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:30%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:34%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:39%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:43%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:47%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:50%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:55%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:59%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:63%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:67%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:71%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:76%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:80%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:84%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:88%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:92%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:96%
+      fetch=succeeded:100% normalise=succeeded:100% asr=succeeded:100%
+PASS  2. Day 4 (hindi) through file ingest, normalise, ASR -> transcript.json + transcript.vtt: job succeeded in 87.1 s; schema valid; whisper_language ur; vtt present
+      Day 4 stats: {"segment_count": 351, "fallback_segment_count": 0, "high_compression_segment_count": 0, "wall_time_s": 77.903, "rtf": 0.1132, "peak_vram_mib": 4504, "warnings": [], "model": {"name": "large-v3", "repo": "Systran/faster-whisper-large-v3", "revision": "edaa852ec7e145841d8ffdb056a99866b5f0a478", "device": "cuda", "compute_type": "float16"}, "libraries": {"faster_whisper": "1.2.1", "ctranslate2": "4.8.2"}, "audio_duration_s": 688.03}
+PASS  3. workspace audio.wav vs gate lecture_full.wav: EQUAL (workspace 658c124da92560e1..., gate 658c124da92560e1...); transcript audio.sha256 matches file: True
+PASS  4. segments, text and timestamps identical to the gate large-v3_ur raw.json (tol 0.001 s): 351 vs 351 segments, 0 differing, max timestamp diff 0.0 s
+PASS  7. VRAM after the stage within 100 MiB of the pre-stage baseline: baseline 1154 MiB, after 1164 MiB (diff 10 MiB); peak above baseline during the stage 4504 MiB
+PASS  9. timestamp sanity: within [0, duration], starts non-decreasing, words inside their segment (0.5 s): 351 segments, duration 688.03 s; out of range [], decreasing starts [], words outside 0
+PASS  10. VTT cue count equals segment count and cue times match the JSON: 351 cues, 351 segments, 0 mismatched
+PASS  5. Day 4 again with hindi: cache hit (no job, no lease, no subprocess, fast): exit 0, deduplicated True, job_id None, 0.7 s (includes copying and hashing the file); worker log after submit: no lease, no subprocess
+      fetch=pending:0% normalise=pending:0% asr=pending:0%
+      fetch=succeeded:100% normalise=running:0% asr=pending:0%
+      fetch=succeeded:100% normalise=running:4% asr=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:18%
+      fetch=succeeded:100% normalise=succeeded:100% asr=succeeded:100%
+PASS  12. 30 s clip with an untested language (english) completes and reports the untested tier: tier_at_processing untested, whisper_language en, job status language {'id': 'english', 'label': 'English', 'tier': 'untested'}, 5 segments
+      fetch=pending:0% normalise=pending:0% asr=pending:0%
+      fetch=succeeded:100% normalise=cached:100% asr=running:0%
+      fetch=succeeded:100% normalise=cached:100% asr=failed:0%
+PASS  8. pre-flight: required VRAM above what is free -> INSUFFICIENT_VRAM, worker keeps running: job failed; asr error: 'AsrError: INSUFFICIENT_VRAM: The graphics card has 6858 MiB of free memory, but transcription needs 999999 MiB. Close other programs that use the graphics card, then retry the job.'; worker alive afterwards: True
+      fetch=pending:0% normalise=pending:0% asr=pending:0%
+      fetch=succeeded:100% normalise=running:0% asr=pending:0%
+      fetch=succeeded:100% normalise=running:4% asr=pending:0%
+      fetch=succeeded:100% normalise=running:87% asr=pending:0%
+      fetch=succeeded:100% normalise=running:91% asr=pending:0%
+      fetch=succeeded:100% normalise=running:95% asr=pending:0%
+      fetch=succeeded:100% normalise=running:100% asr=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:2%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:4%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:8%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:13%
+      fetch=failed:0% normalise=succeeded:100% asr=pending:0%
+FAIL  6. kill the worker past 10% ASR, restart: job completes, no partial transcript, output matches check 4: job failed
+
+10/12 checks passed; failed: 11, 6
+evidence: /home/bilal_aamir/insightex/docs/evidence/m4/m4_verify_20261010T094021Z.json

@@ -1,0 +1,137 @@
+{
+  "started": "2026-10-10T09:45:58+00:00",
+  "git_commit": "6579e9d",
+  "data_dir": "/home/bilal_aamir/insightex-data/m4_verify_run",
+  "day4_file": {
+    "name": "lecture_test.mp4",
+    "size_bytes": 50688399
+  },
+  "checks": [
+    {
+      "check": 1,
+      "name": "large-v3 in the offline cache; language config loads and validates",
+      "status": "PASS",
+      "evidence": "snapshot /home/bilal_aamir/cache/huggingface/hub/models--Systran--faster-whisper-large-v3/snapshots/edaa852ec7e145841d8ffdb056a99866b5f0a478 model.bin present; config validate exit 0 (config OK (languages: 1 tested, 99 untested, from /home/bilal_aamir/insightex/config/languages.yaml)); tested ['hindi'], untested 99"
+    },
+    {
+      "check": 2,
+      "name": "Day 4 (hindi) through file ingest, normalise, ASR -> transcript.json + transcript.vtt",
+      "status": "PASS",
+      "evidence": "job succeeded in 86.6 s; schema valid; whisper_language ur; vtt present"
+    },
+    {
+      "check": 3,
+      "name": "workspace audio.wav vs gate lecture_full.wav",
+      "status": "PASS",
+      "evidence": "EQUAL (workspace 658c124da92560e1..., gate 658c124da92560e1...); transcript audio.sha256 matches file: True"
+    },
+    {
+      "check": 4,
+      "name": "segments, text and timestamps identical to the gate large-v3_ur raw.json (tol 0.001 s)",
+      "status": "PASS",
+      "evidence": "351 vs 351 segments, 0 differing, max timestamp diff 0.0 s"
+    },
+    {
+      "check": 5,
+      "name": "Day 4 again with hindi: cache hit (no job, no lease, no subprocess, fast)",
+      "status": "PASS",
+      "evidence": "exit 0, deduplicated True, job_id None, 0.7 s (includes copying and hashing the file); worker log after submit: no lease, no subprocess"
+    },
+    {
+      "check": 6,
+      "name": "kill the worker past 10% ASR, restart: job completes, no partial transcript, output matches check 4",
+      "status": "PASS",
+      "evidence": "killed at ASR 13%; child processes left []; transcript files in the final location at kill 0; partial reads 0 of 1 complete reads; temp leftovers 0; job after restart succeeded, attempts 2; same segments as check 2: True; vs gate: 0 differing of 351"
+    },
+    {
+      "check": 7,
+      "name": "VRAM after the stage within 100 MiB of the pre-stage baseline",
+      "status": "PASS",
+      "evidence": "baseline 1164 MiB, after 1156 MiB (diff -8 MiB); peak above baseline during the stage 4523 MiB"
+    },
+    {
+      "check": 8,
+      "name": "pre-flight: required VRAM above what is free -> INSUFFICIENT_VRAM, worker keeps running",
+      "status": "PASS",
+      "evidence": "job failed; asr error: 'AsrError: INSUFFICIENT_VRAM: The graphics card has 6863 MiB of free memory, but transcription needs 999999 MiB. Close other programs that use the graphics card, then retry the job.'; worker alive afterwards: True"
+    },
+    {
+      "check": 9,
+      "name": "timestamp sanity: within [0, duration], starts non-decreasing, words inside their segment (0.5 s)",
+      "status": "PASS",
+      "evidence": "351 segments, duration 688.03 s; out of range [], decreasing starts [], words outside 0"
+    },
+    {
+      "check": 10,
+      "name": "VTT cue count equals segment count and cue times match the JSON",
+      "status": "PASS",
+      "evidence": "351 cues, 351 segments, 0 mismatched"
+    },
+    {
+      "check": 11,
+      "name": "missing and unknown language rejected with clear messages; no job queued",
+      "status": "PASS",
+      "evidence": "link, no language -> 400 MISSING_LANGUAGE; link, klingon -> 400 UNKNOWN_LANGUAGE; upload, no language -> 400 MISSING_LANGUAGE; upload, klingon -> 400 UNKNOWN_LANGUAGE; CLI, no --language -> 400 MISSING_LANGUAGE; CLI, --language klingon -> 400 UNKNOWN_LANGUAGE; jobs before/after 0/0; staging empty; message: '\"klingon\" isn\\'t one of the listed lecture languages. Choose a language from the list (see GET /api/languages or `insightex languages list`) and add the lecture again.'"
+    },
+    {
+      "check": 12,
+      "name": "30 s clip with an untested language (english) completes and reports the untested tier",
+      "status": "PASS",
+      "evidence": "tier_at_processing untested, whisper_language en, job status language {'id': 'english', 'label': 'English', 'tier': 'untested'}, 5 segments"
+    }
+  ],
+  "passed": 12,
+  "warned": [],
+  "failed_checks": [],
+  "all_passed": true,
+  "notes": [
+    "Ollama: unreachable (no model loaded)",
+    "removed /home/bilal_aamir/insightex-data/m4_verify_run"
+  ],
+  "timings_s": {
+    "day4_job_wall": 86.6
+  },
+  "vram_baseline_mib": 1164,
+  "day4_workspace": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+  "day4_stats": {
+    "segment_count": 351,
+    "fallback_segment_count": 0,
+    "high_compression_segment_count": 0,
+    "wall_time_s": 78.025,
+    "rtf": 0.1134,
+    "peak_vram_mib": 4523,
+    "warnings": [],
+    "model": {
+      "name": "large-v3",
+      "repo": "Systran/faster-whisper-large-v3",
+      "revision": "edaa852ec7e145841d8ffdb056a99866b5f0a478",
+      "device": "cuda",
+      "compute_type": "float16"
+    },
+    "libraries": {
+      "faster_whisper": "1.2.1",
+      "ctranslate2": "4.8.2"
+    },
+    "audio_duration_s": 688.03
+  },
+  "audio_equal_to_gate": true,
+  "gate_comparison": {
+    "ours": 351,
+    "gate": 351,
+    "differing_segments": 0,
+    "first_differing_index": null,
+    "max_timestamp_diff_s": 0.0,
+    "identical": true
+  },
+  "kill_test": {
+    "progress_at_kill": 0.1319418252533863,
+    "gate_comparison": {
+      "ours": 351,
+      "gate": 351,
+      "differing_segments": 0,
+      "first_differing_index": null,
+      "max_timestamp_diff_s": 0.0,
+      "identical": true
+    }
+  }
+}

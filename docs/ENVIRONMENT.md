@@ -32,8 +32,8 @@ The venv `activate` script (`~/envs/insightex/bin/activate`, last line) sources 
 
 ## 4. Venv and lockfile
 
-- `~/envs/insightex`: Python 3.12; torch 2.11.0+cu128, faster-whisper 1.2.1, ctranslate2 4.8.2, sentence-transformers 6.1.0, transformers 5.18.0, faiss-cpu 1.15.1, networkx 3.6.1, pydantic 2.13.5, httpx 0.28.1.
-- `requirements.lock.txt` (repo root, 96 packages) is the pin set. It **intentionally omits the editable `insightex` install** (this repo), and `pip freeze` itself omits `pip`, `setuptools` and `wheel`. `tools/verify_env.py` ignores exactly those four and fails on any other mismatch.
+- `~/envs/insightex`: Python 3.12; torch 2.11.0+cu128, faster-whisper 1.2.1, ctranslate2 4.8.2, sentence-transformers 6.1.0, transformers 5.18.0, faiss-cpu 1.15.1, networkx 3.6.1, pydantic 2.13.5, httpx 0.28.1, uroman 1.3.1.1 (romanisation for the WER gate in `tools/eval_wer`; locked 10 Oct 2026).
+- `requirements.lock.txt` (repo root, 97 packages, counted 2026-10-10) is the pin set. It **intentionally omits the editable `insightex` install** (this repo), and `pip freeze` itself omits `pip`, `setuptools` and `wheel`. `tools/verify_env.py` ignores exactly those four and fails on any other mismatch.
 - Dev tools: `ruff==0.16.10`, pinned in the `dev` extra of `pyproject.toml` and in the lockfile (added 9 Oct 2026). Install with `pip install -e '.[dev]'`.
 - No installs, upgrades or removals without asking. `FlagEmbedding` is not installed (and not locked); `tools/bench_models/loadtimes/verify_6b_loadtimes.py` needs it for its bge-m3 step and fails there.
 - ffmpeg/ffprobe: Ubuntu native 6.1.1. Normalisation (ADR-0036 to ADR-0038) requires the `libx264` and `aac` encoders. The media test fixtures also use `libx265`, `libvpx-vp9`, `libaom-av1`, `libsvtav1`, `mpeg2video`, `wmv2`, `libopus`, `libmp3lame` and `mjpeg`. All were present when checked on 9 Oct 2026 (`ffmpeg -hide_banner -encoders`). Normalisation is CPU-only and takes no GPU lease.
@@ -46,7 +46,7 @@ The venv `activate` script (`~/envs/insightex/bin/activate`, last line) sources 
 - **Autostart:** Task Scheduler task `Insightex Ollama` runs `powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "E:\FYP\start_ollama.ps1"`. MEASURED after the restart: Windows booted 23:30:30, `ollama.exe` started 23:30:56, task state Running, `/api/tags` answered with no manual step.
 - **Desktop-app autostart is disabled** (stated by the project owner; setting not inspected here). Only one `ollama` process was running after boot and no tray-app process.
 - Never set `OLLAMA_HOST=0.0.0.0`. Do not change Ollama or Windows settings from WSL work; changes there are made by hand.
-- Before any GPU stage: `ollama ps`, and unload (`keep_alive: 0`) if a model is resident. Ask before stopping Ollama.
+- Before any GPU stage run **outside the worker** (benchmarks, `tools/`): `ollama ps`, and unload (`keep_alive: 0`) if a model is resident. Ask before stopping Ollama. GPU stages **run by the worker** (such as `asr`) get the Ollama model unloaded by the GPU lease on acquire (ADR-0033), so no manual step applies there. `tools/m4_verify` aborts if a model is loaded and prints the `ollama stop <model>` to run. Not yet exercised end to end in M4: Ollama was not running during the M4 verification runs.
 
 ## 6. Call contract
 
@@ -62,7 +62,8 @@ Summary: `chat_json(messages, schema, num_ctx, num_predict=1024, ...)` in `backe
 | Whisper medium / large-v3 load, cold then warm | 4.35 / 0.78 s and 7.92 / 1.78 s | 2026-10-07, `docs/measurements/2026-10-07_loadtimes.md` |
 | bge-m3 load (sentence-transformers), cold then warm | 6.48 / 1.59 s | same file |
 | Whisper warm speed on Day 4 first 10 min (speed only) | medium 21.4x real time (RTF 0.0466), large-v3 8.4x (RTF 0.1197) | same file; WER is M4 |
-| Whisper large-v3 peak VRAM, 10 min | 5,530 MiB | 3 Oct 2026, CARRIED OVER |
+| ~~Whisper large-v3 peak VRAM, 10 min~~ | ~~5,530 MiB~~ **superseded** by the production rows below (different method; not re-run) | 3 Oct 2026, CARRIED OVER |
+| **Production large-v3 ASR on Day 4** (the `asr` stage, language `hindi` -> `ur`, float16, 688.03 s of audio, 351 segments, 0 temperature-fallback segments) | wall time 78.025 s (transcription only, model load excluded), **RTF 0.1134**, peak VRAM **4,523 MiB above the pre-stage baseline** (1,164 MiB); VRAM back within 8 MiB of baseline after the stage; whole job (normalise + ASR) 86.6 s | **MEASURED** 2026-10-10, `docs/evidence/m4/m4_verify_20261010T094558Z.json` (checks 2 and 7); a first run the same day gave RTF 0.1132, peak 4,504 MiB (`…T094021Z.json`) |
 | bge-m3 peak VRAM | 3,089 MiB | 2 Oct 2026, CARRIED OVER (the bake-off measured 1,141.7 MB, see `Embedding_Report.md`) |
 | **Confirmed on Ollama 0.35.1** (version read from `/api/version` by the probe) | the 8192 / 6,905-token case was re-run after the restart: 100% GPU, `done_reason` `stop`, valid JSON, 786 output tokens, peak 7,682 MiB, 510 MiB free, 52.1 tok/s, load 29.7 s (baseline 1,081 MiB). The earlier long-prompt runs were made before the restart, and the Ollama version they ran on was not recorded. | 2026-10-07 23:44, same measurements file |
 | `tools/verify_env.py` after full restart | 12 of 12 passed | 2026-10-07, report `$INSIGHTEX_DATA/env_reports/20261007T233720.json` |

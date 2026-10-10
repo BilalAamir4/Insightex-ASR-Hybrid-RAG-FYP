@@ -32,6 +32,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
+LANGUAGE = "hindi"  # lecture language id sent with every submission (ADR-0040); Day 4 is the tested Hindi lecture
 RESULTS: list[dict] = []
 LOG: list[str] = []
 CREATED_LECTURES: set[str] = set()  # deleted again at the end unless --keep
@@ -89,6 +90,7 @@ class Api:
                    "X-Insightex-Filename": urllib.parse.quote(name or (path.name if path else "upload.bin"))}
         if rights is not None:
             headers["X-Insightex-Rights-Confirmed"] = rights
+        headers["X-Insightex-Language"] = LANGUAGE  # required since M4 session 2 (ADR-0040)
         t0 = time.monotonic()
         conn.putrequest("POST", "/api/ingest/upload")
         for k, v in headers.items():
@@ -441,7 +443,7 @@ def run(args: argparse.Namespace) -> None:
         # 10: raw socket, half the body, close
         declared = 8 * 1024 * 1024
         head = (f"POST /api/ingest/upload HTTP/1.1\r\nHost: {api.host}:{api.port}\r\nContent-Type: application/octet-stream\r\n"
-                f"Content-Length: {declared}\r\nX-Insightex-Filename: half.mp4\r\nX-Insightex-Rights-Confirmed: true\r\n\r\n").encode()
+                f"Content-Length: {declared}\r\nX-Insightex-Filename: half.mp4\r\nX-Insightex-Rights-Confirmed: true\r\nX-Insightex-Language: {LANGUAGE}\r\n\r\n").encode()
         raw_request(api.host, api.port, head, os.urandom(declared // 2), close_after_send=True)
         deadline = time.monotonic() + 5
         while staging_files(data_dir) and time.monotonic() < deadline:
@@ -461,14 +463,15 @@ def run(args: argparse.Namespace) -> None:
 
         # 12
         head = (f"POST /api/ingest/upload HTTP/1.1\r\nHost: {api.host}:{api.port}\r\nContent-Type: application/octet-stream\r\n"
-                f"Content-Length: {max_bytes + 1}\r\nX-Insightex-Filename: big.mp4\r\nX-Insightex-Rights-Confirmed: true\r\n\r\n").encode()
+                f"Content-Length: {max_bytes + 1}\r\nX-Insightex-Filename: big.mp4\r\nX-Insightex-Rights-Confirmed: true\r\nX-Insightex-Language: {LANGUAGE}\r\n\r\n").encode()
         code, secs = raw_request(api.host, api.port, head)
         record(12, "oversize Content-Length -> 413 in under 1 s without sending the body", code == 413 and secs < 1.0,
                f"HTTP {code} after {secs * 1000:.0f} ms (limit {max_bytes} bytes)")
 
         # 13
         before = jobs_count(api)
-        proc = subprocess.run([sys.executable, "-m", "insightex.cli", "ingest-file", str(fx["small_ok"]), "--confirm-rights", "--wait"],
+        proc = subprocess.run([sys.executable, "-m", "insightex.cli", "ingest-file", str(fx["small_ok"]), "--confirm-rights",
+                               "--language", LANGUAGE, "--wait"],
                               capture_output=True, text=True, timeout=args.job_timeout, check=False)
         out = {}
         try:

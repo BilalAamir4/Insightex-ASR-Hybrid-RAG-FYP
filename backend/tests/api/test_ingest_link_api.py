@@ -12,7 +12,7 @@ YT_OTHER = "https://www.youtube.com/watch?v=abcdefghijk"
 
 
 def post(client, url, rights=True):
-    return client.post("/api/ingest/link", json={"url": url, "rights_confirmed": rights})
+    return client.post("/api/ingest/link", json={"url": url, "rights_confirmed": rights, "language": "hindi"})
 
 
 def test_youtube_link_is_enqueued_with_its_workspace_id(client, conn):
@@ -21,8 +21,8 @@ def test_youtube_link_is_enqueued_with_its_workspace_id(client, conn):
     body = r.json()
     assert body["workspace_id"] == "yt-dQw4w9WgXcQ" and body["deduplicated"] is False
     job = store.get_job(conn, body["job_id"])
-    assert job.kind == "ingest_link" and job.status == "queued" and job.payload == {"url": YT}
-    assert [s.name for s in job.stages] == ["fetch", "normalise"]
+    assert job.kind == "ingest_link" and job.status == "queued" and job.payload == {"url": YT, "language": "hindi"}
+    assert [s.name for s in job.stages] == ["fetch", "normalise", "asr"]
 
 
 def test_same_youtube_workspace_while_active_returns_the_existing_job(client):
@@ -72,7 +72,7 @@ def test_unsupported_url_is_rejected_with_400_and_nothing_is_enqueued(client, co
 def test_rights_must_be_confirmed(client, conn):
     r = post(client, YT, rights=False)
     assert r.status_code == 400 and r.json()["error"]["code"] == "RIGHTS_NOT_CONFIRMED"
-    assert client.post("/api/ingest/link", json={"url": YT, "rights_confirmed": "yes"}).status_code == 400
+    assert client.post("/api/ingest/link", json={"url": YT, "rights_confirmed": "yes", "language": "hindi"}).status_code == 400
     assert client.post("/api/ingest/link", json={"url": YT}).status_code == 400
     assert store.list_jobs(conn) == []
 
@@ -85,7 +85,7 @@ def test_job_document_matches_the_model(client):
     assert set(doc) == set(JobOut.model_fields)
     JobOut.model_validate(doc)
     assert doc["status"] == "queued" and doc["workspace_deleted"] is False and doc["workspace_id"] == "yt-dQw4w9WgXcQ"
-    assert [s["name"] for s in doc["stages"]] == ["fetch", "normalise"]
+    assert [s["name"] for s in doc["stages"]] == ["fetch", "normalise", "asr"]
     assert set(doc["stages"][0]) == {"name", "status", "progress", "message", "error"}
     assert doc["stages"][0]["status"] == "pending" and doc["stages"][0]["progress"] == 0
 

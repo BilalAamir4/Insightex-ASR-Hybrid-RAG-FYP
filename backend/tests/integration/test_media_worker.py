@@ -8,6 +8,7 @@ import signal
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 import pytest
 from ingest_helpers import open_db
@@ -27,8 +28,9 @@ def corpus(tmp_path_factory) -> Corpus:
 
 
 def start_worker() -> subprocess.Popen:
-    return subprocess.Popen([sys.executable, "-m", "insightex.cli", "worker"], stderr=subprocess.PIPE, text=True,
-                            env=os.environ.copy())
+    # The fake transcriber stands in for Whisper (tests never use the GPU unless marked `gpu`).
+    return subprocess.Popen([sys.executable, str(Path(__file__).parents[1] / "fake_asr_worker.py")],
+                            stderr=subprocess.PIPE, text=True, env=os.environ.copy())
 
 
 def wait_for(predicate, timeout=60.0, what="condition"):
@@ -59,7 +61,7 @@ def test_kill_dash_9_during_normalisation_then_resume(corpus, monkeypatch):
     clear_settings_cache()
     settings = get_settings()
     conn = open_db(settings)
-    result = enqueue_file(conn, settings, corpus.get("long_60s_hevc_mkv"))
+    result = enqueue_file(conn, settings, corpus.get("long_60s_hevc_mkv"), language="hindi")
     part_glob = settings.jobs.workspaces_dir / result.workspace_id / ".staging"
 
     first = start_worker()
@@ -82,7 +84,7 @@ def test_kill_dash_9_during_normalisation_then_resume(corpus, monkeypatch):
         assert second.wait(timeout=20) == 0
     job = store.get_job(conn, result.job_id)
     assert job.status == "succeeded", job.error
-    assert job.attempts == 2 and [s.status for s in job.stages] == ["cached", "succeeded"]
+    assert job.attempts == 2 and [s.status for s in job.stages] == ["cached", "succeeded", "succeeded"]
     assert leftovers(settings) == []
     out = settings.jobs.workspaces_dir / result.workspace_id / "stages" / "normalise"
     assert (next(out.iterdir()) / "video.mp4").stat().st_size > 0
@@ -91,11 +93,11 @@ def test_kill_dash_9_during_normalisation_then_resume(corpus, monkeypatch):
 def test_cli_wait_exit_codes_and_outcome(corpus, capsys):
     worker = start_worker()
     try:
-        ok = main(["ingest-file", str(corpus.get("near_silent")), "--confirm-rights", "--wait"])
+        ok = main(["ingest-file", str(corpus.get("near_silent")), "--confirm-rights", "--language", "hindi", "--wait"])
         out_ok = json.loads(capsys.readouterr().out)
-        rejected = main(["ingest-file", str(corpus.get("short_5s")), "--confirm-rights", "--wait"])
+        rejected = main(["ingest-file", str(corpus.get("short_5s")), "--confirm-rights", "--language", "hindi", "--wait"])
         out_rejected = json.loads(capsys.readouterr().out)
-        again = main(["ingest-file", str(corpus.get("near_silent")), "--confirm-rights", "--wait"])
+        again = main(["ingest-file", str(corpus.get("near_silent")), "--confirm-rights", "--language", "hindi", "--wait"])
         out_again = json.loads(capsys.readouterr().out)
     finally:
         worker.send_signal(signal.SIGTERM)

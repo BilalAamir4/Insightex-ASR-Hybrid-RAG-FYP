@@ -9,6 +9,7 @@ from pathlib import Path
 import uvicorn
 
 from insightex.api.app import create_app
+from insightex.asr.languages import LanguageConfigError
 from insightex.core.config import ConfigError, get_settings
 
 _REFUSED_HOSTS = {"0.0.0.0", "::", ""}
@@ -33,7 +34,11 @@ def main() -> None:
     if host in _REFUSED_HOSTS:
         raise ConfigError(f"api.host {host!r} would expose the server on the network; use 127.0.0.1")
     _setup_logging(cfg.paths.logs_dir)
-    uvicorn.run(create_app(app_settings=cfg), host=host, port=port, log_level="info")
+    try:
+        app = create_app(app_settings=cfg)
+    except LanguageConfigError as exc:
+        sys.exit(f"error: {exc}")
+    uvicorn.run(app, host=host, port=port, log_level="info")
 
 
 if __name__ == "__main__":

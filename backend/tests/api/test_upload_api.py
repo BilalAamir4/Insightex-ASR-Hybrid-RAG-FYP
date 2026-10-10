@@ -24,12 +24,14 @@ PATH = "/api/ingest/upload"
 BLOB = os.urandom(300_000)  # not a video: the HTTP layer neither knows nor cares
 
 
-def headers(length, *, rights="true", name="Lecture 1.mp4") -> dict[str, str]:
+def headers(length, *, rights="true", name="Lecture 1.mp4", language="hindi") -> dict[str, str]:
     h = {"Content-Type": "application/octet-stream", "X-Insightex-Filename": quote(name)}
     if length is not None:
         h["Content-Length"] = str(length)
     if rights is not None:
         h["X-Insightex-Rights-Confirmed"] = rights
+    if language is not None:
+        h["X-Insightex-Language"] = language
     return h
 
 
@@ -113,7 +115,7 @@ def test_reupload_of_an_up_to_date_lecture_is_200_without_a_job(client, conn, ap
     first = upload(client, BLOB).json()
     from insightex.ingest import file_jobs
 
-    monkeypatch.setattr(file_jobs, "_current_lecture", lambda workspaces, workspace_id: True)
+    monkeypatch.setattr(file_jobs, "_current_lecture", lambda workspaces, workspace_id, language_id: True)
     store.finish(conn, first["job_id"], "succeeded")
     again = upload(client, BLOB)
     assert again.status_code == 200
