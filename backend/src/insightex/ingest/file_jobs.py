@@ -17,7 +17,10 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
+from insightex.asr.languages import require_language
 from insightex.core.config import Settings
+from insightex.asr.stage import AsrStage
+from insightex.asr.transcript import SCHEMA_VERSION, TRANSCRIPT_JSON
 from insightex.ingest import staging
 from insightex.ingest.errors import ErrorCode, IngestRejected
 from insightex.ingest.settings import IngestSettings
@@ -38,8 +41,9 @@ class FileIngest:
     rejected: IngestRejected | None = None  # set when the file was refused before staging; job_id is then a failed job
 
 
-def _current_lecture(workspaces: Workspaces, workspace_id: str) -> bool:
-    """True if the workspace holds a finished `normalise` made by the current normaliser version."""
+def _current_lecture(workspaces: Workspaces, workspace_id: str, language_id: str) -> bool:
+    """True if the workspace holds a finished `normalise` made by the current normaliser version and a finished
+    `asr` transcript in `language_id` made by the current stage version (another language means a new ASR run)."""
     directory = workspaces.stage_output_dir(workspace_id, "normalise")
     if directory is None or not (directory / engine.VIDEO_NAME).is_file():
         return False
@@ -47,7 +51,17 @@ def _current_lecture(workspaces: Workspaces, workspace_id: str) -> bool:
         info = json.loads((directory / "normalise.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return False
-    return info.get("normaliser_version") == engine.NORMALISER_VERSION
+    if info.get("normaliser_version") != engine.NORMALISER_VERSION:
+        return False
+    asr_dir = workspaces.stage_output_dir(workspace_id, AsrStage.name)
+    if asr_dir is None:
+        return False
+    try:
+        doc = json.loads((asr_dir / TRANSCRIPT_JSON).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return (doc.get("language", {}).get("id") == language_id and doc.get("stage_version") == AsrStage.version
+            and doc.get("schema_version") == SCHEMA_VERSION)
 
 
 def enqueue_file(
@@ -55,6 +69,7 @@ def enqueue_file(
     settings: Settings,
     path: Path,
     *,
+    language: str | None,
     via: str = "cli",
     original_filename: str | None = None,
 ) -> FileIngest:
@@ -66,18 +81,20 @@ def enqueue_file(
     size alone, before the free-space check and the copy: the result carries `rejected` and a job already in
     state `failed`. The media itself is judged by the job.
     """
+    require_language(settings, language)  # before anything else: a bad language leaves no trace
     cfg = IngestSettings.from_settings(settings)
     size = path.stat().st_size
     try:  # rule 1 on the file as it is: refuse before copying anything, but keep a failed job in the history
         engine.check_size(size, cfg.max_download_bytes)
     except IngestRejected as rejected:
-        return _record_rejection(conn, path, rejected, via, original_filename)
+        return _record_rejection(conn, path, rejected, via, original_filename, language)
     directory = staging.staging_dir(settings)
     directory.mkdir(parents=True, exist_ok=True)
     engine.check_disk(size, directory, cfg)
 
     staged = staging.copy_to_staging(path, settings)
-    return enqueue_staged(conn, settings, staged, via=via, original_filename=original_filename or path.name)
+    return enqueue_staged(conn, settings, staged, language=language, via=via,
+                          original_filename=original_filename or path.name)
 
 
 def enqueue_staged(
@@ -85,23 +102,30 @@ def enqueue_staged(
     settings: Settings,
     staged: staging.StagedFile,
     *,
+    language: str | None,
     via: str,
     original_filename: str | None,
 ) -> FileIngest:
     """Queue the ingest of a copy that is already in staging (the CLI copied it, or the HTTP upload received it).
 
-    Under a lock: an active job for the same bytes is returned, then an up-to-date finished lecture; in both
-    cases the staged copy is deleted. Otherwise the job is enqueued and owns the staged copy.
+    Under a lock: an active job for the same bytes and language is returned, then an up-to-date finished lecture
+    transcribed in that language; in both cases the staged copy is deleted. Otherwise the job is enqueued and
+    owns the staged copy. A missing or unknown language raises IngestError and deletes the staged copy.
     """
+    try:
+        lang = require_language(settings, language)
+    except Exception:
+        staging.remove_staged(settings, staged.name)
+        raise
     workspace_id = workspace_id_for_bytes(staged.sha256)
     workspaces = Workspaces(settings.jobs.workspaces_dir)
     with _lock:
         for status in ("running", "queued"):
             for job in store.list_jobs(conn, limit=1000, status=status):
-                if job.kind == KIND and job.workspace_id == workspace_id:
+                if job.kind == KIND and job.workspace_id == workspace_id and job.payload.get("language") == lang.id:
                     staging.remove_staged(settings, staged.name)
                     return FileIngest(workspace_id, job.id, True)
-        if _current_lecture(workspaces, workspace_id):
+        if _current_lecture(workspaces, workspace_id, lang.id):
             staging.remove_staged(settings, staged.name)
             return FileIngest(workspace_id, None, True)
         payload = {
@@ -111,13 +135,16 @@ def enqueue_staged(
             "original_filename": staging.sanitise_filename(original_filename),
             "received_at": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
             "via": via,
+            "language": lang.id,
         }
         job_id = store.enqueue(conn, KIND, payload, workspace_id)
     return FileIngest(workspace_id, job_id, False)
 
 
-def _record_rejection(conn, path: Path, rejected: IngestRejected, via: str, original_filename: str | None) -> FileIngest:
-    payload = {"staged": None, "original_filename": staging.sanitise_filename(original_filename or path.name), "via": via}
+def _record_rejection(conn, path: Path, rejected: IngestRejected, via: str, original_filename: str | None,
+                      language: str | None) -> FileIngest:
+    payload = {"staged": None, "original_filename": staging.sanitise_filename(original_filename or path.name), "via": via,
+               "language": language}
     job_id = uuid.uuid4().hex
     text = f"{ErrorCode(rejected.code)}: {rejected.message}"
     workspace_id = f"rejected-{job_id}"  # a placeholder: the file was never hashed and no workspace exists
@@ -129,6 +156,7 @@ def _record_rejection(conn, path: Path, rejected: IngestRejected, via: str, orig
 
 
 _REJECTED_RE = re.compile(r"IngestRejected: ([A-Z_]+): (.*)")
+_FAILED_CODE_RE = re.compile(r"(?:IngestError|AsrError): ([A-Z_]+): (.*)")
 
 
 def job_outcome(conn: sqlite3.Connection, settings: Settings, job_id: str, *, poll_s: float = 1.0) -> dict:
@@ -141,14 +169,19 @@ def job_outcome(conn: sqlite3.Connection, settings: Settings, job_id: str, *, po
     out: dict = {"status": job.status, "code": None, "message": None, "warnings": []}
     if job.status == "failed":
         m = _REJECTED_RE.search(job.error or "")
+        f = None if m else _FAILED_CODE_RE.search(job.error or "")
         if m:
             out.update(status="rejected", code=m.group(1), message=m.group(2))
+        elif f:
+            out.update(code=f.group(1), message=f.group(2))
         else:
             out["message"] = job.error
     elif job.status == "succeeded":
-        directory = Workspaces(settings.jobs.workspaces_dir).stage_output_dir(job.workspace_id, "normalise")
-        try:
-            out["warnings"] = json.loads((directory / "normalise.json").read_text(encoding="utf-8")).get("warnings", [])
-        except (OSError, ValueError, TypeError):
-            pass
+        workspaces = Workspaces(settings.jobs.workspaces_dir)
+        for stage, name in (("normalise", "normalise.json"), (AsrStage.name, TRANSCRIPT_JSON)):
+            directory = workspaces.stage_output_dir(job.workspace_id, stage)
+            try:
+                out["warnings"] += json.loads((directory / name).read_text(encoding="utf-8")).get("warnings", [])
+            except (OSError, ValueError, TypeError):
+                pass
     return out

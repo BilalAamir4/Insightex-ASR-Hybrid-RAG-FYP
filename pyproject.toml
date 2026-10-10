@@ -33,5 +33,6 @@ markers = [
     "slow: spawns real worker processes and kills them; takes several seconds",
     "media: builds synthetic clips with ffmpeg and runs the real normalise engine (run alone: pytest -m media)",
     "real_env: opts out of the autouse settings isolation in backend/tests/conftest.py",
+    "gpu: runs real models on the GPU (needs CUDA, the offline model cache and free VRAM; run alone: pytest -m gpu)",
 ]
-addopts = "-m 'not network'"
+addopts = "-m 'not network and not gpu'"

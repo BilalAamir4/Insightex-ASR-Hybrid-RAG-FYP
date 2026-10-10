@@ -1,10 +1,12 @@
 """CLI for link ingestion.
 
     insightex probe <url>                         metadata without downloading
-    insightex ingest <url> --confirm-rights       enqueue an ingest_link job (a running `insightex worker` does it)
-    insightex ingest-file <path> --confirm-rights [--wait]
+    insightex ingest <url> --confirm-rights --language <id>
+                                                  enqueue an ingest_link job (a running `insightex worker` does it)
+    insightex ingest-file <path> --confirm-rights --language <id> [--wait]
                                                   copy a local video into staging and enqueue an ingest_file job
                                                   exit 0 ok or already ingested, 2 rejected, 1 internal error
+    insightex languages list [--json]             the lecture languages (`--language` takes an id from it)
 
 Full error details go to <paths.data_dir>/logs/ingest/ingest.log; the terminal shows the user-facing message.
 """
@@ -17,6 +19,7 @@ import logging
 import sys
 from pathlib import Path
 
+from insightex.asr.languages import LanguageConfigError, languages_for, require_language
 from insightex.core.config import get_settings
 from insightex.ingest.errors import ErrorCode, IngestError
 from insightex.ingest.file_jobs import enqueue_file, job_outcome
@@ -51,7 +54,7 @@ def _ingest_file(args: argparse.Namespace, app_settings) -> int:
         return 1
     conn = db.open_connection(app_settings.jobs.db_path, app_settings.jobs.busy_timeout_ms)
     db.migrate(conn)
-    result = enqueue_file(conn, app_settings, path, via="cli")
+    result = enqueue_file(conn, app_settings, path, language=args.language, via="cli")
     if result.rejected is not None:  # refused from its size before staging; the failed job is in the history
         print(json.dumps({"lecture_id": None, "job_id": result.job_id, "deduplicated": False, "status": "rejected",
                           **result.rejected.to_dict()}, ensure_ascii=False))
@@ -76,14 +79,21 @@ def main(argv: list[str] | None = None) -> int:
     p_ingest.add_argument("url")
     p_ingest.add_argument("--confirm-rights", action="store_true",
                           help="confirm you have the right to use this video (required)")
+    p_ingest.add_argument("--language", help="language spoken in the lecture, an id from `insightex languages list` (required)")
     p_file = sub.add_parser("ingest-file", help="copy a local video file in and enqueue an ingest_file job")
     p_file.add_argument("path")
     p_file.add_argument("--confirm-rights", action="store_true",
                         help="confirm you have the right to use this video (required)")
+    p_file.add_argument("--language", help="language spoken in the lecture, an id from `insightex languages list` (required)")
     p_file.add_argument("--wait", action="store_true", help="block until the job ends and print its outcome")
     args = parser.parse_args(argv)
 
     app_settings = get_settings()
+    try:
+        languages_for(app_settings)  # a bad language file stops every entry point at startup
+    except LanguageConfigError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
     log_file = _setup_logging(args.verbose, app_settings.paths.logs_dir)
     settings = IngestSettings.from_settings(app_settings)
     try:
@@ -93,11 +103,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if not args.confirm_rights:
             raise IngestError(ErrorCode.RIGHTS_NOT_CONFIRMED)
+        require_language(app_settings, args.language)
         if args.command == "ingest-file":
             return _ingest_file(args, app_settings)
         conn = db.open_connection(app_settings.jobs.db_path, app_settings.jobs.busy_timeout_ms)
         db.migrate(conn)
-        job_id, workspace_id, deduplicated = enqueue_link(conn, app_settings, args.url)
+        job_id, workspace_id, deduplicated = enqueue_link(conn, app_settings, args.url, args.language)
         print(json.dumps({"job_id": job_id, "workspace_id": workspace_id, "deduplicated": deduplicated}))
         return 0
     except IngestError as exc:

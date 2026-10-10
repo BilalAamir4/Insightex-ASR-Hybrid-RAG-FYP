@@ -11,7 +11,8 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from insightex.api.routers import ingest, jobs, lectures
+from insightex.api.routers import ingest, jobs, languages, lectures
+from insightex.asr.languages import languages_for
 from insightex.core.config import Settings, get_settings, repo_root
 from insightex.ingest.settings import IngestSettings
 from insightex.jobs import db
@@ -22,6 +23,7 @@ log = logging.getLogger(__name__)
 
 def create_app(app_settings: Settings | None = None, frontend_dir: Path | None = None) -> FastAPI:
     app_settings = app_settings or get_settings()
+    languages_for(app_settings)  # raises LanguageConfigError: a bad language file stops startup (ADR-0040)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -42,6 +44,7 @@ def create_app(app_settings: Settings | None = None, frontend_dir: Path | None =
     app.include_router(ingest.router)
     app.include_router(jobs.router)
     app.include_router(lectures.router)
+    app.include_router(languages.router)
 
     frontend = frontend_dir or repo_root() / "frontend"
     if frontend.is_dir():

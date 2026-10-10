@@ -34,6 +34,25 @@ def isolated_settings(request, monkeypatch, tmp_path, tmp_path_factory):
     clear_settings_cache()
 
 
+@pytest.fixture(autouse=True)
+def fake_asr(request, monkeypatch):
+    """Every test gets a fake transcriber and a fake GPU (7000 MiB free) instead of Whisper and nvidia-smi.
+
+    Tests marked `gpu` get the real ones. Returns (transcriber, gpu) so a test can inspect or change them.
+    """
+    if request.node.get_closest_marker("gpu"):
+        yield None
+        return
+    from asr_fakes import FakeGpu, FakeTranscriber
+
+    from insightex.asr import stage as asr_stage
+
+    transcriber, gpu = FakeTranscriber(), FakeGpu()
+    monkeypatch.setattr(asr_stage, "make_transcriber", lambda settings: transcriber)
+    monkeypatch.setattr(asr_stage, "gpu_vram", gpu)
+    yield transcriber, gpu
+
+
 def _ffmpeg(*args: str) -> None:
     subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *args], check=True)
 

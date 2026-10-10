@@ -44,6 +44,12 @@
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .notice { background: #fff8e1; border: 1px solid #e0c060; padding: 6px 10px; margin: 6px 0; font-size: 0.9rem; }
   .note-ok { background: #eaf6ea; border: 1px solid #7bb27b; padding: 6px 10px; margin: 6px 0; }
+  .badge { display: inline-block; margin-left: 6px; padding: 0 6px; font-size: 0.8rem; border: 1px solid #b07a00;
+           background: #fff3cd; color: #5c4000; border-radius: 3px; cursor: help; }
+  .badge:focus-visible { outline: 3px solid #36c; outline-offset: 2px; }
+  .lang { margin: 2px 0; }
+  .lang.missing { color: #555; font-style: italic; }
+  select { padding: 6px; font-size: 1rem; max-width: 100%; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -75,6 +81,8 @@
         <span id="dz-hint">Drop a video here, or press Enter to choose a file</span>
       </div>
       <div id="file-info" class="meta" aria-live="polite"></div>
+      <label for="up-lang">Language spoken in the lecture</label>
+      <div class="row"><select id="up-lang" required aria-required="true"></select></div>
       <label><input type="checkbox" id="up-rights"> I own this lecture or have permission to use it.</label>
       <div class="row">
         <button id="up-btn" disabled>Upload</button>
@@ -101,6 +109,8 @@
           <button id="pv-open">Open lecture</button>
         </div>
         <div id="pv-new">
+          <label for="link-lang">Language spoken in the lecture</label>
+          <div class="row"><select id="link-lang" required aria-required="true"></select></div>
           <label><input type="checkbox" id="rights"> I own this lecture or have permission to use it.</label>
           <div class="row"><button id="add-btn" disabled>Add lecture</button></div>
         </div>
@@ -109,8 +119,10 @@
 
     <div id="progress" hidden>
       <div id="pr-title" role="status" aria-live="polite"></div>
+      <div id="pr-language" class="meta"></div>
       <ul id="pr-stages" class="stages"></ul>
       <div id="pr-error" class="error" role="alert" hidden></div>
+      <div id="pr-warnings"></div>
       <div class="row">
         <button id="pr-cancel" hidden>Cancel</button>
         <button id="pr-retry" hidden>Retry</button>
@@ -133,6 +145,7 @@
   <div id="pl-existing" class="note-ok" role="status" hidden>This lecture is already in your library.</div>
   <div id="pl-warnings" aria-label="Notices about this video"></div>
   <div class="meta" id="pl-duration"></div>
+  <div class="meta" id="pl-language"></div>
   <video id="video" controls preload="metadata"></video>
   <div class="row">
     <label for="jump">Jump to</label>
@@ -148,6 +161,7 @@
 
 <script type="module">
 import { parseTimestamp, formatTimestamp } from "./timestamp.js";
+import { PLACEHOLDER, UNTESTED_BADGE, UNTESTED_TOOLTIP, languageDisplay, sortedGroups } from "./languages.js";
 
 const $ = (id) => document.getElementById(id);
 const show = (el, on = true) => { el.hidden = !on; };
@@ -204,13 +218,25 @@ const ERROR_MESSAGES = {
   LENGTH_REQUIRED: "The upload didn't say how large the file is. Please try again.",
   UPLOAD_BUSY: "Another upload is already in progress. Try again when it has finished.",
   UPLOAD_INTERRUPTED: "The upload was interrupted. Please try again.",
+  MISSING_LANGUAGE: "Choose the language spoken in the lecture, then add it again.",
+  UNKNOWN_LANGUAGE: "That lecture language isn't in the list. Choose one of the listed languages and add it again.",
+  INSUFFICIENT_VRAM: "The graphics card doesn't have enough free memory to transcribe right now. Close other programs that use it, then retry.",
+  GPU_NOT_AVAILABLE: "The graphics card couldn't be checked, so the lecture can't be transcribed. Check the NVIDIA driver, then retry.",
+  MODEL_LOAD_FAILED: "The speech recognition model couldn't be loaded. Check the model cache, then retry.",
+  GPU_OUT_OF_MEMORY: "The graphics card ran out of memory while transcribing. Close other programs that use it, then retry.",
+  TRANSCRIBE_CRASHED: "Transcription stopped unexpectedly. Retry; if it fails again, check the worker log.",
+  TRANSCRIBE_TIMEOUT: "Transcription took too long and was stopped. Retry when the computer is less busy.",
+  EMPTY_TRANSCRIPT: "No speech was recognised in this lecture. Check that it has audible speech and that the right language was chosen.",
   // raised by this page
   CLIENT_NETWORK: "Couldn't reach the Insightex server. Is it running?",
   CLIENT_CANCELLED: "Upload cancelled.",
 };
 const GENERIC_ERROR = "Something went wrong. Please try again.";
+/** Codes whose server message carries specifics (free vs needed memory, the unknown id): shown as sent. */
+const SERVER_DETAIL_CODES = new Set(["INSUFFICIENT_VRAM", "UNKNOWN_LANGUAGE"]);
 const describeError = (code, serverMessage) =>
-  ERROR_MESSAGES[code] ?? `${serverMessage || GENERIC_ERROR}${code ? ` (${code})` : ""}`;
+  (SERVER_DETAIL_CODES.has(code) && serverMessage) ? serverMessage
+    : ERROR_MESSAGES[code] ?? `${serverMessage || GENERIC_ERROR}${code ? ` (${code})` : ""}`;
 
 /** Warnings written by the normaliser (normalise.json) shown as notices on the player. */
 const WARNING_MESSAGES = {
@@ -220,11 +246,61 @@ const WARNING_MESSAGES = {
   VFR_SOURCE: "The video has a variable frame rate and was converted to a steady one.",
   START_OFFSET_CORRECTED: "The sound and picture started at slightly different times; this was corrected.",
   AV_DURATION_MISMATCH: "The sound and picture differ in length by more than a second.",
+  TEMPERATURE_FALLBACK: "Some parts of the transcript needed a second decoding attempt; they may differ between runs.",
+  HIGH_COMPRESSION_RATIO: "Some parts of the transcript look repetitive and may be inaccurate.",
 };
 const describeWarning = (w) => WARNING_MESSAGES[w.code] ?? `Notice: ${w.code}${w.detail ? ` (${w.detail})` : ""}`;
 
 /** The error code inside a stage error line such as "IngestRejected: NO_VIDEO_STREAM: ...", else null. */
-const codeInStageError = (line) => /^IngestRejected: ([A-Z_]+):/.exec(line)?.[1] ?? null;
+const codeInStageError = (line) => /^(?:IngestRejected|IngestError|AsrError): ([A-Z_]+):/.exec(line)?.[1] ?? null;
+/** The user-facing message after the code in such a line. */
+const messageInStageError = (line) => /^(?:IngestRejected|IngestError|AsrError): [A-Z_]+: (.*)$/.exec(line)?.[1] ?? line;
+
+// ---------------------------------------------------------------- lecture language (ADR-0040)
+/** A language line: the label plus, for an untested language, a focusable badge with the tooltip. */
+function languageLine(language, prefix = "Language: ") {
+  const d = languageDisplay(language);
+  const line = document.createElement("div");
+  line.className = d.missing ? "lang missing" : "lang";
+  line.textContent = d.missing ? d.text : `${prefix}${d.text}`;
+  if (d.badge) {
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = UNTESTED_BADGE;
+    badge.title = UNTESTED_TOOLTIP;
+    badge.tabIndex = 0;
+    badge.setAttribute("aria-label", `${UNTESTED_BADGE}: ${UNTESTED_TOOLTIP}`);
+    line.append(badge);
+  }
+  return line;
+}
+
+/** Fill a language <select>: a disabled placeholder chosen by default, then one optgroup per tier. */
+function fillLanguageSelect(select, groups) {
+  const placeholder = new Option(PLACEHOLDER, "", true, true);
+  placeholder.disabled = true;
+  select.replaceChildren(placeholder);
+  for (const g of sortedGroups(groups)) {
+    const og = document.createElement("optgroup");
+    og.label = g.label;
+    for (const lang of g.languages) og.append(new Option(lang.label, lang.id));
+    select.append(og);
+  }
+}
+
+let languagesLoaded = null;
+function loadLanguages() {
+  languagesLoaded ??= api("/api/languages").then((body) => {
+    for (const id of ["link-lang", "up-lang"]) fillLanguageSelect($(id), body.groups);
+  }).catch((e) => {
+    for (const id of ["link-lang", "up-lang"]) {
+      const opt = new Option(`Languages unavailable: ${e.message}`, "", true, true);
+      opt.disabled = true;
+      $(id).replaceChildren(opt);
+    }
+  });
+  return languagesLoaded;
+}
 
 // ---------------------------------------------------------------- routing
 const params = new URLSearchParams(location.search);
@@ -255,7 +331,7 @@ async function loadLibrary() {
     const dur = document.createElement("div");
     dur.className = "meta";
     dur.textContent = formatTimestamp(lec.duration_s) ?? "";
-    text.append(title, dur);
+    text.append(title, dur, languageLine(lec.language));
     a.append(text);
     const del = document.createElement("button");
     del.className = "delete";
@@ -306,8 +382,10 @@ function resetAdd() {
 function initHome() {
   show($("home"));
   loadLibrary();
+  loadLanguages();
   initUpload();
   let probed = null;
+  const updateAddButton = () => { $("add-btn").disabled = !($("rights").checked && $("link-lang").value); };
 
   $("check").addEventListener("click", async () => {
     const url = $("url").value.trim();
@@ -326,18 +404,21 @@ function initHome() {
   });
 
   $("url").addEventListener("keydown", (e) => { if (e.key === "Enter") $("check").click(); });
-  $("rights").addEventListener("change", () => { $("add-btn").disabled = !$("rights").checked; });
+  $("rights").addEventListener("change", updateAddButton);
+  $("link-lang").addEventListener("change", updateAddButton);
   $("pv-open").addEventListener("click", () => { location.href = playerUrl(probed.workspace_id); });
 
   $("add-btn").addEventListener("click", async () => {
-    if (!$("rights").checked) return;
+    const language = $("link-lang").value;
+    if (!$("rights").checked || !language) return;
     $("add-btn").disabled = true;
     try {
-      const accepted = await postJson("/api/ingest/link", { url: $("url").value.trim(), rights_confirmed: true });
+      const accepted = await postJson("/api/ingest/link",
+        { url: $("url").value.trim(), rights_confirmed: true, language });
       watchJob(accepted.job_id);
     } catch (e) {
       showAddError(e.message);
-      $("add-btn").disabled = !$("rights").checked;
+      updateAddButton();
     }
   });
 
@@ -365,11 +446,12 @@ function renderPreview(p) {
   show($("pv-exists"), p.exists_locally);
   show($("pv-new"), !p.exists_locally);
   $("rights").checked = false;
+  $("link-lang").selectedIndex = 0;  // the placeholder: no language is preselected
   $("add-btn").disabled = true;
   show($("preview"));
 }
 
-const STAGE_LABELS = { fetch: "Download", normalise: "Convert video and audio" };
+const STAGE_LABELS = { fetch: "Download", normalise: "Convert video and audio", asr: "Transcribe" };
 const STATUS_LABELS = {
   pending: "Waiting", running: "Working", succeeded: "Done", cached: "Done (reused)", failed: "Failed", cancelled: "Cancelled",
 };
@@ -384,6 +466,14 @@ function renderJob(job) {
   $("url").disabled = true;
   setUploadEnabled(false);
   $("pr-title").textContent = job.status === "queued" ? "Waiting for the worker" : "";
+  $("pr-language").replaceChildren(...(job.language ? [languageLine(job.language)] : []));
+  $("pr-warnings").replaceChildren(...(job.warnings ?? []).map((w) => {
+    const note = document.createElement("div");
+    note.className = "notice";
+    note.setAttribute("role", "note");
+    note.textContent = describeWarning(w);
+    return note;
+  }));
   const list = $("pr-stages");
   list.replaceChildren();
   let failure = null;
@@ -404,7 +494,7 @@ function renderJob(job) {
     if (st.status === "failed" && st.error) {
       const first = st.error.split("\n")[0];  // first line only; the traceback stays in the worker log
       const code = codeInStageError(first);
-      failure = code ? describeError(code, first) : first;
+      failure = code ? describeError(code, messageInStageError(first)) : first;
       const err = document.createElement("div");
       err.className = "st-error";
       err.textContent = failure;
@@ -474,13 +564,14 @@ function showUploadError(message) {
 }
 
 function updateUploadButton() {
-  $("up-btn").disabled = !(chosenFile && $("up-rights").checked && !activeXhr);
+  $("up-btn").disabled = !(chosenFile && $("up-rights").checked && $("up-lang").value && !activeXhr);
 }
 
 function setUploadEnabled(on) {
   $("dropzone").setAttribute("aria-disabled", String(!on));
   $("file").disabled = !on;
   $("up-rights").disabled = !on;
+  $("up-lang").disabled = !on;
   if (!on) $("up-btn").disabled = true; else updateUploadButton();
 }
 
@@ -490,6 +581,7 @@ function resetUpload() {
   $("file").value = "";
   $("file-info").textContent = "";
   $("up-rights").checked = false;
+  $("up-lang").selectedIndex = 0;  // back to the placeholder
   show($("up-progress"), false);
   show($("up-cancel"), false);
   showUploadError("");
@@ -513,7 +605,8 @@ function chooseFile(file) {
 
 function startUpload() {
   const file = chosenFile;
-  if (!file || !$("up-rights").checked || activeXhr) return;
+  const language = $("up-lang").value;
+  if (!file || !$("up-rights").checked || !language || activeXhr) return;
   showUploadError("");
   showAddError("");
   const xhr = new XMLHttpRequest();
@@ -522,6 +615,7 @@ function startUpload() {
   xhr.setRequestHeader("Content-Type", "application/octet-stream");
   xhr.setRequestHeader("X-Insightex-Filename", encodeURIComponent(file.name.slice(0, 200)));
   xhr.setRequestHeader("X-Insightex-Rights-Confirmed", "true");  // the browser adds Content-Length for a File
+  xhr.setRequestHeader("X-Insightex-Language", encodeURIComponent(language));
   setUploadEnabled(false);
   show($("up-cancel"), true);
   show($("up-progress"), true);
@@ -591,6 +685,7 @@ async function initUpload() {
     if (files && files.length > 1) $("file-info").textContent += " - only the first file is used";
   });
   $("up-rights").addEventListener("change", updateUploadButton);
+  $("up-lang").addEventListener("change", updateUploadButton);
   $("up-btn").addEventListener("click", startUpload);
   $("up-cancel").addEventListener("click", () => { if (activeXhr) activeXhr.abort(); });
 }
@@ -629,6 +724,7 @@ async function initPlayer(id) {
   $("pl-title").textContent = lecture.title || lecture.lecture_id;
   const dur = formatTimestamp(lecture.duration_s);
   $("pl-duration").textContent = dur ? `Duration ${dur}` : "";
+  $("pl-language").replaceChildren(languageLine(lecture.language));
 
   seekTo = (seconds) => {
     if (typeof seconds !== "number" || !Number.isFinite(seconds) || seconds < 0) return null;

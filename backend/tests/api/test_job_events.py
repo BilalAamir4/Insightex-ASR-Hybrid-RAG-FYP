@@ -51,7 +51,7 @@ def _events(response):
 
 
 def _enqueue(conn):
-    return store.enqueue(conn, "ingest_link", {"url": "https://youtu.be/dQw4w9WgXcQ"}, "yt-dQw4w9WgXcQ")
+    return store.enqueue(conn, "ingest_link", {"url": "https://youtu.be/dQw4w9WgXcQ", "language": "hindi"}, "yt-dQw4w9WgXcQ")
 
 
 def test_events_follow_the_database_in_order_and_close_after_the_terminal_event(fast_client):
@@ -67,6 +67,7 @@ def test_events_follow_the_database_in_order_and_close_after_the_terminal_event(
         (0.15, lambda c: store.update_stage(c, job_id, 0, status="running", progress=0.4, message="40%")),
         (0.15, lambda c: store.update_stage(c, job_id, 0, status="succeeded", progress=1.0)),
         (0.15, lambda c: store.update_stage(c, job_id, 1, status="succeeded", progress=1.0)),
+        (0.15, lambda c: store.update_stage(c, job_id, 2, status="succeeded", progress=1.0)),
         (0.15, lambda c: store.finish(c, job_id, "succeeded")),
     ]
     t = _driver(settings, job_id, steps)
@@ -78,7 +79,7 @@ def test_events_follow_the_database_in_order_and_close_after_the_terminal_event(
     t.join()
     docs = [d for _, d in events]
     assert docs[0]["status"] == "queued"
-    assert docs[-1]["status"] == "succeeded" and [s["status"] for s in docs[-1]["stages"]] == ["succeeded", "succeeded"]
+    assert docs[-1]["status"] == "succeeded" and [s["status"] for s in docs[-1]["stages"]] == ["succeeded"] * 3
     statuses = [d["status"] for d in docs]
     assert statuses == sorted(statuses, key=["queued", "running", "succeeded"].index)
     assert any(d["stages"][0]["progress"] == 0.4 and d["stages"][0]["message"] == "40%" for d in docs)

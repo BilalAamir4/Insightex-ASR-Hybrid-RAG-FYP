@@ -13,6 +13,7 @@ from fastapi.responses import StreamingResponse
 from insightex.api.deps import connection, settings_of, workspaces_of
 from insightex.api.errors import error_response
 from insightex.api.models import JobOut, job_out
+from insightex.asr.languages import languages_for
 from insightex.jobs import store
 
 router = APIRouter(prefix="/api/jobs")
@@ -22,7 +23,8 @@ _NOT_FOUND = ("JOB_NOT_FOUND", "No job with that id.", 404)
 
 def _read(request: Request, job_id: str) -> JobOut | None:
     try:
-        return job_out(store.get_job(connection(settings_of(request)), job_id), workspaces_of(request))
+        settings = settings_of(request)
+        return job_out(store.get_job(connection(settings), job_id), workspaces_of(request), languages_for(settings))
     except store.JobNotFound:
         return None
 
@@ -31,8 +33,10 @@ def _read(request: Request, job_id: str) -> JobOut | None:
 def list_jobs(request: Request, limit: int = 20, status: str | None = None):
     if status is not None and status not in store.JOB_STATUSES:
         return error_response("BAD_STATUS", f"status must be one of {', '.join(store.JOB_STATUSES)}", 400)
-    jobs = store.list_jobs(connection(settings_of(request)), max(1, min(limit, 200)), status)
-    return [job_out(j, workspaces_of(request)) for j in jobs]
+    settings = settings_of(request)
+    jobs = store.list_jobs(connection(settings), max(1, min(limit, 200)), status)
+    languages = languages_for(settings)
+    return [job_out(j, workspaces_of(request), languages) for j in jobs]
 
 
 @router.get("/{job_id}", response_model=JobOut)

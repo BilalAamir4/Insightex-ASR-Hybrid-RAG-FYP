@@ -19,7 +19,7 @@ def test_fetch_and_normalise_produce_valid_outputs(video_server):
     ws = Workspaces(settings.jobs.workspaces_dir)
     job = run_link_job(video_server.url, settings)
     assert job.status == "succeeded", [s.error for s in job.stages]
-    assert [s.status for s in job.stages] == ["succeeded", "succeeded"]
+    assert [s.status for s in job.stages] == ["succeeded"] * 3
     assert job.workspace_id.startswith("sha256-") and len(job.workspace_id) == len("sha256-") + 32
     assert [p.name for p in ws.root.iterdir()] == [job.workspace_id]  # the provisional workspace is gone
 
@@ -79,7 +79,7 @@ def test_second_run_of_the_same_link_reuses_everything_it_can(video_server):
     second = run_link_job(video_server.url, settings, conn)
     assert second.status == "succeeded" and second.workspace_id == first.workspace_id
     # A direct link's bytes are unknown until downloaded, so fetch runs again; the key chain makes normalise cached.
-    assert [s.status for s in second.stages] == ["succeeded", "cached"]
+    assert [s.status for s in second.stages] == ["succeeded", "cached", "cached"]
     assert [s.stage_key for s in second.stages] == [s.stage_key for s in first.stages]
     ws = Workspaces(settings.jobs.workspaces_dir)
     assert sorted(p.name for p in ws.root.iterdir()) == [first.workspace_id]
@@ -92,7 +92,7 @@ def test_a_different_url_with_identical_bytes_lands_in_the_same_workspace(video_
     first = run_link_job(video_server.url, settings, conn)
     second = run_link_job(video_server.url + "?mirror=2", settings, conn)
     assert second.workspace_id == first.workspace_id
-    assert [s.status for s in second.stages] == ["succeeded", "succeeded"]  # different fetch key, so normalise reruns
+    assert [s.status for s in second.stages] == ["succeeded"] * 3  # different fetch key, so normalise and asr rerun
 
 
 def test_resubmitting_a_finished_youtube_workspace_is_all_cached(video_server, monkeypatch):
@@ -127,7 +127,7 @@ def test_resubmitting_a_finished_youtube_workspace_is_all_cached(video_server, m
     first = run_link_job(url, settings, conn)
     assert first.status == "succeeded" and first.workspace_id == "yt-dQw4w9WgXcQ"
     second = run_link_job(url, settings, conn)
-    assert [s.status for s in second.stages] == ["cached", "cached"] and len(calls) == 1
+    assert [s.status for s in second.stages] == ["cached"] * 3 and len(calls) == 1
     assert second.workspace_id == first.workspace_id
 
 
@@ -141,7 +141,7 @@ def test_unreachable_download_fails_the_fetch_stage_with_the_reason(allow_loopba
 def test_not_a_video_fails_normalise_and_keeps_fetch(serve_bytes, media):
     settings = get_settings()
     job = run_link_job(serve_bytes(media["garbage"].read_bytes()).url, settings)
-    assert job.status == "failed" and [s.status for s in job.stages] == ["succeeded", "failed"]
+    assert job.status == "failed" and [s.status for s in job.stages] == ["succeeded", "failed", "pending"]
     assert "NOT_A_VIDEO" in job.stages[1].error and "NOT_A_VIDEO" in job.error
     assert job.workspace_id.startswith("sha256-")  # fetch is kept in the content-addressed workspace, ready for retry
 

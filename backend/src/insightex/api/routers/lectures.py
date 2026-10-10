@@ -16,7 +16,8 @@ from fastapi.responses import FileResponse, Response
 
 from insightex.api.deps import connection, settings_of, workspaces_of
 from insightex.api.errors import error_response
-from insightex.api.models import LectureItem, LectureList, LectureOut
+from insightex.api.models import LectureItem, LectureList, LectureOut, language_out
+from insightex.asr.languages import Languages, languages_for
 from insightex.ingest.pipeline import NORMALISE_JSON, SOURCE_JSON, THUMB_NAME, VIDEO_NAME
 from insightex.jobs import cache
 from insightex.jobs.workspace import Workspaces, validate_workspace_id
@@ -43,7 +44,16 @@ def _lecture_dir(workspaces: Workspaces, lecture_id: str) -> Path | None:
     return directory if directory is not None and (directory / VIDEO_NAME).is_file() else None
 
 
-def _item(workspaces: Workspaces, lecture_id: str, normalised: Path, created_at: str | None) -> LectureItem:
+def _language(workspaces: Workspaces, lecture_id: str, languages: Languages):
+    """The language of the lecture's current transcript (the latest ASR run), or None if it has none."""
+    entry = workspaces.read_manifest(lecture_id)["stages"].get("asr") or {}
+    if workspaces.stage_output_dir(lecture_id, "asr") is None:
+        return None
+    return language_out(languages, (entry.get("language") or {}).get("id"))
+
+
+def _item(workspaces: Workspaces, lecture_id: str, normalised: Path, created_at: str | None,
+          languages: Languages) -> LectureItem:
     fetched = workspaces.stage_output_dir(lecture_id, "fetch")
     source = _json(fetched / SOURCE_JSON) if fetched else {}
     info = _json(normalised / NORMALISE_JSON)
@@ -53,17 +63,19 @@ def _item(workspaces: Workspaces, lecture_id: str, normalised: Path, created_at:
         duration_s=info.get("duration_s") or source.get("duration_s"),
         thumbnail_url=f"/api/lectures/{lecture_id}/thumbnail" if (normalised / THUMB_NAME).is_file() else None,
         created_at=created_at,
+        language=_language(workspaces, lecture_id, languages),
     )
 
 
 @router.get("", response_model=LectureList)
 def list_lectures(request: Request):
     workspaces = workspaces_of(request)
+    languages = languages_for(settings_of(request))
     items = []
     for row in cache.list_workspaces(connection(settings_of(request)), workspaces):
         directory = _lecture_dir(workspaces, row["id"])
         if directory is not None:
-            items.append(_item(workspaces, row["id"], directory, row["created_at"]))
+            items.append(_item(workspaces, row["id"], directory, row["created_at"], languages))
     items.sort(key=lambda i: i.created_at or "", reverse=True)
     return LectureList(lectures=items)
 
@@ -75,7 +87,7 @@ def get_lecture(lecture_id: str, request: Request):
     if directory is None:
         return error_response(*_NOT_FOUND)
     row = connection(settings_of(request)).execute("SELECT created_at FROM workspaces WHERE id = ?", (lecture_id,)).fetchone()
-    item = _item(workspaces, lecture_id, directory, row["created_at"] if row else None)
+    item = _item(workspaces, lecture_id, directory, row["created_at"] if row else None, languages_for(settings_of(request)))
     fetched = workspaces.stage_output_dir(lecture_id, "fetch")
     template = _json(fetched / SOURCE_JSON).get("external_timestamp_url_template") if fetched else None
     warnings = _json(directory / NORMALISE_JSON).get("warnings")
