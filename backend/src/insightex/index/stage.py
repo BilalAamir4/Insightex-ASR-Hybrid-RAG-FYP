@@ -7,6 +7,7 @@ stage ends. Query-time encoding is not here: it runs on the CPU in the API proce
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import shutil
@@ -57,6 +58,33 @@ def library_versions() -> dict[str, str]:
     return out
 
 
+def index_fingerprint(settings: Settings) -> dict[str, Any]:
+    """Everything that decides which windows exist and what their vectors are. It is the stage's cache-key input,
+    it is written into `index.json` and the manifest, and a re-add compares it to decide whether the index is current."""
+    i = settings.index
+    return {
+        "model_repo": i.model_repo, "model_revision": i.model_revision, "device": i.device, "dtype": i.dtype,
+        "max_seq_length": i.max_seq_length, "batch_size": i.batch_size, "window_s": i.window_s,
+        "stride_s": i.stride_s, "snap_to_segments": i.snap_to_segments, "libraries": library_versions(),
+        "windows_schema_version": WINDOWS_SCHEMA_VERSION,
+    }
+
+
+def config_id(fingerprint: dict[str, Any]) -> str:
+    """Short id of a fingerprint (12 hex characters of SHA-256 over its canonical JSON), shown in search results."""
+    canonical = json.dumps(fingerprint, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:12]
+
+
+def index_is_current(directory: Path, settings: Settings) -> bool:
+    """True if the index in `directory` was built by the current stage version with exactly the current fingerprint."""
+    try:
+        meta = json.loads((directory / store.INDEX_JSON).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return meta.get("stage_version") == IndexStage.version and meta.get("fingerprint") == index_fingerprint(settings)
+
+
 class IndexStage(Stage):
     name = "index"
     version = "1"
@@ -64,12 +92,7 @@ class IndexStage(Stage):
     outputs = (store.WINDOWS_JSON, store.DENSE_FAISS, store.INDEX_JSON)
 
     def config_fingerprint(self, ctx: KeyContext) -> dict[str, Any]:
-        i = ctx.settings.index
-        return {
-            "model_repo": i.model_repo, "model_revision": i.model_revision, "device": i.device, "dtype": i.dtype,
-            "max_seq_length": i.max_seq_length, "batch_size": i.batch_size, "window_s": i.window_s,
-            "stride_s": i.stride_s, "snap_to_segments": i.snap_to_segments, "libraries": library_versions(), "windows_schema_version": WINDOWS_SCHEMA_VERSION,
-        }
+        return index_fingerprint(ctx.settings)
 
     def run(self, ctx: StageContext) -> None:
         import numpy as np
@@ -114,8 +137,10 @@ class IndexStage(Stage):
         finally:
             shutil.rmtree(work, ignore_errors=True)
 
+        fingerprint = index_fingerprint(ctx.settings)
         meta = {
             "schema_version": WINDOWS_SCHEMA_VERSION, "stage_version": self.version,
+            "fingerprint": fingerprint, "config_id": config_id(fingerprint),
             "model": {"repo": i.model_repo, "revision": i.model_revision, "dtype": i.dtype, "device": i.device,
                       "max_seq_length": i.max_seq_length, "dim": result.dim},
             "windows": {"window_s": i.window_s, "stride_s": i.stride_s, "snap_to_segments": i.snap_to_segments, "count": len(windows), "n_truncated": result.n_truncated},
@@ -132,4 +157,4 @@ class IndexStage(Stage):
 
     def manifest_extra(self, stage_dir: Path) -> dict[str, Any]:
         meta = json.loads((stage_dir / store.INDEX_JSON).read_text(encoding="utf-8"))
-        return {"windows": meta["windows"]["count"], "model_revision": meta["model"]["revision"]}
+        return {"windows": meta["windows"]["count"], "config_id": meta["config_id"], "fingerprint": meta["fingerprint"]}

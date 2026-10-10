@@ -62,8 +62,8 @@ def run(env, payload, settings=None):
     return store.get_job(conn, job_id)
 
 
-def test_snapped_windows_are_the_default(env):
-    job = run(env, {"n": 7})
+def test_snapped_windows_when_enabled(env):
+    job = run(env, {"n": 7}, settings=load_settings({"jobs": {"progress_min_interval_s": 0.0}, "index": {"snap_to_segments": True}}))
     assert job.status == "succeeded", job.error
     index = load_index(env[2].stage_output_dir(WS, "index"))
     assert [(w["start"], w["end"]) for w in index.windows] == [(0.0, 29.5), (30.0, 59.5), (60.0, 69.5)]
@@ -71,7 +71,7 @@ def test_snapped_windows_are_the_default(env):
 
 
 def test_index_files_and_meta(env):
-    job = run(env, {"n": 7}, settings=load_settings({"jobs": {"progress_min_interval_s": 0.0}, "index": {"snap_to_segments": False}}))
+    job = run(env, {"n": 7})  # the default is the fixed grid
     assert job.status == "succeeded", job.error
     directory = env[2].stage_output_dir(WS, "index")
     assert sorted(p.name for p in directory.iterdir()) == ["dense.faiss", "index.json", "windows.json"]  # no scratch left over
@@ -126,3 +126,19 @@ def test_encoder_error_fails_the_job(env, monkeypatch):
     monkeypatch.setattr(index_stage, "make_encoder", lambda settings: enc)
     job = run(env, {"n": 3})
     assert job.status == "failed" and "ENCODE_CRASHED" in job.error
+
+
+def test_fingerprint_is_in_the_index_manifest_and_decides_whether_it_is_current(env):
+    from insightex.index.stage import config_id, index_fingerprint, index_is_current
+
+    settings = env[0]
+    assert run(env, {"n": 3}).status == "succeeded"
+    directory = env[2].stage_output_dir(WS, "index")
+    meta = json.loads((directory / "index.json").read_text(encoding="utf-8"))
+    entry = env[2].read_manifest(WS)["stages"]["index"]
+    assert meta["fingerprint"] == index_fingerprint(settings) == entry["fingerprint"]
+    assert meta["config_id"] == config_id(meta["fingerprint"]) == entry["config_id"] and len(meta["config_id"]) == 12
+    assert index_is_current(directory, settings)
+    for change in ({"window_s": 20}, {"stride_s": 15}, {"snap_to_segments": True}, {"dtype": "float32"},
+                   {"model_revision": "f" * 40}, {"max_seq_length": 256}):
+        assert not index_is_current(directory, load_settings({"index": change})), change

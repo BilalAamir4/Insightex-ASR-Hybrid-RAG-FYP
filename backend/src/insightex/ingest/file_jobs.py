@@ -21,8 +21,7 @@ from insightex.asr.languages import require_language
 from insightex.asr.stage import AsrStage
 from insightex.asr.transcript import SCHEMA_VERSION, TRANSCRIPT_JSON
 from insightex.core.config import Settings
-from insightex.index.stage import IndexStage
-from insightex.index.store import INDEX_JSON
+from insightex.index.stage import IndexStage, index_is_current
 from insightex.ingest import staging
 from insightex.ingest.errors import ErrorCode, IngestRejected
 from insightex.ingest.settings import IngestSettings
@@ -69,16 +68,7 @@ def _current_lecture(workspaces: Workspaces, workspace_id: str, language_id: str
     index_dir = workspaces.stage_output_dir(workspace_id, IndexStage.name)  # a lecture without a search index is not current
     if index_dir is None:
         return False
-    try:
-        meta = json.loads((index_dir / INDEX_JSON).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return False
-    i = settings.index
-    return (meta.get("stage_version") == IndexStage.version
-            and meta.get("model", {}).get("revision") == i.model_revision
-            and meta.get("windows", {}).get("window_s") == i.window_s
-            and meta.get("windows", {}).get("stride_s") == i.stride_s
-            and meta.get("windows", {}).get("snap_to_segments") == i.snap_to_segments)
+    return index_is_current(index_dir, settings)
 
 
 def enqueue_file(

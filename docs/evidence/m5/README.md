@@ -12,3 +12,10 @@ Lecture: Day 4 upload, workspace `sha256-de27cb67c2acbedebd0c2c7416932b8a` (351 
 
 - `g3_A.json`, `g3_B.json`: `insightex search --device cuda --dtype float16 --k 10` for the 47 gold questions on the segment-snapped index built with stride 30 s (A, 23 windows) and stride 15 s (B, 45 windows). `g3_A_scores.json`, `g3_B_scores.json`: Test A scores under the ADR-0043 rules (de-duplication: any overlap above 0 s).
 - Compare with: `python tools/eval_retrieval/score.py compare --a docs/evidence/m5/g3_A.json --b docs/evidence/m5/g3_B.json --subset g23`.
+
+## Session B (re-gate): fingerprinted indexes
+
+`idx_grid30.json`, `idx_snapped30.json`, `idx_grid15.json` were produced after the cache fix, from freshly rebuilt indexes; each file carries `index_config_id` and `index_fingerprint` (grid30 `56d5cbf47e45`, snapped30 `e772272e32b3`, grid15 `c0775ceb56f8`). `idx_grid30.json` reproduces `g0_search_gpu.json` exactly (same windows, ranks and scores) and `idx_snapped30.json` reproduces `g3_A.json`. `g3_A.json` / `g3_B.json` (snapped, stride 30 / 15) came from rebuilt indexes too: their `index.windows` shows snap true, 23 and 45 windows. `g0_search_gpu.json` predates the fingerprint; its `index.windows` has no snapping field (grid).
+
+- G3s (grid vs snapped): `score.py compare --a idx_grid30.json --b idx_snapped30.json --subset g23` -> net -1, tie, grid stays.
+- G3 (grid stride 30 vs 15): `score.py compare --a idx_grid30.json --b idx_grid15.json --subset g23` -> net 0, tie, stride 30 stays.

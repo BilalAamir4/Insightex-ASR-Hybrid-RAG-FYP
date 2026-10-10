@@ -37,6 +37,9 @@ M5 builds windowing, BGE-M3 embedding and FAISS retrieval (ADR-0001). Several de
 - **Adopt B on any improvement.** With 28 queries one flip is 3.6 points of Recall@3, which is within noise; the net >= 2 rule requires a margin.
 - **Include twins (and A24 to A27) in G2 and G3.** A question and its Roman twin usually flip together, so they would count one effect twice.
 
+- **Snapping windows to Whisper segment boundaries (gate G3s, run 2026-10-11).** Definition used: a window starts at a segment start and ends at the segment end closest to start + 30 s (ties to the earlier segment); its time range is the first segment's start to the last segment's end, so silence between windows is not covered; next window starts at the segment after the last one included (stride 30 s). Result on the 24 queries A01 to A23 + A28, dense only, GPU fp16 queries: grid Recall@3 0.8750, MRR 0.7097; snapped 0.8333, 0.7198; wins 0, losses 1 (A17), net -1, a tie, so the grid stays. Evidence: `docs/evidence/m5/idx_grid30.json`, `idx_snapped30.json`. Other snapping definitions (nearest boundary with a minimum length, merging short tails) were not tried.
+- **Gate G3 on the grid (2026-10-11).** Stride 30 s (A) against 15 s (B), grid windows, same 24 queries: Recall@3 0.8750 both, MRR 0.7097 against 0.7431; wins A12, A23, losses A07, A11, net 0, a tie, so stride 30 s with no overlap stays. Evidence: `idx_grid30.json`, `idx_grid15.json`. (An earlier G3 run on snapped windows, `g3_A.json` and `g3_B.json`, gave net +1, also a tie.)
+
 ## Consequences
 
 - Every adoption in M5 is a net count on named queries, not a judgement on a mean.
@@ -45,6 +48,7 @@ M5 builds windowing, BGE-M3 embedding and FAISS retrieval (ADR-0001). Several de
 
 ## Evidence
 
+- Per-query results with the index fingerprint of the index that produced them: `docs/evidence/m5/` (see its README).
 - Gold: `tools/eval_retrieval/gold_spans.json` at `0f5e5ab`. No result exists yet; this ADR is written before any experiment.
 
 ## Gate / revisit when

@@ -44,6 +44,7 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
   - Open question from ADR-0041, measured here and not decided yet: rerun Test A with **English questions** over native-script transcripts. Cross-language search is a gate: if English questions fail to retrieve the right windows, per-window English translation becomes a candidate stage (its own ADR).
   Exit: Test A reproduces through production code, and the CPU-query gate passes.
 - **M6: Minimal API and UI.** Upload or link, progress, player, ask box, top-3 citations that seek the video.
+  - A citation seeks to the start of the first transcript segment inside the retrieved window, not the window's grid start (ADR-0044).
   Exit: paste link → wait → ask → click → the video jumps to the right moment.
 
 ## Phase 2: Knowledge layer (to ~20 Dec)

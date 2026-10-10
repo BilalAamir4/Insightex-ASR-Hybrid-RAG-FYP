@@ -87,7 +87,8 @@ def main(argv: list[str]) -> int:
         results.append({"id": q["id"], "question": q["question"],
                         "hits": [{"rank": h.rank, "window_id": h.window_id, "start": h.start, "end": h.end,
                                   "score": h.score} for h in hits]})
-    json.dump({"lecture": args.lecture, "index": index.meta,
+    json.dump({"lecture": args.lecture, "index_config_id": index.meta.get("config_id"),
+               "index_fingerprint": index.meta.get("fingerprint"), "index": index.meta,
                "encode": {"device": encoder.device, "dtype": encoder.dtype, "load_s": round(load_s, 3),
                           "encode_s": round(encode_s, 3), "questions": len(questions)},
                "dedupe": args.dedupe, "k": k, "results": results}, sys.stdout, ensure_ascii=False, indent=1)

@@ -67,3 +67,22 @@ def test_upload_resumes_after_an_interruption_during_asr(media, fake_asr):
     assert run_job(conn, store.claim_next(conn, 1), settings, ws) == "succeeded"
     job = store.get_job(conn, result.job_id)
     assert [s.status for s in job.stages] == ["cached", "cached", "succeeded", "succeeded"], [s.error for s in job.stages]
+
+
+@pytest.mark.parametrize("change", [
+    {"window_s": 20}, {"stride_s": 15}, {"snap_to_segments": True}, {"max_seq_length": 512}, {"batch_size": 8},
+    {"dtype": "float32"}, {"model_revision": "0" * 40}, {"model_repo": "BAAI/bge-m3-other"}, {"device": "cpu"},
+], ids=lambda c: next(iter(c)))
+def test_changing_a_window_model_or_dtype_setting_forces_an_index_rebuild_on_re_add(media, fake_asr, change):
+    from insightex.core.config import load_settings
+    from insightex.ingest.file_jobs import enqueue_file
+
+    settings = get_settings()
+    conn = open_db(settings)
+    _first, job = run_file_job(media["h264_aac_mp4"], settings, conn, language="hindi")
+    assert job.status == "succeeded", job.error
+    again = enqueue_file(conn, settings, media["h264_aac_mp4"], language="hindi")
+    assert again.deduplicated and again.job_id is None  # same settings: nothing to do
+    changed = load_settings({"index": change})
+    rebuild = enqueue_file(conn, changed, media["h264_aac_mp4"], language="hindi")
+    assert not rebuild.deduplicated and rebuild.job_id is not None  # a job is queued, and it will rebuild the index

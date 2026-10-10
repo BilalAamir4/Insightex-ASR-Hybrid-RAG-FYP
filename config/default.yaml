@@ -163,7 +163,7 @@ index:                              # index stage (M5): docs/adr/0043-*.md (gate
   batch_size: 16                    # texts per encoder batch
   window_s: 30                      # seconds; target length of a window
   stride_s: 30                      # seconds between window starts (= window_s: no overlap; smaller: overlapping windows)
-  snap_to_segments: true            # true: window edges are Whisper segment boundaries (length within a segment of window_s); false: fixed time grid
+  snap_to_segments: false           # true: window edges are Whisper segment boundaries (length within a segment of window_s); false: fixed time grid
   min_free_vram_mib: 2500           # MiB; free VRAM (nvidia-smi) required before the subprocess starts, else INSUFFICIENT_VRAM
   timeout_min_s: 600                # seconds; the encoder subprocess is killed after this long
   kill_grace_s: 5                   # seconds between SIGTERM and SIGKILL when the subprocess is stopped

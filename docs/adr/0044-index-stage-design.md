@@ -14,8 +14,9 @@ This ADR records the baseline built for gate G0. The choices ADR-0043 leaves to 
 ## Decision
 
 - **Stage.** `index` (version 1) runs after `asr` in `ingest_link` and `ingest_file`, as a GPU stage under the existing lease. Outputs: `windows.json`, `dense.faiss`, `index.json`.
-- **Windows.** `insightex.windows.build`: fixed grid, window k covers [k x `index.stride_s`, k x `index.stride_s` + `index.window_s`); a segment belongs to the window its START falls in (the bake-off's rule); text is the member segments' text, NFC-normalised, stripped, joined by one space; empty windows are dropped; the last window's end is clipped to the audio duration. Defaults 30 s / 30 s (no overlap). Segment boundary snapping is not built yet (gate G3).
+- **Windows.** `insightex.windows.build`: fixed grid, window k covers [k x `index.stride_s`, k x `index.stride_s` + `index.window_s`); a segment belongs to the window its START falls in (the bake-off's rule); text is the member segments' text, NFC-normalised, stripped, joined by one space; empty windows are dropped; the last window's end is clipped to the audio duration. Defaults 30 s / 30 s (no overlap). Segment-boundary snapping exists behind `index.snap_to_segments` (default false: ADR-0043 gate G3s kept the grid).
 - **Encoding.** SentenceTransformer BAAI/bge-m3 at the pinned snapshot `index.model_revision`, float16 on the GPU, `max_seq_length` 1024, batch 16, normalised vectors; the settings are the bake-off's. It runs in a child process (`python -m insightex.index.child`) with the ASR stage's process rules (PR_SET_PDEATHSIG, no inherited descriptors, SIGTERM then SIGKILL, timeout), so VRAM is returned when it exits. Pre-flight: at least `index.min_free_vram_mib` free or `INSUFFICIENT_VRAM`.
+- **Index fingerprint.** `index_fingerprint(settings)` (model repo and revision, device, dtype, `max_seq_length`, batch size, window, stride, snapping, library versions, windows schema) is the stage's cache-key input, is written into `index.json` and the manifest entry with a 12-character `config_id`, and is printed by `insightex search`, so every search result names the index that produced it. Re-adding a lecture counts the index as current only if its stored fingerprint equals the current one.
 - **Index.** FAISS `IndexFlatIP` over the unit vectors, one per lecture, row i = window id i. `index.json` records model, windows, truncated count, library versions, timings and peak VRAM.
 - **Failure codes.** New: `ENCODE_CRASHED`, `ENCODE_TIMEOUT`, `NO_WINDOWS`; GPU and model-load failures reuse `INSUFFICIENT_VRAM`, `GPU_NOT_AVAILABLE`, `MODEL_LOAD_FAILED`, `GPU_OUT_OF_MEMORY`.
 - **Cache key.** Chained from the `asr` key, plus stage name and version, model repo and revision, device, dtype, `max_seq_length`, batch size, window and stride, library versions and the windows schema version. A new transcript therefore rebuilds the index.
@@ -34,6 +35,8 @@ This ADR records the baseline built for gate G0. The choices ADR-0043 leaves to 
 - Every ingest adds a few seconds of GPU time (23 windows encode in about 0.1 s on Day 4; model load dominates).
 - All stage-list assertions in the job tests grow from three to four stages.
 - Changing the window or model settings rebuilds the index of each lecture on its next job.
+
+- A citation seeks to the start of the first transcript segment inside the window (M6, M11), not to the window's grid start: the grid start can fall in a pause or mid-sentence. `windows.json` records `first_segment`; the transcript has its start time.
 
 ## Evidence
 
