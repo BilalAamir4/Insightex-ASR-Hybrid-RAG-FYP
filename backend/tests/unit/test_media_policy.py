@@ -111,6 +111,38 @@ def test_interlaced_sets_deinterlace_and_reasons_accumulate():
     assert d.deinterlace and (d.video, d.audio) == ("transcode", "transcode") and len(d.reasons) >= 3
 
 
+# -- ADR-0038: a late stream is re-encoded so video.mp4 needs no empty edit ---------------------
+
+FRAME = 0.04  # 25 fps
+
+
+def test_audio_starting_more_than_a_frame_after_video_is_re_encoded():
+    d = policy.decide(video(), audio(start_time="1.478000"), FRAME)
+    assert (d.video, d.audio, d.video_pad_s) == ("copy", "transcode", 0.0)
+    assert any("leading silence" in r for r in d.reasons)
+
+
+def test_video_starting_more_than_a_frame_after_audio_is_re_encoded_with_its_first_frame_held():
+    d = policy.decide(video(start_time="1.520000"), audio(), FRAME)
+    assert (d.video, d.audio, d.video_pad_s) == ("transcode", "copy", 1.52)
+
+
+@pytest.mark.parametrize("v,a", [("0.000", "0.040"), ("0.040", "0.000"), ("0.000", "-0.007"), ("10.000", "10.021")])
+def test_offsets_up_to_one_frame_change_nothing(v, a):
+    d = policy.decide(video(start_time=v), audio(start_time=a), FRAME)
+    assert (d.video, d.audio, d.video_pad_s, d.reasons) == ("copy", "copy", 0.0, [])
+
+
+def test_without_a_frame_length_offsets_are_ignored():
+    assert policy.decide(video(), audio(start_time="3")).audio == "copy"
+
+
+def test_frame_duration_is_capped_by_the_sync_tolerance_and_defaults_to_25_fps():
+    assert policy.frame_duration_s(video(avg_frame_rate="30000/1001"), 0.1) == pytest.approx(1001 / 30000)
+    assert policy.frame_duration_s(video(avg_frame_rate="1/1"), 0.1) == 0.1
+    assert policy.frame_duration_s(video(avg_frame_rate="0/0", r_frame_rate="0/0"), 0.1) == 0.04
+
+
 # -- stream choice -----------------------------------------------------------------------------
 
 def test_cover_art_is_not_a_video_stream():

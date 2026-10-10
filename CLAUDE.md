@@ -15,14 +15,14 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
 
 ## Current state (update this block at every milestone)
 
-- **Phase 0 (Foundation) complete; M1 complete (9 Oct 2026); Phase 1 continues with M2 and M4.** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
+- **Phase 0 (Foundation) complete; M1 and M2 complete (9 Oct 2026, M2 pending the by-hand browser checklist); Phase 1 continues with M4.** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
 - **Done:**
   - M1 core (9 Oct 2026): SQLite job queue + single worker with crash recovery and resume, GPU lease, workspaces with chained stage keys and a cache index with eviction (ADR-0033 to ADR-0035). Link ingestion runs on the runner as the `ingest_link` pipeline (`fetch`, `normalise`); the API exposes jobs, Server-Sent Events progress, the library and delete (`docs/contracts/api.md`). One job system, one workspace layout (`$INSIGHTEX_DATA/workspaces/`). Lectures in the old `lectures/` folder are not read and must be re-ingested. Evidence: `docs/evidence/m1/`.
   - M0b repo scaffold, typed config and decision log (8 Oct 2026): `config/default.yaml`, `insightex config show|validate`, commit-msg hook, ADRs in `docs/adr/` (decision log: `docs/adr/README.md`), textbook chosen (ADR-0029: Géron, Hands-On Machine Learning, 2nd Edition). Repo and tag `import-baseline` exist.
   - M0 environment verification (7 Oct 2026): cold-boot pass, `scripts/verify_env.sh` 12/12 after a full Windows restart with Ollama started by Task Scheduler. State in `docs/ENVIRONMENT.md`, Ollama contract in `docs/adr/0002-ollama-call-contract.md`.
   - M3 link ingestion (6 Oct 2026), moved onto the runner in M1.
 - **Partial:**
-  - M2 (session 1 of 2 done, 9 Oct 2026): one shared normalise engine (`media/engine.py`, ADR-0036) serves links and files; `insightex ingest-file <path> --confirm-rights [--wait]` ingests a local video; closed error-code set; `audio.wav` is derived from `video.mp4` and A/V sync is tested to one frame. **Still to do (session 2): HTTP upload endpoint, UI, `tools/m2_verify`, the Day 4 run. Then M4.**
+  - M2 is done in code (9 Oct 2026): `POST /api/ingest/upload` (raw streamed body, ADR-0037) and the upload form hand off to the same engine and `enqueue_staged` as the CLI. `tools/m2_verify` passed 13/13 on the Day 4 lecture (evidence: `docs/evidence/m2/`). **Still to do: Bilal runs `docs/evidence/m2/BROWSER_CHECKLIST.md` in a Windows browser. Then M4.**
   - M6: API, player and `seekTo(seconds)` exist. Ask box and citations are still to do.
 - **Not started:** the ASR stage (M4), production embeddings/FAISS (M5), concept extraction, the graph, the router and answers.
 - Before starting a module, check its open decisions in `docs/BUILD_ORDER.md` ("Pending decisions by module"). Settle them before building.
@@ -119,7 +119,7 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 | Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` |
 | Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
-| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0035) | `docs/adr/README.md` |
+| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0038) | `docs/adr/README.md` |
 | Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
 | Draft JSON Schema: ASR segment list (id, start, end, text, avg_logprob, no_speech_prob) | `docs/contracts/segments.json` |
 | Current environment state, how to verify (`scripts/verify_env.sh`) | `docs/ENVIRONMENT.md` |

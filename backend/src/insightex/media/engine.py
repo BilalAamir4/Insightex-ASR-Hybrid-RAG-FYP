@@ -11,6 +11,7 @@ code from the closed set in `ingest/errors.py`. CPU only; no GPU lease.
 
 from __future__ import annotations
 
+import dataclasses
 import functools
 import json
 import logging
@@ -31,7 +32,7 @@ from insightex.media import ffmpeg, policy
 
 log = logging.getLogger(__name__)
 
-NORMALISER_VERSION = "2"  # bump when a change here alters video.mp4 / audio.wav / normalise.json; feeds the stage key
+NORMALISER_VERSION = "4"  # bump when a change here alters video.mp4 / audio.wav / normalise.json; feeds the stage key
 VIDEO_NAME, AUDIO_NAME, THUMB_NAME = "video.mp4", "audio.wav", "thumbnail.jpg"
 STDERR_LINES = 20
 _MEAN_VOLUME_RE = re.compile(r"mean_volume:\s*(-?[0-9.]+|-inf)\s*dB")
@@ -117,12 +118,15 @@ def video_args(src: Path, dst: Path, streams: policy.Streams, decision: policy.D
     if decision.video == "copy":
         args += ["-c:v", "copy"]
     else:
-        filters = (["yadif"] if decision.deinterlace else []) + [
+        hold = ([f"setpts=PTS-STARTPTS,tpad=start_duration={decision.video_pad_s:g}:start_mode=clone"]
+                if decision.video_pad_s > 0 else [])
+        filters = hold + (["yadif"] if decision.deinterlace else []) + [
             f"scale=w=-2:h='min({cfg.transcode_max_height},trunc(ih/2)*2)'"
         ]
         args += [
             "-vf", ",".join(filters),
             "-c:v", "libx264", "-preset", cfg.preset, "-crf", str(cfg.crf), "-pix_fmt", "yuv420p", "-profile:v", "high",
+            "-x264-params", "bframes=0",  # no B-frame delay, so the output needs no edit list for sync (ADR-0038)
             "-force_key_frames", f"expr:gte(t,n_forced*{cfg.keyframe_interval_s:g})",
             "-fps_mode", "vfr",  # keep source frame timing; the mp4 muxer would otherwise default to constant frame rate
         ]
@@ -169,6 +173,116 @@ def moov_before_mdat(path: Path) -> bool:
     return b"moov" in first and b"mdat" in first and first[b"moov"] < first[b"mdat"]
 
 
+def _boxes(data: bytes, start: int, end: int):
+    """(type, body start, box end) of each box in data[start:end]."""
+    pos = start
+    while pos + 8 <= end:
+        length = int.from_bytes(data[pos:pos + 4], "big")
+        kind = data[pos + 4:pos + 8].decode("latin1")
+        header = 8
+        if length == 1:
+            length, header = int.from_bytes(data[pos + 8:pos + 16], "big"), 16
+        elif length == 0:
+            length = end - pos
+        if length < header:
+            return
+        yield kind, pos + header, min(pos + length, end)
+        pos += length
+
+
+def mp4_edit_lists(path: Path) -> list[dict[str, Any]]:
+    """Per track of an MP4 with `moov` first: {"handler": "vide"|"soun"|..., "edits": [{"media_time", "segment_duration"}]}.
+
+    `media_time` -1 is an empty edit (the track is delayed by `segment_s` seconds); other values are priming or
+    B-frame delay (the track's first sample is skipped into).
+    """
+    data = path.read_bytes() if path.stat().st_size < 64 * 1024 * 1024 else _read_moov(path)
+    tracks: list[dict[str, Any]] = []
+    for kind, body, end in _boxes(data, 0, len(data)):
+        if kind != "moov":
+            continue
+        movie_timescale = 1000
+        for kind2, body2, _ in _boxes(data, body, end):
+            if kind2 == "mvhd":
+                movie_timescale = int.from_bytes(data[body2 + (12 if data[body2] == 0 else 20):][:4], "big") or 1000
+        for kind2, body2, end2 in _boxes(data, body, end):
+            if kind2 != "trak":
+                continue
+            track: dict[str, Any] = {"handler": None, "media_timescale": None, "edits": []}
+            for kind3, body3, end3 in _boxes(data, body2, end2):
+                if kind3 == "mdia":
+                    for kind4, body4, _ in _boxes(data, body3, end3):
+                        if kind4 == "hdlr":
+                            track["handler"] = data[body4 + 8:body4 + 12].decode("latin1")
+                        elif kind4 == "mdhd":
+                            track["media_timescale"] = int.from_bytes(data[body4 + (12 if data[body4] == 0 else 20):][:4], "big") or None
+                elif kind3 == "edts":
+                    for kind4, body4, end4 in _boxes(data, body3, end3):
+                        if kind4 != "elst":
+                            continue
+                        version = data[body4]
+                        count = int.from_bytes(data[body4 + 4:body4 + 8], "big")
+                        pos = body4 + 8
+                        for _ in range(count):
+                            if version == 1:
+                                seg = int.from_bytes(data[pos:pos + 8], "big")
+                                media = int.from_bytes(data[pos + 8:pos + 16], "big", signed=True)
+                                pos += 20
+                            else:
+                                seg = int.from_bytes(data[pos:pos + 4], "big")
+                                media = int.from_bytes(data[pos + 4:pos + 8], "big", signed=True)
+                                pos += 12
+                            track["edits"].append({"media_time": media, "segment_duration": seg,
+                                                   "segment_s": round(seg / movie_timescale, 4)})
+            tracks.append(track)
+    return tracks
+
+
+def ignored_skew_s(tracks: list[dict[str, Any]]) -> float:
+    """Audio/video skew (seconds, absolute) a player would show if it ignored ALL edit lists, empty and non-empty.
+
+    Honouring an edit list places a track's media time `m` (first non-empty edit) at the end of the leading empty
+    edits `d`, so the track is shifted by d - m / timescale relative to a player that plays media time as it is.
+    """
+    shifts: dict[str, float] = {}
+    for track in tracks:
+        delay, media_time = 0.0, 0.0
+        for edit in track["edits"]:
+            if edit["media_time"] == -1:
+                delay += edit["segment_s"]
+            else:
+                media_time = edit["media_time"] / track["media_timescale"] if track.get("media_timescale") else 0.0
+                break
+        shifts[track["handler"]] = delay - media_time
+    return abs(shifts.get("vide", 0.0) - shifts.get("soun", 0.0))
+
+
+def skew_bound_s(frame_s: float, audio_sample_rate: int) -> float:
+    """One video frame, but not less than the AAC priming (1024 samples), which any AAC track carries as an edit."""
+    return max(frame_s, 1024 / (audio_sample_rate or 48000))
+
+
+def _read_moov(path: Path) -> bytes:
+    """Just the top-level `moov` box of a large file (faststart puts it first), wrapped so `_boxes` can walk it."""
+    with path.open("rb") as f:
+        pos, size = 0, path.stat().st_size
+        while pos + 8 <= size:
+            f.seek(pos)
+            header = f.read(16)
+            length = int.from_bytes(header[:4], "big")
+            if length == 1:
+                length = int.from_bytes(header[8:16], "big")
+            elif length == 0:
+                length = size - pos
+            if length < 8:
+                break
+            if header[4:8] == b"moov":
+                f.seek(pos)
+                return f.read(length)
+            pos += length
+    return b""
+
+
 def _fnum(value: Any) -> float | None:
     try:
         f = float(value)
@@ -199,9 +313,28 @@ def verify_outputs(video: Path, audio: Path, source_duration: float, cfg: Ingest
     if abs(out_duration - source_duration) > tolerance:
         raise IngestRejected(ErrorCode.TRUNCATED, details=f"video.mp4 {out_duration:.2f} s vs source {source_duration:.2f} s")
 
+    # ADR-0038: a player that ignores ALL edit lists must be off by at most one frame: neither track may rely on an
+    # empty edit longer than one frame, both must start within one frame of 0, and the A/V skew computed from the edit
+    # lists must be within one frame (sub-frame empty edits, such as an Opus pre-skip, and the AAC priming are left alone).
     starts = [policy.start_time_of(s) for s in (vids[0], auds[0])]
-    if min(starts) < -cfg.sync_tolerance_s or min(starts) > cfg.sync_tolerance_s:
-        raise IngestRejected(ErrorCode.SYNC_CHECK_FAILED, details=f"video.mp4 stream start times {starts}")
+    frame_s = policy.frame_duration_s(vids[0], cfg.sync_tolerance_s)
+    edits = mp4_edit_lists(video)
+    eps = 0.0005  # float rounding of start times and edit durations, seconds
+    empty = [track["handler"] for track in edits
+             if any(e["media_time"] == -1 and e["segment_s"] > frame_s + eps for e in track["edits"])]
+    if empty or max(abs(t) for t in starts) > frame_s + eps:
+        raise IngestRejected(
+            ErrorCode.SYNC_CHECK_FAILED,
+            details=f"video.mp4 stream start times {starts} (limit {frame_s:.4f} s); tracks with an empty edit: {empty}",
+        )
+
+    skew = ignored_skew_s(edits)
+    bound = skew_bound_s(frame_s, int(_fnum(auds[0].get("sample_rate")) or 0))
+    if skew > bound + eps:
+        raise IngestRejected(
+            ErrorCode.SYNC_CHECK_FAILED,
+            details=f"a player ignoring edit lists would show {skew * 1000:.1f} ms of A/V skew (limit {bound * 1000:.1f} ms): {edits}",
+        )
 
     try:
         with wave.open(str(audio), "rb") as w:
@@ -228,6 +361,8 @@ def verify_outputs(video: Path, audio: Path, source_duration: float, cfg: Ingest
         "audio_wav_duration_s": round(wav_dur, 3),
         "video_mp4_audio_duration_s": round(a_dur, 3),
         "video_mp4_start_times_s": [round(t, 3) for t in starts],
+        "video_mp4_edit_lists": edits,
+        "ignored_edit_list_skew_s": round(skew, 4),
         "audio_start_s": round(a_start, 3),
         "padding_s": round(padding, 3),
         "moov_before_mdat": True,
@@ -296,16 +431,36 @@ def normalise_media(
     streams, duration = policy.validate_probe(
         probe, decoders=available_decoders(), min_duration_s=cfg.min_duration_s, max_duration_s=cfg.max_duration_s
     )
-    decision = policy.decide(streams.video, streams.audio)
+    decision = policy.decide(streams.video, streams.audio, policy.frame_duration_s(streams.video, cfg.sync_tolerance_s))
     warnings = policy.source_warnings(streams, cfg.sync_tolerance_s)
     t = lap("probe", t)
 
     video, audio, thumb = out_dir / VIDEO_NAME, out_dir / AUDIO_NAME, out_dir / THUMB_NAME
     video_part, audio_part = out_dir / (VIDEO_NAME + ".part"), out_dir / (AUDIO_NAME + ".part")
-    label = "Copying video" if decision.video == "copy" and decision.audio == "copy" else "Converting video"
+    copying = decision.video == "copy"
+    label = "Copying video" if copying and decision.audio == "copy" else "Converting video"
+    # A copy is quick and may be redone as a transcode (below), so it only fills the first 5% of the bar.
     _run(video_args(source, video_part, streams, decision, cfg), cfg, duration,
-         lambda f: progress(min(0.8, 0.8 * (f or 0.0)), label))
+         lambda f: progress(min(0.05, 0.05 * (f or 0.0)) if copying else min(0.8, 0.8 * (f or 0.0)), label))
     os.replace(video_part, video)
+    if copying:
+        # ADR-0038: a copied stream may carry a B-frame delay as a non-empty edit. If a player that ignores edit lists
+        # would then see more than a frame of skew, transcode the video (no B-frames) instead of copying it.
+        out_probe = probe_raw(video, cfg)
+        out_video = next((x for x in out_probe.get("streams", []) if x.get("codec_type") == "video"), streams.video)
+        out_audio = next((x for x in out_probe.get("streams", []) if x.get("codec_type") == "audio"), streams.audio)
+        skew = ignored_skew_s(mp4_edit_lists(video))
+        bound = skew_bound_s(policy.frame_duration_s(out_video, cfg.sync_tolerance_s), int(_fnum(out_audio.get("sample_rate")) or 0))
+        if skew > bound + 0.0005:
+            decision = dataclasses.replace(decision, video="transcode", reasons=[
+                *decision.reasons,
+                (f"copied video would show {skew * 1000:.0f} ms of A/V skew in a player that ignores edit lists "
+                 f"(limit {bound * 1000:.0f} ms); transcoded without B-frames")])
+            _run(video_args(source, video_part, streams, decision, cfg), cfg, duration,
+                 lambda f: progress(min(0.8, 0.05 + 0.75 * (f or 0.0)), "Converting video"))
+            os.replace(video_part, video)
+        else:
+            progress(0.8, label)
     t = lap("video", t)
 
     # audio.wav is derived from video.mp4 so the transcript timeline equals the player's timeline.

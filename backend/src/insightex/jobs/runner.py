@@ -280,8 +280,18 @@ def _fail(conn, job, idx: int, exc: BaseException, settings: Settings, workspace
         if hook is not None:
             hook(conn, workspaces, job, settings, exc)
     except Exception as hook_exc:  # noqa: BLE001 - a failure hook must never mask the original failure
-        log.warning("failure hook for %s failed: %s: %s", job.kind, type(hook_exc).__name__, hook_exc)
+        log.warning("on_failure hook failed (non-fatal): stage=%s job=%s: %s: %s%s",
+                    job.stages[idx].name, job.id, type(hook_exc).__name__, hook_exc, _left_behind(job, settings))
     return "failed"
+
+
+def _left_behind(job, settings: Settings) -> str:
+    """` (staged file left behind: <path>)` if the job's staged upload copy still exists, else an empty string."""
+    name = job.payload.get("staged")
+    if not isinstance(name, str):
+        return ""
+    path = settings.ingest.file.staging_dir / name
+    return f" (staged file left behind: {path})" if path.exists() else ""
 
 
 def _cancel(conn, job, idx: int) -> str:

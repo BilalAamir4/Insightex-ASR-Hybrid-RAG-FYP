@@ -1,0 +1,138 @@
+{
+  "started": "2026-10-09T11:07:12+00:00",
+  "git_commit": "2e29197",
+  "base_url": "http://127.0.0.1:8001",
+  "day4_file": {
+    "name": "lecture_test.mp4",
+    "size_bytes": 50688399
+  },
+  "checks": [
+    {
+      "check": 1,
+      "name": "server reachable",
+      "status": "PASS",
+      "evidence": "GET /api/ingest/limits -> 200 {'max_upload_bytes': 4294967296}"
+    },
+    {
+      "check": 2,
+      "name": "Day 4 uploaded over HTTP with progress; job completes",
+      "status": "PASS",
+      "evidence": "HTTP 202, upload 0.5 s, 10 progress marks, job succeeded"
+    },
+    {
+      "check": 3,
+      "name": "Day 4 artifacts: h264/aac with moov first, wav pcm_s16le 16 kHz mono, thumbnail",
+      "status": "PASS",
+      "evidence": "video h264/yuv420p, audio aac, moov-before-mdat=True, wav pcm_s16le 16000 Hz x1, thumbnail=True"
+    },
+    {
+      "check": 4,
+      "name": "Day 4 durations: |wav-mp4| <= 1 s, |mp4-source| <= max(2 s, 1%)",
+      "status": "PASS",
+      "evidence": "wav 688.030 s, mp4 688.030 s, source 688.030 s; |wav-mp4|=0.000, |mp4-source|=0.000 (limit 6.88)"
+    },
+    {
+      "check": 5,
+      "name": "Day 4 source.json/normalise.json: kind, via, sha256, decision, version, warnings",
+      "status": "PASS",
+      "evidence": "kind=upload via=http sha256 matches decision={'video': 'copy', 'audio': 'copy'} normaliser_version=4 warnings=[]"
+    },
+    {
+      "check": 6,
+      "name": "re-upload of Day 4 is deduplicated with no new job",
+      "status": "PASS",
+      "evidence": "HTTP 200 {'lecture_id': 'sha256-de27cb67c2acbedebd0c2c7416932b8a', 'job_id': None, 'deduplicated': True}; jobs 1 -> 1"
+    },
+    {
+      "check": 7,
+      "name": "rejections over HTTP: right code, no lecture dir, staging empty",
+      "status": "PASS",
+      "evidence": "audio_only: NO_VIDEO_STREAM: job failed, code in error=True, no lecture dir=True; video_only: NO_AUDIO_STREAM: job failed, code in error=True, no lecture dir=True; text: NOT_A_VIDEO: job failed, code in error=True, no lecture dir=True; short: TOO_SHORT: job failed, code in error=True, no lecture dir=True; staging: staging files left: []"
+    },
+    {
+      "check": 8,
+      "name": "HEVC fixture accepted with video=transcode",
+      "status": "PASS",
+      "evidence": "HTTP 202, job succeeded, decision {'video': 'transcode', 'audio': 'copy'}"
+    },
+    {
+      "check": 9,
+      "name": "flash/beep fixture with audio delayed 1.5 s: |flash-beep| <= one frame (audio.wav and video.mp4 with edit lists ignored)",
+      "status": "PASS",
+      "evidence": "flash 5.000 s, beep 4.999 s, offset -0.6 ms; edit lists ignored: beep 5.021 s, offset +20.7 ms (limit 40 ms)"
+    },
+    {
+      "check": 10,
+      "name": "interrupted upload leaves no staging file in 5 s; server healthy; busy slot freed",
+      "status": "PASS",
+      "evidence": "staging after: [], healthy=True, next upload HTTP 202"
+    },
+    {
+      "check": 11,
+      "name": "missing rights header -> 400 RIGHTS_NOT_CONFIRMED",
+      "status": "PASS",
+      "evidence": "HTTP 400 {'error': {'code': 'RIGHTS_NOT_CONFIRMED', 'message': 'Please confirm you have the right to use this video before adding it.'}}"
+    },
+    {
+      "check": 12,
+      "name": "oversize Content-Length -> 413 in under 1 s without sending the body",
+      "status": "PASS",
+      "evidence": "HTTP 413 after 1 ms (limit 4294967296 bytes)"
+    },
+    {
+      "check": 13,
+      "name": "CLI ingest-file on a small fixture succeeds",
+      "status": "PASS",
+      "evidence": "exit 0, outcome succeeded, jobs 8 -> 9"
+    }
+  ],
+  "passed": 13,
+  "total": 13,
+  "failed_checks": [],
+  "all_passed": true,
+  "cleanup": [
+    "sha256-2baae9c2ef9fe0b59ea8f74a5db80ee6: DELETE -> 204",
+    "sha256-de27cb67c2acbedebd0c2c7416932b8a: DELETE -> 204",
+    "sha256-ed771851f9cc25e923f9c5ca510cb5b5: DELETE -> 204",
+    "sha256-edb885efee92dc907ffda0f8d15c7f61: DELETE -> 204"
+  ],
+  "timings_s": {
+    "normalise_job_wall": 5.03,
+    "upload": 0.48,
+    "normalise_stage": 3.871
+  },
+  "day4": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "decision": {
+      "audio": "copy",
+      "reasons": [],
+      "video": "copy"
+    },
+    "warnings": [],
+    "normaliser_version": "4",
+    "normalise_timings_s": {
+      "audio": 2.034,
+      "probe": 0.085,
+      "thumbnail": 0.175,
+      "total": 3.871,
+      "verify": 0.463,
+      "video": 1.113
+    },
+    "source_json": {
+      "kind": "upload",
+      "via": "http",
+      "sha256": "de27cb67c2acbedebd0c2c7416932b8ae629c10ad1afcd2f163185962ec2f4d4",
+      "size_bytes": 50688399,
+      "received_at": "2026-10-09T11:07:13Z"
+    }
+  },
+  "sync": {
+    "flash_s": 5.0,
+    "beep_wav_s": 4.9994375,
+    "beep_mp4_edit_lists_ignored_s": 5.02075,
+    "offset_wav_ms": -0.6,
+    "offset_edit_lists_ignored_ms": 20.7,
+    "limit_ms": 40.0
+  },
+  "day4_artifact_dir": "/tmp/claude-1000/-home-bilal-aamir-insightex/dfb35a28-e58a-46e8-8d83-78e30ec8a749/scratchpad/data5/workspaces/sha256-de27cb67c2acbedebd0c2c7416932b8a/stages/normalise/d9212eee6d54fd13"
+}

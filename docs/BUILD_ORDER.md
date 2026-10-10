@@ -13,7 +13,7 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 | M0 | **Done (7 Oct 2026)**: `scripts/verify_env.sh` passes 12/12 after a full restart (`docs/ENVIRONMENT.md`) |
 | M0b | **Done (8 Oct 2026)**: repo scaffold, typed config, ADR-0001 to ADR-0032 (`docs/adr/`), textbook chosen (ADR-0029) |
 | M1 | **Done (9 Oct 2026)**: SQLite job queue, single worker with crash recovery and resume, GPU lease, workspaces with chained stage keys and cache eviction, and link ingestion on the runner with job progress over HTTP/SSE (ADR-0033 to ADR-0035). Evidence: `docs/evidence/m1/`. |
-| M2 | Partial (session 1 of 2 done, 9 Oct 2026): the shared normalise engine (ADR-0036) and CLI file ingest (`insightex ingest-file`) exist for links and files. Session 2 still to do: HTTP upload endpoint, UI, `tools/m2_verify` and the Day 4 run |
+| M2 | **Done in code (9 Oct 2026)**: shared normalise engine and CLI file ingest (ADR-0036), HTTP upload endpoint and upload form (ADR-0037), `tools/m2_verify` 13/13 on the Day 4 lecture (`docs/evidence/m2/`). Open: the by-hand browser checklist `docs/evidence/m2/BROWSER_CHECKLIST.md` |
 | M3 | **Done (6 Oct 2026)**; the eval-lecture fetch (4–6 lectures) still has to be run |
 | M6 | Partial: FastAPI API (ingest, jobs with SSE progress, library, media), static HTML ingest/library/player page and `seekTo(seconds)` exist; ask box and citations still to do |
 | All others | Not started |

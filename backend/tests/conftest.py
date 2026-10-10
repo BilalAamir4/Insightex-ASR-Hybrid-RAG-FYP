@@ -47,7 +47,7 @@ def media(tmp_path_factory) -> dict[str, Path]:
     d = tmp_path_factory.mktemp("media")
     clips = {
         # Already H.264 (yuv420p) + AAC in mp4: should remux.
-        "h264_aac_mp4": (d / "h264_aac.mp4", [*_SRC_V, *_SRC_A, "-c:v", "libx264", "-pix_fmt", "yuv420p",
+        "h264_aac_mp4": (d / "h264_aac.mp4", [*_SRC_V, *_SRC_A, "-c:v", "libx264", "-bf", "0", "-pix_fmt", "yuv420p",
                                               "-c:a", "aac", "-shortest"]),
         # Phone-style HEVC in MKV (OBS-style container) with variable frame rate: should transcode.
         "hevc_vfr_mkv": (d / "hevc_vfr.mkv", [*_SRC_V, *_SRC_A, "-vf", "select='not(mod(n\\,3))+lt(n\\,10)'",

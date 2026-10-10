@@ -18,6 +18,7 @@ from media_corpus import FLASH_AT, Corpus, probe
 from insightex.core.config import clear_settings_cache, get_settings
 from insightex.ingest.errors import ErrorCode, IngestRejected
 from insightex.jobs.workspace import Workspaces
+from insightex.media import engine
 
 pytestmark = pytest.mark.media
 
@@ -67,31 +68,54 @@ def check_step8(directory: Path) -> None:
     assert (directory / "thumbnail.jpg").read_bytes()[:2] == b"\xff\xd8"
 
 
-def flash_time(video: Path) -> float:
+def flash_time(video: Path, ignore_editlist: bool = False) -> float:
     """pts (s) of the first frame whose mean luma is above mid-grey, from signalstats."""
+    if not ignore_editlist:
+        out = subprocess.run(
+            ["ffprobe", "-v", "error", "-f", "lavfi", "-i", f"movie=filename='{video}',signalstats",
+             "-show_entries", "frame=pts_time:frame_tags=lavfi.signalstats.YAVG", "-of", "json"],
+            capture_output=True, text=True, check=True).stdout
+        for frame in json.loads(out)["frames"]:
+            if float(frame["tags"]["lavfi.signalstats.YAVG"]) > 128:
+                return float(frame["pts_time"])
+        raise AssertionError("no flash found in video.mp4")
     out = subprocess.run(
-        ["ffprobe", "-v", "error", "-f", "lavfi", "-i", f"movie=filename='{video}',signalstats",
-         "-show_entries", "frame=pts_time:frame_tags=lavfi.signalstats.YAVG", "-of", "json"],
+        ["ffmpeg", "-v", "error", "-nostdin", "-ignore_editlist", "1", "-i", str(video), "-an",
+         "-vf", "signalstats,metadata=print:file=-", "-f", "null", "-"],
         capture_output=True, text=True, check=True).stdout
-    for frame in json.loads(out)["frames"]:
-        if float(frame["tags"]["lavfi.signalstats.YAVG"]) > 128:
-            return float(frame["pts_time"])
-    raise AssertionError("no flash found in video.mp4")
+    pts = None
+    for line in out.splitlines():
+        if line.startswith("frame:") and "pts_time:" in line:
+            pts = float(line.split("pts_time:")[1].split()[0])
+        elif "lavfi.signalstats.YAVG=" in line and float(line.split("=")[1]) > 128:
+            return pts
+    raise AssertionError("no flash found in video.mp4 (edit lists ignored)")
 
 
-def beep_time(wav_path: Path, threshold: float = 0.25) -> float:
-    with wave.open(str(wav_path)) as w:
-        rate = w.getframerate()
-        raw = w.readframes(w.getnframes())
+def _first_loud_sample(raw: bytes, rate: int, threshold: float = 0.25) -> float:
     import array
 
     samples = array.array("h")
-    samples.frombytes(raw)
+    samples.frombytes(raw[: len(raw) // 2 * 2])
     limit = threshold * 32767
     for i, s in enumerate(samples):
         if abs(s) > limit:
             return i / rate
-    raise AssertionError("no beep found in audio.wav")
+    raise AssertionError("no beep found")
+
+
+def beep_time(wav_path: Path, threshold: float = 0.25) -> float:
+    with wave.open(str(wav_path)) as w:
+        return _first_loud_sample(w.readframes(w.getnframes()), w.getframerate(), threshold)
+
+
+def beep_time_in_mp4(video: Path, ignore_editlist: bool) -> float:
+    """Beep onset in video.mp4's audio track, decoded the way a player would (timestamps honoured or edit lists ignored)."""
+    pre = ["-ignore_editlist", "1"] if ignore_editlist else []
+    raw = subprocess.run(
+        ["ffmpeg", "-v", "error", "-nostdin", *pre, "-i", str(video), "-map", "0:a:0", "-af", "aresample=async=1:first_pts=0",
+         "-ac", "1", "-ar", "16000", "-f", "s16le", "-"], capture_output=True, check=True).stdout
+    return _first_loud_sample(raw, 16000)
 
 
 # -- accepted clips: decision, warnings and rule 8 ---------------------------------------------------
@@ -111,7 +135,11 @@ ACCEPTED = [
     ("odd_dimensions", "transcode", "copy", set()),
     ("uhd_hevc", "transcode", "copy", set()),
     ("vfr_h264", "copy", "copy", {"VFR_SOURCE"}),
-    ("sync_audio_delayed_mp4", "copy", "copy", {"START_OFFSET_CORRECTED"}),
+    ("sync_audio_delayed_mp4", "copy", "transcode", {"START_OFFSET_CORRECTED"}),
+    ("sync_video_delayed_mp4", "transcode", "copy", {"START_OFFSET_CORRECTED"}),
+    ("sync_control_mp4", "copy", "copy", set()),
+    ("sync_bframes_hevc_opus_mkv", "transcode", "transcode", set()),
+    ("sync_copied_bframes_mp4", "transcode", "copy", set()),
     ("sync_ts_offset_mpegts", "copy", "copy", {"START_OFFSET_CORRECTED"}),
     ("sync_hevc_opus_delayed_mkv", "transcode", "transcode", set()),
     ("surround_51", "copy", "transcode", set()),
@@ -142,7 +170,7 @@ def test_accepted_clip(corpus, name, video, audio, warnings, record_property):
 def test_manifest_fields(corpus):
     settings, result, _job = ingest(corpus, "h264_aac_mp4")
     _directory, info = normalised(settings, result.workspace_id)
-    assert info["schema"] == 2 and info["normaliser_version"] == "2" and info["ffmpeg_version"].startswith("ffmpeg version")
+    assert info["schema"] == 2 and info["normaliser_version"] == "4" and info["ffmpeg_version"].startswith("ffmpeg version")
     src = info["source"]
     assert src["kind"] == "upload" and src["via"] == "cli" and src["original_filename"] == "h264_aac.mp4"
     assert src["size_bytes"] == corpus.get("h264_aac_mp4").stat().st_size and len(src["sha256"]) == 64 and src["received_at"]
@@ -221,30 +249,104 @@ def frame_duration_s(path: Path) -> float:
     return float(1 / Fraction(v["r_frame_rate"]))
 
 
-@pytest.mark.parametrize("name", ["sync_audio_delayed_mp4", "sync_ts_offset_mpegts", "sync_hevc_opus_delayed_mkv"])
-def test_flash_and_beep_coincide(corpus, name, record_property):
-    """Regression note: re-introducing `-avoid_negative_ts make_zero` must make the hevc/opus case fail.
+SYNC_CLIPS = ["sync_control_mp4", "sync_audio_delayed_mp4", "sync_video_delayed_mp4", "sync_ts_offset_mpegts",
+              "sync_hevc_opus_delayed_mkv", "sync_bframes_hevc_opus_mkv", "sync_copied_bframes_mp4"]
 
-    make_zero moves the decoder delay of B-frame video into presentation time: measured 57.6 ms
-    (flash 5.080 s, beep 5.022 s) against 1.1 ms without it (ADR-0036, departure from D3). The bar is one frame
-    of the fixture (40 ms at 25 fps), so the 57.6 ms case fails.
-    """
+def _sync_measure(corpus, name, ignore_editlist: bool):
     source = corpus.get(name)
     tolerance = frame_duration_s(source)
-    src_info = probe(source)
-    if name != "sync_ts_offset_mpegts":
-        a_start = float(next(s for s in src_info["streams"] if s["codec_type"] == "audio")["start_time"])
-        assert a_start == pytest.approx(1.5 if name == "sync_audio_delayed_mp4" else 0.7, abs=0.06), a_start
     settings, result, job = ingest(corpus, name)
     assert job.status == "succeeded", job.error
     d, _ = normalised(settings, result.workspace_id)
-    flash, beep = flash_time(d / "video.mp4"), beep_time(d / "audio.wav")
+    video = d / "video.mp4"
+    flash = flash_time(video, ignore_editlist)
+    beep = beep_time_in_mp4(video, ignore_editlist)
+    label = "ignoring" if ignore_editlist else "honouring"
+    print(f"\n[sync] {name} | video.mp4 {label} edit lists: flash={flash:.3f}s beep={beep:.3f}s "
+          f"offset={(beep - flash) * 1000:+.1f} ms (limit {tolerance * 1000:.0f} ms)")
+    return d, flash, beep, tolerance
+
+
+@pytest.mark.parametrize("name", SYNC_CLIPS)
+def test_flash_and_beep_coincide(corpus, name, record_property):
+    """Flash and beep are one frame apart at most in audio.wav and in video.mp4 with edit lists honoured (ADR-0038).
+
+    Regression note: re-introducing `-avoid_negative_ts make_zero` must make the hevc/opus case fail (57.6 ms
+    B-frame shift against 1.1 ms without it, ADR-0036).
+    """
+    d, flash, beep, tolerance = _sync_measure(corpus, name, False)
+    wav = beep_time(d / "audio.wav")
     record_property("flash_s", f"{flash:.3f}")
-    record_property("beep_s", f"{beep:.3f}")
-    record_property("offset_ms", f"{(beep - flash) * 1000:.1f}")
-    print(f"\n[sync] {name}: flash={flash:.3f}s beep={beep:.3f}s offset={(beep - flash) * 1000:+.1f} ms (limit {tolerance * 1000:.0f} ms)")
-    assert abs(flash - FLASH_AT) <= tolerance, f"flash at {flash:.3f} s, expected about {FLASH_AT} s"
-    assert abs(flash - beep) <= tolerance, f"{name}: flash={flash:.3f}s beep={beep:.3f}s (limit {tolerance * 1000:.0f} ms)"
+    record_property("beep_mp4_s", f"{beep:.3f}")
+    record_property("beep_wav_s", f"{wav:.3f}")
+    print(f"[sync] {name} | audio.wav: flash={flash:.3f}s beep={wav:.3f}s offset={(wav - flash) * 1000:+.1f} ms")
+    assert abs(flash - FLASH_AT) <= tolerance + 1e-6, f"flash at {flash:.3f} s, expected about {FLASH_AT} s"
+    assert abs(flash - beep) <= tolerance + 1e-6, f"{name} (honouring): flash={flash:.3f}s beep={beep:.3f}s"
+    assert abs(flash - wav) <= tolerance + 1e-6, f"{name} (audio.wav): flash={flash:.3f}s beep={wav:.3f}s"
+
+
+@pytest.mark.parametrize("name", SYNC_CLIPS)
+def test_flash_and_beep_coincide_when_edit_lists_are_ignored(corpus, name):
+    """A player that ignores edit lists (`-ignore_editlist 1`) must see flash and beep within one frame."""
+    _d, flash, beep, tolerance = _sync_measure(corpus, name, True)
+    assert abs(flash - beep) <= tolerance + 1e-6, f"{name} (ignoring): flash={flash:.3f}s beep={beep:.3f}s"
+
+
+def test_copy_eligible_clip_with_bframes_is_detected_and_transcoded(corpus):
+    """ADR-0038: the B-frame edit of copied video skews a player that ignores edit lists, so copy becomes transcode."""
+    src_edits = engine.mp4_edit_lists(corpus.get("sync_copied_bframes_mp4"))
+    assert engine.ignored_skew_s(src_edits) > 0.05, "the fixture must carry a B-frame edit for this test to mean anything"
+    settings, result, job = ingest(corpus, "sync_copied_bframes_mp4")
+    assert job.status == "succeeded", job.error
+    _d, info = normalised(settings, result.workspace_id)
+    assert info["decision"]["video"] == "transcode" and info["decision"]["audio"] == "copy"
+    assert any("A/V skew" in r and "B-frames" in r for r in info["decision"]["reasons"]), info["decision"]["reasons"]
+    assert info["verify"]["ignored_edit_list_skew_s"] <= 0.04
+
+
+def test_post_verify_rejects_excess_skew_from_a_non_empty_edit(corpus, tmp_path):
+    """A file that is in sync only through a B-frame edit is SYNC_CHECK_FAILED even if every start time is 0."""
+    from insightex.ingest.settings import IngestSettings
+
+    bad = tmp_path / "bframes_copy.mp4"
+    subprocess.run(["ffmpeg", "-v", "error", "-nostdin", "-y", "-i", str(corpus.get("sync_copied_bframes_mp4")), "-c", "copy",
+                    "-movflags", "+faststart", str(bad)], check=True)
+    wav = tmp_path / "audio.wav"
+    subprocess.run(["ffmpeg", "-v", "error", "-nostdin", "-y", "-i", str(bad), "-map", "0:a:0", "-ac", "1", "-ar", "16000", str(wav)], check=True)
+    with pytest.raises(IngestRejected) as exc:
+        engine.verify_outputs(bad, wav, 15.0, IngestSettings.current())
+    assert exc.value.code == ErrorCode.SYNC_CHECK_FAILED
+
+
+def test_no_track_of_any_sync_clip_has_a_long_empty_edit(corpus):
+    """video.mp4 never relies on an empty edit longer than a frame to stay in sync (post-verify rule, ADR-0038)."""
+    for name in SYNC_CLIPS:
+        settings, result, job = ingest(corpus, name)
+        assert job.status == "succeeded", (name, job.error)
+        d, _ = normalised(settings, result.workspace_id)
+        limit = frame_duration_s(corpus.get(name)) + 0.0005
+        for track in engine.mp4_edit_lists(d / "video.mp4"):
+            for edit in track["edits"]:
+                assert edit["media_time"] != -1 or edit["segment_s"] <= limit, (name, track)
+        starts = [float(s["start_time"]) for s in probe(d / "video.mp4")["streams"]]
+        assert max(abs(t) for t in starts) <= limit, (name, starts)
+
+
+def test_post_verify_rejects_a_video_mp4_that_relies_on_an_empty_edit(corpus, tmp_path):
+    """A file whose audio track starts 1.478 s late (empty edit) is SYNC_CHECK_FAILED, whatever produced it."""
+    from insightex.ingest.settings import IngestSettings
+
+    delayed = tmp_path / "delayed_faststart.mp4"  # the same streams and edit lists, moov first
+    subprocess.run(["ffmpeg", "-v", "error", "-nostdin", "-y", "-i", str(corpus.get("sync_audio_delayed_mp4")), "-c", "copy",
+                    "-movflags", "+faststart", str(delayed)], check=True)
+    tracks = engine.mp4_edit_lists(delayed)
+    assert any(e["media_time"] == -1 and e["segment_s"] > 1.4 for t in tracks for e in t["edits"])
+    wav = tmp_path / "audio.wav"
+    subprocess.run(["ffmpeg", "-v", "error", "-nostdin", "-y", "-i", str(delayed), "-map", "0:a:0", "-ac", "1", "-ar", "16000",
+                    "-af", "aresample=async=1:first_pts=0", str(wav)], check=True)
+    with pytest.raises(IngestRejected) as exc:
+        engine.verify_outputs(delayed, wav, 15.0, IngestSettings.current())
+    assert exc.value.code == ErrorCode.SYNC_CHECK_FAILED
 
 
 # -- rejected clips ---------------------------------------------------------------------------------
@@ -346,12 +448,12 @@ def test_same_file_twice_is_deduplicated_then_renormalised_on_a_new_version(corp
     assert Workspaces(settings.jobs.workspaces_dir).read_manifest(first.workspace_id)["stages"]["normalise"] == manifest_before
     assert staging_files(settings) == []
 
-    monkeypatch.setattr(engine, "NORMALISER_VERSION", "3")
-    monkeypatch.setattr(pipeline.NormaliseStage, "version", "3")
+    monkeypatch.setattr(engine, "NORMALISER_VERSION", "5")
+    monkeypatch.setattr(pipeline.NormaliseStage, "version", "5")
     third, job3 = run_file_job(corpus.get("h264_aac_mp4"), settings)
     assert not third.deduplicated and third.workspace_id == first.workspace_id and job3.status == "succeeded"
     _, info = normalised(settings, first.workspace_id)
-    assert info["normaliser_version"] == "3"
+    assert info["normaliser_version"] == "5"
     assert Workspaces(settings.jobs.workspaces_dir).read_manifest(first.workspace_id)["stages"]["normalise"]["key"] != manifest_before["key"]
     assert len(list(settings.jobs.workspaces_dir.iterdir())) == 1
 
