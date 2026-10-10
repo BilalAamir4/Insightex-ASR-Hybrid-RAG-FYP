@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from insightex.asr.languages import (
     LanguageConfigError,
+    languages_for,
     load_languages,
     parse_languages,
     require_language,
@@ -132,3 +135,98 @@ def test_unknown_language_is_unknown_and_names_the_value(value):
     assert exc.value.code == ErrorCode.UNKNOWN_LANGUAGE
     if isinstance(value, str):
         assert value in exc.value.message
+
+
+# -- live reload: strict at startup, last valid list kept afterwards ------------------------------------------
+
+GOOD = (
+    "languages:\n"
+    "  - {id: hindi, label: Hindi, whisper_language: ur, tier: tested, evidence: ADR-0039}\n"
+    "  - {id: english, label: English, whisper_language: en, tier: untested}\n"
+)
+
+
+def _write(path, text, step):
+    path.write_text(text, encoding="utf-8")
+    os.utime(path, ns=(1_000_000_000 * step, 1_000_000_000 * step))  # distinct mtimes whatever the clock resolution
+
+
+def _settings(path):
+    return load_settings({"asr": {"languages_file": str(path)}})
+
+
+def test_invalid_file_at_startup_raises(tmp_path):
+    path = tmp_path / "langs.yaml"
+    _write(path, GOOD.replace("whisper_language: en", "whisper_language: zz"), 1)
+    with pytest.raises(LanguageConfigError, match="'zz' is not supported"):
+        languages_for(_settings(path))
+    missing = tmp_path / "nope.yaml"
+    with pytest.raises(LanguageConfigError, match="cannot read language config"):
+        languages_for(_settings(missing))
+
+
+@pytest.mark.parametrize(("bad", "reason"), [
+    (GOOD.replace("whisper_language: en", "whisper_language: zz"), "'zz' is not supported by the installed faster-whisper"),
+    (GOOD.replace(", evidence: ADR-0039", ""), "a tested language needs 'evidence'"),
+    (GOOD + "  - {id: english, label: Again, whisper_language: fr, tier: untested}\n", "duplicate id 'english'"),
+    ("languages: [\n", "cannot read language config"),
+])
+def test_invalid_reload_keeps_the_last_valid_list_and_logs_the_reason_once(tmp_path, caplog, bad, reason):
+    path = tmp_path / "langs.yaml"
+    _write(path, GOOD, 1)
+    settings = _settings(path)
+    good = languages_for(settings)
+    assert good.get("english").tier == "untested"
+
+    _write(path, bad, 2)
+    with caplog.at_level("ERROR", logger="insightex.asr.languages"):
+        assert languages_for(settings) is good
+        assert languages_for(settings) is good  # asked again: still served, not logged again
+    records = [r for r in caplog.records if r.name == "insightex.asr.languages"]
+    assert len(records) == 1 and reason in records[0].getMessage() and str(path) in records[0].getMessage()
+    assert "still serving the last valid list" in records[0].getMessage()
+
+
+def test_deleted_file_keeps_the_last_valid_list(tmp_path, caplog):
+    path = tmp_path / "langs.yaml"
+    _write(path, GOOD, 1)
+    settings = _settings(path)
+    good = languages_for(settings)
+    path.unlink()
+    with caplog.at_level("ERROR", logger="insightex.asr.languages"):
+        assert languages_for(settings) is good
+    assert "cannot read language config" in caplog.text
+
+
+def test_a_later_valid_edit_replaces_the_list_and_a_new_bad_edit_is_logged_again(tmp_path, caplog):
+    path = tmp_path / "langs.yaml"
+    _write(path, GOOD, 1)
+    settings = _settings(path)
+    languages_for(settings)
+    _write(path, "languages: [\n", 2)
+    with caplog.at_level("ERROR", logger="insightex.asr.languages"):
+        languages_for(settings)
+    promoted = GOOD.replace("tier: untested}", "tier: tested, evidence: ADR-9999}")
+    _write(path, promoted, 3)
+    assert languages_for(settings).get("english").tier == "tested"  # recovered
+    caplog.clear()
+    _write(path, "languages: [\n", 4)
+    with caplog.at_level("ERROR", logger="insightex.asr.languages"):
+        assert languages_for(settings).get("english").tier == "tested"  # the promoted list, not the first one
+    assert caplog.text.count("still serving the last valid list") == 1
+
+
+def test_api_keeps_answering_after_a_bad_edit(tmp_path):
+    from fastapi.testclient import TestClient
+
+    from insightex.api.app import create_app
+
+    path = tmp_path / "langs.yaml"
+    _write(path, GOOD, 1)
+    with TestClient(create_app(_settings(path))) as client:
+        before = client.get("/api/languages").json()
+        _write(path, GOOD.replace("whisper_language: en", "whisper_language: zz"), 2)
+        r = client.get("/api/languages")
+        assert r.status_code == 200 and r.json() == before
+        _write(path, GOOD.replace("English", "Inglis"), 3)
+        assert [lang["label"] for lang in client.get("/api/languages").json()["groups"][1]["languages"]] == ["Inglis"]
