@@ -1,0 +1,7 @@
+2026-10-11 02:14:12,104 INFO job=325e596227fb41cdbb15ffe95035d609 stage=index insightex.jobs.gpu_lease: gpu lease exclusive acquired: 325e596227fb41cdbb15ffe95035d609:index (memory.used before: 7854 MiB)
+2026-10-11 02:14:12,283 INFO job=325e596227fb41cdbb15ffe95035d609 stage=index insightex.jobs.runner: stage started (key 77ae208c31dd9f13)
+2026-10-11 02:14:12,347 INFO job=325e596227fb41cdbb15ffe95035d609 stage=index insightex.index.stage: index pre-flight: 6720 MiB free (need 2500), 23 windows
+2026-10-11 02:14:12,353 INFO job=325e596227fb41cdbb15ffe95035d609 stage=index insightex.index.encoder: index subprocess started (pid 112230, timeout 600s)
+2026-10-11 02:14:18,769 INFO job=325e596227fb41cdbb15ffe95035d609 stage=index insightex.index.stage: index done: 23 windows, dim 1024, encode 0.36s, peak 1142.4 MiB allocated, 0 truncated
+2026-10-11 02:14:18,818 INFO job=325e596227fb41cdbb15ffe95035d609 stage=index insightex.jobs.gpu_lease: gpu lease exclusive released: 325e596227fb41cdbb15ffe95035d609:index (memory.used after: 1314 MiB)
+2026-10-11 02:14:18,825 INFO job=325e596227fb41cdbb15ffe95035d609 stage=index insightex.jobs.runner: stage succeeded in 6.8s

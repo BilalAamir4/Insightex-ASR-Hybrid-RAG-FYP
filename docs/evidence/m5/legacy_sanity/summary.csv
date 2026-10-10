@@ -1,0 +1,5 @@
+model,window_sec,kind,n_queries,recall_at_1,recall_at_3,recall_at_5,mrr,embed_windows_sec,embed_queries_sec,peak_vram_mb,n_windows,n_truncated
+bge-m3,30,ALL,28,0.5714,0.9286,0.9643,0.7298,0.082,0.307,1141.71,23,0
+bge-m3,30,en,15,0.7333,1.0,1.0,0.8444,0.082,0.307,1141.71,23,0
+bge-m3,30,hard,8,0.5,1.0,1.0,0.7083,0.082,0.307,1141.71,23,0
+bge-m3,30,roman,5,0.2,0.6,0.8,0.42,0.082,0.307,1141.71,23,0

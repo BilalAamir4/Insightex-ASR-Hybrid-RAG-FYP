@@ -1,0 +1,29 @@
+model,window_sec,query_idx,query,kind,start,end,first_hit_rank,hit_at_1,hit_at_3,hit_at_5,top5_windows
+bge-m3,30,0,"How does the lecturer define ""production"" in simple terms?",en,00:48,01:00,1,1,1,1,00:30-01:00@0.597;01:00-01:30@0.453;09:30-10:00@0.430;03:30-04:00@0.414;03:00-03:30@0.412
+bge-m3,30,1,What is the difference between a production environment and a development environment?,en,01:23,01:33,1,1,1,1,01:00-01:30@0.555;00:30-01:00@0.508;01:30-02:00@0.503;09:30-10:00@0.407;02:00-02:30@0.398
+bge-m3,30,2,Why isn't batch learning trained directly on the server?,en,02:50,03:07,3,0,1,1,07:00-07:30@0.723;03:30-04:00@0.677;03:00-03:30@0.668;02:00-02:30@0.661;02:30-03:00@0.628
+bge-m3,30,3,Why does a recommendation engine like Netflix's need to keep updating?,en,04:55,05:27,1,1,1,1,05:00-05:30@0.677;04:30-05:00@0.656;04:00-04:30@0.577;09:30-10:00@0.547;06:00-06:30@0.526
+bge-m3,30,4,How does the email spam classifier example show a weakness of batch learning?,en,05:27,05:52,1,1,1,1,05:30-06:00@0.621;07:30-08:00@0.604;11:00-11:28@0.588;00:00-00:30@0.558;07:00-07:30@0.526
+bge-m3,30,5,What is the hardware limitation problem with batch learning?,en,08:19,08:37,1,1,1,1,08:00-08:30@0.655;07:30-08:00@0.634;11:00-11:28@0.575;07:00-07:30@0.570;02:00-02:30@0.565
+bge-m3,30,6,What example shows the availability problem of batch learning?,en,09:38,10:10,3,0,1,1,07:30-08:00@0.602;11:00-11:28@0.588;09:30-10:00@0.571;00:00-00:30@0.538;02:00-02:30@0.533
+bge-m3,30,7,What does the lecturer say about the previous video on types of machine learning?,en,00:13,00:31,1,1,1,1,00:00-00:30@0.675;01:30-02:00@0.564;00:30-01:00@0.545;02:00-02:30@0.528;11:00-11:28@0.524
+bge-m3,30,8,Why does software need to be deployed on a server for customers to use it?,en,00:59,01:18,1,1,1,1,01:00-01:30@0.634;04:00-04:30@0.581;09:00-09:30@0.529;01:30-02:00@0.520;03:30-04:00@0.514
+bge-m3,30,9,What is incremental training and why doesn't batch learning use it?,en,02:40,02:50,1,1,1,1,02:30-03:00@0.671;07:00-07:30@0.638;07:30-08:00@0.562;11:00-11:28@0.553;00:00-00:30@0.546
+bge-m3,30,10,How does the lecturer draw the batch learning flow from data to model to server?,en,03:39,04:16,1,1,1,1,03:30-04:00@0.720;07:00-07:30@0.661;03:00-03:30@0.634;02:00-02:30@0.632;01:30-02:00@0.601
+bge-m3,30,11,How often do people typically retrain batch learning models?,en,06:42,07:09,1,1,1,1,07:00-07:30@0.677;07:30-08:00@0.658;09:30-10:00@0.621;06:30-07:00@0.599;00:00-00:30@0.593
+bge-m3,30,12,Where does the data scientist train a batch model and where does the trained model go?,en,03:07,03:23,2,0,1,1,03:30-04:00@0.654;03:00-03:30@0.635;07:00-07:30@0.623;02:30-03:00@0.585;02:00-02:30@0.571
+bge-m3,30,13,Which two types of machine learning will be covered in this video?,en,01:44,01:57,2,0,1,1,00:00-00:30@0.669;01:30-02:00@0.600;00:30-01:00@0.555;07:00-07:30@0.545;02:00-02:30@0.535
+bge-m3,30,14,How does the lecturer describe training a Netflix recommendation engine and putting it on the server?,en,04:16,04:36,1,1,1,1,04:00-04:30@0.647;04:30-05:00@0.590;05:00-05:30@0.574;03:30-04:00@0.544;06:30-07:00@0.532
+bge-m3,30,15,Why can't a model on a remote device just be refreshed when new data arrives?,hard,08:37,09:12,2,0,1,1,09:30-10:00@0.604;09:00-09:30@0.582;08:30-09:00@0.581;06:00-06:30@0.551;10:00-10:30@0.530
+bge-m3,30,16,What goes wrong when a model learns once and then stays frozen?,hard,04:41,04:52,1,1,1,1,04:30-05:00@0.575;03:30-04:00@0.556;09:30-10:00@0.545;09:00-09:30@0.531;08:00-08:30@0.525
+bge-m3,30,17,Why would a daily-refreshed system show stale content during breaking news?,hard,10:40,11:08,3,0,1,1,09:30-10:00@0.530;10:00-10:30@0.511;10:30-11:00@0.507;04:30-05:00@0.501;06:00-06:30@0.500
+bge-m3,30,18,What happens when the dataset becomes too big for the available tools?,hard,07:55,08:18,1,1,1,1,08:00-08:30@0.614;07:30-08:00@0.546;02:30-03:00@0.503;09:30-10:00@0.500;06:00-06:30@0.499
+bge-m3,30,19,How do teams stop a deployed model from going out of date?,hard,05:52,06:20,2,0,1,1,08:30-09:00@0.549;05:30-06:00@0.546;09:30-10:00@0.514;06:00-06:30@0.504;06:30-07:00@0.496
+bge-m3,30,20,"What is the basis for the types of machine learning discussed today, compared with the supervision-based ones?",hard,00:30,00:47,3,0,1,1,00:00-00:30@0.711;01:30-02:00@0.611;00:30-01:00@0.582;02:00-02:30@0.527;07:00-07:30@0.507
+bge-m3,30,21,Why does knowing this difference matter for someone who builds models?,hard,01:56,02:15,1,1,1,1,02:00-02:30@0.548;09:30-10:00@0.514;00:30-01:00@0.496;01:30-02:00@0.489;03:30-04:00@0.484
+bge-m3,30,22,What does the lecturer say happens when a platform's user base keeps doubling?,hard,07:44,07:55,1,1,1,1,07:30-08:00@0.515;09:30-10:00@0.509;10:00-10:30@0.493;04:00-04:30@0.490;06:00-06:30@0.485
+bge-m3,30,23,production environment kya hota hai,roman,01:20,01:30,1,1,1,1,01:00-01:30@0.426;00:30-01:00@0.412;09:30-10:00@0.409;06:00-06:30@0.390;03:00-03:30@0.388
+bge-m3,30,24,batch learning mein model ko dobara train kyun karna parta hai,roman,05:52,06:20,15,0,0,0,03:30-04:00@0.601;03:00-03:30@0.563;11:00-11:28@0.549;00:00-00:30@0.543;02:30-03:00@0.534
+bge-m3,30,25,satellite ya drone par batch learning kyun fail ho jati hai,roman,09:12,09:38,3,0,1,1,11:00-11:28@0.507;07:30-08:00@0.455;09:00-09:30@0.452;05:30-06:00@0.442;00:00-00:30@0.442
+bge-m3,30,26,news feed update hone mein 24 ghante kyun lagte hain,roman,10:03,10:15,2,0,1,1,10:30-11:00@0.529;10:00-10:30@0.492;09:30-10:00@0.467;06:00-06:30@0.399;11:00-11:28@0.389
+bge-m3,30,27,batch learning mein pura data ek saath kaise use hota hai,roman,02:26,02:40,5,0,0,1,03:30-04:00@0.598;11:00-11:28@0.594;07:00-07:30@0.580;07:30-08:00@0.575;02:00-02:30@0.572

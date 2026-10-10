@@ -119,6 +119,8 @@ def cmd_run(args) -> int:
     cmd = [*args.cli.split(), "search", args.lecture, "--queries-file", args.queries, "--k", str(args.k)]
     if args.device:
         cmd += ["--device", args.device]
+    if args.dtype:
+        cmd += ["--dtype", args.dtype]
     out = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if out.returncode != 0:
         print(out.stderr, file=sys.stderr)
@@ -153,6 +155,7 @@ def main() -> int:
     r.add_argument("--queries", default=str(HERE / "gold_questions.json"), help="JSON list of {id, question} (see `questions`)")
     r.add_argument("--k", type=int, default=10)
     r.add_argument("--device", choices=["cpu", "cuda"])
+    r.add_argument("--dtype", choices=["float32", "float16"])
     r.add_argument("--cli", default="bash scripts/run_in_env.sh python -m insightex.cli", help="how to start the insightex CLI")
     r.set_defaults(func=cmd_run)
     q = sub.add_parser("questions", help="write the {id, question} list of the gold file for `run`")
