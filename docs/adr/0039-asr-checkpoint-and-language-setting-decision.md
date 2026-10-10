@@ -97,7 +97,7 @@ Fixed pass rule, set before the runs: the winner stands if mean dropped speech o
 
 ## Note for M4 session 2 (production ASR stage)
 
-Transcription is **not deterministic** in general, because faster-whisper falls back to sampled temperatures (0.2 to 1.0) when a segment fails the log-probability or compression-ratio checks (medium `ur` showed this). The winner showed no fallback in runs 2 and 3. The production stage must record the temperature-fallback setting (`temperatures`, `log_prob_threshold`, `compression_ratio_threshold`, `condition_on_previous_text`) and the per-segment `temperature` (and `compression_ratio`) in the transcript artifact, so a transcript can be explained and compared later.
+Transcription can vary between runs when temperature fallback triggers on a segment: faster-whisper retries a segment at a sampled temperature (0.2 to 1.0) when it fails the log-probability or compression-ratio checks (medium `ur` showed this). On Day 4, no segment triggered fallback in runs 2 and 3 (run 1 predates the field), and all three runs were identical. The production stage stores the fallback settings (`temperatures`, `log_prob_threshold`, `compression_ratio_threshold`, `condition_on_previous_text`) and the per-segment `temperature` and `compression_ratio` in the transcript artifact, so any variation is visible.
 
 ## Evidence
 
