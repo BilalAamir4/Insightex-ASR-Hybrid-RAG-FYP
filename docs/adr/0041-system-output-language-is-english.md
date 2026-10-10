@@ -1,6 +1,6 @@
 # ADR-0041: System output language is English
 
-Status: Accepted
+Status: Accepted; cross-language trigger amended by ADR-0043
 Date decided: 2026-10-10
 Date recorded: 2026-10-10
 Module: Project

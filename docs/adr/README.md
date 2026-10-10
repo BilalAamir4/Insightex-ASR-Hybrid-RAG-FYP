@@ -61,5 +61,6 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0038](0038-no-empty-edits-in-video-mp4.md) | video.mp4 must not rely on an empty edit to stay in sync | Accepted | M2 | Amends ADR-0036 (late audio or video is re-encoded; new post-verify rule) |
 | [0039](0039-asr-checkpoint-and-language-setting-decision.md) | ASR checkpoint and language setting: large-v3 with `language="ur"` | Accepted | M4 | Supersedes ADR-0014; language setting amended by ADR-0040 |
 | [0040](0040-lecture-language-selection-and-whisper-language-mapping.md) | Lecture language selection and Whisper language mapping | Accepted | M4 | Amends ADR-0039 (language: per-lecture choice; Hindi -> `ur` is the only tested entry) |
-| [0041](0041-system-output-language-is-english.md) | System output language is English | Accepted | Project | |
+| [0041](0041-system-output-language-is-english.md) | System output language is English | Accepted | Project | Cross-language trigger amended by ADR-0043 |
 | [0042](0042-asr-stage-design.md) | ASR stage design | Accepted | M4 | |
+| [0043](0043-m5-retrieval-gate-rules.md) | M5 retrieval gate rules | Accepted | M5 | Amends ADR-0041 (cross-language trigger is gate G4) |

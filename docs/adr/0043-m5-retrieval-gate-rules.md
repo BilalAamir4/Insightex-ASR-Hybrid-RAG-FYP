@@ -1,0 +1,50 @@
+# ADR-0043: M5 retrieval gate rules
+
+Status: Accepted
+Date decided: 2026-10-11
+Date recorded: 2026-10-11
+Module: M5
+
+Amends ADR-0041: its open question "cross-language search with English questions over native-script transcripts" is measured by gate G4 below, with the decision rule below.
+
+## Context
+
+M5 builds windowing, BGE-M3 embedding and FAISS retrieval (ADR-0001). Several design choices are still open (window stride, sparse fusion, CPU query encoding, Roman Urdu questions). The rules that decide them are fixed here, before any experiment runs, so no gate can be tuned after seeing its result. The rules on windowing and sparse fusion come from the M5 notes in `docs/BUILD_ORDER.md` (pending decisions) and are made concrete here.
+
+## Decision
+
+**Test data.** `tools/eval_retrieval/gold_spans.json`, frozen at commit `0f5e5ab` and never edited by M5. 47 queries on the Day 4 lecture; spans are in seconds; `pair_of` links 23 Roman Urdu twins to their partners. All results are provisional until Test A runs on more lectures in M9.
+
+**Hit rule.** A retrieved window is a hit if it covers at least 50% of any one gold span of that query. Before taking the top 3, drop any window that overlaps a higher-ranked window by more than 50%. Primary metric: Recall@3. MRR is reported alongside and never decides a gate.
+
+**Net-count rule.** For configs A (current or simpler) and B (candidate), count per query wins (B hit, A miss) and losses (A hit, B miss). Adopt B only if wins - losses >= 2. Anything less is a tie, and a tie keeps A. Gates G2 and G3 use only the 28 original queries (A01 to A28); the `...r` twins are excluded there because paired questions flip together.
+
+**Gates, run in this order, each reported and approved before the next:**
+
+- **G0 baseline.** Fixed 30 s windows, dense only, GPU encoding, run through production code. It must give identical per-query hits to the bake-off scorer (`tools/eval_embeddings`, archived in tag `import-baseline`) run on the same windows and the new gold.
+- **G3 windows.** 30 s windows snapped to Whisper segment boundaries (decided), no overlap (A) against 15 s stride (B). Dense only.
+- **G2 sparse.** On the G3 winner, dense only (A) against dense + sparse fused with Reciprocal Rank Fusion, k=60 (B). Use FlagEmbedding `BGEM3FlagModel` (one pass gives both). If B ties, keep dense only, leave the sparse code in `tools/`, and the report drops the sparse tie-break claim.
+- **G1 CPU queries.** On the final config, queries encoded on CPU (fp32) against GPU. Equivalence gate: pass if every query's dense cosine(CPU, GPU) >= 0.999 and no query changes hit or miss. Any failure: stop and report; no default is chosen.
+- **G4 Roman Urdu.** On the final config, over the 23 pairs, Roman twin against its partner. If the Roman side loses 2 or more net, a Roman Urdu fix is needed and becomes its own decision (not built in M5). Recall@3 is reported for the English and Roman sets separately. This replaces the "fails to retrieve" trigger for English questions in ADR-0041 and `docs/BUILD_ORDER.md`.
+
+**Scope.** Production code: windowing, dense (and sparse only if G2 passes) encoding on GPU at ingest, a FAISS index per lecture in the workspace, query encoding on CPU in the API process. The evaluation scorer lives in `tools/eval_retrieval/`, imports nothing from `backend/src`, and calls production code only through the CLI or API.
+
+## Alternatives considered
+
+- **Hit by any overlap (the bake-off rule).** Rewards windows that touch a span by a fraction of a second, which gets easier as windows grow.
+- **Adopt B on any improvement.** With 28 queries one flip is 3.6 points of Recall@3, which is within noise; the net >= 2 rule requires a margin.
+- **Include twins in G2 and G3.** A question and its Roman twin usually flip together, so they would count one effect twice.
+
+## Consequences
+
+- Every adoption in M5 is a net count on named queries, not a judgement on a mean.
+- The first 28 ids contain five Roman queries (A24 to A28); A24 to A27 are twins of A02, A20, A16 and A18, so those four pairs can flip together inside G2 and G3. The rule is kept as written; the per-query tables show it.
+- A tie always keeps the simpler config, so sparse retrieval and 15 s stride can only enter with measured evidence.
+
+## Evidence
+
+- Gold: `tools/eval_retrieval/gold_spans.json` at `0f5e5ab`. No result exists yet; this ADR is written before any experiment.
+
+## Gate / revisit when
+
+Revisit after Test A runs on more lectures in M9: the rules (not only the results) may be tightened when the query set is larger.
