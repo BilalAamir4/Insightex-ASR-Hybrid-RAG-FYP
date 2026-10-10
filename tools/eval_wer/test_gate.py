@@ -1,7 +1,6 @@
 """Synthetic checks for gate_metrics / textnorm. Run: python test_gate.py"""
-import numpy as np
-
 import gate_metrics as g
+import numpy as np
 import textnorm as tn
 
 
@@ -21,18 +20,18 @@ for _ in range(300):
     b = "".join(rng.choice(list("abcd"), rng.integers(0, 40)))
     assert g.lev(a, b) == dp_lev(a, b), (a, b)
 
-ref = "the cat sat on the mat today".split()
-s = g.score(ref, "the bat sat the mat today".split(), [False] * 7)
+ref = ["the", "cat", "sat", "on", "the", "mat", "today"]
+s = g.score(ref, ["the", "bat", "sat", "the", "mat", "today"], [False] * 7)
 assert (s["S"], s["D"], s["I"]) == (1, 1, 0), s
-s = g.score(ref, "the cat sat on the mat today extra words here".split(), [False] * 7)
+s = g.score(ref, ["the", "cat", "sat", "on", "the", "mat", "today", "extra", "words", "here"], [False] * 7)
 assert (s["S"], s["D"], s["I"], s["trimmed"]) == (0, 0, 0, 3), s  # cut tail is free
-s = g.score(ref, "the cat extra sat on the mat today".split(), [False] * 7)
+s = g.score(ref, ["the", "cat", "extra", "sat", "on", "the", "mat", "today"], [False] * 7)
 assert s["I"] == 1 and s["D"] == 0, s
 # wildcard absorbs any number of hypothesis words and counts no errors
 w = [False, False, True, False, False]
-s = g.score("a b X c d".split(), "a b p q r c d".split(), w)
+s = g.score(["a", "b", "X", "c", "d"], ["a", "b", "p", "q", "r", "c", "d"], w)
 assert (s["S"], s["D"], s["I"], s["N"]) == (0, 0, 0, 4), s
-s = g.score("a b X c d".split(), "a b c d".split(), w)
+s = g.score(["a", "b", "X", "c", "d"], ["a", "b", "c", "d"], w)
 assert (s["S"], s["D"], s["I"]) == (0, 0, 0), s
 # long deletion run is reported
 ref2 = [f"w{i}" for i in range(30)]

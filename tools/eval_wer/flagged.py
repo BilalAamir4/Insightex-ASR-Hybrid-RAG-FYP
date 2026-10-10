@@ -5,8 +5,6 @@ reference is not time-aligned) next to the raw and romanised output of the two l
 """
 import numpy as np
 
-import gate_metrics as gm
-
 ANCHORS = ("large-v3_ur", "large-v3_auto")
 SHOW = ("large-v3_ur", "large-v3_auto")
 
@@ -41,8 +39,8 @@ def ref_span(by_name, ref, t0, t1, pad=3):
 
 def write(out, results, ref, speech):
     by = {r["name"]: r for r in results}
-    L = ["# Flagged passages\n", "Reference windows are located through the anchor config's alignment (the reference has no timestamps), so their edges are approximate. "
-         "`covered` = share of the window's VAD speech inside a Whisper segment of that config; `Latin` = share of the config's raw words in the window written in Latin script.\n"]
+    L = ["# Flagged passages\n", ("Reference windows are located through the anchor config's alignment (the reference has no timestamps), so their edges are approximate. "
+         "`covered` = share of the window's VAD speech inside a Whisper segment of that config; `Latin` = share of the config's raw words in the window written in Latin script.\n")]
     for res in results:
         if not res["flags"]:
             continue

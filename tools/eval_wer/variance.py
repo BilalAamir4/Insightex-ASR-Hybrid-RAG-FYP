@@ -9,7 +9,6 @@ import argparse
 import json
 import statistics as st
 from pathlib import Path
-from types import SimpleNamespace
 
 import gate_metrics as gm
 import run_gate as rg
@@ -28,7 +27,7 @@ def main():
     from faster_whisper.audio import decode_audio
     speech, _ = gm.energy_vad(decode_audio(a.audio))
     r1, wild = rg.ref_tokens(Path(a.reference).read_text(encoding="utf-8"))
-    ref = dict(l1=r1, l2=[tn.l2_token(t) for t in r1])
+    ref = {"l1": r1, "l2": [tn.l2_token(t) for t in r1]}
     base = rg.vram_used()
     runs = [(1, out / a.config / "raw.json")]
     for n in range(2, 2 + a.extra):
@@ -36,18 +35,19 @@ def main():
         p.parent.mkdir(parents=True, exist_ok=True)
         print(f"run {n}", flush=True)
         vram = rg.run_config(model, lang, a, p, base)
-        d = json.load(open(p)); d["peak_vram_mib"] = vram
-        json.dump(d, open(p, "w"), ensure_ascii=False, indent=1)
+        d = json.loads(p.read_text(encoding="utf-8"))
+        d["peak_vram_mib"] = vram
+        p.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
         runs.append((n, p))
     rows = []
     for n, p in runs:
-        d = json.load(open(p))
+        d = json.loads(p.read_text(encoding="utf-8"))
         res = rg.analyse(f"{a.config}_run{n}", d, ref, wild, speech)
         fb = [s for s in d["segments"] if s.get("temperature") not in (None, 0.0)]
-        rows.append(dict(run=n, wer=res["l2"]["wer"], cer=res["l2"]["cer"], l1wer=res["l1"]["wer"], drop=res["drop"]["pct"],
-                         gap=res["drop"]["longest_gap_s"], segs=len(d["segments"]),
-                         fb=len(fb) if "temperature" in (d["segments"][0] if d["segments"] else {}) else None,
-                         delruns=len(res["delruns"]), rtf=d["warm_rtf"]))
+        rows.append({"run": n, "wer": res["l2"]["wer"], "cer": res["l2"]["cer"], "l1wer": res["l1"]["wer"], "drop": res["drop"]["pct"],
+                         "gap": res["drop"]["longest_gap_s"], "segs": len(d["segments"]),
+                         "fb": len(fb) if "temperature" in (d["segments"][0] if d["segments"] else {}) else None,
+                         "delruns": len(res["delruns"]), "rtf": d["warm_rtf"]})
     L = [f"# Run-to-run variation: {a.config}\n", f"Same audio, parameters and scoring as the gate. Run 1 is the gate run; runs 2-{1 + a.extra} are repeats.\n",
          "| run | L2 WER | L1 WER | L2 CER | dropped speech | longest gap | deleted runs >= 8 words | segments | segments with temperature fallback | warm RTF |", "|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:

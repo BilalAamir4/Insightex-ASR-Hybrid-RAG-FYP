@@ -4,10 +4,11 @@ usage: refwords.py manual_roman.txt [N]
 """
 import collections
 import sys
+from pathlib import Path
 
 import textnorm as tn
 
-l1 = tn.l1_tokens(open(sys.argv[1], encoding="utf-8").read())
+l1 = tn.l1_tokens(Path(sys.argv[1]).read_text(encoding="utf-8"))
 n = int(sys.argv[2]) if len(sys.argv) > 2 else 15
 for w, c in collections.Counter(l1).most_common(n):
     print(f"{w:12s} x{c:<4d} L2={tn.l2_token(w)}")

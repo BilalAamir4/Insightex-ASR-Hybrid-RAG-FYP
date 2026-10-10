@@ -6,12 +6,11 @@ hypothesis tokens at no cost and counts no errors. The hypothesis tail after the
 the alignment is free (the reference ends mid-lecture at the audio cut), and its size is reported.
 """
 import numpy as np
-
 import textnorm as tn
 
 # --- energy VAD (independent of Whisper's Silero vad_filter) -----------------------------
-VAD = dict(frame_ms=25, hop_ms=10, above_noise_db=12.0, noise_percentile=10,
-           fill_gap_s=0.3, min_speech_s=0.2, gap_merge_s=0.5)
+VAD = {"frame_ms": 25, "hop_ms": 10, "above_noise_db": 12.0, "noise_percentile": 10,
+           "fill_gap_s": 0.3, "min_speech_s": 0.2, "gap_merge_s": 0.5}
 
 
 def energy_vad(audio, sr=16000, p=VAD):
@@ -53,8 +52,8 @@ def dropped_speech(speech, segments, hop_s=0.01, merge_s=VAD["gap_merge_s"]):
     merged = fill_runs(unc, int(merge_s / hop_s), 1)
     gaps = [(a * hop_s, b * hop_s) for a, b in runs(merged)]
     longest = max(((b - a) for a, b in gaps), default=0.0)
-    return dict(speech_s=total, uncovered_s=unc.sum() * hop_s, pct=100 * unc.sum() * hop_s / total if total else 0.0,
-                longest_gap_s=longest, gaps=sorted(gaps, key=lambda g: g[0] - g[1])[:5])
+    return {"speech_s": total, "uncovered_s": unc.sum() * hop_s, "pct": 100 * unc.sum() * hop_s / total if total else 0.0,
+                "longest_gap_s": longest, "gaps": sorted(gaps, key=lambda g: g[0] - g[1])[:5]}
 
 
 # --- alignment ----------------------------------------------------------------------------
@@ -156,15 +155,14 @@ def score(ref, hyp, wild, block=50):
     used = [j for kind, _, j in ops if kind in "MSI" and j >= 0]  # hyp tokens that count
     rc = "".join(t for t, w in zip(ref, wild) if not w)
     hc = "".join(hyp[j] for j in used)
-    return dict(ops=ops, trimmed=trimmed, S=cnt["S"], D=cnt["D"], I=cnt["I"], N=n_ref,
-                wer=(cnt["S"] + cnt["D"] + cnt["I"]) / n_ref,
-                cer=lev(rc, hc) / max(1, len(rc)), err=err, nref=nref, absorbed=len(absorbed))
+    return {"ops": ops, "trimmed": trimmed, "S": cnt["S"], "D": cnt["D"], "I": cnt["I"], "N": n_ref,
+                "wer": (cnt["S"] + cnt["D"] + cnt["I"]) / n_ref,
+                "cer": lev(rc, hc) / max(1, len(rc)), "err": err, "nref": nref, "absorbed": len(absorbed)}
 
 
 def deletion_runs(sc, hyp_times, minlen=8):
     """Runs of >= minlen consecutive deleted reference words with the approximate gap in audio time."""
     ops, out, run = sc["ops"], [], []
-    flush = lambda: None
     for idx, (kind, ri, hj) in enumerate(ops + [("X", -1, -1)]):
         if kind == "D" and (not run or ri == run[-1][1] + 1):
             run.append((idx, ri))
@@ -174,7 +172,7 @@ def deletion_runs(sc, hyp_times, minlen=8):
             if len(run) >= minlen:
                 before = next((hyp_times[o[2]][1] for o in reversed(ops[:run[0][0]]) if o[2] >= 0), 0.0)
                 after = next((hyp_times[o[2]][0] for o in ops[run[-1][0] + 1:] if o[2] >= 0), None)
-                out.append(dict(ref_from=run[0][1], ref_to=run[-1][1], words=len(run), t_from=before, t_to=after))
+                out.append({"ref_from": run[0][1], "ref_to": run[-1][1], "words": len(run), "t_from": before, "t_to": after})
             run = [(idx, ri)] if kind == "D" else []
     return out
 
@@ -195,7 +193,7 @@ def drift(raw_words):
         else:
             i += 1
     stretches.sort(key=lambda s: -s[0])
-    return dict(share=sum(lat) / max(1, len(alpha)), words=len(alpha), stretches=stretches[:5])
+    return {"share": sum(lat) / max(1, len(alpha)), "words": len(alpha), "stretches": stretches[:5]}
 
 
 # --- bootstrap -----------------------------------------------------------------------------

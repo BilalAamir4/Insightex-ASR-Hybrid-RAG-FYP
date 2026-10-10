@@ -4,10 +4,11 @@ usage: preview.py RAW.json [N]
 """
 import json
 import sys
+from pathlib import Path
 
 import textnorm as tn
 
-d = json.load(open(sys.argv[1]))
+d = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 n = int(sys.argv[2]) if len(sys.argv) > 2 else 20
 print(f"# {d['model']} language_setting={d['language_setting']} detected={d['detected_language']} p={d['language_probability']:.3f}")
 step = max(1, len(d["segments"]) // n)

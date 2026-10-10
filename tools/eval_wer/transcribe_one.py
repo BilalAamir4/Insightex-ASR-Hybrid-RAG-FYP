@@ -9,9 +9,10 @@ import dataclasses
 import json
 import sys
 import time
+from pathlib import Path
 
 # Parameters identical for every config (recorded in the output JSON).
-FIXED = dict(task="transcribe", beam_size=5, vad_filter=True, word_timestamps=True)
+FIXED = {"task": "transcribe", "beam_size": 5, "vad_filter": True, "word_timestamps": True}
 DEVICE, COMPUTE = "cuda", "float16"
 
 
@@ -19,12 +20,12 @@ def run(model, audio, language):
     segs, info = model.transcribe(audio, language=language, **FIXED)
     out = []
     for s in segs:  # generator: consuming it is the transcription
-        out.append(dict(
-            id=s.id, start=round(s.start, 3), end=round(s.end, 3), text=s.text,
-            avg_logprob=s.avg_logprob, no_speech_prob=s.no_speech_prob,
-            temperature=s.temperature, compression_ratio=s.compression_ratio,
-            words=[dict(start=round(w.start, 3), end=round(w.end, 3), word=w.word,
-                        probability=round(w.probability, 4)) for w in (s.words or [])]))
+        out.append({
+            "id": s.id, "start": round(s.start, 3), "end": round(s.end, 3), "text": s.text,
+            "avg_logprob": s.avg_logprob, "no_speech_prob": s.no_speech_prob,
+            "temperature": s.temperature, "compression_ratio": s.compression_ratio,
+            "words": [{"start": round(w.start, 3), "end": round(w.end, 3), "word": w.word,
+                        "probability": round(w.probability, 4)} for w in (s.words or [])]})
     return out, info
 
 
@@ -51,14 +52,15 @@ def main():
     t0 = time.time()
     segments, info = run(model, a.audio, lang)
     wall = time.time() - t0
-    json.dump(dict(
-        model=a.model, language_setting=a.language, audio=a.audio, faster_whisper=faster_whisper.__version__,
-        device=DEVICE, compute_type=COMPUTE, fixed_params=FIXED,
-        transcription_options={k: repr(v) for k, v in dataclasses.asdict(info.transcription_options).items()},
-        vad_options=repr(info.vad_options),
-        detected_language=info.language, language_probability=info.language_probability,
-        audio_seconds=duration, load_seconds=round(load_s, 2), transcribe_seconds=round(wall, 2),
-        warm_rtf=round(wall / duration, 4), segments=segments), open(a.out, "w"), ensure_ascii=False, indent=1)
+    result = {
+        "model": a.model, "language_setting": a.language, "audio": a.audio, "faster_whisper": faster_whisper.__version__,
+        "device": DEVICE, "compute_type": COMPUTE, "fixed_params": FIXED,
+        "transcription_options": {k: repr(v) for k, v in dataclasses.asdict(info.transcription_options).items()},
+        "vad_options": repr(info.vad_options),
+        "detected_language": info.language, "language_probability": info.language_probability,
+        "audio_seconds": duration, "load_seconds": round(load_s, 2), "transcribe_seconds": round(wall, 2),
+        "warm_rtf": round(wall / duration, 4), "segments": segments}
+    Path(a.out).write_text(json.dumps(result, ensure_ascii=False, indent=1), encoding="utf-8")
     print("DONE", flush=True)
 
 
