@@ -1,6 +1,6 @@
 # ADR-0039: ASR checkpoint and language setting: large-v3 with `language="ur"`
 
-Status: Accepted
+Status: Accepted; language setting amended by ADR-0040
 Date decided: 2026-10-10
 Date recorded: 2026-10-10
 Module: M4
