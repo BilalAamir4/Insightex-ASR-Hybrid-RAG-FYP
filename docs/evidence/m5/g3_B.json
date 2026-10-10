@@ -1,0 +1,3628 @@
+{
+ "lecture": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "index": {
+  "schema_version": 1,
+  "stage_version": "1",
+  "model": {
+   "repo": "BAAI/bge-m3",
+   "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+   "dtype": "float16",
+   "device": "cuda",
+   "max_seq_length": 1024,
+   "dim": 1024
+  },
+  "windows": {
+   "window_s": 30.0,
+   "stride_s": 15.0,
+   "snap_to_segments": true,
+   "count": 45,
+   "n_truncated": 0
+  },
+  "transcript": {
+   "language": {
+    "id": "hindi",
+    "label": "Hindi (including Hindi-English mixed)",
+    "whisper_language": "ur",
+    "tier_at_processing": "tested"
+   },
+   "segments": 351,
+   "audio_sha256": "658c124da92560e1a23cd27b3ff40b803f836a45f226d0af07be5bc6143a445d"
+  },
+  "libraries": {
+   "sentence-transformers": "6.1.0",
+   "transformers": "5.18.0",
+   "torch": "2.11.0+cu128",
+   "faiss-cpu": "1.15.1",
+   "numpy": "2.5.3"
+  },
+  "stats": {
+   "load_s": 4.243,
+   "encode_s": 0.404,
+   "peak_allocated_mib": 1142.6,
+   "peak_vram_mib": 1383
+  }
+ },
+ "encode": {
+  "device": "cuda",
+  "dtype": "float16",
+  "load_s": 4.631,
+  "encode_s": 0.321,
+  "questions": 47
+ },
+ "dedupe": false,
+ "k": 10,
+ "results": [
+  {
+   "id": "A01",
+   "question": "How does the lecturer define \"production\" in simple terms?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 2,
+     "start": 30.16,
+     "end": 58.98,
+     "score": 0.5927557349205017
+    },
+    {
+     "rank": 2,
+     "window_id": 3,
+     "start": 45.18,
+     "end": 75.28,
+     "score": 0.5917771458625793
+    },
+    {
+     "rank": 3,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.49115487933158875
+    },
+    {
+     "rank": 4,
+     "window_id": 5,
+     "start": 75.28,
+     "end": 104.56,
+     "score": 0.4552238881587982
+    },
+    {
+     "rank": 5,
+     "window_id": 4,
+     "start": 59.6,
+     "end": 88.72,
+     "score": 0.45145532488822937
+    },
+    {
+     "rank": 6,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.4308988153934479
+    },
+    {
+     "rank": 7,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.41883039474487305
+    },
+    {
+     "rank": 8,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.4180845022201538
+    },
+    {
+     "rank": 9,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.4117204546928406
+    },
+    {
+     "rank": 10,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.40874001383781433
+    }
+   ]
+  },
+  {
+   "id": "A02",
+   "question": "What is the difference between a production environment and a development environment?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 5,
+     "start": 75.28,
+     "end": 104.56,
+     "score": 0.6258844137191772
+    },
+    {
+     "rank": 2,
+     "window_id": 4,
+     "start": 59.6,
+     "end": 88.72,
+     "score": 0.5408414006233215
+    },
+    {
+     "rank": 3,
+     "window_id": 3,
+     "start": 45.18,
+     "end": 75.28,
+     "score": 0.5306167602539062
+    },
+    {
+     "rank": 4,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.509328305721283
+    },
+    {
+     "rank": 5,
+     "window_id": 2,
+     "start": 30.16,
+     "end": 58.98,
+     "score": 0.5023469924926758
+    },
+    {
+     "rank": 6,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.480988085269928
+    },
+    {
+     "rank": 7,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.43650341033935547
+    },
+    {
+     "rank": 8,
+     "window_id": 7,
+     "start": 106.94,
+     "end": 136.88,
+     "score": 0.4271410405635834
+    },
+    {
+     "rank": 9,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.42286843061447144
+    },
+    {
+     "rank": 10,
+     "window_id": 33,
+     "start": 501.22,
+     "end": 531.48,
+     "score": 0.41155415773391724
+    }
+   ]
+  },
+  {
+   "id": "A03",
+   "question": "Why isn't batch learning trained directly on the server?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 28,
+     "start": 426.16,
+     "end": 455.68,
+     "score": 0.7310259342193604
+    },
+    {
+     "rank": 2,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.7164379954338074
+    },
+    {
+     "rank": 3,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.7163200378417969
+    },
+    {
+     "rank": 4,
+     "window_id": 11,
+     "start": 168.4,
+     "end": 198.96,
+     "score": 0.6823928356170654
+    },
+    {
+     "rank": 5,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.6785367131233215
+    },
+    {
+     "rank": 6,
+     "window_id": 8,
+     "start": 121.38,
+     "end": 150.72,
+     "score": 0.6764341592788696
+    },
+    {
+     "rank": 7,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.6556776165962219
+    },
+    {
+     "rank": 8,
+     "window_id": 10,
+     "start": 152.54,
+     "end": 183.16,
+     "score": 0.6496861577033997
+    },
+    {
+     "rank": 9,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.648565948009491
+    },
+    {
+     "rank": 10,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.6481575965881348
+    }
+   ]
+  },
+  {
+   "id": "A04",
+   "question": "Why does a recommendation engine like Netflix's need to keep updating?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 20,
+     "start": 304.06,
+     "end": 332.94,
+     "score": 0.6945034861564636
+    },
+    {
+     "rank": 2,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.6663744449615479
+    },
+    {
+     "rank": 3,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.6428961157798767
+    },
+    {
+     "rank": 4,
+     "window_id": 17,
+     "start": 259.24,
+     "end": 290.38,
+     "score": 0.6265185475349426
+    },
+    {
+     "rank": 5,
+     "window_id": 16,
+     "start": 243.32,
+     "end": 273.88,
+     "score": 0.5725933313369751
+    },
+    {
+     "rank": 6,
+     "window_id": 21,
+     "start": 319.6,
+     "end": 348.74,
+     "score": 0.5509876012802124
+    },
+    {
+     "rank": 7,
+     "window_id": 38,
+     "start": 575.36,
+     "end": 604.58,
+     "score": 0.5339611172676086
+    },
+    {
+     "rank": 8,
+     "window_id": 24,
+     "start": 364.92,
+     "end": 394.92,
+     "score": 0.5242960453033447
+    },
+    {
+     "rank": 9,
+     "window_id": 39,
+     "start": 590.58,
+     "end": 620.58,
+     "score": 0.5194038152694702
+    },
+    {
+     "rank": 10,
+     "window_id": 42,
+     "start": 636.14,
+     "end": 666.3,
+     "score": 0.5033257007598877
+    }
+   ]
+  },
+  {
+   "id": "A05",
+   "question": "How does the email spam classifier example show a weakness of batch learning?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.6138324737548828
+    },
+    {
+     "rank": 2,
+     "window_id": 22,
+     "start": 335.22,
+     "end": 364.92,
+     "score": 0.6105921268463135
+    },
+    {
+     "rank": 3,
+     "window_id": 30,
+     "start": 455.68,
+     "end": 485.22,
+     "score": 0.592778205871582
+    },
+    {
+     "rank": 4,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.5899078845977783
+    },
+    {
+     "rank": 5,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5798280239105225
+    },
+    {
+     "rank": 6,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.5655785799026489
+    },
+    {
+     "rank": 7,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.5579321980476379
+    },
+    {
+     "rank": 8,
+     "window_id": 21,
+     "start": 319.6,
+     "end": 348.74,
+     "score": 0.5560296177864075
+    },
+    {
+     "rank": 9,
+     "window_id": 36,
+     "start": 545.44,
+     "end": 575.36,
+     "score": 0.5431841015815735
+    },
+    {
+     "rank": 10,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.54251629114151
+    }
+   ]
+  },
+  {
+   "id": "A06",
+   "question": "What is the hardware limitation problem with batch learning?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 32,
+     "start": 485.22,
+     "end": 515.54,
+     "score": 0.6561537384986877
+    },
+    {
+     "rank": 2,
+     "window_id": 30,
+     "start": 455.68,
+     "end": 485.22,
+     "score": 0.6473253965377808
+    },
+    {
+     "rank": 3,
+     "window_id": 36,
+     "start": 545.44,
+     "end": 575.36,
+     "score": 0.6398003697395325
+    },
+    {
+     "rank": 4,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.631704568862915
+    },
+    {
+     "rank": 5,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.6267062425613403
+    },
+    {
+     "rank": 6,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.6139421463012695
+    },
+    {
+     "rank": 7,
+     "window_id": 31,
+     "start": 471.1,
+     "end": 501.22,
+     "score": 0.6011320948600769
+    },
+    {
+     "rank": 8,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.6006565093994141
+    },
+    {
+     "rank": 9,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.5818259119987488
+    },
+    {
+     "rank": 10,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.5817720890045166
+    }
+   ]
+  },
+  {
+   "id": "A07",
+   "question": "What example shows the availability problem of batch learning?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.6345191597938538
+    },
+    {
+     "rank": 2,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.6097369194030762
+    },
+    {
+     "rank": 3,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.5993270874023438
+    },
+    {
+     "rank": 4,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.5959242582321167
+    },
+    {
+     "rank": 5,
+     "window_id": 30,
+     "start": 455.68,
+     "end": 485.22,
+     "score": 0.594062328338623
+    },
+    {
+     "rank": 6,
+     "window_id": 36,
+     "start": 545.44,
+     "end": 575.36,
+     "score": 0.5856620073318481
+    },
+    {
+     "rank": 7,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5759979486465454
+    },
+    {
+     "rank": 8,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.5499414205551147
+    },
+    {
+     "rank": 9,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.5406148433685303
+    },
+    {
+     "rank": 10,
+     "window_id": 28,
+     "start": 426.16,
+     "end": 455.68,
+     "score": 0.5390534996986389
+    }
+   ]
+  },
+  {
+   "id": "A08",
+   "question": "What does the lecturer say about the previous video on types of machine learning?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.6752848625183105
+    },
+    {
+     "rank": 2,
+     "window_id": 1,
+     "start": 16.08,
+     "end": 46.62,
+     "score": 0.6146836876869202
+    },
+    {
+     "rank": 3,
+     "window_id": 7,
+     "start": 106.94,
+     "end": 136.88,
+     "score": 0.5667376518249512
+    },
+    {
+     "rank": 4,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.5634426474571228
+    },
+    {
+     "rank": 5,
+     "window_id": 2,
+     "start": 30.16,
+     "end": 58.98,
+     "score": 0.5543378591537476
+    },
+    {
+     "rank": 6,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.537674605846405
+    },
+    {
+     "rank": 7,
+     "window_id": 8,
+     "start": 121.38,
+     "end": 150.72,
+     "score": 0.5232499241828918
+    },
+    {
+     "rank": 8,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.512614905834198
+    },
+    {
+     "rank": 9,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.5085102319717407
+    },
+    {
+     "rank": 10,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.5057205557823181
+    }
+   ]
+  },
+  {
+   "id": "A09",
+   "question": "Why does software need to be deployed on a server for customers to use it?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 4,
+     "start": 59.6,
+     "end": 88.72,
+     "score": 0.6536592245101929
+    },
+    {
+     "rank": 2,
+     "window_id": 5,
+     "start": 75.28,
+     "end": 104.56,
+     "score": 0.6013131737709045
+    },
+    {
+     "rank": 3,
+     "window_id": 3,
+     "start": 45.18,
+     "end": 75.28,
+     "score": 0.5714760422706604
+    },
+    {
+     "rank": 4,
+     "window_id": 16,
+     "start": 243.32,
+     "end": 273.88,
+     "score": 0.5504520535469055
+    },
+    {
+     "rank": 5,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.5367215275764465
+    },
+    {
+     "rank": 6,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.5315290093421936
+    },
+    {
+     "rank": 7,
+     "window_id": 11,
+     "start": 168.4,
+     "end": 198.96,
+     "score": 0.5280137062072754
+    },
+    {
+     "rank": 8,
+     "window_id": 15,
+     "start": 228.64,
+     "end": 259.24,
+     "score": 0.5276765823364258
+    },
+    {
+     "rank": 9,
+     "window_id": 34,
+     "start": 515.54,
+     "end": 545.44,
+     "score": 0.5260240435600281
+    },
+    {
+     "rank": 10,
+     "window_id": 26,
+     "start": 394.92,
+     "end": 423.68,
+     "score": 0.5243754982948303
+    }
+   ]
+  },
+  {
+   "id": "A10",
+   "question": "What is incremental training and why doesn't batch learning use it?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 10,
+     "start": 152.54,
+     "end": 183.16,
+     "score": 0.6693854331970215
+    },
+    {
+     "rank": 2,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.6624172925949097
+    },
+    {
+     "rank": 3,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.6484374403953552
+    },
+    {
+     "rank": 4,
+     "window_id": 28,
+     "start": 426.16,
+     "end": 455.68,
+     "score": 0.6422012448310852
+    },
+    {
+     "rank": 5,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.5899434089660645
+    },
+    {
+     "rank": 6,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5893943309783936
+    },
+    {
+     "rank": 7,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.5738075971603394
+    },
+    {
+     "rank": 8,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.5589485764503479
+    },
+    {
+     "rank": 9,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.552544891834259
+    },
+    {
+     "rank": 10,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.5461978316307068
+    }
+   ]
+  },
+  {
+   "id": "A11",
+   "question": "How does the lecturer draw the batch learning flow from data to model to server?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.7285282611846924
+    },
+    {
+     "rank": 2,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.704723060131073
+    },
+    {
+     "rank": 3,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.6601324677467346
+    },
+    {
+     "rank": 4,
+     "window_id": 28,
+     "start": 426.16,
+     "end": 455.68,
+     "score": 0.6557416915893555
+    },
+    {
+     "rank": 5,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.6490219831466675
+    },
+    {
+     "rank": 6,
+     "window_id": 8,
+     "start": 121.38,
+     "end": 150.72,
+     "score": 0.6335219740867615
+    },
+    {
+     "rank": 7,
+     "window_id": 11,
+     "start": 168.4,
+     "end": 198.96,
+     "score": 0.6311080455780029
+    },
+    {
+     "rank": 8,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.6158971190452576
+    },
+    {
+     "rank": 9,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.6041712760925293
+    },
+    {
+     "rank": 10,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.6010438203811646
+    }
+   ]
+  },
+  {
+   "id": "A12",
+   "question": "How often do people typically retrain batch learning models?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.7220900058746338
+    },
+    {
+     "rank": 2,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.6805388331413269
+    },
+    {
+     "rank": 3,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.6533823013305664
+    },
+    {
+     "rank": 4,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.6256389021873474
+    },
+    {
+     "rank": 5,
+     "window_id": 22,
+     "start": 335.22,
+     "end": 364.92,
+     "score": 0.6251835227012634
+    },
+    {
+     "rank": 6,
+     "window_id": 28,
+     "start": 426.16,
+     "end": 455.68,
+     "score": 0.6215782761573792
+    },
+    {
+     "rank": 7,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.6152802109718323
+    },
+    {
+     "rank": 8,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.6117884516716003
+    },
+    {
+     "rank": 9,
+     "window_id": 26,
+     "start": 394.92,
+     "end": 423.68,
+     "score": 0.5938150882720947
+    },
+    {
+     "rank": 10,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.5936403870582581
+    }
+   ]
+  },
+  {
+   "id": "A13",
+   "question": "Where does the data scientist train a batch model and where does the trained model go?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.7012417316436768
+    },
+    {
+     "rank": 2,
+     "window_id": 11,
+     "start": 168.4,
+     "end": 198.96,
+     "score": 0.668451189994812
+    },
+    {
+     "rank": 3,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.6584720611572266
+    },
+    {
+     "rank": 4,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.6533840298652649
+    },
+    {
+     "rank": 5,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.606717050075531
+    },
+    {
+     "rank": 6,
+     "window_id": 15,
+     "start": 228.64,
+     "end": 259.24,
+     "score": 0.6030325889587402
+    },
+    {
+     "rank": 7,
+     "window_id": 28,
+     "start": 426.16,
+     "end": 455.68,
+     "score": 0.6023105382919312
+    },
+    {
+     "rank": 8,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.5985881090164185
+    },
+    {
+     "rank": 9,
+     "window_id": 10,
+     "start": 152.54,
+     "end": 183.16,
+     "score": 0.5930780172348022
+    },
+    {
+     "rank": 10,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.5907318592071533
+    }
+   ]
+  },
+  {
+   "id": "A14",
+   "question": "Which two types of machine learning will be covered in this video?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.6689450740814209
+    },
+    {
+     "rank": 2,
+     "window_id": 7,
+     "start": 106.94,
+     "end": 136.88,
+     "score": 0.6150190830230713
+    },
+    {
+     "rank": 3,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.5970187187194824
+    },
+    {
+     "rank": 4,
+     "window_id": 1,
+     "start": 16.08,
+     "end": 46.62,
+     "score": 0.5851485729217529
+    },
+    {
+     "rank": 5,
+     "window_id": 2,
+     "start": 30.16,
+     "end": 58.98,
+     "score": 0.5654129981994629
+    },
+    {
+     "rank": 6,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.5539156794548035
+    },
+    {
+     "rank": 7,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.5429202318191528
+    },
+    {
+     "rank": 8,
+     "window_id": 16,
+     "start": 243.32,
+     "end": 273.88,
+     "score": 0.5390456914901733
+    },
+    {
+     "rank": 9,
+     "window_id": 8,
+     "start": 121.38,
+     "end": 150.72,
+     "score": 0.5367587208747864
+    },
+    {
+     "rank": 10,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.5348236560821533
+    }
+   ]
+  },
+  {
+   "id": "A15",
+   "question": "How does the lecturer describe training a Netflix recommendation engine and putting it on the server?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 17,
+     "start": 259.24,
+     "end": 290.38,
+     "score": 0.6578583121299744
+    },
+    {
+     "rank": 2,
+     "window_id": 16,
+     "start": 243.32,
+     "end": 273.88,
+     "score": 0.6495543718338013
+    },
+    {
+     "rank": 3,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.6099551916122437
+    },
+    {
+     "rank": 4,
+     "window_id": 15,
+     "start": 228.64,
+     "end": 259.24,
+     "score": 0.6033214330673218
+    },
+    {
+     "rank": 5,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.5926361083984375
+    },
+    {
+     "rank": 6,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.558394193649292
+    },
+    {
+     "rank": 7,
+     "window_id": 20,
+     "start": 304.06,
+     "end": 332.94,
+     "score": 0.5546094179153442
+    },
+    {
+     "rank": 8,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.5298616290092468
+    },
+    {
+     "rank": 9,
+     "window_id": 26,
+     "start": 394.92,
+     "end": 423.68,
+     "score": 0.5164917707443237
+    },
+    {
+     "rank": 10,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5130344033241272
+    }
+   ]
+  },
+  {
+   "id": "A16",
+   "question": "Why can't a model on a remote device just be refreshed when new data arrives?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.5932987928390503
+    },
+    {
+     "rank": 2,
+     "window_id": 35,
+     "start": 531.48,
+     "end": 561.32,
+     "score": 0.5897583961486816
+    },
+    {
+     "rank": 3,
+     "window_id": 24,
+     "start": 364.92,
+     "end": 394.92,
+     "score": 0.5860047340393066
+    },
+    {
+     "rank": 4,
+     "window_id": 36,
+     "start": 545.44,
+     "end": 575.36,
+     "score": 0.5845518112182617
+    },
+    {
+     "rank": 5,
+     "window_id": 33,
+     "start": 501.22,
+     "end": 531.48,
+     "score": 0.5727357864379883
+    },
+    {
+     "rank": 6,
+     "window_id": 39,
+     "start": 590.58,
+     "end": 620.58,
+     "score": 0.5594402551651001
+    },
+    {
+     "rank": 7,
+     "window_id": 32,
+     "start": 485.22,
+     "end": 515.54,
+     "score": 0.5525521039962769
+    },
+    {
+     "rank": 8,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.5523123741149902
+    },
+    {
+     "rank": 9,
+     "window_id": 38,
+     "start": 575.36,
+     "end": 604.58,
+     "score": 0.551857590675354
+    },
+    {
+     "rank": 10,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.5490446090698242
+    }
+   ]
+  },
+  {
+   "id": "A17",
+   "question": "What goes wrong when a model learns once and then stays frozen?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.6011412143707275
+    },
+    {
+     "rank": 2,
+     "window_id": 15,
+     "start": 228.64,
+     "end": 259.24,
+     "score": 0.5698213577270508
+    },
+    {
+     "rank": 3,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5567984580993652
+    },
+    {
+     "rank": 4,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.5555770993232727
+    },
+    {
+     "rank": 5,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.5445668697357178
+    },
+    {
+     "rank": 6,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.542160153388977
+    },
+    {
+     "rank": 7,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.53983473777771
+    },
+    {
+     "rank": 8,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.5395194888114929
+    },
+    {
+     "rank": 9,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.5334782600402832
+    },
+    {
+     "rank": 10,
+     "window_id": 35,
+     "start": 531.48,
+     "end": 561.32,
+     "score": 0.5318485498428345
+    }
+   ]
+  },
+  {
+   "id": "A18",
+   "question": "Why would a daily-refreshed system show stale content during breaking news?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 42,
+     "start": 636.14,
+     "end": 666.3,
+     "score": 0.5572354793548584
+    },
+    {
+     "rank": 2,
+     "window_id": 39,
+     "start": 590.58,
+     "end": 620.58,
+     "score": 0.5423089861869812
+    },
+    {
+     "rank": 3,
+     "window_id": 38,
+     "start": 575.36,
+     "end": 604.58,
+     "score": 0.5122540593147278
+    },
+    {
+     "rank": 4,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.5082645416259766
+    },
+    {
+     "rank": 5,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.488983690738678
+    },
+    {
+     "rank": 6,
+     "window_id": 24,
+     "start": 364.92,
+     "end": 394.92,
+     "score": 0.4882240891456604
+    },
+    {
+     "rank": 7,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.4802933931350708
+    },
+    {
+     "rank": 8,
+     "window_id": 40,
+     "start": 606.3,
+     "end": 636.14,
+     "score": 0.4773278534412384
+    },
+    {
+     "rank": 9,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.475246787071228
+    },
+    {
+     "rank": 10,
+     "window_id": 20,
+     "start": 304.06,
+     "end": 332.94,
+     "score": 0.4751948118209839
+    }
+   ]
+  },
+  {
+   "id": "A19",
+   "question": "What happens when the dataset becomes too big for the available tools?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 31,
+     "start": 471.1,
+     "end": 501.22,
+     "score": 0.6512792706489563
+    },
+    {
+     "rank": 2,
+     "window_id": 32,
+     "start": 485.22,
+     "end": 515.54,
+     "score": 0.5875434875488281
+    },
+    {
+     "rank": 3,
+     "window_id": 11,
+     "start": 168.4,
+     "end": 198.96,
+     "score": 0.5595613718032837
+    },
+    {
+     "rank": 4,
+     "window_id": 30,
+     "start": 455.68,
+     "end": 485.22,
+     "score": 0.5582014918327332
+    },
+    {
+     "rank": 5,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.5370814800262451
+    },
+    {
+     "rank": 6,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.534692108631134
+    },
+    {
+     "rank": 7,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5268215537071228
+    },
+    {
+     "rank": 8,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.5096012949943542
+    },
+    {
+     "rank": 9,
+     "window_id": 10,
+     "start": 152.54,
+     "end": 183.16,
+     "score": 0.507258415222168
+    },
+    {
+     "rank": 10,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.5072295665740967
+    }
+   ]
+  },
+  {
+   "id": "A20",
+   "question": "How do teams stop a deployed model from going out of date?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 24,
+     "start": 364.92,
+     "end": 394.92,
+     "score": 0.5337744951248169
+    },
+    {
+     "rank": 2,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.5308893918991089
+    },
+    {
+     "rank": 3,
+     "window_id": 34,
+     "start": 515.54,
+     "end": 545.44,
+     "score": 0.5115355253219604
+    },
+    {
+     "rank": 4,
+     "window_id": 33,
+     "start": 501.22,
+     "end": 531.48,
+     "score": 0.5088257789611816
+    },
+    {
+     "rank": 5,
+     "window_id": 22,
+     "start": 335.22,
+     "end": 364.92,
+     "score": 0.498540461063385
+    },
+    {
+     "rank": 6,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.4919489026069641
+    },
+    {
+     "rank": 7,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.4879159927368164
+    },
+    {
+     "rank": 8,
+     "window_id": 15,
+     "start": 228.64,
+     "end": 259.24,
+     "score": 0.4869092106819153
+    },
+    {
+     "rank": 9,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.4839136004447937
+    },
+    {
+     "rank": 10,
+     "window_id": 21,
+     "start": 319.6,
+     "end": 348.74,
+     "score": 0.48373943567276
+    }
+   ]
+  },
+  {
+   "id": "A21",
+   "question": "What is the basis for the types of machine learning discussed today, compared with the supervision-based ones?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.7112959623336792
+    },
+    {
+     "rank": 2,
+     "window_id": 1,
+     "start": 16.08,
+     "end": 46.62,
+     "score": 0.7111203670501709
+    },
+    {
+     "rank": 3,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.6114802360534668
+    },
+    {
+     "rank": 4,
+     "window_id": 2,
+     "start": 30.16,
+     "end": 58.98,
+     "score": 0.5907182693481445
+    },
+    {
+     "rank": 5,
+     "window_id": 7,
+     "start": 106.94,
+     "end": 136.88,
+     "score": 0.5807331800460815
+    },
+    {
+     "rank": 6,
+     "window_id": 8,
+     "start": 121.38,
+     "end": 150.72,
+     "score": 0.5256288647651672
+    },
+    {
+     "rank": 7,
+     "window_id": 5,
+     "start": 75.28,
+     "end": 104.56,
+     "score": 0.519355297088623
+    },
+    {
+     "rank": 8,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.5187520384788513
+    },
+    {
+     "rank": 9,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.5162023305892944
+    },
+    {
+     "rank": 10,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.5071494579315186
+    }
+   ]
+  },
+  {
+   "id": "A22",
+   "question": "Why does knowing this difference matter for someone who builds models?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 7,
+     "start": 106.94,
+     "end": 136.88,
+     "score": 0.5553393363952637
+    },
+    {
+     "rank": 2,
+     "window_id": 8,
+     "start": 121.38,
+     "end": 150.72,
+     "score": 0.5221767425537109
+    },
+    {
+     "rank": 3,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.5079770684242249
+    },
+    {
+     "rank": 4,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.5053893327713013
+    },
+    {
+     "rank": 5,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.5016626715660095
+    },
+    {
+     "rank": 6,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.5016484260559082
+    },
+    {
+     "rank": 7,
+     "window_id": 5,
+     "start": 75.28,
+     "end": 104.56,
+     "score": 0.4999130964279175
+    },
+    {
+     "rank": 8,
+     "window_id": 2,
+     "start": 30.16,
+     "end": 58.98,
+     "score": 0.4988979697227478
+    },
+    {
+     "rank": 9,
+     "window_id": 33,
+     "start": 501.22,
+     "end": 531.48,
+     "score": 0.49801570177078247
+    },
+    {
+     "rank": 10,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.49291273951530457
+    }
+   ]
+  },
+  {
+   "id": "A23",
+   "question": "What does the lecturer say happens when a platform's user base keeps doubling?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5271977186203003
+    },
+    {
+     "rank": 2,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.5257734060287476
+    },
+    {
+     "rank": 3,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.5121380090713501
+    },
+    {
+     "rank": 4,
+     "window_id": 39,
+     "start": 590.58,
+     "end": 620.58,
+     "score": 0.49398273229599
+    },
+    {
+     "rank": 5,
+     "window_id": 26,
+     "start": 394.92,
+     "end": 423.68,
+     "score": 0.49134278297424316
+    },
+    {
+     "rank": 6,
+     "window_id": 31,
+     "start": 471.1,
+     "end": 501.22,
+     "score": 0.4912930130958557
+    },
+    {
+     "rank": 7,
+     "window_id": 16,
+     "start": 243.32,
+     "end": 273.88,
+     "score": 0.48758232593536377
+    },
+    {
+     "rank": 8,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.48602768778800964
+    },
+    {
+     "rank": 9,
+     "window_id": 15,
+     "start": 228.64,
+     "end": 259.24,
+     "score": 0.4837750792503357
+    },
+    {
+     "rank": 10,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.4836893677711487
+    }
+   ]
+  },
+  {
+   "id": "A24",
+   "question": "production environment kya hota hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 3,
+     "start": 45.18,
+     "end": 75.28,
+     "score": 0.46028727293014526
+    },
+    {
+     "rank": 2,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.446480929851532
+    },
+    {
+     "rank": 3,
+     "window_id": 5,
+     "start": 75.28,
+     "end": 104.56,
+     "score": 0.4370092749595642
+    },
+    {
+     "rank": 4,
+     "window_id": 4,
+     "start": 59.6,
+     "end": 88.72,
+     "score": 0.4191444516181946
+    },
+    {
+     "rank": 5,
+     "window_id": 2,
+     "start": 30.16,
+     "end": 58.98,
+     "score": 0.41259127855300903
+    },
+    {
+     "rank": 6,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.40782225131988525
+    },
+    {
+     "rank": 7,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.39451849460601807
+    },
+    {
+     "rank": 8,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.3914535641670227
+    },
+    {
+     "rank": 9,
+     "window_id": 24,
+     "start": 364.92,
+     "end": 394.92,
+     "score": 0.38636326789855957
+    },
+    {
+     "rank": 10,
+     "window_id": 38,
+     "start": 575.36,
+     "end": 604.58,
+     "score": 0.3811420202255249
+    }
+   ]
+  },
+  {
+   "id": "A25",
+   "question": "batch learning mein model ko dobara train kyun karna parta hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.6093342304229736
+    },
+    {
+     "rank": 2,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.5823954939842224
+    },
+    {
+     "rank": 3,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.5783337950706482
+    },
+    {
+     "rank": 4,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.5744377374649048
+    },
+    {
+     "rank": 5,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5609918236732483
+    },
+    {
+     "rank": 6,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.5604941248893738
+    },
+    {
+     "rank": 7,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.5482386946678162
+    },
+    {
+     "rank": 8,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.5452646613121033
+    },
+    {
+     "rank": 9,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.5424243807792664
+    },
+    {
+     "rank": 10,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.5355963706970215
+    }
+   ]
+  },
+  {
+   "id": "A26",
+   "question": "satellite ya drone par batch learning kyun fail ho jati hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.5433140993118286
+    },
+    {
+     "rank": 2,
+     "window_id": 36,
+     "start": 545.44,
+     "end": 575.36,
+     "score": 0.5231750011444092
+    },
+    {
+     "rank": 3,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.5230931043624878
+    },
+    {
+     "rank": 4,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.4998982846736908
+    },
+    {
+     "rank": 5,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.4681711792945862
+    },
+    {
+     "rank": 6,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.4588366448879242
+    },
+    {
+     "rank": 7,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.45475223660469055
+    },
+    {
+     "rank": 8,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.45425301790237427
+    },
+    {
+     "rank": 9,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.4422483444213867
+    },
+    {
+     "rank": 10,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.43938928842544556
+    }
+   ]
+  },
+  {
+   "id": "A27",
+   "question": "news feed update hone mein 24 ghante kyun lagte hain",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 42,
+     "start": 636.14,
+     "end": 666.3,
+     "score": 0.535943865776062
+    },
+    {
+     "rank": 2,
+     "window_id": 40,
+     "start": 606.3,
+     "end": 636.14,
+     "score": 0.5070917010307312
+    },
+    {
+     "rank": 3,
+     "window_id": 41,
+     "start": 620.58,
+     "end": 650.08,
+     "score": 0.4980854094028473
+    },
+    {
+     "rank": 4,
+     "window_id": 39,
+     "start": 590.58,
+     "end": 620.58,
+     "score": 0.4973030686378479
+    },
+    {
+     "rank": 5,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.4688480794429779
+    },
+    {
+     "rank": 6,
+     "window_id": 38,
+     "start": 575.36,
+     "end": 604.58,
+     "score": 0.45961707830429077
+    },
+    {
+     "rank": 7,
+     "window_id": 24,
+     "start": 364.92,
+     "end": 394.92,
+     "score": 0.4255898892879486
+    },
+    {
+     "rank": 8,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.4140704274177551
+    },
+    {
+     "rank": 9,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.3811081647872925
+    },
+    {
+     "rank": 10,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.38076722621917725
+    }
+   ]
+  },
+  {
+   "id": "A28",
+   "question": "batch learning mein pura data ek saath kaise use hota hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.6178983449935913
+    },
+    {
+     "rank": 2,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.6117428541183472
+    },
+    {
+     "rank": 3,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.608268141746521
+    },
+    {
+     "rank": 4,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.6076177358627319
+    },
+    {
+     "rank": 5,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.6019358038902283
+    },
+    {
+     "rank": 6,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.59098219871521
+    },
+    {
+     "rank": 7,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.584650456905365
+    },
+    {
+     "rank": 8,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.5771062970161438
+    },
+    {
+     "rank": 9,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.5739709138870239
+    },
+    {
+     "rank": 10,
+     "window_id": 28,
+     "start": 426.16,
+     "end": 455.68,
+     "score": 0.5707857608795166
+    }
+   ]
+  },
+  {
+   "id": "A01r",
+   "question": "production ko simple alfaaz mein kaise define kiya hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 3,
+     "start": 45.18,
+     "end": 75.28,
+     "score": 0.46953243017196655
+    },
+    {
+     "rank": 2,
+     "window_id": 2,
+     "start": 30.16,
+     "end": 58.98,
+     "score": 0.4367176294326782
+    },
+    {
+     "rank": 3,
+     "window_id": 38,
+     "start": 575.36,
+     "end": 604.58,
+     "score": 0.38575461506843567
+    },
+    {
+     "rank": 4,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.3829308748245239
+    },
+    {
+     "rank": 5,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.3796623945236206
+    },
+    {
+     "rank": 6,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.3726305365562439
+    },
+    {
+     "rank": 7,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.3679981231689453
+    },
+    {
+     "rank": 8,
+     "window_id": 24,
+     "start": 364.92,
+     "end": 394.92,
+     "score": 0.36006537079811096
+    },
+    {
+     "rank": 9,
+     "window_id": 17,
+     "start": 259.24,
+     "end": 290.38,
+     "score": 0.3581303656101227
+    },
+    {
+     "rank": 10,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.35518455505371094
+    }
+   ]
+  },
+  {
+   "id": "A03r",
+   "question": "batch learning ko seedha server pe train kyun nahi karte",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.5915010571479797
+    },
+    {
+     "rank": 2,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5715447664260864
+    },
+    {
+     "rank": 3,
+     "window_id": 28,
+     "start": 426.16,
+     "end": 455.68,
+     "score": 0.5670316219329834
+    },
+    {
+     "rank": 4,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.5590651035308838
+    },
+    {
+     "rank": 5,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.555915355682373
+    },
+    {
+     "rank": 6,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.5553985834121704
+    },
+    {
+     "rank": 7,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.5542535185813904
+    },
+    {
+     "rank": 8,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.550915002822876
+    },
+    {
+     "rank": 9,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.5412691235542297
+    },
+    {
+     "rank": 10,
+     "window_id": 10,
+     "start": 152.54,
+     "end": 183.16,
+     "score": 0.5374497175216675
+    }
+   ]
+  },
+  {
+   "id": "A04r",
+   "question": "Netflix jaisa recommendation engine baar baar update kyun karna parta hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 20,
+     "start": 304.06,
+     "end": 332.94,
+     "score": 0.5067556500434875
+    },
+    {
+     "rank": 2,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.4885960817337036
+    },
+    {
+     "rank": 3,
+     "window_id": 17,
+     "start": 259.24,
+     "end": 290.38,
+     "score": 0.48262152075767517
+    },
+    {
+     "rank": 4,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.4690655767917633
+    },
+    {
+     "rank": 5,
+     "window_id": 38,
+     "start": 575.36,
+     "end": 604.58,
+     "score": 0.46308910846710205
+    },
+    {
+     "rank": 6,
+     "window_id": 16,
+     "start": 243.32,
+     "end": 273.88,
+     "score": 0.4555131196975708
+    },
+    {
+     "rank": 7,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.4414049983024597
+    },
+    {
+     "rank": 8,
+     "window_id": 39,
+     "start": 590.58,
+     "end": 620.58,
+     "score": 0.43657687306404114
+    },
+    {
+     "rank": 9,
+     "window_id": 40,
+     "start": 606.3,
+     "end": 636.14,
+     "score": 0.4289209246635437
+    },
+    {
+     "rank": 10,
+     "window_id": 24,
+     "start": 364.92,
+     "end": 394.92,
+     "score": 0.42790690064430237
+    }
+   ]
+  },
+  {
+   "id": "A05r",
+   "question": "email spam classifier wali example se batch learning ki kya kamzori pata chalti hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 22,
+     "start": 335.22,
+     "end": 364.92,
+     "score": 0.5810244679450989
+    },
+    {
+     "rank": 2,
+     "window_id": 21,
+     "start": 319.6,
+     "end": 348.74,
+     "score": 0.5798709392547607
+    },
+    {
+     "rank": 3,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.539267897605896
+    },
+    {
+     "rank": 4,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.520783543586731
+    },
+    {
+     "rank": 5,
+     "window_id": 20,
+     "start": 304.06,
+     "end": 332.94,
+     "score": 0.516247034072876
+    },
+    {
+     "rank": 6,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.49818897247314453
+    },
+    {
+     "rank": 7,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.4876236021518707
+    },
+    {
+     "rank": 8,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.48599672317504883
+    },
+    {
+     "rank": 9,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.4835934042930603
+    },
+    {
+     "rank": 10,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.4829036295413971
+    }
+   ]
+  },
+  {
+   "id": "A06r",
+   "question": "batch learning mein hardware limitation wala masla kya hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.630671501159668
+    },
+    {
+     "rank": 2,
+     "window_id": 36,
+     "start": 545.44,
+     "end": 575.36,
+     "score": 0.6238443851470947
+    },
+    {
+     "rank": 3,
+     "window_id": 32,
+     "start": 485.22,
+     "end": 515.54,
+     "score": 0.6115790605545044
+    },
+    {
+     "rank": 4,
+     "window_id": 30,
+     "start": 455.68,
+     "end": 485.22,
+     "score": 0.6026350259780884
+    },
+    {
+     "rank": 5,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.5947117805480957
+    },
+    {
+     "rank": 6,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.593629777431488
+    },
+    {
+     "rank": 7,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.5899620056152344
+    },
+    {
+     "rank": 8,
+     "window_id": 33,
+     "start": 501.22,
+     "end": 531.48,
+     "score": 0.5853936672210693
+    },
+    {
+     "rank": 9,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.5852385759353638
+    },
+    {
+     "rank": 10,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.582931637763977
+    }
+   ]
+  },
+  {
+   "id": "A07r",
+   "question": "batch learning ki availability problem kis example se samjhai hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.5851792097091675
+    },
+    {
+     "rank": 2,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.5395787954330444
+    },
+    {
+     "rank": 3,
+     "window_id": 36,
+     "start": 545.44,
+     "end": 575.36,
+     "score": 0.5383497476577759
+    },
+    {
+     "rank": 4,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.536941647529602
+    },
+    {
+     "rank": 5,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.5339456796646118
+    },
+    {
+     "rank": 6,
+     "window_id": 30,
+     "start": 455.68,
+     "end": 485.22,
+     "score": 0.508151650428772
+    },
+    {
+     "rank": 7,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5014885663986206
+    },
+    {
+     "rank": 8,
+     "window_id": 32,
+     "start": 485.22,
+     "end": 515.54,
+     "score": 0.5005099773406982
+    },
+    {
+     "rank": 9,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.497298002243042
+    },
+    {
+     "rank": 10,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.4929773509502411
+    }
+   ]
+  },
+  {
+   "id": "A08r",
+   "question": "pichli video mein types of machine learning ke baare mein kya bataya tha",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.6138030290603638
+    },
+    {
+     "rank": 2,
+     "window_id": 1,
+     "start": 16.08,
+     "end": 46.62,
+     "score": 0.5871874690055847
+    },
+    {
+     "rank": 3,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.5687488317489624
+    },
+    {
+     "rank": 4,
+     "window_id": 2,
+     "start": 30.16,
+     "end": 58.98,
+     "score": 0.5480924844741821
+    },
+    {
+     "rank": 5,
+     "window_id": 7,
+     "start": 106.94,
+     "end": 136.88,
+     "score": 0.5404280424118042
+    },
+    {
+     "rank": 6,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.5345544815063477
+    },
+    {
+     "rank": 7,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.5213102102279663
+    },
+    {
+     "rank": 8,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.5127549171447754
+    },
+    {
+     "rank": 9,
+     "window_id": 10,
+     "start": 152.54,
+     "end": 183.16,
+     "score": 0.5115792751312256
+    },
+    {
+     "rank": 10,
+     "window_id": 8,
+     "start": 121.38,
+     "end": 150.72,
+     "score": 0.5074896812438965
+    }
+   ]
+  },
+  {
+   "id": "A09r",
+   "question": "customers ke use ke liye software ko server pe deploy kyun karna parta hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 4,
+     "start": 59.6,
+     "end": 88.72,
+     "score": 0.46356427669525146
+    },
+    {
+     "rank": 2,
+     "window_id": 34,
+     "start": 515.54,
+     "end": 545.44,
+     "score": 0.45251286029815674
+    },
+    {
+     "rank": 3,
+     "window_id": 5,
+     "start": 75.28,
+     "end": 104.56,
+     "score": 0.44702425599098206
+    },
+    {
+     "rank": 4,
+     "window_id": 3,
+     "start": 45.18,
+     "end": 75.28,
+     "score": 0.43080878257751465
+    },
+    {
+     "rank": 5,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.42368432879447937
+    },
+    {
+     "rank": 6,
+     "window_id": 16,
+     "start": 243.32,
+     "end": 273.88,
+     "score": 0.4196571111679077
+    },
+    {
+     "rank": 7,
+     "window_id": 26,
+     "start": 394.92,
+     "end": 423.68,
+     "score": 0.4161766469478607
+    },
+    {
+     "rank": 8,
+     "window_id": 35,
+     "start": 531.48,
+     "end": 561.32,
+     "score": 0.4080422520637512
+    },
+    {
+     "rank": 9,
+     "window_id": 38,
+     "start": 575.36,
+     "end": 604.58,
+     "score": 0.4069424271583557
+    },
+    {
+     "rank": 10,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.4045552611351013
+    }
+   ]
+  },
+  {
+   "id": "A10r",
+   "question": "incremental training kya hoti hai aur batch learning isay use kyun nahi karti",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.5417609214782715
+    },
+    {
+     "rank": 2,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.528741717338562
+    },
+    {
+     "rank": 3,
+     "window_id": 10,
+     "start": 152.54,
+     "end": 183.16,
+     "score": 0.5195345282554626
+    },
+    {
+     "rank": 4,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.5156239867210388
+    },
+    {
+     "rank": 5,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.5089352130889893
+    },
+    {
+     "rank": 6,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.5001661777496338
+    },
+    {
+     "rank": 7,
+     "window_id": 28,
+     "start": 426.16,
+     "end": 455.68,
+     "score": 0.4938041865825653
+    },
+    {
+     "rank": 8,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.48338621854782104
+    },
+    {
+     "rank": 9,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.48218363523483276
+    },
+    {
+     "rank": 10,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.4819299876689911
+    }
+   ]
+  },
+  {
+   "id": "A11r",
+   "question": "batch learning ka flow data se model aur server tak kaise draw kiya hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.6511421203613281
+    },
+    {
+     "rank": 2,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.6435926556587219
+    },
+    {
+     "rank": 3,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.6006170511245728
+    },
+    {
+     "rank": 4,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.5713701248168945
+    },
+    {
+     "rank": 5,
+     "window_id": 28,
+     "start": 426.16,
+     "end": 455.68,
+     "score": 0.5693109035491943
+    },
+    {
+     "rank": 6,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.565460741519928
+    },
+    {
+     "rank": 7,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.5589742064476013
+    },
+    {
+     "rank": 8,
+     "window_id": 8,
+     "start": 121.38,
+     "end": 150.72,
+     "score": 0.5541071891784668
+    },
+    {
+     "rank": 9,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.5531392097473145
+    },
+    {
+     "rank": 10,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.5528280735015869
+    }
+   ]
+  },
+  {
+   "id": "A12r",
+   "question": "am taur par log batch learning models  ko kitni bar dubarah retrain krtay hain?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5106293559074402
+    },
+    {
+     "rank": 2,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.5064719915390015
+    },
+    {
+     "rank": 3,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.4929792582988739
+    },
+    {
+     "rank": 4,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.48352035880088806
+    },
+    {
+     "rank": 5,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.4833022654056549
+    },
+    {
+     "rank": 6,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.4764207899570465
+    },
+    {
+     "rank": 7,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.47574883699417114
+    },
+    {
+     "rank": 8,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.4741971790790558
+    },
+    {
+     "rank": 9,
+     "window_id": 28,
+     "start": 426.16,
+     "end": 455.68,
+     "score": 0.4718477725982666
+    },
+    {
+     "rank": 10,
+     "window_id": 27,
+     "start": 410.6,
+     "end": 441.26,
+     "score": 0.4663899540901184
+    }
+   ]
+  },
+  {
+   "id": "A13r",
+   "question": "data scientist batch model kahan train karta hai aur trained model kahan jata hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.5677216649055481
+    },
+    {
+     "rank": 2,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.5651569366455078
+    },
+    {
+     "rank": 3,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.5386688709259033
+    },
+    {
+     "rank": 4,
+     "window_id": 11,
+     "start": 168.4,
+     "end": 198.96,
+     "score": 0.5370354056358337
+    },
+    {
+     "rank": 5,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.5175533890724182
+    },
+    {
+     "rank": 6,
+     "window_id": 9,
+     "start": 136.88,
+     "end": 166.26,
+     "score": 0.5123950839042664
+    },
+    {
+     "rank": 7,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.5023468732833862
+    },
+    {
+     "rank": 8,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.5018138289451599
+    },
+    {
+     "rank": 9,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.4990499019622803
+    },
+    {
+     "rank": 10,
+     "window_id": 24,
+     "start": 364.92,
+     "end": 394.92,
+     "score": 0.49730968475341797
+    }
+   ]
+  },
+  {
+   "id": "A14r",
+   "question": "is video mein machine learning ki kaunsi do types parhayi jayengi",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.5350396633148193
+    },
+    {
+     "rank": 2,
+     "window_id": 1,
+     "start": 16.08,
+     "end": 46.62,
+     "score": 0.4828474819660187
+    },
+    {
+     "rank": 3,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.46597379446029663
+    },
+    {
+     "rank": 4,
+     "window_id": 2,
+     "start": 30.16,
+     "end": 58.98,
+     "score": 0.4615997076034546
+    },
+    {
+     "rank": 5,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.4587007164955139
+    },
+    {
+     "rank": 6,
+     "window_id": 12,
+     "start": 183.16,
+     "end": 213.26,
+     "score": 0.452579528093338
+    },
+    {
+     "rank": 7,
+     "window_id": 20,
+     "start": 304.06,
+     "end": 332.94,
+     "score": 0.4402804374694824
+    },
+    {
+     "rank": 8,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.4385506510734558
+    },
+    {
+     "rank": 9,
+     "window_id": 7,
+     "start": 106.94,
+     "end": 136.88,
+     "score": 0.4372619390487671
+    },
+    {
+     "rank": 10,
+     "window_id": 11,
+     "start": 168.4,
+     "end": 198.96,
+     "score": 0.4343937039375305
+    }
+   ]
+  },
+  {
+   "id": "A15r",
+   "question": "Lecturer Netflix recommendation engine ko train kar ke server pe dalne ko kis tarah bayan kar raha hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 17,
+     "start": 259.24,
+     "end": 290.38,
+     "score": 0.5472954511642456
+    },
+    {
+     "rank": 2,
+     "window_id": 16,
+     "start": 243.32,
+     "end": 273.88,
+     "score": 0.5430262684822083
+    },
+    {
+     "rank": 3,
+     "window_id": 15,
+     "start": 228.64,
+     "end": 259.24,
+     "score": 0.5041753053665161
+    },
+    {
+     "rank": 4,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.49291038513183594
+    },
+    {
+     "rank": 5,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.48763981461524963
+    },
+    {
+     "rank": 6,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.48232796788215637
+    },
+    {
+     "rank": 7,
+     "window_id": 20,
+     "start": 304.06,
+     "end": 332.94,
+     "score": 0.4820251762866974
+    },
+    {
+     "rank": 8,
+     "window_id": 26,
+     "start": 394.92,
+     "end": 423.68,
+     "score": 0.45840519666671753
+    },
+    {
+     "rank": 9,
+     "window_id": 10,
+     "start": 152.54,
+     "end": 183.16,
+     "score": 0.4528419077396393
+    },
+    {
+     "rank": 10,
+     "window_id": 1,
+     "start": 16.08,
+     "end": 46.62,
+     "score": 0.442920058965683
+    }
+   ]
+  },
+  {
+   "id": "A17r",
+   "question": "agar model ek dafa seekh ke wahin ruk jaye to kya masla hota hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.40665724873542786
+    },
+    {
+     "rank": 2,
+     "window_id": 38,
+     "start": 575.36,
+     "end": 604.58,
+     "score": 0.39795994758605957
+    },
+    {
+     "rank": 3,
+     "window_id": 24,
+     "start": 364.92,
+     "end": 394.92,
+     "score": 0.3965187072753906
+    },
+    {
+     "rank": 4,
+     "window_id": 39,
+     "start": 590.58,
+     "end": 620.58,
+     "score": 0.395635724067688
+    },
+    {
+     "rank": 5,
+     "window_id": 34,
+     "start": 515.54,
+     "end": 545.44,
+     "score": 0.3942798972129822
+    },
+    {
+     "rank": 6,
+     "window_id": 19,
+     "start": 288.06,
+     "end": 317.58,
+     "score": 0.3822498917579651
+    },
+    {
+     "rank": 7,
+     "window_id": 1,
+     "start": 16.08,
+     "end": 46.62,
+     "score": 0.3762330710887909
+    },
+    {
+     "rank": 8,
+     "window_id": 17,
+     "start": 259.24,
+     "end": 290.38,
+     "score": 0.3737330734729767
+    },
+    {
+     "rank": 9,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.3718085289001465
+    },
+    {
+     "rank": 10,
+     "window_id": 33,
+     "start": 501.22,
+     "end": 531.48,
+     "score": 0.37027108669281006
+    }
+   ]
+  },
+  {
+   "id": "A19r",
+   "question": "jab data itna bara ho jaye ke tools handle na kar sakein to kya hota hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 24,
+     "start": 364.92,
+     "end": 394.92,
+     "score": 0.4865233898162842
+    },
+    {
+     "rank": 2,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.4728452265262604
+    },
+    {
+     "rank": 3,
+     "window_id": 31,
+     "start": 471.1,
+     "end": 501.22,
+     "score": 0.4542829394340515
+    },
+    {
+     "rank": 4,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.45143818855285645
+    },
+    {
+     "rank": 5,
+     "window_id": 23,
+     "start": 350.88,
+     "end": 380.72,
+     "score": 0.45048871636390686
+    },
+    {
+     "rank": 6,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.4454568028450012
+    },
+    {
+     "rank": 7,
+     "window_id": 39,
+     "start": 590.58,
+     "end": 620.58,
+     "score": 0.44388824701309204
+    },
+    {
+     "rank": 8,
+     "window_id": 13,
+     "start": 198.96,
+     "end": 228.64,
+     "score": 0.4402562975883484
+    },
+    {
+     "rank": 9,
+     "window_id": 26,
+     "start": 394.92,
+     "end": 423.68,
+     "score": 0.4357677400112152
+    },
+    {
+     "rank": 10,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.4334520697593689
+    }
+   ]
+  },
+  {
+   "id": "A21r",
+   "question": "aaj wali types kis cheez pe based hain, supervision wali types ke muqable mein",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 1,
+     "start": 16.08,
+     "end": 46.62,
+     "score": 0.5429663062095642
+    },
+    {
+     "rank": 2,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.477385938167572
+    },
+    {
+     "rank": 3,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.43621689081192017
+    },
+    {
+     "rank": 4,
+     "window_id": 2,
+     "start": 30.16,
+     "end": 58.98,
+     "score": 0.43467751145362854
+    },
+    {
+     "rank": 5,
+     "window_id": 38,
+     "start": 575.36,
+     "end": 604.58,
+     "score": 0.4213537275791168
+    },
+    {
+     "rank": 6,
+     "window_id": 15,
+     "start": 228.64,
+     "end": 259.24,
+     "score": 0.4194360375404358
+    },
+    {
+     "rank": 7,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.416422963142395
+    },
+    {
+     "rank": 8,
+     "window_id": 34,
+     "start": 515.54,
+     "end": 545.44,
+     "score": 0.4158473014831543
+    },
+    {
+     "rank": 9,
+     "window_id": 41,
+     "start": 620.58,
+     "end": 650.08,
+     "score": 0.40929341316223145
+    },
+    {
+     "rank": 10,
+     "window_id": 25,
+     "start": 380.72,
+     "end": 410.6,
+     "score": 0.40831464529037476
+    }
+   ]
+  },
+  {
+   "id": "A22r",
+   "question": "model banane wale ke liye yeh difference janna kyun zaroori hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 7,
+     "start": 106.94,
+     "end": 136.88,
+     "score": 0.3683655261993408
+    },
+    {
+     "rank": 2,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.36607640981674194
+    },
+    {
+     "rank": 3,
+     "window_id": 18,
+     "start": 273.88,
+     "end": 304.06,
+     "score": 0.35874873399734497
+    },
+    {
+     "rank": 4,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.356756329536438
+    },
+    {
+     "rank": 5,
+     "window_id": 38,
+     "start": 575.36,
+     "end": 604.58,
+     "score": 0.3567349910736084
+    },
+    {
+     "rank": 6,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.16,
+     "score": 0.35480114817619324
+    },
+    {
+     "rank": 7,
+     "window_id": 1,
+     "start": 16.08,
+     "end": 46.62,
+     "score": 0.35310328006744385
+    },
+    {
+     "rank": 8,
+     "window_id": 36,
+     "start": 545.44,
+     "end": 575.36,
+     "score": 0.35107526183128357
+    },
+    {
+     "rank": 9,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.3507395088672638
+    },
+    {
+     "rank": 10,
+     "window_id": 39,
+     "start": 590.58,
+     "end": 620.58,
+     "score": 0.34491589665412903
+    }
+   ]
+  },
+  {
+   "id": "A23r",
+   "question": "Lecturer k mutabiq , Agar platform ke users har mahine double hote jayein to kya hota hai,",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 6,
+     "start": 90.78,
+     "end": 121.38,
+     "score": 0.5152020454406738
+    },
+    {
+     "rank": 2,
+     "window_id": 34,
+     "start": 515.54,
+     "end": 545.44,
+     "score": 0.5006124973297119
+    },
+    {
+     "rank": 3,
+     "window_id": 43,
+     "start": 650.08,
+     "end": 680.22,
+     "score": 0.4843885004520416
+    },
+    {
+     "rank": 4,
+     "window_id": 14,
+     "start": 213.26,
+     "end": 243.32,
+     "score": 0.48408907651901245
+    },
+    {
+     "rank": 5,
+     "window_id": 44,
+     "start": 664.34,
+     "end": 687.86,
+     "score": 0.48187291622161865
+    },
+    {
+     "rank": 6,
+     "window_id": 39,
+     "start": 590.58,
+     "end": 620.58,
+     "score": 0.4817861318588257
+    },
+    {
+     "rank": 7,
+     "window_id": 29,
+     "start": 441.26,
+     "end": 471.1,
+     "score": 0.4806922674179077
+    },
+    {
+     "rank": 8,
+     "window_id": 35,
+     "start": 531.48,
+     "end": 561.32,
+     "score": 0.4761372208595276
+    },
+    {
+     "rank": 9,
+     "window_id": 5,
+     "start": 75.28,
+     "end": 104.56,
+     "score": 0.4751829504966736
+    },
+    {
+     "rank": 10,
+     "window_id": 37,
+     "start": 561.32,
+     "end": 590.58,
+     "score": 0.4745826721191406
+    }
+   ]
+  }
+ ]
+}

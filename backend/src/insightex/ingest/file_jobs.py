@@ -43,10 +43,10 @@ class FileIngest:
     rejected: IngestRejected | None = None  # set when the file was refused before staging; job_id is then a failed job
 
 
-def _current_lecture(workspaces: Workspaces, workspace_id: str, language_id: str) -> bool:
+def _current_lecture(workspaces: Workspaces, workspace_id: str, language_id: str, settings: Settings) -> bool:
     """True if the workspace holds a finished `normalise` made by the current normaliser version and a finished
     `asr` transcript in `language_id` made by the current stage version (another language means a new ASR run),
-    and a finished `index` made by the current stage version."""
+    and a finished `index` made by the current stage version with the current model and window settings."""
     directory = workspaces.stage_output_dir(workspace_id, "normalise")
     if directory is None or not (directory / engine.VIDEO_NAME).is_file():
         return False
@@ -73,7 +73,12 @@ def _current_lecture(workspaces: Workspaces, workspace_id: str, language_id: str
         meta = json.loads((index_dir / INDEX_JSON).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return False
-    return meta.get("stage_version") == IndexStage.version
+    i = settings.index
+    return (meta.get("stage_version") == IndexStage.version
+            and meta.get("model", {}).get("revision") == i.model_revision
+            and meta.get("windows", {}).get("window_s") == i.window_s
+            and meta.get("windows", {}).get("stride_s") == i.stride_s
+            and meta.get("windows", {}).get("snap_to_segments") == i.snap_to_segments)
 
 
 def enqueue_file(
@@ -137,7 +142,7 @@ def enqueue_staged(
                 if job.kind == KIND and job.workspace_id == workspace_id and job.payload.get("language") == lang.id:
                     staging.remove_staged(settings, staged.name)
                     return FileIngest(workspace_id, job.id, True)
-        if _current_lecture(workspaces, workspace_id, lang.id):
+        if _current_lecture(workspaces, workspace_id, lang.id, settings):
             staging.remove_staged(settings, staged.name)
             return FileIngest(workspace_id, None, True)
         payload = {
