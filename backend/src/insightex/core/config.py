@@ -271,6 +271,40 @@ class Asr(_Section):
         return v if v.is_absolute() else repo_root() / v
 
 
+class Index(_Section):
+    """Index stage (M5): windowing, BGE-M3 dense encoding on the GPU, FAISS index per lecture."""
+
+    model_repo: str
+    model_revision: str
+    device: str
+    device_index: int
+    dtype: str
+    max_seq_length: int
+    batch_size: int
+    window_s: float
+    stride_s: float
+    min_free_vram_mib: int
+    timeout_min_s: float
+    kill_grace_s: float
+    vram_poll_interval_s: float
+
+    @field_validator("window_s", "stride_s")
+    @classmethod
+    def _positive(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("must be greater than 0")
+        return v
+
+
+class Retrieval(_Section):
+    """Query side of retrieval (M5): where questions are encoded, how many candidates, overlap de-duplication."""
+
+    query_device: str
+    query_dtype: str
+    candidates: int
+    dedupe_overlap: float
+
+
 class Settings(_Section):
     paths: Paths
     api: Api
@@ -282,6 +316,8 @@ class Settings(_Section):
     sources: Sources
     cache: Cache
     asr: Asr
+    index: Index
+    retrieval: Retrieval
 
     @model_validator(mode="before")
     @classmethod

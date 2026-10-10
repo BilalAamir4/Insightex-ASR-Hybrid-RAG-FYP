@@ -50,6 +50,12 @@ def fake_asr(request, monkeypatch):
     transcriber, gpu = FakeTranscriber(), FakeGpu()
     monkeypatch.setattr(asr_stage, "make_transcriber", lambda settings: transcriber)
     monkeypatch.setattr(asr_stage, "gpu_vram", gpu)
+    from asr_fakes import FakeEncoder
+
+    from insightex.index import stage as index_stage
+
+    monkeypatch.setattr(index_stage, "make_encoder", lambda settings: FakeEncoder())
+    monkeypatch.setattr(index_stage, "gpu_vram", gpu)
     yield transcriber, gpu
 
 

@@ -56,3 +56,33 @@ class FakeGpu:
     def __call__(self, device_index: int = 0) -> Vram:
         self.queries += 1
         return Vram(self.free_mib, self.used_mib)
+
+
+class FakeEncoder:
+    """Index-stage encoder without a model: unit vectors derived from each text's hash. Records each request."""
+
+    def __init__(self, error: Exception | None = None, dim: int = 8):
+        self.error, self.dim = error, dim
+        self.calls: list[Any] = []
+
+    def encode(self, request, tick):
+        import hashlib
+        import json
+
+        import numpy as np
+
+        from insightex.index.encoder import EncodeResult
+
+        self.calls.append(request)
+        tick()
+        if self.error is not None:
+            raise self.error
+        texts = json.loads(request.texts_path.read_text(encoding="utf-8"))
+        vecs = np.zeros((len(texts), self.dim), dtype=np.float32)
+        for i, t in enumerate(texts):
+            rng = np.random.RandomState(int(hashlib.sha256(t.encode()).hexdigest()[:8], 16))
+            v = rng.randn(self.dim).astype(np.float32)
+            vecs[i] = v / np.linalg.norm(v)
+        np.save(request.out_path, vecs, allow_pickle=False)
+        return EncodeResult(load_s=1.0, encode_s=0.5, count=len(texts), dim=self.dim, n_truncated=0,
+                            peak_allocated_mib=1100.0, peak_vram_mib=1200)

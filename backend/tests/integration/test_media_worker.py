@@ -84,7 +84,7 @@ def test_kill_dash_9_during_normalisation_then_resume(corpus, monkeypatch):
         assert second.wait(timeout=20) == 0
     job = store.get_job(conn, result.job_id)
     assert job.status == "succeeded", job.error
-    assert job.attempts == 2 and [s.status for s in job.stages] == ["cached", "succeeded", "succeeded"]
+    assert job.attempts == 2 and [s.status for s in job.stages] == ["cached", "succeeded", "succeeded", "succeeded"]
     assert leftovers(settings) == []
     out = settings.jobs.workspaces_dir / result.workspace_id / "stages" / "normalise"
     assert (next(out.iterdir()) / "video.mp4").stat().st_size > 0

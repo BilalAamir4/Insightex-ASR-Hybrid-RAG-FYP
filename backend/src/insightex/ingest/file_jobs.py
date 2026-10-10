@@ -21,6 +21,8 @@ from insightex.asr.languages import require_language
 from insightex.asr.stage import AsrStage
 from insightex.asr.transcript import SCHEMA_VERSION, TRANSCRIPT_JSON
 from insightex.core.config import Settings
+from insightex.index.stage import IndexStage
+from insightex.index.store import INDEX_JSON
 from insightex.ingest import staging
 from insightex.ingest.errors import ErrorCode, IngestRejected
 from insightex.ingest.settings import IngestSettings
@@ -43,7 +45,8 @@ class FileIngest:
 
 def _current_lecture(workspaces: Workspaces, workspace_id: str, language_id: str) -> bool:
     """True if the workspace holds a finished `normalise` made by the current normaliser version and a finished
-    `asr` transcript in `language_id` made by the current stage version (another language means a new ASR run)."""
+    `asr` transcript in `language_id` made by the current stage version (another language means a new ASR run),
+    and a finished `index` made by the current stage version."""
     directory = workspaces.stage_output_dir(workspace_id, "normalise")
     if directory is None or not (directory / engine.VIDEO_NAME).is_file():
         return False
@@ -60,8 +63,17 @@ def _current_lecture(workspaces: Workspaces, workspace_id: str, language_id: str
         doc = json.loads((asr_dir / TRANSCRIPT_JSON).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return False
-    return (doc.get("language", {}).get("id") == language_id and doc.get("stage_version") == AsrStage.version
-            and doc.get("schema_version") == SCHEMA_VERSION)
+    if not (doc.get("language", {}).get("id") == language_id and doc.get("stage_version") == AsrStage.version
+            and doc.get("schema_version") == SCHEMA_VERSION):
+        return False
+    index_dir = workspaces.stage_output_dir(workspace_id, IndexStage.name)  # a lecture without a search index is not current
+    if index_dir is None:
+        return False
+    try:
+        meta = json.loads((index_dir / INDEX_JSON).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return meta.get("stage_version") == IndexStage.version
 
 
 def enqueue_file(

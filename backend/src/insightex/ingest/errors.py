@@ -46,6 +46,10 @@ class ErrorCode(StrEnum):
     TRANSCRIBE_CRASHED = "TRANSCRIBE_CRASHED"
     TRANSCRIBE_TIMEOUT = "TRANSCRIBE_TIMEOUT"
     EMPTY_TRANSCRIPT = "EMPTY_TRANSCRIPT"
+    # Added by M5 (ADR-0044): the index stage. GPU and model-load failures reuse the codes above.
+    ENCODE_CRASHED = "ENCODE_CRASHED"
+    ENCODE_TIMEOUT = "ENCODE_TIMEOUT"
+    NO_WINDOWS = "NO_WINDOWS"
 
 
 DEFAULT_MESSAGES: dict[ErrorCode, str] = {
@@ -116,6 +120,9 @@ DEFAULT_MESSAGES: dict[ErrorCode, str] = {
         "No speech was recognised in this lecture. Check that it has audible speech and that the right language "
         "was chosen, then add it again."
     ),
+    ErrorCode.ENCODE_CRASHED: "Preparing the lecture for search stopped unexpectedly. Retry the job; if it fails again, check the worker log.",
+    ErrorCode.ENCODE_TIMEOUT: "Preparing the lecture for search took too long and was stopped. Retry the job when the computer is less busy.",
+    ErrorCode.NO_WINDOWS: "The transcript has no text to search. Check that the lecture has audible speech, then add it again.",
 }
 
 

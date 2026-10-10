@@ -152,3 +152,25 @@ asr:                                # ASR stage (M4 session 2): docs/adr/0042-*.
       max_speech_duration_s: .inf   # seconds; longer chunks are split (.inf = never; stored as "inf" in JSON)
       min_silence_duration_ms: 2000  # milliseconds of silence that end a speech chunk
       speech_pad_ms: 400            # milliseconds of padding around each speech chunk
+
+index:                              # index stage (M5): docs/adr/0043-*.md (gate rules), docs/adr/0044-*.md (stage design)
+  model_repo: BAAI/bge-m3           # Hugging Face repo of the embedding model, loaded from the offline cache only (ADR-0001)
+  model_revision: 5617a9f61b028005a4858fdac845db406aefb181  # HF snapshot hash to load; pinned so a cache update cannot change vectors
+  device: cuda                      # device that encodes the windows at ingest
+  device_index: 0                   # GPU index
+  dtype: float16                    # model precision on the GPU (the bake-off's; the query side may differ, see retrieval.query_dtype)
+  max_seq_length: 1024              # tokens; longer window text is truncated (bake-off seq1024)
+  batch_size: 16                    # texts per encoder batch
+  window_s: 30                      # seconds; length of a window
+  stride_s: 30                      # seconds between window starts (= window_s: no overlap)
+  min_free_vram_mib: 2500           # MiB; free VRAM (nvidia-smi) required before the subprocess starts, else INSUFFICIENT_VRAM
+  timeout_min_s: 600                # seconds; the encoder subprocess is killed after this long
+  kill_grace_s: 5                   # seconds between SIGTERM and SIGKILL when the subprocess is stopped
+  vram_poll_interval_s: 1.0         # seconds between nvidia-smi reads for the peak-VRAM statistic
+
+retrieval:                          # query side (M5): docs/adr/0043-*.md
+  query_device: cpu                 # device that encodes questions in the API process; the GPU belongs to Ollama at query time
+  query_dtype: float32              # model precision for question encoding
+  candidates: 10                    # windows returned by one raw search, best first
+  dedupe_overlap: 0.5               # fraction; a window overlapping a higher-ranked one by more than this is dropped (deduplicated search)
+

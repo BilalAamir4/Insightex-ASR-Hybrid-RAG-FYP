@@ -8,6 +8,7 @@
     insightex gpu status         GPU lease free or busy
     insightex cache ...          list, delete, pin, unpin, gc
     insightex jobs ...           enqueue-dummy, list, show, cancel, retry (insightex.jobs.cli)
+    insightex search <lecture>   ranked windows for questions (insightex.retrieval.cli)
     insightex probe|ingest|ingest-file ...   link and local-file ingestion (insightex.ingest.cli)
 """
 
@@ -63,6 +64,10 @@ def _languages(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "search":
+        from insightex.retrieval.cli import main as search_main
+
+        return search_main(argv[1:])
     if argv and argv[0] in ("probe", "ingest", "ingest-file", "-v", "--verbose"):
         from insightex.ingest.cli import main as ingest_main
 
@@ -79,6 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     from insightex.jobs import cli as jobs_cli
 
     jobs_cli.register(sub)
+    sub.add_parser("search", help="rank a lecture's windows for questions (see: insightex search --help)")
     sub.add_parser("probe", help="print metadata for a link (see: insightex probe <url>)")
     sub.add_parser("ingest", help="enqueue a link ingest job (see: insightex ingest <url> --confirm-rights)")
     sub.add_parser("ingest-file", help="ingest a local video (see: insightex ingest-file <path> --confirm-rights)")

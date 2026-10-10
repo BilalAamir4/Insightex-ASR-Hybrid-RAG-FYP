@@ -539,7 +539,7 @@ def assert_refused_before_staging(settings, result, code):
     job = store.get_job(conn, result.job_id)
     assert job.status == "failed" and job.kind == "ingest_file" and job.finished_at
     assert job.error.startswith(f"fetch failed: IngestRejected: {code}:")
-    assert [s.status for s in job.stages] == ["failed", "pending", "pending"] and f"IngestRejected: {code}" in job.stages[0].error
+    assert [s.status for s in job.stages] == ["failed", "pending", "pending", "pending"] and f"IngestRejected: {code}" in job.stages[0].error
     assert store.claim_next(conn, 1) is None, "a refused job must not be claimable"
     assert not settings.ingest.file.staging_dir.exists(), "nothing was written to staging"
     assert not settings.jobs.workspaces_dir.exists() or list(settings.jobs.workspaces_dir.iterdir()) == []

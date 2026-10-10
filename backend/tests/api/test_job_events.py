@@ -68,6 +68,7 @@ def test_events_follow_the_database_in_order_and_close_after_the_terminal_event(
         (0.15, lambda c: store.update_stage(c, job_id, 0, status="succeeded", progress=1.0)),
         (0.15, lambda c: store.update_stage(c, job_id, 1, status="succeeded", progress=1.0)),
         (0.15, lambda c: store.update_stage(c, job_id, 2, status="succeeded", progress=1.0)),
+        (0.15, lambda c: store.update_stage(c, job_id, 3, status="succeeded", progress=1.0)),
         (0.15, lambda c: store.finish(c, job_id, "succeeded")),
     ]
     t = _driver(settings, job_id, steps)
@@ -79,7 +80,7 @@ def test_events_follow_the_database_in_order_and_close_after_the_terminal_event(
     t.join()
     docs = [d for _, d in events]
     assert docs[0]["status"] == "queued"
-    assert docs[-1]["status"] == "succeeded" and [s["status"] for s in docs[-1]["stages"]] == ["succeeded"] * 3
+    assert docs[-1]["status"] == "succeeded" and [s["status"] for s in docs[-1]["stages"]] == ["succeeded"] * 4
     statuses = [d["status"] for d in docs]
     assert statuses == sorted(statuses, key=["queued", "running", "succeeded"].index)
     assert any(d["stages"][0]["progress"] == 0.4 and d["stages"][0]["message"] == "40%" for d in docs)

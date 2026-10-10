@@ -22,7 +22,7 @@ def test_youtube_link_is_enqueued_with_its_workspace_id(client, conn):
     assert body["workspace_id"] == "yt-dQw4w9WgXcQ" and body["deduplicated"] is False
     job = store.get_job(conn, body["job_id"])
     assert job.kind == "ingest_link" and job.status == "queued" and job.payload == {"url": YT, "language": "hindi"}
-    assert [s.name for s in job.stages] == ["fetch", "normalise", "asr"]
+    assert [s.name for s in job.stages] == ["fetch", "normalise", "asr", "index"]
 
 
 def test_same_youtube_workspace_while_active_returns_the_existing_job(client):
@@ -85,7 +85,7 @@ def test_job_document_matches_the_model(client):
     assert set(doc) == set(JobOut.model_fields)
     JobOut.model_validate(doc)
     assert doc["status"] == "queued" and doc["workspace_deleted"] is False and doc["workspace_id"] == "yt-dQw4w9WgXcQ"
-    assert [s["name"] for s in doc["stages"]] == ["fetch", "normalise", "asr"]
+    assert [s["name"] for s in doc["stages"]] == ["fetch", "normalise", "asr", "index"]
     assert set(doc["stages"][0]) == {"name", "status", "progress", "message", "error"}
     assert doc["stages"][0]["status"] == "pending" and doc["stages"][0]["progress"] == 0
 
