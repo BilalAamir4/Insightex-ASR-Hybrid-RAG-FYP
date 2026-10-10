@@ -90,7 +90,7 @@ A `: keepalive` comment is sent after `api.sse_keepalive_s` of silence. After th
 | Request | Response |
 |---|---|
 | `GET /api/lectures` | `{"lectures": [{"lecture_id", "title", "duration_s", "thumbnail_url", "created_at", "language"}]}`, newest first; only workspaces whose `normalise` stage is complete. `language` is `{id, label, tier}` of the current transcript (tier from the current config), or `null` when the lecture has no transcript |
-| `GET /api/lectures/{id}` | the item above plus `video_url`, `external_timestamp_url_template` (`null` unless YouTube) and `warnings` (the `{code, detail}` list from `normalise.json`, for example `AUDIO_NEAR_SILENT`, `ROTATED`) |
+| `GET /api/lectures/{id}` | the item above plus `video_url`, `external_timestamp_url_template` (`null` unless YouTube) and `warnings` (the `{code, detail}` list from `normalise.json`, for example `AUDIO_NEAR_SILENT`, `ROTATED`, followed by the current transcript's `{code, message, segment_ids}` warnings, `TEMPERATURE_FALLBACK` and `HIGH_COMPRESSION_RATIO`; the UI shows a plain sentence per code, never the code) |
 | `GET/HEAD /api/lectures/{id}/video` | `video/mp4`, Range requests (`206`, `Content-Range`, `416`) |
 | `GET/HEAD /api/lectures/{id}/thumbnail` | `image/jpeg` |
 | `DELETE /api/lectures/{id}` | **204**; **409** `LECTURE_BUSY` while a queued or running job uses it; 404 `LECTURE_NOT_FOUND` |

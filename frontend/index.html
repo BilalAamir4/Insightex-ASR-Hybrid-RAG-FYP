@@ -161,6 +161,7 @@
 
 <script type="module">
 import { parseTimestamp, formatTimestamp } from "./timestamp.js";
+import { describeWarning } from "./warnings.js";
 import { PLACEHOLDER, UNTESTED_BADGE, UNTESTED_TOOLTIP, languageDisplay, sortedGroups } from "./languages.js";
 
 const $ = (id) => document.getElementById(id);
@@ -237,19 +238,6 @@ const SERVER_DETAIL_CODES = new Set(["INSUFFICIENT_VRAM", "UNKNOWN_LANGUAGE"]);
 const describeError = (code, serverMessage) =>
   (SERVER_DETAIL_CODES.has(code) && serverMessage) ? serverMessage
     : ERROR_MESSAGES[code] ?? `${serverMessage || GENERIC_ERROR}${code ? ` (${code})` : ""}`;
-
-/** Warnings written by the normaliser (normalise.json) shown as notices on the player. */
-const WARNING_MESSAGES = {
-  AUDIO_NEAR_SILENT: "The audio is very quiet, so the transcript may be poor.",
-  ROTATED: "This video was recorded rotated; it has been turned upright.",
-  MULTIPLE_AUDIO_STREAMS: "The file has several audio tracks; the first suitable one was used.",
-  VFR_SOURCE: "The video has a variable frame rate and was converted to a steady one.",
-  START_OFFSET_CORRECTED: "The sound and picture started at slightly different times; this was corrected.",
-  AV_DURATION_MISMATCH: "The sound and picture differ in length by more than a second.",
-  TEMPERATURE_FALLBACK: "Some parts of the transcript needed a second decoding attempt; they may differ between runs.",
-  HIGH_COMPRESSION_RATIO: "Some parts of the transcript look repetitive and may be inaccurate.",
-};
-const describeWarning = (w) => WARNING_MESSAGES[w.code] ?? `Notice: ${w.code}${w.detail ? ` (${w.detail})` : ""}`;
 
 /** The error code inside a stage error line such as "IngestRejected: NO_VIDEO_STREAM: ...", else null. */
 const codeInStageError = (line) => /^(?:IngestRejected|IngestError|AsrError): ([A-Z_]+):/.exec(line)?.[1] ?? null;

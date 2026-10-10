@@ -114,13 +114,13 @@ def test_lecture_without_a_transcript_has_language_null(client, make_lecture):
     assert client.get("/api/lectures").json()["lectures"][0]["language"] is None
 
 
-def _add_transcript(workspaces, lecture_id, language_id, key="c" * 16):
+def _add_transcript(workspaces, lecture_id, language_id, key="c" * 16, warnings=None):
     asr = workspaces.stage_dir(lecture_id, "asr", key)
     asr.mkdir(parents=True)
     (asr / "transcript.json").write_text("{}")
     (asr / "transcript.vtt").write_text("WEBVTT\n")
     workspaces.record_stage(lecture_id, "asr", key, 1.0, ["transcript.json", "transcript.vtt"],
-                            extra={"language": {"id": language_id, "whisper_language": "x"}, "warnings": []})
+                            extra={"language": {"id": language_id, "whisper_language": "x"}, "warnings": warnings or []})
 
 
 def test_lecture_language_comes_from_the_manifest_with_the_current_tier(client, make_lecture, workspaces, app_settings,
@@ -143,3 +143,24 @@ def test_lecture_language_comes_from_the_manifest_with_the_current_tier(client, 
     settings = load_settings({"asr": {"languages_file": str(promoted)}})
     with TestClient(create_app(settings)) as c:
         assert c.get(f"/api/lectures/{lecture_id}").json()["language"]["tier"] == "tested"
+
+
+def test_lecture_detail_carries_the_transcript_warnings_with_their_codes(client, make_lecture, workspaces):
+    lecture_id = make_lecture()
+    assert client.get(f"/api/lectures/{lecture_id}").json()["warnings"] == []
+    warnings = [{"code": "TEMPERATURE_FALLBACK", "message": "2 segment(s) needed temperature fallback", "segment_ids": [3, 9]},
+                {"code": "HIGH_COMPRESSION_RATIO", "message": "1 segment(s) look repetitive", "segment_ids": [4]}]
+    _add_transcript(workspaces, lecture_id, "hindi", warnings=warnings)
+    assert client.get(f"/api/lectures/{lecture_id}").json()["warnings"] == warnings  # codes stay in the API
+
+
+def test_transcript_warnings_follow_the_normaliser_warnings(client, make_lecture, workspaces):
+    import json
+
+    lecture_id = make_lecture()
+    normalise = workspaces.stage_output_dir(lecture_id, "normalise")
+    (normalise / "normalise.json").write_text(json.dumps({"duration_s": 60.5, "warnings": [{"code": "ROTATED", "detail": "90"}]}))
+    asr_warning = {"code": "TEMPERATURE_FALLBACK", "message": "m", "segment_ids": [1]}
+    _add_transcript(workspaces, lecture_id, "hindi", warnings=[asr_warning])
+    codes = [w["code"] for w in client.get(f"/api/lectures/{lecture_id}").json()["warnings"]]
+    assert codes == ["ROTATED", "TEMPERATURE_FALLBACK"]

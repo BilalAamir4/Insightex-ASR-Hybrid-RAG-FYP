@@ -52,6 +52,14 @@ def _language(workspaces: Workspaces, lecture_id: str, languages: Languages):
     return language_out(languages, (entry.get("language") or {}).get("id"))
 
 
+def _asr_warnings(workspaces: Workspaces, lecture_id: str) -> list[dict]:
+    """Warnings of the lecture's current transcript, from the manifest entry (codes and segment ids, no text)."""
+    if workspaces.stage_output_dir(lecture_id, "asr") is None:
+        return []
+    warnings = (workspaces.read_manifest(lecture_id)["stages"].get("asr") or {}).get("warnings")
+    return warnings if isinstance(warnings, list) else []
+
+
 def _item(workspaces: Workspaces, lecture_id: str, normalised: Path, created_at: str | None,
           languages: Languages) -> LectureItem:
     fetched = workspaces.stage_output_dir(lecture_id, "fetch")
@@ -91,8 +99,9 @@ def get_lecture(lecture_id: str, request: Request):
     fetched = workspaces.stage_output_dir(lecture_id, "fetch")
     template = _json(fetched / SOURCE_JSON).get("external_timestamp_url_template") if fetched else None
     warnings = _json(directory / NORMALISE_JSON).get("warnings")
+    warnings = [*(warnings if isinstance(warnings, list) else []), *_asr_warnings(workspaces, lecture_id)]
     return LectureOut(**item.model_dump(), video_url=f"/api/lectures/{lecture_id}/video",
-                      warnings=warnings if isinstance(warnings, list) else [],
+                      warnings=warnings,
                       external_timestamp_url_template=template)
 
 
