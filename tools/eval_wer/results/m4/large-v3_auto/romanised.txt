@@ -1,0 +1,324 @@
+Hello guys, welcome to my YouTube channel
+This is 100 days of machine learning
+and we are into day 4
+and today we are going to discuss one more topic
+and it is
+batch versus online learning
+okay, so
+pichale viiddiyo mem hamane types of machine learning paddhaa thaa
+jahaampe hamane different types
+dekhe the machine learning ke on the basis of
+amount of supervision required
+to train a machine learning algorithm
+right, to hamane kal
+alag lag types dekhe supervised
+unsupervised, semi -supervised
+reinforcement, aaj bhii ham log
+types of machine learning hii paddhane vaale haim
+but aaj jo ham types ddisakas karemge
+vo ek completely different ciiz ke upar
+based out hogaa, tthiik hai, so aaj
+jo ham log types paddhane vaale machine learning ke
+vo is ciiz par depend karataa hai
+ki machine learning model
+train kaise hotaa hai, tthiik hai, especially
+production par, right, now
+you might think production kyaa hotaa hai
+kabhii bhii aap koii software banaate ho
+to vo aapake machine par baitthaa
+nahiim rahataa, vo aapake
+customers ke paas jaanaa caahie
+aur usakaa ek hii tariikaa hai ki aap
+apane code ko kisii server par run karaao
+jisakaa IP address aapake customers ke paas
+hogaa, vo us IP address par hit karemge
+aur aapake application ko access kar paaemge
+machine learning is no different, jab aap machine
+learning ke software banaate ho, to aap
+usako bhii server par deploy karate ho
+aur jo server kaa
+environment hai jahaam pe aapakaa code
+run kar rahaa hotaa hai, usako production environment bolate hai
+jab aap usako code kar rahe hote ho apane machine
+par to usako development environment bolate hai, tthiik hai
+now, machine learning
+ke jo software hote haim
+yaa machine learning jo hotaa hai, vo
+server pe alag -alag ddhamg se
+behave karataa hai yaa alag -alag ddhamg se calataa hai
+tthiik hai, usii ke basis pe ham log
+do different types aaj paddhane vaale machine learning ke
+one of them is batch learning
+yaa phir batch machine learning
+jisako ham log offline learning bhii bolate haim
+and the second one is online machine learning
+yaa phir online learning, tthiik hai
+to in donom ko ham log bahut detail mem paddhemge
+kyomki to be honest
+ye important hai, kyomki at the end
+aap sirpha machine learning models banaa ke
+apane machine pe nahiim rakhane vaale, apane computer pe nahiim rakhane vaale
+aap usako server pe deploy karoge so that
+other people can use it, to aapako
+idea honaa caahie ki batch aur
+online learning mem kyaa difference hai, tthiik hai
+so that's the intro part
+now let's discuss
+ki batch learning kyaa hotaa hai
+what is batch learning, tthiik hai
+so batch learning is the conventional
+way of training a machine learning model
+jahaam pe aap kyaa karate ho, aap
+puure ke puure data ko ek saath
+use karate ho, machine learning ko
+train karane ke lie, machine learning model ko train karane ke lie
+matalab batch ke case mem
+jab aap training karavaate ho
+to aap apane puure data ko utilize karate ho
+there is no incremental training
+incremental training kaa matalab aap
+cotte cotte ttukaddom mem training nahiim karaate
+aap puure ke puure lot ke saath
+training karate ho, tthiik hai
+ab since jo data hotaa hai
+generally, agar aap kisii real world problem ke uupar
+kar rahe ho, to data jo hogaa vo baddaa hogaa
+generally baddaa hii hotaa hai
+to bahut baddaa data ko agar aap
+server pe train karane jaao, no doubt aap
+kar sakate ho aisaa, but aisaa koii karataa nahiim hai
+kyomki it would be costly and time taking
+to generally jo batch
+learning hotaa hai, jahaam pe aap puure data ke saath
+ek saath train kar rahe ho, vo aap offline
+karate ho, apane machine pe, data scientist
+machine learning engineer, usako apane machine
+pe train karataa hai, aur jab vo model train
+ho jaataa hai, to jo siikhaa huaa model hai
+usako utthaa ki aap production environment mem ddaalate ho
+so this is called batch
+learning, where you
+take up your entire data, you
+train your machine learning model on an
+offline system, and then once
+the model is trained, then you deploy
+it onto a server, this is
+the entire flow of batch learning
+I'll draw it for you, so
+hotaa kyaa hai, bahut simple hai
+aapake paas data hai
+this is your data
+and this is your model
+right, aap
+apane data ko model pe ddaalate ho
+model train ho jaataa hai, train
+hone ke baad, you test the model
+you just be
+sure ki jo maimne train kiyaa hai
+vo sahii hai ki nahiim, once you are sure
+you put it on the server
+this is the server, tthiik hai
+and over there
+aapakaa machine learning model run karataa
+rahegaa, jab bhii user
+kuch bhii data degaa, aapakaa machine
+learning model predictions karate rahegaa, it could be
+anything, matalab let's say aap
+Netflix mem kaam karate ho aur aapako ek recommendation
+engine manaanaa hai, jo users ko movie
+select karake bataae, tthiik hai
+to in that case aap kyaa karoge, vo recommendation
+engine ko train karoge apane machine pe
+aur usako utthaa ke Netflix ke server pe ddaal doge
+jahaam par users jab jab aaemge
+to aapakaa system automatically unako
+movie suggest karataa rahegaa, right
+but I guess aapako is
+ciij mem ek problem samajh mem aa rahaa hogaa
+is ciij kaa problem yah hai
+ki aapakaa
+model static hai, jab vo ek baar
+siikh gayaa to siikh gayaa, vo kuch
+Netflix kaa baat kar rahe haim, Netflix kaa aapane
+recommendation engine jo banaayaa thaa, let's say aapane aaj
+banaayaa, to aaj Netflix ke database
+mem jitanii movies the aapane sabako consider karake
+banaayaa, but Netflix to har hafate
+naii movies add karataa jaataa hai, to aapakaa
+recommendation engine should always
+grow in order to incorporate
+those new movies, right, to in a way
+maim kyaa bol rahaa huum ki aapakaa machine learning
+model ko constantly evolve karate rahanaa paddegaa
+data ke saath, kyomki agar aap aisaa
+nahiim karoge, to phir kyaa phaaidaa
+naii movies ke upar aapakaa recommendation kaam
+hii nahiim kar rahaa, same kaam email spam
+classifier mem bhii ho sakataa hai, aapakaa email
+spam classifier aaj kii date se
+aaj kii date ke saap se ekadam up to date hai
+batt aapane ek baar server pe ddaal diyaa
+usake baad koii training nahiim huii, aapane
+ek saal tak vaise hii chodd diyaa, batt is
+ek saal mem to jo marketeers hote haim
+vo log nae nae techniques nikaal lemge
+spam emails banaane ke, jo
+spam folder mem naa ghuse, to agar
+this entire thing periodically, so what they do
+is ki vo
+nayaa data leke aate haim
+ye data puure time update ho rahaa hotaa hai
+ye update ho rahaa hotaa hai
+kisii bhii frequency par update ho sakataa hai
+maalo 24 hours mem update ho rahaa hai
+yaa 1 week mem update ho rahaa hai, yaa 1 month
+mem update ho rahaa hai, aapakaa kaam kyaa hai
+ki jaise ye data update ho rahaa hai, aap
+kyaa kar raho, jo bhii nayaa data hai
+aur jo puraanaa data hai, sab ko merge karake
+phir se model ko train karaa raho
+once the model is trained, aap
+usako dobaaraa se test kar raho
+aur test karake aap usako
+dobaaraa se server par ddaal raho
+so basically ye jo puraa process hai, ye
+circles mem hotaa hai, baar baar repeat hotaa
+rahataa hai, in a given period, this could
+be a 24 hour period, this could be
+a week period or a month period
+yaa phir 6 months period, generally
+log bahut fast ye karanaa caahate haim
+but it depends, kitanaa
+fast hai, it depends
+on the amount of data
+like agar aapake vaas huge amount of data hai
+to train karane mem bhii time lagegaa
+so generally people do it on a basis
+of per week
+yaa phir 24 hours, but yeah
+that is what batch learning is
+batch learning ko ek baar summarize kar raho huum hai
+batch learning is where
+you train your machine learning model
+with your entire data, there is no
+incremental learning and that is
+why, since generally the data is
+big, you don't train it online
+on the server, instead what you do is
+you pull down your model, you retrain
+it with the new data and then
+you put it on the server again and
+again, ye aap periodically karate ho, tthiik hai
+so that is what batch learning is
+agar aapase koii puuche ki disadvantage
+kyaa hai, batch learning kaa
+to pahalaa disadvantage to
+ye hai, ki agar aapake paas
+bahut jaadaa data hai, maalo
+data bahut baddaa hote jaae, dhiire dhiire
+aap bahut tejii se scale kar rahe ho, aap ek social network
+ho jo har ek mahine mem, do mahine mem
+double, triple, four times ho rahaa hai
+to amount of data bhii bahut baddhate jaa rahe hai
+to agar aapakaa data bahut baddaa
+ho jaae, to aisaa bhii ho sakataa hai
+ki aapake existing tools jo haim, vo
+utane data ko process hii naa kar paaem, right
+big data mem convert ho gayaa aapakaa data
+to aap ek baar mem puuraa chunks
+puuraa chunk de hii nahiim paa rahe ho, aapakaa code phatt jaa rahe hai
+right, to that is one problem
+ki aap, since aapake baas limitation hai
+ki puure data ke saath hii train hogaa
+to puuraa data agar bahut baddaa ho gayaa
+to vo train hii nahiim ho paaegaa, right
+the second problem is hardware limitation
+hardware limitation kaa baat kyaa hai
+ki kabhii -kabhii ho sakataa hai aapakaa machine learning
+model kisii aisii jagaa pe cal rahaa hai
+jahaam se aapakaa instant
+connectivity nahiim hai
+to aap aisaa nahiim kar sakate ki aap turamc se
+model ko leke aao, nae data pe train karo
+phir upload kar do, aapake paas yah
+facility nahiim hai, maim aapako ek -do scenarios detaa huum
+let's say aapane
+koii aisaa
+defense app banaayaa
+jo army vaale use kar rahe haim
+ekadam extreme kisii
+scenario mem, lel adhaak jaisii jagaa pe
+vo log aapakaa machine learning app use kar rahe haim
+I don't know, to track something
+yaa phir kuch bhii karane ke lie, ab vahaam pe
+internet access nahiim hai, to aapakaa
+jo model hai, vo unake phone pe run kar rahaa hai
+as an app, to
+ek baar vo calaa kyaa, to jab tak
+vo log vaapas nahiim aate, yaa internet connectivity
+vaale zone mem nahiim aate, tab tak aap
+usako vaapas pull down karake, train karake
+update nahiim kar sakate, to that is a
+limitation, right, similarly let's say aapane
+software banaayaa, machine learning kaa, jo
+kisii satellite pe aapako bhejanaa hai, right
+ab satellite pe ek baar access, matalab
+orbit mem gayaa, to vahaam pe who knows
+internet connectivity hai, nahiim hai, yaa
+kisii drone mem aapane ddaal rakhaa hai, vo drone
+abhii pataa nahiim kaun se jagaa pe udd rahaa hai, to is tarah
+ke scenarios mem, jahaam pe aapake baas connectivity nahiim hai
+apane model se baat karane kii
+to aap itanaa frequent updates nahiim
+le sakate, to is tarah kii jagom pe batch learning
+phel kar rahaa hotaa hai, phel kar jaataa hai, tthiik hai
+third is availability, ab maimne
+aapako bolaa kii, aap generally kyaa karate ho, 24
+hours ke period mem, aap
+update karate ho apane model ko, naii data ke saath
+right, ab isamem bhii parishaanii hai
+let's say aap ek social networking website pe
+kaam kar rahe ho, aur aapane ek model banaayaa
+jo sabase recent stories jo haim abhii
+usako laa karake dikhaataa hai
+sorry, aapakaa
+jo social networking website hai, vo
+newsfeed generate karataa hai, on the basis of
+user kaa interest, right, but
+yahaam pe aapane batch learning lagaa rakhaa hai
+to vo 24 ghamtte ke baad hii update hotaa hai
+naii data ke upar, ab maalo
+suddenly se kuch, acaanak se kuch
+baat phail gae, aapake network pe
+kuch bhii ho sakataa hai, Indian government ne kuch
+jaise demonetization ke baare mem, kuch
+news nikal ke aaii, to ab yah ek aisaa
+news hai, jisake baare mem sabhii log interested homge
+maim bhii interested huumgaa, koii aur bhii interested hogaa, although
+meraa preference, generally sports hotaa hai
+but still, since abhii demonetization
+mere ko bhii affect kar rahaa hai, to maim isamem interested huum
+but mere interest update
+kitanii del ke baad homge, soc karem, 24
+hours ke baad, right, ki maim click click
+kar rahaa huum, us tarah ke news pe khuch se jaake
+demonetization vaale news feed pe maim
+click kar rahaa huum, to mere update kab hogaa
+24 hours ke baad, kyomki maimne nayaa data generate kab kiyaa
+abhii, but
+mujhe to demonetization kaa news turamt
+merii news feed mem caahie, right, but
+vo mujhe mil nahiim sakataa, kyomki meraa
+system hii hai, jo 24 hours ke baad hii
+respond karegaa, ab is scenario mem problem kyaa hai
+ki 24 hours ke baad jab
+system update hogaa, to suddenly se meraa news feed puraa
+batch learning, mostly people
+use batch learning bahut saare scenarios mem
+but there are certain specific scenarios
+jahaamke batch learning is not
+helpful, tthiik hai, ulttaa problem hii create
+kar detaa hai, to is tarah ke scenarios mem
+ek duusaraa approach use kiyaa jaataa hai, jisako
+ham bolate hai, online learning, jo ham next
+discuss karemge

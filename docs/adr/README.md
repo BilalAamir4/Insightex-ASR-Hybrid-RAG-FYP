@@ -59,3 +59,4 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0036](0036-local-file-ingestion-and-shared-media-normalisation-policy.md) | Local-file ingestion and shared media normalisation policy | Accepted | M2 | Amends ADR-0035 (`normalise` is shared; uploaded originals are deleted, link originals are kept) |
 | [0037](0037-http-upload-transport.md) | HTTP upload transport: raw streamed body, one upload at a time, no CORS | Accepted | M2 | |
 | [0038](0038-no-empty-edits-in-video-mp4.md) | video.mp4 must not rely on an empty edit to stay in sync | Accepted | M2 | Amends ADR-0036 (late audio or video is re-encoded; new post-verify rule) |
+| [0039](0039-asr-checkpoint-and-language-setting-decision.md) | ASR checkpoint and language setting: large-v3 with `language="ur"` | Proposed | M4 | Will supersede ADR-0014 when Accepted |

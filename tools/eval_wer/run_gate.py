@@ -20,6 +20,7 @@ from pathlib import Path
 
 import numpy as np
 
+import flagged
 import gate_metrics as gm
 import textnorm as tn
 
@@ -237,6 +238,7 @@ def main():
     for r in results:
         r["flags"] = flags(r, min_share)
     samples(results, ref, out)
+    flagged.write(out, results, ref, speech)
     write_results(out, results, ref, wild, coll, skipped, base, clip_speech, thr, speech, a)
 
 
@@ -294,7 +296,7 @@ def write_results(out, results, ref, wild, coll, skipped, base, clip_speech, thr
           "| config | speech s | uncovered s | longest uncovered gap | deleted reference runs >= 8 words (L2 alignment) |", "|---|---|---|---|---|"]
     for r in results:
         dr = r["drop"]
-        runs_txt = "; ".join(f"ref {x['ref_from']}-{x['ref_to']} ({x['words']} words, audio ~{x['t_from']:.0f}s to ~{x['t_to'] if x['t_to'] is not None else float('nan'):.0f}s)" for x in r["delruns"]) or "none"
+        runs_txt = "; ".join(f"ref {x['ref_from']}-{x['ref_to']} ({x['words']} words, audio ~{x['t_from']:.0f}s to ~{('%.0f' % x['t_to']) if x['t_to'] is not None else 'end'}s)" for x in r["delruns"]) or "none"
         L.append(f"| {r['name']} | {dr['speech_s']:.0f} | {dr['uncovered_s']:.1f} | {dr['longest_gap_s']:.1f}s | {runs_txt} |")
     L += ["", "## Translation drift (raw output, before romanisation)\n",
           "Reference English-term share: n/a (no English lexicon available; approved). Compared across configs instead.\n"]

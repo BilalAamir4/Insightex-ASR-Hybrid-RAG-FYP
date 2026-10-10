@@ -1,0 +1,351 @@
+Hello guys, welcome to my YouTube channel
+This is 100 days of machine learning
+and we are into day 4
+and today we are going to discuss one more topic
+and it is
+batch versus online learning
+okay, so
+ptchhlye widdiw min hm nye types of machine learning prrha tha
+jhan ph hm nye
+different types dikhye thye machine learning kye
+on the basis of amount of supervision
+required to train a machine learning algorithm
+right, tw hm nye kl
+alg lg types dikhye
+supervised, unsupervised, semi -supervised
+reinforcement
+aj bhi hm lwg types of machine learning hi prrhnye walye hin
+but aj jw hm types discuss krin gye
+wh ik completely different tchiz kye awpr
+based out hwga
+so aj jw hm lwg types prrhnye walye machine learning kye
+wh as tchiz ph depend krta hye
+kh machine learning model
+train kisye hwta hye
+especially production ph
+now you might think
+production kia hwta hye
+tw let me first define what is production
+in simpler terms production is basically
+the server on which your code is
+going to run
+kbhi bhi ap kwyei software bnatye hw
+tw wh ap kye machine ph bittha nhin rhta
+wh ap kye customers kye pas
+jana tchahiye awr
+as ka ik hi triqh hye kh ap apnye
+code kw ksi server ph run kraw
+js ka IP address ap kye customers kye pas hwga
+wh as IP address ph hit krin gye
+awr ap kye application kw access kr payein gye
+machine learning is more different
+jb ap machine learning kye software bnatye hw
+tw ap as kw bhi server ph deploy krtye hw
+awr jw server ka
+environment hye jhan ph ap ka
+code run kr rha hwta hye as kw production environment
+bwltye hin jb ap as kw code kr rhye hwtye
+hwn apnye machine ph tw as kw development environment
+bwltye hin now
+machine learning kye jw software hwtye hin
+ia machine learning jw hwta hye
+wh server ph alg alg dhng sye
+behave krta hye ia alg alg dhng sye tchlta hye
+asi kye basis ph hm lwg
+dw different types aj prrhnye walye machine learning kye
+one of them is batch learning
+ia phr batch machine learning
+js kw hm lwg offline learning bhi bwltye hin
+and the second one is online machine learning
+ia phr online learning
+tw an dwnwn kw hm lwg bht detail min prrhin gye
+kiwnkh to be honest ih important hye
+kiwnkh at the end ap srf
+machine learning models bna kye apnye machine ph nhin
+rkhnye walye apnye computer ph nhin rkhnye walye
+ap as kw server ph deploy krw gye so that
+other people can use it tw ap kw idea
+hwna tchahyeye kh batch awr online learning
+min kia difference hye
+so that's the intro part
+now let's discuss
+batch learning kia hwta hye
+what is batch learning
+batch learning is the conventional way of
+training a machine learning model
+jhan ph ap kia krtye hw
+ap pwrye
+kye pwrye data kw ik sath
+use krtye hw machine learning kw
+train krnye kye lyeye machine learning model kw train krnye kye lyeye
+mtlb batch kye case min
+jb ap training krwatye hw tw ap
+apnye pwrye data kw utilize krtye hw
+there is no incremental training
+incremental training ka mtlb ap
+tchhwttye tchhwttye ttkrrwn min training nhin kratye
+ap pwrye kye pwrye lot kye sath
+training krtye hw
+ab since jw data hwta hye
+generally agr ap ksi real world problem
+kye awpr kam kr rhye hw tw data jw hwga
+wh brra hwga generally brra hi hwta hye
+tw bht brra data kw
+agr ap server ph train krnye jaw
+no doubt ap kr sktye hw isa
+but isa kwyei krta nhin hye kiwnkh it would be costly
+and time taking
+generally jw batch learning hwta hye
+jhan ph ap pwrye data kye sath ik sath train kr rhye hw
+wh ap offline krtye hw apnye machine ph
+data scientist machine learning engineer
+as kw apnye machine ph train krta hye
+awr jb wh model train hw jata hye
+tw jw sikha hwa model hye as kw attha kye ap
+production environment min ddaltye hw
+this is called batch learning
+where you take up your
+entire data you train your
+machine learning model on an offline system
+and then once the model is
+trained then you deploy it onto
+a server this is the entire
+flow of batch learning I'll draw
+it for you so hwta kia hye
+bht simple hye ap kye
+pas data hye
+this is your data
+and this is your model
+right ap apnye data
+kw model ph ddaltye hw model
+train hw jata hye train hwnye kye b'd
+you test the model
+you just
+be sure
+jw min nye train kia hye wh shih hye ki nhin
+once you are sure you put it on the
+server this is the server
+tthik hye
+and over there ap ka machine learning
+model run krta rhye ga jb bhi
+user ktchh bhi data dye ga
+ap ka machine learning model predictions
+krtye rhye ga it could be anything
+let's say ap netflix min kam krtye hw
+awr ap kw ik recommendation engine mnana hye
+jw users kw movie select krye kr kye
+btayeye tthik hye tw in that case ap kia krw gye
+wh recommendation engine kw train krw gye apnye
+machine ph awr as kw attha kye
+netflix kye server ph ddal dw gye jhan pr
+users jb jb ayein gye tw ap ka
+system automatically an kw movie
+suggest krta rhye ga right but
+I guess ap kw as tchiz min
+ik problem smjh min arha hwga
+as tchiz ka problem ih hye
+kh ap ka model static hye
+jb wh ik bar sikh gia
+tw sikh gia wh ktchh nia nhin sikh rha
+as kye b'd wh prani tchizwn kye awpr hi kam kr rha hye
+but the problem with
+this approach is kh ap ka jw
+business scenario hye wh evolve krtye rhtye hin
+I'll give you one example hm netflix ka bat kr rhye hin
+netflix ka ap nye recommendation engine
+jw bnaia tha let's say ap nye aj bnaia
+tw aj netflix kye database min jtni
+movies thye ap nye sb kw consider kr kye bnaia
+but netflix tw hr hftye nyei movies
+add krta jata hye tw ap ka recommendation
+engine should always grow
+in order to incorporate those new movies
+right tw in a way
+min kia bwl rha hwn kh ap ka machine learning model
+kw constantly evolve krtye rhna prrye ga
+data kye sath kiwnkh agr ap isa nhin krw gye
+tw phr kia fayedh
+nyei movies kye awpr ap ka recommendation kam hi nhin kr rha
+same kam email spam
+classifier min bhi hw skta hye ap ka email
+spam classifier aj ki date sye
+aj ki date kye sath sye ik dm up to date hye
+but ap nye ik bar server ph ddal dia
+as kye b'd kwyei training nhin hwyei ap nye
+ik sal tk bsiar tchhwrr dia but as ik
+sal min tw jw marketeers hwtye hin wh lwg
+nyeye nyeye techniques nkal lin gye
+spam emails bnanye kye jw spam
+folder min naghwn sye tw agr ap
+up to date nhin rkhw gye apnye system kw
+tw phr what's the point wh obsolete
+hw jayeye ga tw sb sye brra
+problem jw batch learning kye sath hye wh ih hye
+kh ap kw apnye model kw
+retrain krwatye rhna prrta hye
+so what you do is generally people do what
+they do this
+entire thing periodically so what they do
+is kh wh
+nia data lye kye atye hin
+ih data pwrye time update hw rha hwta hye
+ih update hw rha hwta hye
+ksi bhi frequency ph update hw skta hye
+malw 24 hours min update hw rha hye
+ia one week min update hw rha hye
+one month min update hw rha hye ap ka
+kam kia hye kh jisye ih data update hw rha hye
+ap kia kr rhye hw jw bhi
+nia data hye awr jw prana data hye
+sb kw merge kr kye phr sye model kw train kr rhye hw
+once the model is trained
+ap as kw dwbarh sye
+test kr rhye hw awr test kr kye
+ap as kw dwbarh sye server ph
+ddal rhye hw so basically ih jw pwra process hye
+ih circles min hwta hye bar bar
+repeat hwta rhta hye in a given period
+this could be a 24 hour period
+this could be a week period or a
+month period ia phr
+six months period generally lwg bht fast ih krna
+tchahtye hin but it depends
+ktna fast hye it depends
+on the amount of
+data like agr ap kye pas huge amount
+of data hye tw train krnye min bhi
+time lgye ga so generally people do
+it on a basis of
+per week ia phr 24 hours
+but yeah that is what batch
+learning is batch learning kw ik bar
+summarize kr rha hwn min batch learning
+is where you train your machine learning
+model with your entire data
+there is no incremental
+learning and that is why
+since generally the data is big
+you don't train it online on the
+server instead what you do is you
+pull down your model you retrain it
+with the new data and then you put
+it on the server again and again
+ih ap periodically krtye hw tthik hye so that is
+what batch learning is now agr ap sye
+kwyei pwtchhye ki disadvantage kia
+hye batch learning ka tw
+phla disadvantage tw ih hye
+ki agr ap kye pas bht ziadh
+data hye mal lw data bht brra
+hwtye jayeye dirye dirye ap bht
+tiji sye scale kr rhye ap ik social
+network hw jw hr ik mhinye min dw mhinye min double
+triple four times hw rha hye tw amount
+of data bhi bht brrhtye ja rhye tw agr
+ap ka data bht brra hw jayeye
+tw isa bhi hw skta hye kh ap kye
+existing tools jw hin wh atnye data kw
+process hi nh kr payein right big
+data min convert hw gia ap ka data tw ap
+ik bar min pwra chunks pwra chunks dye hi
+nhin pa rhye hw ap ka code ftt ja rhye
+right so that is one problem ki ap
+since ap kye pas limitation hye kh pwrye data
+kye sath hi train hw ga tw pwra
+data agr bht brra hw gia tw wh train hi nhin hw payeye ga
+right the second problem is
+hardware limitation hardware
+limitation ka bat kia hye kh kbhi kbhi hw
+skta hye ap ka machine learning model
+ksi isi jgh ph tchl rha hye jhan
+sye ap ka instant connectivity nhin
+hye tw ap isa nhin kr sktye
+kh ap trnd sye model kw lye kye aw
+nyeye data ph train krw phr upload kr dw ap kye pas
+ih facility nhin hye min ap kw
+ik dw scenarios dita hwn let's say ap nye
+kwyei isa
+defense app
+bnaia jw army walye
+use kr rhye hin ik dm extreme
+ksi scenario min lye lrrddak
+jisi jgh ph wh lwg ap ka machine learning
+app use kr rhye hin I don't know
+to track something ia phr ktchh bhi krnye kye lyeye
+ab whan ph internet access nhin hye tw ap
+ka jw model hye wh an kye phone ph
+run kr rha hye as an app
+tw ik bar wh jw tchla gia
+tw jb tk wh lwg waps nhin atye ia internet
+connectivity walye zone min nhin atye tb tk
+ap as kw waps pull down kr kye
+train kr kye update nhin kr sktye
+so that is a limitation right similarly
+let's say ap nye ik software bnaia machine learning ka
+jw ksi satellite ph ap kw bhijna hye
+ab satellite tw ik bar access
+mtlb orbit min gia tw whan ph who knows
+internet connectivity hye nhin hye ia
+ksi drone min ap nye ddal rkha hye wh drone
+abhi pth nhin kwnsi jgh ph atth rha hye tw as trh kye
+scenarios min jhan ph ap kye pas connectivity nhin hye
+apnye model sye bat krnye ki
+tw ap atna frequent updates nhin
+lye sktye tw as trh ki jghwn ph batch learning
+fail kr rha hwta hye fail kr jata hye
+third is availability
+ab min nye ap kw bwla ki ap
+generally kia krtye hw 24 hours kye period min
+ap update krtye hw apnye
+model kw nyeye data kye sath right ab as min
+bhi prishani hye let's say ap ik social
+networking website ph kam kr rhye hw awr ap nye
+ik model bnaia jw sb sye recent
+stories jw hin abhi as kw
+la kr kye dkhata hye
+sorry ap ka jw social networking
+website hye wh news feed generate
+krta hye on the basis of user ka interest
+right but ihan ph
+ap nye batch learning lga rkha hye tw wh
+24 ghnttye kye b'd hi update hwta hye nyeye data
+kye awpr ab malw suddenly sye ktchh
+atchank sye ktchh bat fil gyeye
+ap kye network ph ktchh bhi hw skta hye
+indian government nye ktchh jisye demonetization
+kye barye min ktchh news nkl kye ayei
+tw ab ih ik isa news hye js kye barye min sbhi
+lwg interested hwn gye min bhi interested hwn ga kwyei
+awr bhi interested hwga although mira preference
+generally sports hwta hye but still
+since abhi demonetization mirye kw bhi
+affect kr rha hye tw min as min interested hwn
+but mirye interest update ktni dir kye b'd
+hwn gye swtch kye dikh 24 hours kye b'd
+right ki min click click kr rha hwn
+as trh kye news ph khwd sye ja kye
+demonetization walye news feed ph min click kr rha hwn
+tw mirye update kb hwga 24 hours kye b'd
+kiwnkh min nye nia data generate kb kia abhi
+but mjhye tw
+demonetization ka news trnt miri news feed min
+tchahiye right but wh mjhye
+ml nhin skta kiwnkh mira system hi hye
+jw 24 hours kye b'd hi respond krye ga
+ab as scenario min problem kia hye
+kh 24 hours kye b'd jb system update hwga
+tw suddenly sye mira news feed pwra bhr jayeye ga
+demonetization kye news sye jw ki ab
+atna important bhi nhin hye jw
+24 ghnttye phlye important tha ab atna important bhi nhin hye
+tw as scenario min bhi you can see
+ks triqye sye batch learning fail kr rha hye
+tthik hye tw batch learning mostly
+people use batch learning
+bht sarye scenarios min but there are certain
+specific scenarios jhan ph batch learning
+is not helpful tthik hye
+altta problem hi create kr dita hye
+tw as trh kye scenarios min ik dwsra approach
+use kia jata hye js kw hm bwltye hin online learning
+jw hm next discuss krin gye
