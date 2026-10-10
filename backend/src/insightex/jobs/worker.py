@@ -151,6 +151,13 @@ class Worker:
 
 def main(settings: Settings) -> int:
     """Entry point of `insightex worker`: exit 2 if another worker holds the lock, else run until signalled."""
+    from insightex.asr.languages import LanguageConfigError, languages_for
+
+    try:
+        languages_for(settings)  # a bad language file stops startup (ADR-0040)
+    except LanguageConfigError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
     try:
         lock = acquire_worker_lock(settings.jobs.run_dir)
     except WorkerLocked as exc:

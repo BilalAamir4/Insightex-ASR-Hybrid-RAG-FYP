@@ -123,12 +123,14 @@ class Workspaces:
         self.write_manifest(workspace_id, manifest)
 
     def record_stage(
-        self, workspace_id: str, stage_name: str, stage_key: str, duration_s: float, outputs: list[str]
+        self, workspace_id: str, stage_name: str, stage_key: str, duration_s: float, outputs: list[str],
+        extra: dict[str, Any] | None = None,
     ) -> str | None:
         """Mark a stage complete at `stage_key`; return the key it replaced, or None.
 
         `outputs` are file names inside the stage directory; the manifest stores them relative to the
-        workspace so they can be opened without knowing the layout.
+        workspace so they can be opened without knowing the layout. `extra` adds stage-specific fields to the
+        entry (the ASR language and warnings); the whole entry is replaced, so a new key never keeps old extras.
         """
         manifest = self.read_manifest(workspace_id)
         previous = manifest["stages"].get(stage_name, {}).get("key")
@@ -138,6 +140,7 @@ class Workspaces:
             "completed_at": _now(),
             "duration_s": round(duration_s, 3),
             "outputs": [f"{base}/{name}" for name in outputs],
+            **(extra or {}),
         }
         self.write_manifest(workspace_id, manifest)
         return previous

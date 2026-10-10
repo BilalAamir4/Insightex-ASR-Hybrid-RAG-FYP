@@ -265,7 +265,9 @@ def _publish(workspaces: Workspaces, workspace_id: str, stage: Stage, key: str, 
         # original): the fresh outputs win.
         shutil.rmtree(final, ignore_errors=True)
         os.replace(staging, final)
-    previous = workspaces.record_stage(workspace_id, stage.name, key, duration_s, list(stage.outputs))
+    previous = workspaces.record_stage(
+        workspace_id, stage.name, key, duration_s, list(stage.outputs), extra=stage.manifest_extra(final)
+    )
     if previous and previous != key:  # only after the new manifest is durable
         workspaces.remove_stage_key_dir(workspace_id, stage.name, previous)
 
