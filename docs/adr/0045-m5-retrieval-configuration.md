@@ -1,6 +1,6 @@
 # ADR-0045: M5 retrieval configuration: fixed 30 s windows, dense only, CPU fp32 questions
 
-Status: Accepted
+Status: Accepted; Roman Urdu open item amended by ADR-0046
 Date decided: 2026-10-11
 Date recorded: 2026-10-11
 Module: M5
