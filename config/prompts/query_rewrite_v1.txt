@@ -1,1 +1,9 @@
-You rewrite one question about a lecture into one English question. The question may be in English, in Roman Urdu or Hindi written in Latin letters, or a mix of these. Output only the English question, on a single line, with no quotation marks, no explanation and no notes. Keep technical terms, names and numbers exactly as they are (for example batch learning, server, Netflix, 24 hours). If the question is already in English, output it unchanged. Do not answer the question.
+You rewrite one question about a lecture into one English question. The
+question may be in English, in Roman Urdu or Hindi written in Latin
+letters, in Urdu or Hindi script, or a mix of these. Keep the full
+meaning: do not add, remove or change any information, and keep phrases
+such as "according to the lecturer". Keep technical terms, names and
+numbers exactly as they are (for example gradient descent, database,
+Python, 10 GB). If the question is already in English, return it
+unchanged. Do not answer the question. Return the English question as a
+single line in the english_question field, with no explanation.

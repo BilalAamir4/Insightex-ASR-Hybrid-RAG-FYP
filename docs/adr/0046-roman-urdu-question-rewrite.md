@@ -18,13 +18,24 @@ Gate G4 (ADR-0043, `docs/evidence/m5/g4_pairs.txt`) compared each Roman Urdu que
 - **If the LLM is not loaded, search uses the original question only.** Search never loads the model for a rewrite. In production the rewrite call has a **timeout of 2 seconds** (a tunable, `retrieval.rewrite_timeout_s`, added to `config/default.yaml` in M6); a rewrite that fails, returns nothing usable, or takes longer than the timeout is dropped and search uses the original question only, so an answer is never delayed by more than the timeout.
 - **Rewrite call settings, fixed for G5 and production** (pre-registered 2026-10-11 before any rewrite was run; a change is a new ADR and a new G5):
   - **Model and call:** the project's Ollama model (`ollama.model`, currently `qwen3.5:latest`) through `insightex.llm.ollama_client.chat_json` (ADR-0002): `/api/chat`, `think: false`, `temperature` 0, `num_ctx` 8192 (the project default, so Ollama does not reload the model), `num_predict` **64** (maximum output tokens), `keep_alive` as configured.
-  - **Messages:** one system message, the exact text of `config/prompts/query_rewrite_v1.txt` (sha256 `355096d0843ce97c2ff5552426820105d6bb300f7a295ab9256bf6c85a12324c`, copied below), and one user message that is the question exactly as the user typed it.
+  - **Messages:** one system message, the exact text of `config/prompts/query_rewrite_v1.txt` (sha256 `edac0394acc27081d904a35c85ac163d5e1011c7e1414b3888d2c59cff32744e`, copied below), and one user message that is the question exactly as the user typed it.
   - **Output format:** the JSON Schema `{"type": "object", "properties": {"english_question": {"type": "string", "minLength": 1, "maxLength": 300}}, "required": ["english_question"], "additionalProperties": false}`.
   - **Unusable output (counts as a failure in G5, and falls back to the original question in production):** an error or timeout; `done_reason` other than `stop` (including `length`, a cut-off at 64 tokens); output that is not valid JSON for the schema; an empty or whitespace-only `english_question`; a newline inside it; or any `<think>` or `</think>` text anywhere in the response (content or the thinking field).
 
-  Prompt text (system message, v1):
+  Prompt text (system message, v1, line breaks as in the file):
 
-  > You rewrite one question about a lecture into one English question. The question may be in English, in Roman Urdu or Hindi written in Latin letters, or a mix of these. Output only the English question, on a single line, with no quotation marks, no explanation and no notes. Keep technical terms, names and numbers exactly as they are (for example batch learning, server, Netflix, 24 hours). If the question is already in English, output it unchanged. Do not answer the question.
+  > You rewrite one question about a lecture into one English question. The
+  > question may be in English, in Roman Urdu or Hindi written in Latin
+  > letters, in Urdu or Hindi script, or a mix of these. Keep the full
+  > meaning: do not add, remove or change any information, and keep phrases
+  > such as "according to the lecturer". Keep technical terms, names and
+  > numbers exactly as they are (for example gradient descent, database,
+  > Python, 10 GB). If the question is already in English, return it
+  > unchanged. Do not answer the question. Return the English question as a
+  > single line in the english_question field, with no explanation.
+
+  An earlier draft of this prompt (sha256 `355096d0…a12324c`) was replaced on 2026-10-11 before any rewrite was run, because its examples (batch learning, server, Netflix, 24 hours) were taken from the test lecture. The replacement uses examples from outside it (gradient descent, database, Python, 10 GB) and also covers Urdu and Hindi script and the phrase "according to the lecturer".
+
 - **Built in M6**, reusing M6's LLM client and the shared GPU lease for Ollama calls (the GPU belongs to Ollama at query time).
 - **Status stays Proposed until gate G5 passes (all four conditions above);** if G5 fails, the question path keeps the original-only search and Roman Urdu stays a documented limitation or gets a new decision.
 
