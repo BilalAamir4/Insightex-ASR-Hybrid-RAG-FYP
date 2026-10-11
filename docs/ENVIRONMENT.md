@@ -64,13 +64,13 @@ Summary: `chat_json(messages, schema, num_ctx, num_predict=1024, ...)` in `backe
 | Whisper warm speed on Day 4 first 10 min (speed only) | medium 21.4x real time (RTF 0.0466), large-v3 8.4x (RTF 0.1197) | same file; WER is M4 |
 | ~~Whisper large-v3 peak VRAM, 10 min~~ | ~~5,530 MiB~~ **superseded** by the production rows below (different method; not re-run) | 3 Oct 2026, CARRIED OVER |
 | **Production large-v3 ASR on Day 4** (the `asr` stage, language `hindi` -> `ur`, float16, 688.03 s of audio, 351 segments, 0 temperature-fallback segments) | wall time 78.025 s (transcription only, model load excluded), **RTF 0.1134**, peak VRAM **4,523 MiB above the pre-stage baseline** (1,164 MiB); VRAM back within 8 MiB of baseline after the stage; whole job (normalise + ASR) 86.6 s | **MEASURED** 2026-10-10, `docs/evidence/m4/m4_verify_20261010T094558Z.json` (checks 2 and 7); a first run the same day gave RTF 0.1132, peak 4,504 MiB (`…T094021Z.json`) |
-| bge-m3 peak VRAM | 3,089 MiB | 2 Oct 2026, CARRIED OVER (the bake-off measured 1,141.7 MB, see `Embedding_Report.md`) |
+| bge-m3 peak VRAM | 1,142.4 MiB allocated (1,365 to 1,383 MiB above the nvidia-smi baseline) | 11 Oct 2026, M5 `index` stage, `docs/evidence/m5/lease_and_index_job.log`; the earlier 3,089 MiB figure was carried over and is superseded |
 | **Confirmed on Ollama 0.35.1** (version read from `/api/version` by the probe) | the 8192 / 6,905-token case was re-run after the restart: 100% GPU, `done_reason` `stop`, valid JSON, 786 output tokens, peak 7,682 MiB, 510 MiB free, 52.1 tok/s, load 29.7 s (baseline 1,081 MiB). The earlier long-prompt runs were made before the restart, and the Ollama version they ran on was not recorded. | 2026-10-07 23:44, same measurements file |
 | `tools/verify_env.py` after full restart | 12 of 12 passed | 2026-10-07, report `$INSIGHTEX_DATA/env_reports/20261007T233720.json` |
 | `tools/verify_env.py` after M2 | 12 of 12 passed; idle baseline 1,382 MiB; `chat_json` 100% GPU at 65.4 tok/s (33-token prompt only) | 2026-10-10, report `$INSIGHTEX_DATA/env_reports/20261010T054412.json` |
 | Idle VRAM observed 2026-10-10 | 1,382 to 1,601 MiB, above the 600 to 1,273 MiB recorded on 2026-10-07 | 2026-10-10, `verify_env.py` runs; the long-prompt headroom was **not re-measured** at this baseline |
 
-GPU contract (hard): never two CUDA stages at once; each stage is its own process and exits fully before the next starts. At query time the GPU belongs to Ollama; bge-m3 query encoding and the reranker run on CPU inside the API process (planned, M5).
+GPU contract (hard): never two CUDA stages at once; each stage is its own process and exits fully before the next starts. At query time the GPU belongs to Ollama; bge-m3 query encoding runs on CPU inside the API process (built in M5; loaded and warmed at API startup, 2.3 GiB RAM, about 50 ms per question); the reranker will too (planned, M9).
 
 ## 8. .wslconfig
 

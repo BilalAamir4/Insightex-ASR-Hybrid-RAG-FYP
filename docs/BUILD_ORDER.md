@@ -16,7 +16,8 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 | M2 | **Done (10 Oct 2026)**: shared normalise engine and CLI file ingest (ADR-0036), HTTP upload endpoint and upload form (ADR-0037), A/V sync invariant that holds even in players that ignore MP4 edit lists (ADR-0038), `NORMALISER_VERSION` 4. `tools/m2_verify` 13/13 on the Day 4 lecture; by-hand browser checklist passed (`docs/evidence/m2/`). |
 | M3 | **Done (6 Oct 2026)**; the eval-lecture fetch (4–6 lectures) still has to be run (it now goes through normaliser v4). It also supplies the language gates of ADR-0040: 3 lectures from different speakers per language, a 5-minute excerpt from the middle of each. Urdu and English stay untested until those gates pass. |
 | M4 | **Done (10 Oct 2026)**: session 1, the WER gate chose large-v3 (ADR-0039); session 2, the production `asr` stage with the lecture language chosen per lecture from a two-tier list, English as the system output language, and the stage design (ADR-0040 to ADR-0042). `tools/m4_verify` 12/12, with check 4 an exact match to the gate (351 segments, 0 differing; the workspace `audio.wav` is byte-identical to the gate input). Manual checklist passed. Evidence: `docs/evidence/m4/`, `tools/eval_wer/results/m4/`. |
-| M6 | Partial: FastAPI API (ingest by link or upload, jobs with SSE progress, library, media), static HTML ingest/upload/library/player page and `seekTo(seconds)` exist; ask box and citations still to do |
+| M5 | **Done (11 Oct 2026)**: windows, BGE-M3 dense vectors on the GPU at ingest, a FAISS index per lecture (`index` stage, ADR-0044), question search on the CPU in the API process (`POST /api/lectures/{id}/search`), and the Test A scorer. Gates under ADR-0043 on the Day 4 lecture: G0 production equals the legacy encoder (identical rankings), G3s/G3 grid stride 30 kept, G2 dense only kept, G1 CPU fp32 queries equal GPU fp16 (min cosine 0.9999986, no hit changed). Final configuration (ADR-0045): Recall@3 0.8085 over 47 questions, 0.8696 for English questions. **Open: G4 says a Roman Urdu fix is needed** (Roman twins 3 net losses over 23 pairs); its own decision, not built. Provisional until M9. Evidence: `docs/evidence/m5/`. |
+| M6 | Partial: FastAPI API (ingest by link or upload, jobs with SSE progress, library, media), static HTML ingest/upload/library/player page and `seekTo(seconds)` exist; search endpoint exists (M5); ask box and citations still to do |
 | All others | Not started |
 
 ## Phase 0: Foundation (week of 5 Oct)
@@ -42,7 +43,7 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
 - **M5: Windows + embedding (dense and sparse) + FAISS.**
   - Prerequisite for the sparse-weight work: `FlagEmbedding` is **not installed** and is not in `requirements.lock.txt`. Installing it needs the user's approval and a lockfile update (then re-run `scripts/verify_env.sh`). `tools/bench_models/loadtimes/verify_6b_loadtimes.py` fails at its bge-m3 step for the same reason.
   - Open question from ADR-0041, measured here and not decided yet: rerun Test A with **English questions** over native-script transcripts. Cross-language search is a gate: if English questions fail to retrieve the right windows, per-window English translation becomes a candidate stage (its own ADR).
-  Exit: Test A reproduces through production code, and the CPU-query gate passes.
+  Done 11 Oct 2026 (ADR-0043 to ADR-0045). Exit met: Test A reproduces through production code (gate G0: identical rankings and scores to the legacy bake-off encoder on the same windows), and the CPU-query gate passes (G1). `FlagEmbedding` stays out of the project environment: the sparse head is verified against it in a throwaway venv. The ADR-0041 question is answered for M5: English questions retrieve native-script windows (Recall@3 0.8696 on 23 questions); per-window translation is not needed for retrieval.
 - **M6: Minimal API and UI.** Upload or link, progress, player, ask box, top-3 citations that seek the video.
   - A citation seeks to the start of the first transcript segment inside the retrieved window, not the window's grid start (ADR-0044).
   Exit: paste link → wait → ask → click → the video jumps to the right moment.
@@ -119,13 +120,13 @@ These come from the October 2026 review. Settle each one when its module starts.
 - **M5: Query-time VRAM conflict.**
   - BGE-M3 (1,141.7 MB measured bake-off peak, `Embedding_Report.md`; `MODELS.md` and `docs/ENVIRONMENT.md` carry 3,089 MiB, not re-run; re-measure in M5) and qwen3.5 (about 7.4 GB peak, `docs/ENVIRONMENT.md`) can't share 8 GB.
   - Encode documents on the GPU at ingest. Encode queries on the CPU in the API process (fp32, ~2.3 GB RAM), and run the reranker on the CPU too.
-  - Gate: rerun Test A with CPU queries; Recall@3 must not change.
+  - Gate: rerun Test A with CPU queries; Recall@3 must not change. **Done (G1):** passed; bge-m3 peak VRAM re-measured at 1,142.4 MiB allocated (1,365 to 1,383 MiB above the nvidia-smi baseline); the API process holds 2.3 GiB after startup (peak 2.41 GiB). The GPU lease unloading Ollama was exercised for the first time on 11 Oct 2026 (it worked: `docs/evidence/m5/README.md`).
 - **M5 / M9: Sparse weights.**
   - Use FlagEmbedding `BGEM3FlagModel` (dense + sparse in one pass) and fuse the two rankings with Reciprocal Rank Fusion.
-  - If sparse adds nothing, drop the tie-break argument from the report.
+  - If sparse adds nothing, drop the tie-break argument from the report. **Done (G2):** sparse added nothing (net -1); dense only; the sparse head was implemented in `tools/` and verified against `BGEM3FlagModel` instead of installing the package.
 - **M5: Window edges.**
   - Keep the 30 s target but snap edges to Whisper segment boundaries. Test 50% overlap (15 s stride) and adopt it only if Recall@3 improves.
-  - Score hits by time overlap with the gold span, and dedupe overlapping hits.
+  - Score hits by time overlap with the gold span, and dedupe overlapping hits. **Done (G3s, G3):** snapping and the 15 s stride both tied the fixed grid, so the grid with stride 30 s stays; hits count at 50% of a gold span and any overlap is de-duplicated (ADR-0043).
 - **M8: Concept identity across scripts.**
   - Canonicalisation is its own module. Each node has a canonical English label plus an alias list.
   - Find merge candidates by embedding similarity, then confirm them with the LLM.

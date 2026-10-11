@@ -1,5 +1,26 @@
 # M5 evidence (session A: gate G0)
 
+## Summary of the M5 gates (Day 4 lecture, 47 gold questions; provisional until M9)
+
+| Gate | Comparison | Result | Verdict |
+|---|---|---|---|
+| G0 | production encoder against the legacy bake-off encoder, same window texts | top-10 order identical for 47 queries, largest score difference 0.0 | pass; baseline Recall@3 0.8085 (all), 0.8750 (24-query set), 0.8696 (English), 0.7500 (Roman) |
+| G3s | fixed grid (A) against segment-snapped windows (B), 24 queries | 0.8750 against 0.8333; wins 0, losses 1, net -1 | tie, grid stays |
+| G3 | grid stride 30 s (A) against 15 s (B), 24 queries | 0.8750 both; wins 2, losses 2, net 0 | tie, stride 30 stays |
+| G2 | dense (A) against dense + sparse RRF k=60 (B), 24 queries | 0.8750 against 0.8333; wins 0, losses 1, net -1 | tie, dense only |
+| G1 | GPU fp16 questions (A) against API CPU fp32 questions (B), 47 queries | min cosine 0.9999986; 0 wins, 0 losses | pass |
+| G4 | Roman twin against English partner, 23 pairs, final configuration | Roman wins 0, losses 3 (A25, A19r, A22r), net -3; English partners 0.8696, Roman twins 0.7391 | fix needed (its own decision; not proposed or built) |
+
+`g4_api_cpu_fp32.json` is the 47-question run through the API on the final configuration; `g4_pairs.txt` is the per-pair table (`score.py pairs`).
+
+## GPU lease unloading Ollama (first real exercise, 11 Oct 2026; closes the M4 open item)
+
+Ollama had to be started first (`E:\FYP\start_ollama.ps1`; it was not running at session start). `qwen3.5:latest` was then loaded with `num_ctx` 8192: `/api/ps` listed it, GPU memory used 7,854 MiB, free 165 MiB. The worker took the exclusive lease for the `index` stage and logged "memory.used before: 7854 MiB"; the model was unloaded; the stage's pre-flight saw 6,720 MiB free; the encoder subprocess peaked at 1,142.4 MiB allocated; on release the log shows "memory.used after: 1314 MiB" and `/api/ps` was empty. See `lease_and_index_job.log`. It worked as designed.
+
+## API startup (question encoder loaded and warmed)
+
+`retrieval.preload_query_encoder: true` (default): measured 2026-10-11 on the API process: ready after 5.2 s (0.6 s without preload), idle memory 2,400,212 KiB (2.29 GiB), first question 81 ms, then median 50.2 ms and p95 58.6 ms over the 47 questions, peak 2,430,904 KiB. Preloading without the warm-up question left the weights partly unloaded (idle 1.14 GiB, first question 3.0 s), so the warm-up is part of the preload.
+
 Lecture: Day 4 upload, workspace `sha256-de27cb67c2acbedebd0c2c7416932b8a` (351 segments, 23 windows of 30 s). Provisional until Test A runs on more lectures (M9).
 
 - `legacy_sanity/`: the restored legacy bake-off script (tag `import-baseline`, `_legacy_import/embedding/tools/eval_embeddings/embed_bakeoff.py`), run on its own SRT, queries and hit rule (bge-m3, W30, seq 1024, batch 16). Its per-query results and window file equal the recorded `docs/reports/embedding_bakeoff/results_seq1024/` rows exactly (28/28 queries: first-hit rank, hit@3, top-5 string).

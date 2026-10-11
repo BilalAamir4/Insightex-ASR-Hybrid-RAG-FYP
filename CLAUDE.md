@@ -15,8 +15,9 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
 
 ## Current state (update this block at every milestone)
 
-- **Phase 0 (Foundation) complete; M1 to M4 complete; Phase 1 continues with M5 (windows, embeddings, FAISS).** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
+- **Phase 0 (Foundation) complete; M1 to M5 complete; Phase 1 continues with M6 (ask box and citations on the search endpoint).** The build plan is in `docs/BUILD_ORDER.md` (modules M0–M20, each with exit criteria).
 - **Done:**
+  - M5 retrieval (11 Oct 2026): `index` stage after `asr` (fixed 30 s grid windows, BGE-M3 dense fp16 on the GPU, FAISS `IndexFlatIP` per lecture, ADR-0044/0045), `POST /api/lectures/{id}/search` (question encoded on CPU fp32 in the API process, loaded and warmed at startup, window times and scores only), `insightex search`, Test A scorer `tools/eval_retrieval/score.py`. Gates (ADR-0043, Day 4 lecture only, provisional until M9): fixed grid stride 30 s and dense only kept (snapping, 15 s stride, sparse all tied); CPU fp32 questions equal GPU fp16 (G1 passed); Recall@3 0.8085 over 47 questions, 0.8696 for English. **Open: G4 says a Roman Urdu fix is needed (Roman twins: 3 net losses over 23 pairs); its own decision, not built.** The re-add check now compares every stage's own cache key. Evidence `docs/evidence/m5/`.
   - M4 ASR stage (10 Oct 2026): `asr` runs after `normalise` in both ingest pipelines. Whisper large-v3 runs in a subprocess per job under the GPU lease and writes `transcript.json` and `transcript.vtt` (schema `docs/contracts/transcript.schema.json`; the VTT is a developer check only). **Every submission needs a language** (CLI `--language`, link API `language`, upload header `X-Insightex-Language`, a required dropdown): chosen per lecture from `config/languages.yaml`, no default, no auto-detect (ADR-0040). Hindi (Whisper code `ur`, evidence ADR-0039) is the only tested language; all others are untested and shown with an "Untested language" badge; untested lectures are excluded from thesis evaluation numbers. Users read English only; transcripts are internal and never shown (ADR-0041). Stage design: ADR-0042. `tools/m4_verify` 12/12 (Day 4: 351 segments identical to the gate, RTF 0.113, peak 4,523 MiB above baseline); evidence `docs/evidence/m4/`.
   - M2 upload ingestion (10 Oct 2026): `insightex ingest-file` (CLI) and `POST /api/ingest/upload` (raw streamed body, ADR-0037) feed one shared normalisation engine (`normalise_media`, `NORMALISER_VERSION` 4) that link ingestion also uses. Validation and the closed error-code table are in ADR-0036. The A/V sync invariant is in ADR-0038 (see "Decisions already made"). `tools/m2_verify` 13/13 on the Day 4 lecture; the by-hand browser checklist passed after the ADR-0038 fix. Evidence: `docs/evidence/m2/`.
   - M1 core (9 Oct 2026): SQLite job queue + single worker with crash recovery and resume, GPU lease, workspaces with chained stage keys and a cache index with eviction (ADR-0033 to ADR-0035). Link ingestion runs on the runner as the `ingest_link` pipeline (`fetch`, `normalise`); the API exposes jobs, Server-Sent Events progress, the library and delete (`docs/contracts/api.md`). One job system, one workspace layout (`$INSIGHTEX_DATA/workspaces/`). Lectures in the old `lectures/` folder are not read and must be re-ingested. Evidence: `docs/evidence/m1/`.
@@ -24,8 +25,8 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
   - M0 environment verification (7 Oct 2026): cold-boot pass, `scripts/verify_env.sh` 12/12 after a full Windows restart with Ollama started by Task Scheduler. State in `docs/ENVIRONMENT.md`, Ollama contract in `docs/adr/0002-ollama-call-contract.md`.
   - M3 link ingestion (6 Oct 2026), moved onto the runner in M1.
 - **Partial:**
-  - M6: API, player, upload form and `seekTo(seconds)` exist. Ask box and citations are still to do.
-- **Not started:** production embeddings/FAISS (M5), concept extraction, the graph, the router and answers.
+  - M6: API (with the search endpoint), player, upload form and `seekTo(seconds)` exist. Ask box and citations are still to do; a citation seeks to the start of the first transcript segment inside the window (ADR-0044).
+- **Not started:** concept extraction, the graph, the router and answers.
 - **Before any further WER gate (language promotion, ADR-0040):** re-ingest the eval lectures through normaliser v4. Older `audio.wav` files predate the start-offset padding, so their timings may be shifted. Lectures added before M4 session 2 have no transcript and show "Not transcribed"; add them again with a language.
 - Before starting a module, check its open decisions in `docs/BUILD_ORDER.md` ("Pending decisions by module"). Settle them before building.
 
@@ -33,7 +34,7 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
 
 Each stage runs as its own process (see the GPU contract below).
 
-ingest (URL or upload, with the lecture's language) → fetch → ffmpeg normalise → asr (faster-whisper) → 30 s windows → BGE-M3 dense + sparse → FAISS `IndexFlatIP`
+ingest (URL or upload, with the lecture's language) → fetch → ffmpeg normalise → asr (faster-whisper) → 30 s grid windows → BGE-M3 dense (GPU fp16) → FAISS `IndexFlatIP` (the `index` stage; sparse was tested and dropped, ADR-0045)
                                                         ↘ Ollama concept extraction (JSON Schema) → canonicalise → NetworkX graph
 query → router (graph-first on known concept labels, otherwise vector or merge) → grounded answer with validated citations → `seekTo(seconds)`
 
@@ -85,7 +86,7 @@ Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash
   - Estimated prompt tokens + `num_predict` must fit in `num_ctx`; `done_reason: length` is an error, never parsed.
   - In a `finally` block, call `unload()` (`keep_alive: 0`, then poll `/api/ps` until the model is gone).
   - Full contract and measurements: `docs/adr/0002-ollama-call-contract.md`.
-- Query time (planned, M5): the GPU belongs to Ollama. BGE-M3 query encoding and the reranker run on CPU inside the API process.
+- Query time: the GPU belongs to Ollama. BGE-M3 question encoding (CPU fp32, loaded and warmed at API startup, about 2.3 GiB RAM) runs inside the API process; the reranker will too.
 - Normalisation (ffmpeg, libx264) is CPU-only and takes no GPU lease.
 
 ## Decisions already made (don't relitigate without new evidence)
@@ -93,7 +94,7 @@ Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash
 Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decision log). Decision records are in `docs/reports/`.
 
 - **Embeddings:** `BAAI/bge-m3`, on 30 s non-overlapping windows of native-script Whisper text. Never embed Roman Urdu; it is used only for WER.
-- **Retrieval:** L2-normalised embeddings searched with `IndexFlatIP`. A hit means the retrieved window strictly overlaps the labelled range.
+- **Retrieval:** L2-normalised embeddings searched with `IndexFlatIP`. Candidates are adopted only by the ADR-0043 rules: a hit covers >= 50% of a gold span, overlapping windows are de-duplicated, and a candidate needs wins - losses >= 2 (a tie keeps the simpler option). Fixed 30 s grid, stride 30 s, dense only, CPU fp32 questions (ADR-0045). The old bake-off's "strictly overlaps" rule is retired.
 - **Bake-off numbers:** use only `docs/reports/embedding_bakeoff/results_seq1024/`. When re-running, pass `--max-seq-length 1024`. Older artefacts are in tag `import-baseline`.
 - **Link ingestion:** a single path for every source, which is to download fully and play locally (no embedded YouTube player). Link sources are kept after normalising (ADR-0035); uploaded originals are deleted unless `ingest.file.keep_original`.
 - **Media normalisation (ADR-0036 to ADR-0038):** every source goes through `normalise_media`. Never add a second normalisation path.
@@ -132,7 +133,7 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 | Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` |
 | Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
-| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0042) | `docs/adr/README.md` |
+| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0045) | `docs/adr/README.md` |
 | API contract (ingest link/upload, jobs, SSE, library) | `docs/contracts/api.md` |
 | Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
 | Draft JSON Schema: ASR segment list (id, start, end, text, avg_logprob, no_speech_prob) | `docs/contracts/segments.json` |

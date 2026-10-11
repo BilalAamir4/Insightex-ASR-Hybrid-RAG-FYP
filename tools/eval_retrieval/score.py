@@ -114,6 +114,35 @@ def cmd_compare(args) -> int:
     return 0
 
 
+def cmd_pairs(args) -> int:
+    """Gate G4 (ADR-0043): each Roman Urdu twin against its English partner (`pair_of`)."""
+    gold = load_gold(Path(args.gold))
+    run = json.loads(Path(args.search).read_text(encoding="utf-8"))
+    scores = score_run(run, gold, "all")
+    twins = [q for q in gold if q.get("pair_of")]
+    wins, losses = [], []
+    print(f"{'twin':6} {'partner':7} {'English hit':11} {'Roman hit':9}  (rank of first hit: English / Roman)")
+    for q in twins:
+        en, ro = scores[q["pair_of"]], scores[q["id"]]
+        tag = "  Roman WIN" if ro["hit3"] and not en["hit3"] else "  Roman LOSS" if en["hit3"] and not ro["hit3"] else ""
+        if "WIN" in tag:
+            wins.append(q["id"])
+        if "LOSS" in tag:
+            losses.append(q["id"])
+        print(f"{q['id']:6} {q['pair_of']:7} {int(en['hit3']):<11} {int(ro['hit3']):<9}  {en['first_rank']} / {ro['first_rank']}{tag}")
+    net = len(wins) - len(losses)
+    n = len(twins)
+    en_r = sum(scores[q["pair_of"]]["hit3"] for q in twins) / n
+    ro_r = sum(scores[q["id"]]["hit3"] for q in twins) / n
+    print(f"pairs={n}  Roman wins={len(wins)} {wins}  Roman losses={len(losses)} {losses}  net={net}")
+    print(f"over the {n} pairs: English partners Recall@3={en_r:.4f}, Roman twins Recall@3={ro_r:.4f}")
+    for name in ("english", "roman"):
+        s = summary(score_run(run, gold, name))
+        print(f"{name} set (n={s['n']}): Recall@3={fmt(s['recall_at_3'])} MRR={fmt(s['mrr'])}")
+    print("verdict:", "FIX NEEDED (Roman side loses >= 2 net)" if net <= -2 else "no Roman Urdu fix needed (Roman side does not lose >= 2 net)")
+    return 0
+
+
 def cmd_run(args) -> int:
     cmd = [*args.cli.split(), "search", args.lecture, "--queries-file", args.queries, "--k", str(args.k)]
     if args.device:
@@ -148,6 +177,10 @@ def main() -> int:
     c.add_argument("--gold", default=str(HERE / "gold_spans.json"))
     c.add_argument("--subset", default="g23", choices=list(SUBSETS))
     c.set_defaults(func=cmd_compare)
+    g = sub.add_parser("pairs", help="gate G4: Roman twin against English partner")
+    g.add_argument("--search", required=True)
+    g.add_argument("--gold", default=str(HERE / "gold_spans.json"))
+    g.set_defaults(func=cmd_pairs)
     r = sub.add_parser("run")
     r.add_argument("--lecture", required=True)
     r.add_argument("--out", required=True)

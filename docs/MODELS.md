@@ -8,7 +8,7 @@ Table version of `config/models.yaml` (the registry is authoritative). Never cho
 |---|---|---|---|---|---|
 | asr | faster-whisper (checkpoint not chosen; candidates `Systran/faster-whisper-medium`, `Systran/faster-whisper-large-v3`) | CTranslate2, CUDA fp16 | pending | not recorded (large-v3: 5,530 in the 10-minute run) | Waits on WER evaluation |
 | llm | Ollama `qwen3.5:latest` (9.7B Q4_K_M, id `6488c96fa5fa`) | Ollama on Windows, CUDA | pending | 7,566 at `num_ctx` 8192 | Fallback candidate Gemma 4 E4B; unload with `keep_alive: 0` |
-| embedding | `BAAI/bge-m3` (1024-d, 30 s windows) | sentence-transformers, CUDA | decided | 3,089 (standalone, measured 2 Oct 2026, not re-run) | `docs/reports/Embedding_Report.md`, `docs/adr/0001-bge-m3.md`. Rejected (tied): `Qwen/Qwen3-Embedding-0.6B` |
+| embedding | `BAAI/bge-m3` (1024-d, 30 s windows) | sentence-transformers, CUDA | decided, built (M5) | 1,142.4 MiB torch-allocated peak encoding 23 windows in fp16 (11 Oct 2026, `docs/evidence/m5/`); 1,365 to 1,383 MiB above the nvidia-smi baseline. Questions run on the CPU in the API process: 2.3 GiB RAM | `docs/reports/Embedding_Report.md`, `docs/adr/0001-bge-m3.md`. Rejected (tied): `Qwen/Qwen3-Embedding-0.6B` |
 | reranker | none | none | undecided | n/a | Not yet evaluated |
 | ocr_vlm | PaddleOCR-VL (0.9B), folder `PaddleOCR-VL-1.6` | Paddle, CUDA, `~/envs/paddleocr-vl` | optional | about 3,097 allocated; about 7,950 reserved by the allocator | `docs/reports/OCR_report.md`; gated on a 30-frame bake-off |
 
@@ -31,7 +31,7 @@ Measured values from `docs/ENVIRONMENT.md` and the old `ENV_AUDIT_REPORT.md` (re
 |---|---|---|
 | Whisper large-v3, 10 min | 5,530 | verified 3 Oct 2026 |
 | Ollama qwen3.5, `num_ctx` 8192 | 7,566 | leaves 626 MiB |
-| bge-m3 | 3,089 | earlier session, not re-run |
+| bge-m3 | 1,142 (allocated peak); 1,365 to 1,383 above baseline | M5, 11 Oct 2026, `docs/evidence/m5/` (the earlier 3,089 was not re-run and is superseded) |
 | PaddleOCR-VL | about 7,950 reserved (about 3,097 used) | allocator behaviour; 2 of 5 probe runs hung (`OCR_report.md`) |
 
 Contract: never run two CUDA stages at once. Each stage is its own subprocess and exits fully before the next starts. Free VRAM first (`ollama ps`, then `ollama stop <model>`).

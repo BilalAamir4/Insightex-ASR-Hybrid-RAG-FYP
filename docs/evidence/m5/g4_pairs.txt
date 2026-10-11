@@ -1,0 +1,29 @@
+twin   partner English hit Roman hit  (rank of first hit: English / Roman)
+A24    A02     1           1          1 / 1
+A25    A20     1           0          2 / None  Roman LOSS
+A26    A16     1           1          3 / 2
+A27    A18     1           1          3 / 2
+A01r   A01     1           1          1 / 1
+A03r   A03     0           0          5 / 4
+A04r   A04     1           1          1 / 1
+A05r   A05     1           1          1 / 1
+A06r   A06     1           1          1 / 1
+A07r   A07     1           1          2 / 2
+A08r   A08     1           1          1 / 1
+A09r   A09     1           1          1 / 1
+A10r   A10     1           1          1 / 1
+A11r   A11     1           1          1 / 1
+A12r   A12     0           0          4 / 9
+A13r   A13     1           1          2 / 2
+A14r   A14     1           1          2 / 2
+A15r   A15     1           1          1 / 1
+A17r   A17     1           1          1 / 3
+A19r   A19     1           0          1 / 6  Roman LOSS
+A21r   A21     1           1          3 / 3
+A22r   A22     1           0          1 / 9  Roman LOSS
+A23r   A23     0           0          4 / 10
+pairs=23  Roman wins=0 []  Roman losses=3 ['A25', 'A19r', 'A22r']  net=-3
+over the 23 pairs: English partners Recall@3=0.8696, Roman twins Recall@3=0.7391
+english set (n=23): Recall@3=0.8696 MRR=0.7261
+roman set (n=24): Recall@3=0.7500 MRR=0.5933
+verdict: FIX NEEDED (Roman side loses >= 2 net)
