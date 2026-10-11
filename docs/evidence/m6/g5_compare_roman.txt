@@ -1,0 +1,28 @@
+subset roman (n=24)
+id    A hit  B hit 
+A24   1      1     
+A25   0      0     
+A26   1      1     
+A27   1      1     
+A28   1      0       LOSS
+A01r  1      1     
+A03r  0      1       win
+A04r  1      1     
+A05r  1      1     
+A06r  1      1     
+A07r  1      1     
+A08r  1      1     
+A09r  1      1     
+A10r  1      1     
+A11r  1      1     
+A12r  0      0     
+A13r  1      1     
+A14r  1      1     
+A15r  1      1     
+A17r  1      1     
+A19r  0      1       win
+A21r  1      1     
+A22r  0      0     
+A23r  0      1       win
+A: Recall@3=0.7500 MRR=0.5933   B: Recall@3=0.8333 MRR=0.6073
+wins=3 losses=1 net=2 -> ADOPT B

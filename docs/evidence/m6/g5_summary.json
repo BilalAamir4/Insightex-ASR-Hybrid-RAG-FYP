@@ -1,0 +1,25 @@
+{
+ "prompt_sha256": "edac0394acc27081d904a35c85ac163d5e1011c7e1414b3888d2c59cff32744e",
+ "model": "qwen3.5:latest",
+ "num_ctx": 8192,
+ "num_predict": 64,
+ "seed": 42,
+ "questions": 47,
+ "index_config_id": "56d5cbf47e45",
+ "windows": 23,
+ "rewrite_s": {
+  "median": 0.4509416370001418,
+  "p95": 0.5393939359992146,
+  "max": 0.5487764099998458,
+  "min": 0.31549354900016624
+ },
+ "added_s": {
+  "median": 0.5058192780006721,
+  "p95": 0.5976692319991344,
+  "max": 0.6071820999995907
+ },
+ "unusable": [],
+ "over_2s": [],
+ "would_hit_timeout_or_fail": [],
+ "count_would_hit_timeout_or_fail": 0
+}

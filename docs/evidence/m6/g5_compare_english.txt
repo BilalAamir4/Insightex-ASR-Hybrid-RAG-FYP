@@ -1,0 +1,27 @@
+subset english (n=23)
+id    A hit  B hit 
+A01   1      1     
+A02   1      1     
+A03   0      0     
+A04   1      1     
+A05   1      1     
+A06   1      1     
+A07   1      1     
+A08   1      1     
+A09   1      1     
+A10   1      1     
+A11   1      1     
+A12   0      0     
+A13   1      1     
+A14   1      1     
+A15   1      1     
+A16   1      1     
+A17   1      1     
+A18   1      1     
+A19   1      1     
+A20   1      1     
+A21   1      1     
+A22   1      1     
+A23   0      0     
+A: Recall@3=0.8696 MRR=0.7261   B: Recall@3=0.8696 MRR=0.7261
+wins=0 losses=0 net=0 -> KEEP A (tie or worse)

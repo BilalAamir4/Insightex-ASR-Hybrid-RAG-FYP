@@ -1,0 +1,73 @@
+warm-up: {'usable': True, 'seconds': 18.86453096400055, 'rewrite': 'How many layers does a neural network usually have?', 'load_duration_s': 16.9642689}
+A01 0.42s True | How does the lecturer define 'production' in simple terms?
+A02 0.43s True | What is the difference between a production environment and a development environment?
+A03 0.41s True | Why isn't batch learning trained directly on the server?
+A04 0.44s True | Why does a recommendation engine like Netflix's need to keep updating?
+A05 0.45s True | How does the email spam classifier example show a weakness of batch learning?
+A06 0.39s True | What is the hardware limitation problem with batch learning?
+A07 0.39s True | What example shows the availability problem of batch learning?
+A08 0.46s True | What does the lecturer say about the previous video on types of machine learning?
+A09 0.48s True | Why does software need to be deployed on a server for customers to use it?
+A10 0.43s True | What is incremental training and why doesn't batch learning use it?
+A11 0.48s True | How does the lecturer draw the batch learning flow from data to model to server?
+A12 0.4s True | How often do people typically retrain batch learning models?
+A13 0.49s True | Where does the data scientist train a batch model and where does the trained model go?
+A14 0.43s True | Which two types of machine learning will be covered in this video?
+A15 0.49s True | How does the lecturer describe training a Netflix recommendation engine and putting it on the server?
+A16 0.49s True | Why can't a model on a remote device just be refreshed when new data arrives?
+A17 0.43s True | What goes wrong when a model learns once and then stays frozen?
+A18 0.45s True | Why would a daily-refreshed system show stale content during breaking news?
+A19 0.43s True | What happens when the dataset becomes too big for the available tools?
+A20 0.43s True | How do teams stop a deployed model from going out of date?
+A21 0.54s True | What is the basis for the types of machine learning discussed today, compared with the supervision-based ones?
+A22 0.42s True | Why does knowing this difference matter for someone who builds models?
+A23 0.46s True | What does the lecturer say happens when a platform's user base keeps doubling?
+A24 0.32s True | What is a production environment?
+A25 0.41s True | Why does batch learning require retraining the model?
+A26 0.38s True | Why does batch learning fail on satellites or drones?
+A27 0.47s True | Why does it take 24 hours to update the news feed?
+A28 0.48s True | How is all the data used at once in batch learning according to the lecturer?
+A01r 0.45s True | How has production been defined in simple words according to the lecturer?
+A03r 0.41s True | Why don't we directly train batch learning on the server?
+A04r 0.45s True | Why does a Netflix-like recommendation engine need to be updated repeatedly?
+A05r 0.45s True | What weakness of batch learning is revealed by the email spam classifier example?
+A06r 0.44s True | What is the hardware limitation issue in batch learning according to the lecturer?
+A07r 0.43s True | How is the availability problem of batch learning explained using an example?
+A08r 0.44s True | What was said about the types of machine learning in the previous lecture?
+A09r 0.55s True | Why does the lecturer say that software needs to be deployed on a server for customers to use?
+A10r 0.42s True | What is incremental training and why does not use batch learning?
+A11r 0.53s True | How is the flow from data to model to server drawn for batch learning according to the lecturer?
+A12r 0.49s True | In what way do people retrain batch learning models how many times?
+A13r 0.52s True | Where does the data scientist train the batch model and where does the trained model go?
+A14r 0.53s True | According to the lecturer, what two types of machine learning will be taught in this video?
+A15r 0.54s True | How is the lecturer describing training the Netflix recommendation engine and deploying it on a server?
+A17r 0.45s True | What is the problem if the model stops learning after one time?
+A19r 0.47s True | What happens when the data becomes so large that tools cannot handle it?
+A21r 0.47s True | What are today's types based on, in comparison to supervised types?
+A22r 0.47s True | Why is it important for a model builder to know this difference?
+A23r 0.54s True | According to the lecturer, if the platform's users double every month, what happens?
+{
+ "prompt_sha256": "edac0394acc27081d904a35c85ac163d5e1011c7e1414b3888d2c59cff32744e",
+ "model": "qwen3.5:latest",
+ "num_ctx": 8192,
+ "num_predict": 64,
+ "seed": 42,
+ "questions": 47,
+ "index_config_id": "56d5cbf47e45",
+ "windows": 23,
+ "rewrite_s": {
+  "median": 0.4509416370001418,
+  "p95": 0.5393939359992146,
+  "max": 0.5487764099998458,
+  "min": 0.31549354900016624
+ },
+ "added_s": {
+  "median": 0.5058192780006721,
+  "p95": 0.5976692319991344,
+  "max": 0.6071820999995907
+ },
+ "unusable": [],
+ "over_2s": [],
+ "would_hit_timeout_or_fail": [],
+ "count_would_hit_timeout_or_fail": 0
+}
