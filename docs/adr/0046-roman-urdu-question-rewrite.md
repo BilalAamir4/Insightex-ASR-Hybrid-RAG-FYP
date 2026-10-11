@@ -15,9 +15,9 @@ Gate G4 (ADR-0043, `docs/evidence/m5/g4_pairs.txt`) compared each Roman Urdu que
 
 - **Fix: rewrite the question into English with the LLM at query time.** Every question is rewritten, not only those that look like Roman Urdu: temperature 0, the question only as input (no lecture text), technical terms kept as they are, a one-line English question as output. The Ollama call follows the call contract of ADR-0002 (`num_ctx` explicit, `think` false, `num_predict` explicit, token budget checked).
 - **Search runs on both the original question and the rewrite**, and the two rankings are fused with Reciprocal Rank Fusion, k=60 (the same fusion as the sparse test in ADR-0043).
-- **If the LLM is not loaded, search uses the original question only.** The rewrite never blocks or delays an answer beyond its own latency; a failed or timed-out rewrite falls back the same way.
+- **If the LLM is not loaded, search uses the original question only.** Search never loads the model for a rewrite. In production the rewrite call has a **timeout of 2 seconds** (a tunable, `retrieval.rewrite_timeout_s`, added to `config/default.yaml` in M6); a rewrite that fails, returns nothing usable, or takes longer than the timeout is dropped and search uses the original question only, so an answer is never delayed by more than the timeout.
 - **Built in M6**, reusing M6's LLM client and the shared GPU lease for Ollama calls (the GPU belongs to Ollama at query time).
-- **Status stays Proposed until gate G5 passes;** if G5 fails, the question path keeps the original-only search and Roman Urdu stays a documented limitation or gets a new decision.
+- **Status stays Proposed until gate G5 passes (all four conditions above);** if G5 fails, the question path keeps the original-only search and Roman Urdu stays a documented limitation or gets a new decision.
 
 ## Gate G5 (pre-registered, before any rewrite has been run)
 
@@ -25,7 +25,8 @@ Configuration: fixed 30 s grid, stride 30 s, dense, CPU question encoding (the p
 
 - **Roman set (24 questions: A24 to A28 and the 19 `...r` twins):** adopt B only if wins - losses >= 2.
 - **English set (23 questions: A01 to A23):** B must not lose 2 or more net against A.
-- **Latency:** the added time per question (the rewrite call plus the second search), reported as median and p95 over the 47 questions; p95 must be <= 2 s.
+- **Latency:** the added time per question (the rewrite call plus the second search), reported as median and p95 over the 47 questions; p95 must be <= 2 s. G5 runs with the model already loaded and warmed (the warm-up call is not counted) and with **no timeout**, so the true rewrite latency is measured.
+- **Timeout and failure count:** separately from the latency figures, report how many of the 47 questions would have hit the production timeout (a rewrite call longer than 2 s) or failed (error, empty or unusable output). **G5 passes only if that count is 0;** if it is not, report and stop (no adoption decision, no tuning of the timeout or the prompt).
 - **Evidence:** every rewrite (question id, original, rewrite) is logged in `docs/evidence/` for human review. The rewrites are read by a person; a bad rewrite is reported, not removed or re-run to improve the result.
 - Provisional until Test A runs on more lectures (M9).
 
