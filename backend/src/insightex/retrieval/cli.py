@@ -42,6 +42,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--dedupe", action="store_true", help="drop windows overlapping a higher-ranked one")
     parser.add_argument("--device", choices=["cpu", "cuda"], help="encode the questions here (default: retrieval.query_device)")
     parser.add_argument("--dtype", choices=["float32", "float16"], help="query model precision (default: retrieval.query_dtype)")
+    parser.add_argument("--one-by-one", action="store_true", help="encode the questions one at a time, as the API does")
     parser.add_argument("--save-vectors", help="write the question vectors to this .npy file")
     args = parser.parse_args(argv)
     try:
@@ -72,7 +73,12 @@ def main(argv: list[str]) -> int:
         _ = encoder.model
         load_s = time.monotonic() - t0
         t0 = time.monotonic()
-        vectors = encoder.encode([q["question"] for q in questions])
+        if args.one_by_one:
+            import numpy as np
+
+            vectors = np.concatenate([encoder.encode([q["question"]]) for q in questions])
+        else:
+            vectors = encoder.encode([q["question"] for q in questions])
         encode_s = time.monotonic() - t0
     if args.save_vectors:
         import numpy as np

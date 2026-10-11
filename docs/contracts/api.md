@@ -97,4 +97,12 @@ A `: keepalive` comment is sent after `api.sse_keepalive_s` of silence. After th
 
 `{id}` is a workspace id (`yt-<id>` or `sha256-<32 hex>`). The player page keeps `?lecture=<id>`.
 
+## Search
+
+| Request | Response |
+|---|---|
+| `POST /api/lectures/{id}/search` with `{"question": str (1 to 2000 chars), "k"?: int (1 to 100), "dedupe"?: bool (default true)}` | `{"lecture_id", "index_config_id", "hits": [{"rank", "window_id", "start", "end", "score"}]}`, best first; `start`/`end` are seconds on the video timeline; `score` is cosine similarity. With `dedupe`, a window overlapping a better one by more than `retrieval.dedupe_min_overlap_s` is dropped (ADR-0043). **404** `LECTURE_NOT_FOUND`; **409** `LECTURE_NOT_SEARCHABLE` while the lecture has no search index or its index was built with another model revision. No window text is returned (ADR-0041). |
+
+The question is encoded in the API process on the CPU in float32 (`retrieval.query_device`, `retrieval.query_dtype`); the model loads on the first question and stays loaded. A citation should seek to the start of the first transcript segment inside the hit's window (ADR-0044); the segment time is not in this response yet (M6).
+
 Transcripts are internal (ADR-0041): no endpoint serves `transcript.json` or `transcript.vtt`.

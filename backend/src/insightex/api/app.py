@@ -11,7 +11,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from insightex.api.routers import ingest, jobs, languages, lectures
+from insightex.api.routers import ingest, jobs, languages, lectures, search
 from insightex.asr.languages import languages_for
 from insightex.core.config import Settings, get_settings, repo_root
 from insightex.ingest.settings import IngestSettings
@@ -44,6 +44,7 @@ def create_app(app_settings: Settings | None = None, frontend_dir: Path | None =
     app.include_router(ingest.router)
     app.include_router(jobs.router)
     app.include_router(lectures.router)
+    app.include_router(search.router)
     app.include_router(languages.router)
 
     frontend = frontend_dir or repo_root() / "frontend"

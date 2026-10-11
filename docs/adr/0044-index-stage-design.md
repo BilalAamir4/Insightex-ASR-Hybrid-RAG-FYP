@@ -22,7 +22,8 @@ This ADR records the baseline built for gate G0. The choices ADR-0043 leaves to 
 - **Cache key.** Chained from the `asr` key, plus stage name and version, model repo and revision, device, dtype, `max_seq_length`, batch size, window and stride, library versions and the windows schema version. A new transcript therefore rebuilds the index.
 - **Query side.** `insightex.retrieval.search`: questions are encoded by the same code on the CPU in float32 (`retrieval.query_*`) in the calling process; exact search; optional de-duplication (a window overlapping a higher-ranked kept one by more than `retrieval.dedupe_min_overlap_s` seconds, default 0, is dropped; ADR-0043). `insightex search` is the CLI used by the evaluation scorer. `--device cuda` takes the exclusive GPU lease.
 - **Resubmission.** An uploaded lecture counts as current only if it also has an `index` of the current stage version, so existing lectures get indexed when they are added again.
-- **Not built in this session:** the HTTP search endpoint (API process), sparse vectors (gate G2).
+- **HTTP search:** `POST /api/lectures/{id}/search` (docs/contracts/api.md) encodes the question in the API process with the same `QueryEncoder` (CPU, float32, one question at a time, model loaded on the first question and kept) and returns window times and scores, never text.
+- **Not built:** sparse vectors (gate G2 kept dense only, ADR-0043).
 
 ## Alternatives considered
 

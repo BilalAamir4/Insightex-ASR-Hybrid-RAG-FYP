@@ -1,0 +1,12 @@
+{
+ "queries": 47,
+ "min_cosine": 0.9999986290931702,
+ "median_cosine": 0.9999992847442627,
+ "argmin_index": 26,
+ "queries_below_0.999": 0,
+ "top10_order_identical": 45,
+ "top10_order_differs": [
+  "A02",
+  "A25"
+ ]
+}
