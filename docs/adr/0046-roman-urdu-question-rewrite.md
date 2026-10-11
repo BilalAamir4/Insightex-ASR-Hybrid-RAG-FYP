@@ -1,6 +1,6 @@
 # ADR-0046: Roman Urdu questions: rewrite every question into English at query time
 
-Status: Proposed
+Status: Accepted
 Date decided: 2026-10-11
 Date recorded: 2026-10-11
 Module: M6
@@ -37,7 +37,7 @@ Gate G4 (ADR-0043, `docs/evidence/m5/g4_pairs.txt`) compared each Roman Urdu que
   An earlier draft of this prompt (sha256 `355096d0…a12324c`) was replaced on 2026-10-11 before any rewrite was run, because its examples (batch learning, server, Netflix, 24 hours) were taken from the test lecture. The replacement uses examples from outside it (gradient descent, database, Python, 10 GB) and also covers Urdu and Hindi script and the phrase "according to the lecturer".
 
 - **Built in M6**, reusing M6's LLM client and the shared GPU lease for Ollama calls (the GPU belongs to Ollama at query time).
-- **Status stays Proposed until gate G5 passes (all four conditions above);** if G5 fails, the question path keeps the original-only search and Roman Urdu stays a documented limitation or gets a new decision.
+- **Accepted 2026-10-11 after gate G5 passed all four conditions (result below); provisional until M9** (one lecture, 24 Roman questions, net exactly +2). Had G5 failed, the question path would have kept the original-only search.
 
 ## Gate G5 (pre-registered, before any rewrite has been run)
 
@@ -62,9 +62,29 @@ Configuration: fixed 30 s grid, stride 30 s, dense, CPU question encoding (the p
 - Query time gains one Ollama call (and a loaded model when the LLM is in use); with Ollama unloaded the search is the G4 baseline.
 - An extra LLM prompt and its failure modes belong to M6; the rewrite text is internal and never shown (ADR-0041 only concerns transcripts, but the rewrite is not an answer either).
 
+## G5 result (run 2026-10-11, Day 4 lecture, grid 30 dense index `56d5cbf47e45`, prompt sha256 `edac0394...2744e`)
+
+- Roman set (24): Recall@3 0.7500 -> 0.8333, MRR 0.5933 -> 0.6073; wins A03r, A19r, A23r; loss A28; net +2 (threshold >= 2: met).
+- English set (23): 0.8696 -> 0.8696; 0 wins, 0 losses (22 of 23 rewrites were identical to the question; A01 differs only in its quote marks).
+- Rewrite call latency: median 0.45 s, p95 0.54 s, max 0.55 s. Added per question (rewrite + second search): median 0.51 s, p95 0.60 s, max 0.61 s (limit 2 s).
+- Calls over 2 s or unusable: 0 of 47.
+- All 47 rewrites are in `docs/evidence/m6/g5_rewrites.md` for review.
+
+## Known prompt issues (for a possible v2; do not tune on these 47)
+
+- A12r is garbled: the question mixes "am taur par" and "kitni bar" and the rewrite ("In what way do people retrain batch learning models how many times?") changed what it asks.
+- A10r lost its subject ("why does not use batch learning?").
+- Five rewrites added "according to the lecturer" or "the lecturer says" where the question had none (A28, A01r, A06r, A09r, A14r), against the "do not add" instruction; this may be the cause of the A28 loss.
+
+A v2 prompt is evaluated only on the new lectures of M9, never tuned on these 47 questions, and is adopted only by a new ADR and a new G5-style gate.
+
+## Harness deviation (accepted)
+
+The G5 harness (`tools/eval_retrieval/g5_rewrite.py`) sent the Ollama request itself rather than through `chat_json`, because a standalone tool cannot import backend code and `chat_json` builds its `format` from a pydantic model. **M6 requirement:** a test asserts that the production rewrite request body (model, messages with the prompt file's text and its sha256, `think`, `format` schema, `keep_alive`, and every option: `num_ctx`, `temperature`, `seed`, `num_predict`) is byte-identical (same canonical JSON) to the body the G5 harness builds for the same question, so production runs exactly what was gated. The production code must therefore send the ADR's literal JSON Schema.
+
 ## Evidence
 
-- Problem: `docs/evidence/m5/g4_pairs.txt`, `g4_api_cpu_fp32.json`. G5 evidence will be added under `docs/evidence/m6/` when it is run.
+- Problem: `docs/evidence/m5/g4_pairs.txt`, `g4_api_cpu_fp32.json`. G5 evidence: `docs/evidence/m6/` (README there lists the files).
 
 ## Gate / revisit when
 
