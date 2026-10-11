@@ -32,6 +32,10 @@ def create_app(app_settings: Settings | None = None, frontend_dir: Path | None =
             db.migrate(conn)  # idempotent and safe next to a running worker
         finally:
             conn.close()
+        if app_settings.retrieval.preload_query_encoder:
+            seconds = search.preload_query_encoder(app)
+            if seconds is not None:
+                log.info("question encoder loaded in %.1f s", seconds)
         yield
         db.close_thread_connections()
 

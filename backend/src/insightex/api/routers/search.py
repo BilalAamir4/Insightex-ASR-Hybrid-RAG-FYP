@@ -7,7 +7,9 @@ times and scores only: window text is internal evidence and is never returned (A
 
 from __future__ import annotations
 
+import logging
 import threading
+import time
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -20,6 +22,7 @@ from insightex.index.store import LectureIndex, load_index
 from insightex.jobs.workspace import validate_workspace_id
 from insightex.retrieval import search as s
 
+log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/lectures")
 
 _MAX_K = 100
@@ -45,10 +48,33 @@ class _State:
         self.indexes: dict[Path, LectureIndex] = {}  # keyed by the index directory, whose name holds the stage key
 
 
+def _app_state(app) -> _State:
+    if not hasattr(app.state, "search"):
+        app.state.search = _State()
+    return app.state.search
+
+
 def _state(request: Request) -> _State:
-    if not hasattr(request.app.state, "search"):
-        request.app.state.search = _State()
-    return request.app.state.search
+    return _app_state(request.app)
+
+
+def preload_query_encoder(app) -> float | None:
+    """Load the question encoder and run one question through it (API startup), so the first question does not pay for it.
+
+    Returns the load time in seconds, or None if loading failed: the API still starts and the encoder is then created
+    at the first question, which reports the failure to that caller.
+    """
+    state = _app_state(app)
+    t0 = time.monotonic()
+    try:
+        with state.lock:
+            encoder = make_query_encoder(app.state.settings)
+            encoder.encode(["warm-up"])  # loads the weights into memory and runs the first forward pass
+            state.encoder = encoder
+    except Exception:  # a missing model must not stop ingestion and the library
+        log.exception("could not preload the question encoder; it will load at the first question")
+        return None
+    return time.monotonic() - t0
 
 
 @router.post("/{lecture_id}/search")

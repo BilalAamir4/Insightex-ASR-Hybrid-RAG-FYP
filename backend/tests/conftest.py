@@ -27,7 +27,7 @@ def isolated_settings(request, monkeypatch, tmp_path, tmp_path_factory):
         if name.upper().startswith("INSIGHTEX__") or name in ("INSIGHTEX_DATA", "OLLAMA_BASE_URL", "INSIGHTEX_CONFIG"):
             monkeypatch.delenv(name)
     cfg = tmp_path_factory.mktemp("cfg") / "test_config.yaml"  # outside tmp_path: tests list its contents
-    cfg.write_text(f"paths:\n  data_dir: {tmp_path}\n")
+    cfg.write_text(f"paths:\n  data_dir: {tmp_path}\nretrieval:\n  preload_query_encoder: false\n")
     monkeypatch.setenv("INSIGHTEX_CONFIG", str(cfg))
     clear_settings_cache()
     yield

@@ -76,3 +76,24 @@ def test_errors(client, searchable, make_lecture):
     assert r.status_code == 409 and r.json()["error"]["code"] == "LECTURE_NOT_SEARCHABLE"
     assert client.post(f"/api/lectures/{wid}/search", json={"question": ""}).status_code == 422
     assert client.post(f"/api/lectures/{wid}/search", json={"question": "q", "k": 1000}).status_code == 422
+
+
+def test_the_encoder_is_loaded_at_startup_when_configured_and_a_failure_does_not_stop_the_api(app_settings, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from insightex.api.app import create_app
+    from insightex.core.config import load_settings
+
+    settings = load_settings({"retrieval": {"preload_query_encoder": True}})
+    FakeQueryEncoder.instances = 0
+    monkeypatch.setattr(search_router, "make_query_encoder", FakeQueryEncoder)
+    with TestClient(create_app(settings)) as c:
+        assert FakeQueryEncoder.instances == 1  # created before any question
+        assert c.get("/api/lectures").status_code == 200
+
+    def broken(_settings):
+        raise OSError("model files are missing")
+
+    monkeypatch.setattr(search_router, "make_query_encoder", broken)
+    with TestClient(create_app(settings)) as c:
+        assert c.get("/api/lectures").status_code == 200  # the API still starts

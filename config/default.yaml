@@ -172,6 +172,7 @@ index:                              # index stage (M5): docs/adr/0043-*.md (gate
 retrieval:                          # query side (M5): docs/adr/0043-*.md
   query_device: cpu                 # device that encodes questions in the API process; the GPU belongs to Ollama at query time
   query_dtype: float32              # model precision for question encoding
+  preload_query_encoder: true       # load the question encoder when the API starts (about 5 s, 2.3 GiB RAM) instead of at the first question
   candidates: 10                    # windows returned by one raw search, best first
   dedupe_min_overlap_s: 0           # seconds; a window overlapping a higher-ranked kept one by more than this is dropped (deduplicated search)
 

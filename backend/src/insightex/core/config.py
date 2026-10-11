@@ -302,6 +302,7 @@ class Retrieval(_Section):
 
     query_device: str
     query_dtype: str
+    preload_query_encoder: bool
     candidates: int
     dedupe_min_overlap_s: float
 
