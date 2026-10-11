@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from sparse import SparseEncoder, rrf, sparse_score  # noqa: E402
+from sparse import SparseEncoder, rrf, sparse_score
 
 
 def run_json(base: dict, name: str, rankings: dict[str, list[tuple[int, float]]], windows: list[dict], questions: list[dict], k: int) -> dict:
@@ -63,7 +63,7 @@ def main() -> int:
         sparse_only[q["id"]] = [(i, scores[i]) for i in sparse_rank]
         diag.append({"id": q["id"], "sparse_tokens": len(qs), "windows_with_sparse_score": len(sparse_rank)})
     out = Path(args.out_dir)
-    (out / "g2_B_rrf.json").write_text(json.dumps(run_json(dense, "dense+sparse RRF k=%d" % args.rrf_k, fused, windows, questions, args.top), ensure_ascii=False, indent=1), encoding="utf-8")
+    (out / "g2_B_rrf.json").write_text(json.dumps(run_json(dense, f"dense+sparse RRF k={args.rrf_k}", fused, windows, questions, args.top), ensure_ascii=False, indent=1), encoding="utf-8")
     (out / "g2_sparse_only.json").write_text(json.dumps(run_json(dense, "sparse only", sparse_only, windows, questions, args.top), ensure_ascii=False, indent=1), encoding="utf-8")
     (out / "g2_sparse_diag.json").write_text(json.dumps(diag, indent=1), encoding="utf-8")
     print("wrote g2_B_rrf.json, g2_sparse_only.json, g2_sparse_diag.json to", out)

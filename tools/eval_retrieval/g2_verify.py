@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from sparse import SparseEncoder  # noqa: E402
+from sparse import SparseEncoder
 
 
 def reference(texts, *, use_fp16: bool, batch_size: int, device: str, model_dir: str):
