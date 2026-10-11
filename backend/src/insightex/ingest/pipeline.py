@@ -193,6 +193,10 @@ class NormaliseStage(Stage):
             "keyframe_interval_s": i.transcode.keyframe_interval_s,
             "thumb_max_width": i.thumbnail.max_width,
             "thumb_quality": i.thumbnail.quality,
+            "sync_tolerance_s": i.verify.sync_tolerance_s,  # copy-or-re-encode decision and the sync check
+            "silence_warn_dbfs": i.silence_warn_dbfs,  # warning written into normalise.json
+            "av_mismatch_warn_s": i.verify.av_mismatch_warn_s,  # warning written into normalise.json
+            "keep_original": i.file.keep_original,  # whether an uploaded original stays in the workspace
         }
 
     def run(self, ctx: StageContext) -> None:

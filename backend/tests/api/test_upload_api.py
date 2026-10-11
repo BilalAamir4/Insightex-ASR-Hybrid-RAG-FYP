@@ -115,7 +115,7 @@ def test_reupload_of_an_up_to_date_lecture_is_200_without_a_job(client, conn, ap
     first = upload(client, BLOB).json()
     from insightex.ingest import file_jobs
 
-    monkeypatch.setattr(file_jobs, "_current_lecture", lambda workspaces, workspace_id, language_id, settings: True)
+    monkeypatch.setattr(file_jobs, "pipeline_is_current", lambda kind, payload, workspace_id, settings, workspaces: True)
     store.finish(conn, first["job_id"], "succeeded")
     again = upload(client, BLOB)
     assert again.status_code == 200

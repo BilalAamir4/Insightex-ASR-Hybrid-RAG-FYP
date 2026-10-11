@@ -192,6 +192,29 @@ def _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop) -> st
     return "succeeded"
 
 
+def pipeline_is_current(kind: str, payload: dict, workspace_id: str, settings: Settings, workspaces: Workspaces) -> bool:
+    """True if every stage of the pipeline for `kind` is already finished at the cache key the runner would compute now.
+
+    Uses the stages' own fingerprints and the same chain as `_run_pipeline` (including the rule for an input that a
+    later stage consumed), so a re-add can be skipped exactly when a job would find every stage cached. A stage whose
+    fingerprint cannot be built (for example a missing language) makes the answer False.
+    """
+    pipeline = get_pipeline(kind)
+    chain_root = get_chain_root(kind)
+    upstream_key = chain_root(payload, workspace_id) if chain_root else workspace_id
+    key_ctx = KeyContext("-", payload, workspace_id, settings)
+    for idx, stage in enumerate(pipeline):
+        try:
+            key = stage_key(stage.name, stage.version, stage.config_fingerprint(key_ctx), upstream_key)
+        except Exception:  # noqa: BLE001 - the job itself reports a bad fingerprint
+            return False
+        if not (workspaces.stage_is_complete(workspace_id, stage.name, key, list(stage.outputs))
+                or _consumed_but_done(pipeline, idx, key, key_ctx, workspaces, workspace_id)):
+            return False
+        upstream_key = key
+    return True
+
+
 def _consumed_but_done(pipeline, idx: int, key: str, key_ctx: KeyContext, workspaces: Workspaces, workspace_id: str) -> bool:
     """True if the stage is recorded at `key` but a later hook removed some of its outputs, and the next stage is
     already complete at its chained key.

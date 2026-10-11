@@ -19,13 +19,13 @@ from pathlib import Path
 
 from insightex.asr.languages import require_language
 from insightex.asr.stage import AsrStage
-from insightex.asr.transcript import SCHEMA_VERSION, TRANSCRIPT_JSON
+from insightex.asr.transcript import TRANSCRIPT_JSON
 from insightex.core.config import Settings
-from insightex.index.stage import IndexStage, index_is_current
 from insightex.ingest import staging
 from insightex.ingest.errors import ErrorCode, IngestRejected
 from insightex.ingest.settings import IngestSettings
 from insightex.jobs import store
+from insightex.jobs.runner import pipeline_is_current
 from insightex.jobs.workspace import Workspaces
 from insightex.media import engine
 from insightex.sources.identity import workspace_id_for_bytes
@@ -40,35 +40,6 @@ class FileIngest:
     job_id: str | None  # None when an up-to-date lecture already exists and no job was needed
     deduplicated: bool
     rejected: IngestRejected | None = None  # set when the file was refused before staging; job_id is then a failed job
-
-
-def _current_lecture(workspaces: Workspaces, workspace_id: str, language_id: str, settings: Settings) -> bool:
-    """True if the workspace holds a finished `normalise` made by the current normaliser version and a finished
-    `asr` transcript in `language_id` made by the current stage version (another language means a new ASR run),
-    and a finished `index` made by the current stage version with the current model and window settings."""
-    directory = workspaces.stage_output_dir(workspace_id, "normalise")
-    if directory is None or not (directory / engine.VIDEO_NAME).is_file():
-        return False
-    try:
-        info = json.loads((directory / "normalise.json").read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return False
-    if info.get("normaliser_version") != engine.NORMALISER_VERSION:
-        return False
-    asr_dir = workspaces.stage_output_dir(workspace_id, AsrStage.name)
-    if asr_dir is None:
-        return False
-    try:
-        doc = json.loads((asr_dir / TRANSCRIPT_JSON).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return False
-    if not (doc.get("language", {}).get("id") == language_id and doc.get("stage_version") == AsrStage.version
-            and doc.get("schema_version") == SCHEMA_VERSION):
-        return False
-    index_dir = workspaces.stage_output_dir(workspace_id, IndexStage.name)  # a lecture without a search index is not current
-    if index_dir is None:
-        return False
-    return index_is_current(index_dir, settings)
 
 
 def enqueue_file(
@@ -132,9 +103,6 @@ def enqueue_staged(
                 if job.kind == KIND and job.workspace_id == workspace_id and job.payload.get("language") == lang.id:
                     staging.remove_staged(settings, staged.name)
                     return FileIngest(workspace_id, job.id, True)
-        if _current_lecture(workspaces, workspace_id, lang.id, settings):
-            staging.remove_staged(settings, staged.name)
-            return FileIngest(workspace_id, None, True)
         payload = {
             "staged": staged.name,
             "sha256": staged.sha256,
@@ -144,6 +112,9 @@ def enqueue_staged(
             "via": via,
             "language": lang.id,
         }
+        if pipeline_is_current(KIND, payload, workspace_id, settings, workspaces):  # every stage cached at its current key
+            staging.remove_staged(settings, staged.name)
+            return FileIngest(workspace_id, None, True)
         job_id = store.enqueue(conn, KIND, payload, workspace_id)
     return FileIngest(workspace_id, job_id, False)
 
