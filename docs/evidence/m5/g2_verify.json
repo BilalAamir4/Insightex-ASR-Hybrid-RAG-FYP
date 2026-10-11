@@ -1,0 +1,25 @@
+{
+ "fp16_gpu_batch1": {
+  "texts": 70,
+  "same_token_set": 70,
+  "max_abs_weight_diff": 0.0,
+  "min_dense_cosine": 0.9999998807907104,
+  "pass": true
+ },
+ "ours_fp16_batch16_vs_batch1": {
+  "texts": 70,
+  "same_token_set": 68,
+  "max_abs_weight_diff": 0.00439453125,
+  "min_dense_cosine": 0.999997615814209
+ },
+ "fp32_gpu_batch1": {
+  "texts": 70,
+  "same_token_set": 70,
+  "max_abs_weight_diff": 0.0,
+  "min_dense_cosine": 1.0,
+  "pass": true
+ },
+ "windows": 23,
+ "questions": 47,
+ "pass": true
+}

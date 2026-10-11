@@ -19,3 +19,11 @@ Lecture: Day 4 upload, workspace `sha256-de27cb67c2acbedebd0c2c7416932b8a` (351 
 
 - G3s (grid vs snapped): `score.py compare --a idx_grid30.json --b idx_snapped30.json --subset g23` -> net -1, tie, grid stays.
 - G3 (grid stride 30 vs 15): `score.py compare --a idx_grid30.json --b idx_grid15.json --subset g23` -> net 0, tie, stride 30 stays.
+
+## Session B: gate G2 (sparse)
+
+- `g2_verify.json`: `tools/eval_retrieval/g2_verify.py` run in a throwaway venv (FlagEmbedding 1.4.2; torch and transformers 5.18.0 shared read-only from the project environment, nothing installed into the project venv). 70 texts (23 windows + 47 questions), fp16 and fp32 on the GPU, batch size 1: same token set for all 70, largest sparse weight difference 0.0, minimum dense cosine 0.9999999. Our encoder at batch 16 against batch 1 (fp16 noise): largest weight difference 0.0044.
+  - The reference only loads the real sparse head when its model directory holds both `sparse_linear.pt` and `colbert_linear.pt`; with a repo id, or either file missing, FlagEmbedding silently random-initialises both (first attempts produced empty or wrong lexical weights). The check used a scratch directory with symlinks to the snapshot, the real `sparse_linear.pt`, and a placeholder `colbert_linear.pt` (never used: `return_colbert_vecs=False`).
+- `g2_A_dense_full.json` (all 23 windows ranked, dense, GPU fp16 queries; identical to `idx_grid30.json` on the top 10), `g2_B_rrf.json` (dense + sparse, RRF k=60), `g2_sparse_only.json` (informational), `g2_sparse_diag.json`, `g2_*_scores.json`.
+- Compare with: `python tools/eval_retrieval/score.py compare --a docs/evidence/m5/g2_A_dense_full.json --b docs/evidence/m5/g2_B_rrf.json --subset g23`.
+- `sparse_linear.pt` (3516 bytes, sha256 `45c93804...`) was downloaded into the master cache and copied to the runtime cache; `run_F7_check.py` lists it as a matching LFS blob.

@@ -1,0 +1,7945 @@
+{
+ "lecture": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "index_config_id": "56d5cbf47e45",
+ "index_fingerprint": {
+  "model_repo": "BAAI/bge-m3",
+  "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+  "device": "cuda",
+  "dtype": "float16",
+  "max_seq_length": 1024,
+  "batch_size": 16,
+  "window_s": 30.0,
+  "stride_s": 30.0,
+  "snap_to_segments": false,
+  "libraries": {
+   "sentence-transformers": "6.1.0",
+   "transformers": "5.18.0",
+   "torch": "2.11.0+cu128",
+   "faiss-cpu": "1.15.1",
+   "numpy": "2.5.3"
+  },
+  "windows_schema_version": 1
+ },
+ "index": {
+  "schema_version": 1,
+  "stage_version": "1",
+  "fingerprint": {
+   "model_repo": "BAAI/bge-m3",
+   "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+   "device": "cuda",
+   "dtype": "float16",
+   "max_seq_length": 1024,
+   "batch_size": 16,
+   "window_s": 30.0,
+   "stride_s": 30.0,
+   "snap_to_segments": false,
+   "libraries": {
+    "sentence-transformers": "6.1.0",
+    "transformers": "5.18.0",
+    "torch": "2.11.0+cu128",
+    "faiss-cpu": "1.15.1",
+    "numpy": "2.5.3"
+   },
+   "windows_schema_version": 1
+  },
+  "config_id": "56d5cbf47e45",
+  "model": {
+   "repo": "BAAI/bge-m3",
+   "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+   "dtype": "float16",
+   "device": "cuda",
+   "max_seq_length": 1024,
+   "dim": 1024
+  },
+  "windows": {
+   "window_s": 30.0,
+   "stride_s": 30.0,
+   "snap_to_segments": false,
+   "count": 23,
+   "n_truncated": 0
+  },
+  "transcript": {
+   "language": {
+    "id": "hindi",
+    "label": "Hindi (including Hindi-English mixed)",
+    "whisper_language": "ur",
+    "tier_at_processing": "tested"
+   },
+   "segments": 351,
+   "audio_sha256": "658c124da92560e1a23cd27b3ff40b803f836a45f226d0af07be5bc6143a445d"
+  },
+  "libraries": {
+   "sentence-transformers": "6.1.0",
+   "transformers": "5.18.0",
+   "torch": "2.11.0+cu128",
+   "faiss-cpu": "1.15.1",
+   "numpy": "2.5.3"
+  },
+  "stats": {
+   "load_s": 4.394,
+   "encode_s": 0.334,
+   "peak_allocated_mib": 1142.4,
+   "peak_vram_mib": 1267
+  }
+ },
+ "encode": {
+  "device": "cuda",
+  "dtype": "float16",
+  "load_s": 4.717,
+  "encode_s": 0.331,
+  "questions": 47
+ },
+ "dedupe": false,
+ "k": 23,
+ "results": [
+  {
+   "id": "A01",
+   "question": "How does the lecturer define \"production\" in simple terms?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.5993508100509644
+    },
+    {
+     "rank": 2,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.45409828424453735
+    },
+    {
+     "rank": 3,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.4117204546928406
+    },
+    {
+     "rank": 4,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.41100847721099854
+    },
+    {
+     "rank": 5,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.4087677001953125
+    },
+    {
+     "rank": 6,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.40680795907974243
+    },
+    {
+     "rank": 7,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.403373122215271
+    },
+    {
+     "rank": 8,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.4001734256744385
+    },
+    {
+     "rank": 9,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.39864492416381836
+    },
+    {
+     "rank": 10,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.3911179304122925
+    },
+    {
+     "rank": 11,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.385270893573761
+    },
+    {
+     "rank": 12,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.37747761607170105
+    },
+    {
+     "rank": 13,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.3678901195526123
+    },
+    {
+     "rank": 14,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.36508846282958984
+    },
+    {
+     "rank": 15,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.35744601488113403
+    },
+    {
+     "rank": 16,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.3565411865711212
+    },
+    {
+     "rank": 17,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.35437291860580444
+    },
+    {
+     "rank": 18,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.3523421883583069
+    },
+    {
+     "rank": 19,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.3504165709018707
+    },
+    {
+     "rank": 20,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.3488372564315796
+    },
+    {
+     "rank": 21,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.3476526439189911
+    },
+    {
+     "rank": 22,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.3341725468635559
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.23553511500358582
+    }
+   ]
+  },
+  {
+   "id": "A02",
+   "question": "What is the difference between a production environment and a development environment?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.5572425723075867
+    },
+    {
+     "rank": 2,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.509328305721283
+    },
+    {
+     "rank": 3,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.5092413425445557
+    },
+    {
+     "rank": 4,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.40049928426742554
+    },
+    {
+     "rank": 5,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.39946943521499634
+    },
+    {
+     "rank": 6,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.39142733812332153
+    },
+    {
+     "rank": 7,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.391422837972641
+    },
+    {
+     "rank": 8,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.3907107710838318
+    },
+    {
+     "rank": 9,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.383288711309433
+    },
+    {
+     "rank": 10,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.3823651671409607
+    },
+    {
+     "rank": 11,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.3815118670463562
+    },
+    {
+     "rank": 12,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.3720431923866272
+    },
+    {
+     "rank": 13,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.36732587218284607
+    },
+    {
+     "rank": 14,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.3650161623954773
+    },
+    {
+     "rank": 15,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.3644809126853943
+    },
+    {
+     "rank": 16,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.35566073656082153
+    },
+    {
+     "rank": 17,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.35473597049713135
+    },
+    {
+     "rank": 18,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.35325127840042114
+    },
+    {
+     "rank": 19,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.3511313199996948
+    },
+    {
+     "rank": 20,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.34508734941482544
+    },
+    {
+     "rank": 21,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.3435055613517761
+    },
+    {
+     "rank": 22,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.3394567370414734
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.28069671988487244
+    }
+   ]
+  },
+  {
+   "id": "A03",
+   "question": "Why isn't batch learning trained directly on the server?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.7323595285415649
+    },
+    {
+     "rank": 2,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.6764341592788696
+    },
+    {
+     "rank": 3,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.6611923575401306
+    },
+    {
+     "rank": 4,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.6502383351325989
+    },
+    {
+     "rank": 5,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.6426389813423157
+    },
+    {
+     "rank": 6,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.6329658031463623
+    },
+    {
+     "rank": 7,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.613628625869751
+    },
+    {
+     "rank": 8,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.6124551296234131
+    },
+    {
+     "rank": 9,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5889462828636169
+    },
+    {
+     "rank": 10,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.5843183398246765
+    },
+    {
+     "rank": 11,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.5730124711990356
+    },
+    {
+     "rank": 12,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5676794052124023
+    },
+    {
+     "rank": 13,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.5564184784889221
+    },
+    {
+     "rank": 14,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5540876388549805
+    },
+    {
+     "rank": 15,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.5408464670181274
+    },
+    {
+     "rank": 16,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.5317150950431824
+    },
+    {
+     "rank": 17,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.5235484838485718
+    },
+    {
+     "rank": 18,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.5197210311889648
+    },
+    {
+     "rank": 19,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.5051041841506958
+    },
+    {
+     "rank": 20,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.47353506088256836
+    },
+    {
+     "rank": 21,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.44854941964149475
+    },
+    {
+     "rank": 22,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.41308385133743286
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3360811173915863
+    }
+   ]
+  },
+  {
+   "id": "A04",
+   "question": "Why does a recommendation engine like Netflix's need to keep updating?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.6715244054794312
+    },
+    {
+     "rank": 2,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.6565655469894409
+    },
+    {
+     "rank": 3,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5499265193939209
+    },
+    {
+     "rank": 4,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.5473071336746216
+    },
+    {
+     "rank": 5,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5406811833381653
+    },
+    {
+     "rank": 6,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.5203611850738525
+    },
+    {
+     "rank": 7,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4808821678161621
+    },
+    {
+     "rank": 8,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.47764408588409424
+    },
+    {
+     "rank": 9,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.46688562631607056
+    },
+    {
+     "rank": 10,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.445094496011734
+    },
+    {
+     "rank": 11,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.42682307958602905
+    },
+    {
+     "rank": 12,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.4236891269683838
+    },
+    {
+     "rank": 13,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.4206078350543976
+    },
+    {
+     "rank": 14,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.40962547063827515
+    },
+    {
+     "rank": 15,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.403099000453949
+    },
+    {
+     "rank": 16,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.4028041362762451
+    },
+    {
+     "rank": 17,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.39349639415740967
+    },
+    {
+     "rank": 18,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.391652375459671
+    },
+    {
+     "rank": 19,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.3733874559402466
+    },
+    {
+     "rank": 20,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.367904394865036
+    },
+    {
+     "rank": 21,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.3654632270336151
+    },
+    {
+     "rank": 22,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.36035802960395813
+    },
+    {
+     "rank": 23,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.34930485486984253
+    }
+   ]
+  },
+  {
+   "id": "A05",
+   "question": "How does the email spam classifier example show a weakness of batch learning?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.6232115030288696
+    },
+    {
+     "rank": 2,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.5987231731414795
+    },
+    {
+     "rank": 3,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5897025465965271
+    },
+    {
+     "rank": 4,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.5579321980476379
+    },
+    {
+     "rank": 5,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5352996587753296
+    },
+    {
+     "rank": 6,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.5273347496986389
+    },
+    {
+     "rank": 7,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5204076766967773
+    },
+    {
+     "rank": 8,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.5168763399124146
+    },
+    {
+     "rank": 9,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4928911328315735
+    },
+    {
+     "rank": 10,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.48710983991622925
+    },
+    {
+     "rank": 11,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.4812643527984619
+    },
+    {
+     "rank": 12,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.48099812865257263
+    },
+    {
+     "rank": 13,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.4785558581352234
+    },
+    {
+     "rank": 14,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.47528746724128723
+    },
+    {
+     "rank": 15,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.46859586238861084
+    },
+    {
+     "rank": 16,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.43289414048194885
+    },
+    {
+     "rank": 17,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4281036853790283
+    },
+    {
+     "rank": 18,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.42580097913742065
+    },
+    {
+     "rank": 19,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.3929956555366516
+    },
+    {
+     "rank": 20,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3863067626953125
+    },
+    {
+     "rank": 21,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.38559508323669434
+    },
+    {
+     "rank": 22,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.3672877550125122
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3110204339027405
+    }
+   ]
+  },
+  {
+   "id": "A06",
+   "question": "What is the hardware limitation problem with batch learning?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.6706044673919678
+    },
+    {
+     "rank": 2,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.6292269825935364
+    },
+    {
+     "rank": 3,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5809156894683838
+    },
+    {
+     "rank": 4,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.5716234445571899
+    },
+    {
+     "rank": 5,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5713139176368713
+    },
+    {
+     "rank": 6,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.5561164617538452
+    },
+    {
+     "rank": 7,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.5555495023727417
+    },
+    {
+     "rank": 8,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5520358085632324
+    },
+    {
+     "rank": 9,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5331872701644897
+    },
+    {
+     "rank": 10,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.5305348038673401
+    },
+    {
+     "rank": 11,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.524507462978363
+    },
+    {
+     "rank": 12,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.518818736076355
+    },
+    {
+     "rank": 13,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5142422914505005
+    },
+    {
+     "rank": 14,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4947558641433716
+    },
+    {
+     "rank": 15,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.47719186544418335
+    },
+    {
+     "rank": 16,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.47594794631004333
+    },
+    {
+     "rank": 17,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.47077009081840515
+    },
+    {
+     "rank": 18,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4314520061016083
+    },
+    {
+     "rank": 19,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.42464974522590637
+    },
+    {
+     "rank": 20,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.3971187472343445
+    },
+    {
+     "rank": 21,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.39177364110946655
+    },
+    {
+     "rank": 22,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.3710726499557495
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.33665353059768677
+    }
+   ]
+  },
+  {
+   "id": "A07",
+   "question": "What example shows the availability problem of batch learning?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.5932912230491638
+    },
+    {
+     "rank": 2,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5875407457351685
+    },
+    {
+     "rank": 3,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5873027443885803
+    },
+    {
+     "rank": 4,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.5382817387580872
+    },
+    {
+     "rank": 5,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5319919586181641
+    },
+    {
+     "rank": 6,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.5310459733009338
+    },
+    {
+     "rank": 7,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.524030327796936
+    },
+    {
+     "rank": 8,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.5208399891853333
+    },
+    {
+     "rank": 9,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5184006690979004
+    },
+    {
+     "rank": 10,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.513955295085907
+    },
+    {
+     "rank": 11,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5028305053710938
+    },
+    {
+     "rank": 12,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.49874347448349
+    },
+    {
+     "rank": 13,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.4978378415107727
+    },
+    {
+     "rank": 14,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.4948038160800934
+    },
+    {
+     "rank": 15,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.49371403455734253
+    },
+    {
+     "rank": 16,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.48335540294647217
+    },
+    {
+     "rank": 17,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.41909128427505493
+    },
+    {
+     "rank": 18,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.41763976216316223
+    },
+    {
+     "rank": 19,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4086848199367523
+    },
+    {
+     "rank": 20,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.40134915709495544
+    },
+    {
+     "rank": 21,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.39744141697883606
+    },
+    {
+     "rank": 22,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.3955152630805969
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3281511664390564
+    }
+   ]
+  },
+  {
+   "id": "A08",
+   "question": "What does the lecturer say about the previous video on types of machine learning?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.6752848625183105
+    },
+    {
+     "rank": 2,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5634426474571228
+    },
+    {
+     "rank": 3,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.5433101654052734
+    },
+    {
+     "rank": 4,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5261340141296387
+    },
+    {
+     "rank": 5,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5232499241828918
+    },
+    {
+     "rank": 6,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.5070234537124634
+    },
+    {
+     "rank": 7,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5054551362991333
+    },
+    {
+     "rank": 8,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.49577561020851135
+    },
+    {
+     "rank": 9,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.49508610367774963
+    },
+    {
+     "rank": 10,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.486519992351532
+    },
+    {
+     "rank": 11,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.4811605215072632
+    },
+    {
+     "rank": 12,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.47946327924728394
+    },
+    {
+     "rank": 13,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4764389395713806
+    },
+    {
+     "rank": 14,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.47342702746391296
+    },
+    {
+     "rank": 15,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.46793949604034424
+    },
+    {
+     "rank": 16,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.46430885791778564
+    },
+    {
+     "rank": 17,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4626774787902832
+    },
+    {
+     "rank": 18,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.46216732263565063
+    },
+    {
+     "rank": 19,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.45805686712265015
+    },
+    {
+     "rank": 20,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.456341952085495
+    },
+    {
+     "rank": 21,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.42744898796081543
+    },
+    {
+     "rank": 22,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.4111517369747162
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.33508163690567017
+    }
+   ]
+  },
+  {
+   "id": "A09",
+   "question": "Why does software need to be deployed on a server for customers to use it?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.6378015279769897
+    },
+    {
+     "rank": 2,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.5576152801513672
+    },
+    {
+     "rank": 3,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.5338425636291504
+    },
+    {
+     "rank": 4,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5315290093421936
+    },
+    {
+     "rank": 5,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5144827365875244
+    },
+    {
+     "rank": 6,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.5056719779968262
+    },
+    {
+     "rank": 7,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.504047155380249
+    },
+    {
+     "rank": 8,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4969296157360077
+    },
+    {
+     "rank": 9,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.48841893672943115
+    },
+    {
+     "rank": 10,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.47775787115097046
+    },
+    {
+     "rank": 11,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.4751160442829132
+    },
+    {
+     "rank": 12,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.47057807445526123
+    },
+    {
+     "rank": 13,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.47019529342651367
+    },
+    {
+     "rank": 14,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.4676719903945923
+    },
+    {
+     "rank": 15,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.46502599120140076
+    },
+    {
+     "rank": 16,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.44991201162338257
+    },
+    {
+     "rank": 17,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.44885843992233276
+    },
+    {
+     "rank": 18,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4477875232696533
+    },
+    {
+     "rank": 19,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.43768739700317383
+    },
+    {
+     "rank": 20,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.411238431930542
+    },
+    {
+     "rank": 21,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.40755975246429443
+    },
+    {
+     "rank": 22,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.3961447477340698
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3671516180038452
+    }
+   ]
+  },
+  {
+   "id": "A10",
+   "question": "What is incremental training and why doesn't batch learning use it?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.6873040199279785
+    },
+    {
+     "rank": 2,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.6420594453811646
+    },
+    {
+     "rank": 3,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5553147196769714
+    },
+    {
+     "rank": 4,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.5522701144218445
+    },
+    {
+     "rank": 5,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.5461978316307068
+    },
+    {
+     "rank": 6,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5373646020889282
+    },
+    {
+     "rank": 7,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.5287082195281982
+    },
+    {
+     "rank": 8,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.502225935459137
+    },
+    {
+     "rank": 9,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4955637454986572
+    },
+    {
+     "rank": 10,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.4933391809463501
+    },
+    {
+     "rank": 11,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.4917382001876831
+    },
+    {
+     "rank": 12,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.47396647930145264
+    },
+    {
+     "rank": 13,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.45447033643722534
+    },
+    {
+     "rank": 14,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4446953535079956
+    },
+    {
+     "rank": 15,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.43587660789489746
+    },
+    {
+     "rank": 16,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.4327816367149353
+    },
+    {
+     "rank": 17,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4251534938812256
+    },
+    {
+     "rank": 18,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4232061505317688
+    },
+    {
+     "rank": 19,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3956461548805237
+    },
+    {
+     "rank": 20,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.3772735893726349
+    },
+    {
+     "rank": 21,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.37075304985046387
+    },
+    {
+     "rank": 22,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.3349013924598694
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.2977098524570465
+    }
+   ]
+  },
+  {
+   "id": "A11",
+   "question": "How does the lecturer draw the batch learning flow from data to model to server?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.7125686407089233
+    },
+    {
+     "rank": 2,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.6655277609825134
+    },
+    {
+     "rank": 3,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.6335219740867615
+    },
+    {
+     "rank": 4,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.6248781085014343
+    },
+    {
+     "rank": 5,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.6020041704177856
+    },
+    {
+     "rank": 6,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.600730299949646
+    },
+    {
+     "rank": 7,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.5782750248908997
+    },
+    {
+     "rank": 8,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.5685228705406189
+    },
+    {
+     "rank": 9,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5683456659317017
+    },
+    {
+     "rank": 10,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5647568106651306
+    },
+    {
+     "rank": 11,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.5622926354408264
+    },
+    {
+     "rank": 12,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.5543380975723267
+    },
+    {
+     "rank": 13,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.5489150285720825
+    },
+    {
+     "rank": 14,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5418436527252197
+    },
+    {
+     "rank": 15,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.5383692383766174
+    },
+    {
+     "rank": 16,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.53294837474823
+    },
+    {
+     "rank": 17,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.5179048776626587
+    },
+    {
+     "rank": 18,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5173084139823914
+    },
+    {
+     "rank": 19,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.47214818000793457
+    },
+    {
+     "rank": 20,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.4650026559829712
+    },
+    {
+     "rank": 21,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.46161141991615295
+    },
+    {
+     "rank": 22,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.42598557472229004
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.31231892108917236
+    }
+   ]
+  },
+  {
+   "id": "A12",
+   "question": "How often do people typically retrain batch learning models?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.676826000213623
+    },
+    {
+     "rank": 2,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.631721556186676
+    },
+    {
+     "rank": 3,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.6292409300804138
+    },
+    {
+     "rank": 4,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.601023256778717
+    },
+    {
+     "rank": 5,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.6001388430595398
+    },
+    {
+     "rank": 6,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.5932759046554565
+    },
+    {
+     "rank": 7,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.589702844619751
+    },
+    {
+     "rank": 8,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.5871179103851318
+    },
+    {
+     "rank": 9,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.5805827379226685
+    },
+    {
+     "rank": 10,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5766370296478271
+    },
+    {
+     "rank": 11,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.5721032619476318
+    },
+    {
+     "rank": 12,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5673571825027466
+    },
+    {
+     "rank": 13,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5574259161949158
+    },
+    {
+     "rank": 14,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5355772972106934
+    },
+    {
+     "rank": 15,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.49383360147476196
+    },
+    {
+     "rank": 16,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.472087562084198
+    },
+    {
+     "rank": 17,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.46378791332244873
+    },
+    {
+     "rank": 18,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.44502002000808716
+    },
+    {
+     "rank": 19,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4307054281234741
+    },
+    {
+     "rank": 20,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4212254285812378
+    },
+    {
+     "rank": 21,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.41514503955841064
+    },
+    {
+     "rank": 22,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.39757394790649414
+    },
+    {
+     "rank": 23,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.3738422989845276
+    }
+   ]
+  },
+  {
+   "id": "A13",
+   "question": "Where does the data scientist train a batch model and where does the trained model go?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.6645302772521973
+    },
+    {
+     "rank": 2,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.632276713848114
+    },
+    {
+     "rank": 3,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.623599648475647
+    },
+    {
+     "rank": 4,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5937681198120117
+    },
+    {
+     "rank": 5,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5777446627616882
+    },
+    {
+     "rank": 6,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.57603919506073
+    },
+    {
+     "rank": 7,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5526973605155945
+    },
+    {
+     "rank": 8,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.5376949906349182
+    },
+    {
+     "rank": 9,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5304259061813354
+    },
+    {
+     "rank": 10,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.5269749760627747
+    },
+    {
+     "rank": 11,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.5184416770935059
+    },
+    {
+     "rank": 12,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5183463096618652
+    },
+    {
+     "rank": 13,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.5172724723815918
+    },
+    {
+     "rank": 14,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.5136492252349854
+    },
+    {
+     "rank": 15,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.4997197389602661
+    },
+    {
+     "rank": 16,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4932543635368347
+    },
+    {
+     "rank": 17,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.4803551435470581
+    },
+    {
+     "rank": 18,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.476337730884552
+    },
+    {
+     "rank": 19,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.47158631682395935
+    },
+    {
+     "rank": 20,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.4611459970474243
+    },
+    {
+     "rank": 21,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.43609705567359924
+    },
+    {
+     "rank": 22,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.42323875427246094
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.29998818039894104
+    }
+   ]
+  },
+  {
+   "id": "A14",
+   "question": "Which two types of machine learning will be covered in this video?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.6689450740814209
+    },
+    {
+     "rank": 2,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5970187187194824
+    },
+    {
+     "rank": 3,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.5530065894126892
+    },
+    {
+     "rank": 4,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.5468860864639282
+    },
+    {
+     "rank": 5,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5367587208747864
+    },
+    {
+     "rank": 6,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.5195566415786743
+    },
+    {
+     "rank": 7,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.5192018747329712
+    },
+    {
+     "rank": 8,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5182161331176758
+    },
+    {
+     "rank": 9,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5173552632331848
+    },
+    {
+     "rank": 10,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.516582190990448
+    },
+    {
+     "rank": 11,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5106874704360962
+    },
+    {
+     "rank": 12,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.5069602727890015
+    },
+    {
+     "rank": 13,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.5006552338600159
+    },
+    {
+     "rank": 14,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.494520366191864
+    },
+    {
+     "rank": 15,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4910091161727905
+    },
+    {
+     "rank": 16,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4813486933708191
+    },
+    {
+     "rank": 17,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.473926842212677
+    },
+    {
+     "rank": 18,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.4663788676261902
+    },
+    {
+     "rank": 19,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.46294105052948
+    },
+    {
+     "rank": 20,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.45598459243774414
+    },
+    {
+     "rank": 21,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.42602601647377014
+    },
+    {
+     "rank": 22,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.41528987884521484
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3859567940235138
+    }
+   ]
+  },
+  {
+   "id": "A15",
+   "question": "How does the lecturer describe training a Netflix recommendation engine and putting it on the server?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.6631911993026733
+    },
+    {
+     "rank": 2,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.594991147518158
+    },
+    {
+     "rank": 3,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.5644512176513672
+    },
+    {
+     "rank": 4,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.5472127795219421
+    },
+    {
+     "rank": 5,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.5176011323928833
+    },
+    {
+     "rank": 6,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.500756025314331
+    },
+    {
+     "rank": 7,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5003172159194946
+    },
+    {
+     "rank": 8,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.49864858388900757
+    },
+    {
+     "rank": 9,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4968358278274536
+    },
+    {
+     "rank": 10,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.4862391948699951
+    },
+    {
+     "rank": 11,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.482217013835907
+    },
+    {
+     "rank": 12,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.4777931272983551
+    },
+    {
+     "rank": 13,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4672524929046631
+    },
+    {
+     "rank": 14,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.4649621248245239
+    },
+    {
+     "rank": 15,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.4637032747268677
+    },
+    {
+     "rank": 16,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.4635264575481415
+    },
+    {
+     "rank": 17,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.4615941047668457
+    },
+    {
+     "rank": 18,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.45211100578308105
+    },
+    {
+     "rank": 19,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.44973868131637573
+    },
+    {
+     "rank": 20,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4473270773887634
+    },
+    {
+     "rank": 21,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.4055148661136627
+    },
+    {
+     "rank": 22,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.40325987339019775
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3455979824066162
+    }
+   ]
+  },
+  {
+   "id": "A16",
+   "question": "Why can't a model on a remote device just be refreshed when new data arrives?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.6132529377937317
+    },
+    {
+     "rank": 2,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.5843050479888916
+    },
+    {
+     "rank": 3,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.5829498767852783
+    },
+    {
+     "rank": 4,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.5629202723503113
+    },
+    {
+     "rank": 5,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5358788967132568
+    },
+    {
+     "rank": 6,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.5297666192054749
+    },
+    {
+     "rank": 7,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.5217503309249878
+    },
+    {
+     "rank": 8,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5071834325790405
+    },
+    {
+     "rank": 9,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.500478982925415
+    },
+    {
+     "rank": 10,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.4952971339225769
+    },
+    {
+     "rank": 11,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.49297547340393066
+    },
+    {
+     "rank": 12,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.48561930656433105
+    },
+    {
+     "rank": 13,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.48404252529144287
+    },
+    {
+     "rank": 14,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4838363230228424
+    },
+    {
+     "rank": 15,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.47029635310173035
+    },
+    {
+     "rank": 16,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.46413058042526245
+    },
+    {
+     "rank": 17,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.4567568898200989
+    },
+    {
+     "rank": 18,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4543396830558777
+    },
+    {
+     "rank": 19,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.44086962938308716
+    },
+    {
+     "rank": 20,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.42934930324554443
+    },
+    {
+     "rank": 21,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.42390942573547363
+    },
+    {
+     "rank": 22,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.4205509126186371
+    },
+    {
+     "rank": 23,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.40964001417160034
+    }
+   ]
+  },
+  {
+   "id": "A17",
+   "question": "What goes wrong when a model learns once and then stays frozen?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.5732282400131226
+    },
+    {
+     "rank": 2,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.5714181661605835
+    },
+    {
+     "rank": 3,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5592460036277771
+    },
+    {
+     "rank": 4,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.538648247718811
+    },
+    {
+     "rank": 5,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.5306100249290466
+    },
+    {
+     "rank": 6,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.5233049392700195
+    },
+    {
+     "rank": 7,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5230686068534851
+    },
+    {
+     "rank": 8,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.5187853574752808
+    },
+    {
+     "rank": 9,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.5150377750396729
+    },
+    {
+     "rank": 10,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.5026676654815674
+    },
+    {
+     "rank": 11,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.49692535400390625
+    },
+    {
+     "rank": 12,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.4865226447582245
+    },
+    {
+     "rank": 13,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.484700083732605
+    },
+    {
+     "rank": 14,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.478239506483078
+    },
+    {
+     "rank": 15,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4674781262874603
+    },
+    {
+     "rank": 16,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.4643465578556061
+    },
+    {
+     "rank": 17,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.4616752564907074
+    },
+    {
+     "rank": 18,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.45322585105895996
+    },
+    {
+     "rank": 19,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.44765573740005493
+    },
+    {
+     "rank": 20,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.43805694580078125
+    },
+    {
+     "rank": 21,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.4286198019981384
+    },
+    {
+     "rank": 22,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.40210264921188354
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.34098899364471436
+    }
+   ]
+  },
+  {
+   "id": "A18",
+   "question": "Why would a daily-refreshed system show stale content during breaking news?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5366808176040649
+    },
+    {
+     "rank": 2,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5151782631874084
+    },
+    {
+     "rank": 3,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.5068742036819458
+    },
+    {
+     "rank": 4,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.506588339805603
+    },
+    {
+     "rank": 5,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.49433910846710205
+    },
+    {
+     "rank": 6,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.44959837198257446
+    },
+    {
+     "rank": 7,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.4379398822784424
+    },
+    {
+     "rank": 8,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4357530474662781
+    },
+    {
+     "rank": 9,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4103125333786011
+    },
+    {
+     "rank": 10,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.40326815843582153
+    },
+    {
+     "rank": 11,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.3794843554496765
+    },
+    {
+     "rank": 12,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.36454296112060547
+    },
+    {
+     "rank": 13,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.35865896940231323
+    },
+    {
+     "rank": 14,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.35721999406814575
+    },
+    {
+     "rank": 15,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.3568150997161865
+    },
+    {
+     "rank": 16,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.352396696805954
+    },
+    {
+     "rank": 17,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.34247034788131714
+    },
+    {
+     "rank": 18,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.34169378876686096
+    },
+    {
+     "rank": 19,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.3231024742126465
+    },
+    {
+     "rank": 20,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.31259065866470337
+    },
+    {
+     "rank": 21,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.3069192171096802
+    },
+    {
+     "rank": 22,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.29511287808418274
+    },
+    {
+     "rank": 23,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.2643599808216095
+    }
+   ]
+  },
+  {
+   "id": "A19",
+   "question": "What happens when the dataset becomes too big for the available tools?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.6007556915283203
+    },
+    {
+     "rank": 2,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.5402828454971313
+    },
+    {
+     "rank": 3,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5166246891021729
+    },
+    {
+     "rank": 4,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5097001791000366
+    },
+    {
+     "rank": 5,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.5001410245895386
+    },
+    {
+     "rank": 6,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.4972238838672638
+    },
+    {
+     "rank": 7,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.49053263664245605
+    },
+    {
+     "rank": 8,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.48284146189689636
+    },
+    {
+     "rank": 9,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4756236672401428
+    },
+    {
+     "rank": 10,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.47416841983795166
+    },
+    {
+     "rank": 11,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4723499119281769
+    },
+    {
+     "rank": 12,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.4723460376262665
+    },
+    {
+     "rank": 13,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.46684730052948
+    },
+    {
+     "rank": 14,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.46414151787757874
+    },
+    {
+     "rank": 15,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.46339988708496094
+    },
+    {
+     "rank": 16,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.46273303031921387
+    },
+    {
+     "rank": 17,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.45790472626686096
+    },
+    {
+     "rank": 18,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.45461806654930115
+    },
+    {
+     "rank": 19,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.44582852721214294
+    },
+    {
+     "rank": 20,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.4425515830516815
+    },
+    {
+     "rank": 21,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.43252670764923096
+    },
+    {
+     "rank": 22,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.4255288243293762
+    },
+    {
+     "rank": 23,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.39681917428970337
+    }
+   ]
+  },
+  {
+   "id": "A20",
+   "question": "How do teams stop a deployed model from going out of date?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.5447184443473816
+    },
+    {
+     "rank": 2,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.530860424041748
+    },
+    {
+     "rank": 3,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.52732253074646
+    },
+    {
+     "rank": 4,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5136417746543884
+    },
+    {
+     "rank": 5,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4765706956386566
+    },
+    {
+     "rank": 6,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.47417014837265015
+    },
+    {
+     "rank": 7,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.46956759691238403
+    },
+    {
+     "rank": 8,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4672812223434448
+    },
+    {
+     "rank": 9,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.46410220861434937
+    },
+    {
+     "rank": 10,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.4633535146713257
+    },
+    {
+     "rank": 11,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.4482938051223755
+    },
+    {
+     "rank": 12,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4474741220474243
+    },
+    {
+     "rank": 13,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.4400765299797058
+    },
+    {
+     "rank": 14,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.4350205063819885
+    },
+    {
+     "rank": 15,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4315710663795471
+    },
+    {
+     "rank": 16,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.43014633655548096
+    },
+    {
+     "rank": 17,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.41070228815078735
+    },
+    {
+     "rank": 18,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.40333595871925354
+    },
+    {
+     "rank": 19,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.39759361743927
+    },
+    {
+     "rank": 20,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.39590394496917725
+    },
+    {
+     "rank": 21,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3645835518836975
+    },
+    {
+     "rank": 22,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3619419038295746
+    },
+    {
+     "rank": 23,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.36015138030052185
+    }
+   ]
+  },
+  {
+   "id": "A21",
+   "question": "What is the basis for the types of machine learning discussed today, compared with the supervision-based ones?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.7112959623336792
+    },
+    {
+     "rank": 2,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.6114802360534668
+    },
+    {
+     "rank": 3,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.5808392763137817
+    },
+    {
+     "rank": 4,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5256288647651672
+    },
+    {
+     "rank": 5,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.5107775926589966
+    },
+    {
+     "rank": 6,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5076236724853516
+    },
+    {
+     "rank": 7,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5023051500320435
+    },
+    {
+     "rank": 8,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.48602551221847534
+    },
+    {
+     "rank": 9,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.4790540933609009
+    },
+    {
+     "rank": 10,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.47265559434890747
+    },
+    {
+     "rank": 11,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.469129741191864
+    },
+    {
+     "rank": 12,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.46672847867012024
+    },
+    {
+     "rank": 13,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.46254608035087585
+    },
+    {
+     "rank": 14,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.45821258425712585
+    },
+    {
+     "rank": 15,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.45667359232902527
+    },
+    {
+     "rank": 16,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.45140671730041504
+    },
+    {
+     "rank": 17,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.4479596018791199
+    },
+    {
+     "rank": 18,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.44344672560691833
+    },
+    {
+     "rank": 19,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4393073320388794
+    },
+    {
+     "rank": 20,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.432198166847229
+    },
+    {
+     "rank": 21,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4197028875350952
+    },
+    {
+     "rank": 22,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4074726402759552
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3158007264137268
+    }
+   ]
+  },
+  {
+   "id": "A22",
+   "question": "Why does knowing this difference matter for someone who builds models?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5221767425537109
+    },
+    {
+     "rank": 2,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5140507221221924
+    },
+    {
+     "rank": 3,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5053893327713013
+    },
+    {
+     "rank": 4,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4959411025047302
+    },
+    {
+     "rank": 5,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.4947899580001831
+    },
+    {
+     "rank": 6,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4919787645339966
+    },
+    {
+     "rank": 7,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4884975254535675
+    },
+    {
+     "rank": 8,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.4883665442466736
+    },
+    {
+     "rank": 9,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4812973737716675
+    },
+    {
+     "rank": 10,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.4800514578819275
+    },
+    {
+     "rank": 11,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.47126927971839905
+    },
+    {
+     "rank": 12,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.46706026792526245
+    },
+    {
+     "rank": 13,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.46636292338371277
+    },
+    {
+     "rank": 14,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.46529126167297363
+    },
+    {
+     "rank": 15,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.4589882493019104
+    },
+    {
+     "rank": 16,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.4584808349609375
+    },
+    {
+     "rank": 17,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.4584485590457916
+    },
+    {
+     "rank": 18,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.4567638635635376
+    },
+    {
+     "rank": 19,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.45003631711006165
+    },
+    {
+     "rank": 20,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.44769012928009033
+    },
+    {
+     "rank": 21,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4414841830730438
+    },
+    {
+     "rank": 22,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4330461919307709
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3578518033027649
+    }
+   ]
+  },
+  {
+   "id": "A23",
+   "question": "What does the lecturer say happens when a platform's user base keeps doubling?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.517516553401947
+    },
+    {
+     "rank": 2,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.5086390972137451
+    },
+    {
+     "rank": 3,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5015897750854492
+    },
+    {
+     "rank": 4,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.4917505383491516
+    },
+    {
+     "rank": 5,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4862116575241089
+    },
+    {
+     "rank": 6,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4853660762310028
+    },
+    {
+     "rank": 7,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.4800373315811157
+    },
+    {
+     "rank": 8,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.4781467020511627
+    },
+    {
+     "rank": 9,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4771021902561188
+    },
+    {
+     "rank": 10,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.47422707080841064
+    },
+    {
+     "rank": 11,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.46810856461524963
+    },
+    {
+     "rank": 12,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.4597451090812683
+    },
+    {
+     "rank": 13,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.45871686935424805
+    },
+    {
+     "rank": 14,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4578874111175537
+    },
+    {
+     "rank": 15,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.45586371421813965
+    },
+    {
+     "rank": 16,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4525609314441681
+    },
+    {
+     "rank": 17,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.44912075996398926
+    },
+    {
+     "rank": 18,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.44608834385871887
+    },
+    {
+     "rank": 19,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.44138801097869873
+    },
+    {
+     "rank": 20,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.4312840700149536
+    },
+    {
+     "rank": 21,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.416881263256073
+    },
+    {
+     "rank": 22,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.4101060628890991
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.4077686071395874
+    }
+   ]
+  },
+  {
+   "id": "A24",
+   "question": "production environment kya hota hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.4271802604198456
+    },
+    {
+     "rank": 2,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.41112345457077026
+    },
+    {
+     "rank": 3,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4086701273918152
+    },
+    {
+     "rank": 4,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.40232932567596436
+    },
+    {
+     "rank": 5,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.3914535641670227
+    },
+    {
+     "rank": 6,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.3905763030052185
+    },
+    {
+     "rank": 7,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.3779070973396301
+    },
+    {
+     "rank": 8,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.36658358573913574
+    },
+    {
+     "rank": 9,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.3656291365623474
+    },
+    {
+     "rank": 10,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.36534011363983154
+    },
+    {
+     "rank": 11,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.35815638303756714
+    },
+    {
+     "rank": 12,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.35617607831954956
+    },
+    {
+     "rank": 13,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.3536640405654907
+    },
+    {
+     "rank": 14,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.34925517439842224
+    },
+    {
+     "rank": 15,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.34488818049430847
+    },
+    {
+     "rank": 16,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.33912187814712524
+    },
+    {
+     "rank": 17,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.3338486850261688
+    },
+    {
+     "rank": 18,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.33338648080825806
+    },
+    {
+     "rank": 19,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.32850566506385803
+    },
+    {
+     "rank": 20,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.32294899225234985
+    },
+    {
+     "rank": 21,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.3217323422431946
+    },
+    {
+     "rank": 22,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.31375330686569214
+    },
+    {
+     "rank": 23,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.29083770513534546
+    }
+   ]
+  },
+  {
+   "id": "A25",
+   "question": "batch learning mein model ko dobara train kyun karna parta hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.6118646860122681
+    },
+    {
+     "rank": 2,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.56070476770401
+    },
+    {
+     "rank": 3,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5500354766845703
+    },
+    {
+     "rank": 4,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.5424243807792664
+    },
+    {
+     "rank": 5,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5375487208366394
+    },
+    {
+     "rank": 6,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5287551879882812
+    },
+    {
+     "rank": 7,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.5260806083679199
+    },
+    {
+     "rank": 8,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5251204371452332
+    },
+    {
+     "rank": 9,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.525084376335144
+    },
+    {
+     "rank": 10,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5031384825706482
+    },
+    {
+     "rank": 11,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.5010492205619812
+    },
+    {
+     "rank": 12,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.49873673915863037
+    },
+    {
+     "rank": 13,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.49385419487953186
+    },
+    {
+     "rank": 14,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.4735562205314636
+    },
+    {
+     "rank": 15,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.47188806533813477
+    },
+    {
+     "rank": 16,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.46495336294174194
+    },
+    {
+     "rank": 17,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.4605373740196228
+    },
+    {
+     "rank": 18,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.4469183087348938
+    },
+    {
+     "rank": 19,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4195902943611145
+    },
+    {
+     "rank": 20,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.4142152965068817
+    },
+    {
+     "rank": 21,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.3971450924873352
+    },
+    {
+     "rank": 22,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.3865314722061157
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.33415430784225464
+    }
+   ]
+  },
+  {
+   "id": "A26",
+   "question": "satellite ya drone par batch learning kyun fail ho jati hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.507351279258728
+    },
+    {
+     "rank": 2,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.46473678946495056
+    },
+    {
+     "rank": 3,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.45795753598213196
+    },
+    {
+     "rank": 4,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.44718319177627563
+    },
+    {
+     "rank": 5,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.44635340571403503
+    },
+    {
+     "rank": 6,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.4422483444213867
+    },
+    {
+     "rank": 7,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.43474653363227844
+    },
+    {
+     "rank": 8,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.4313018321990967
+    },
+    {
+     "rank": 9,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.4220240116119385
+    },
+    {
+     "rank": 10,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.41978615522384644
+    },
+    {
+     "rank": 11,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.4172474145889282
+    },
+    {
+     "rank": 12,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.4165828824043274
+    },
+    {
+     "rank": 13,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.3963642418384552
+    },
+    {
+     "rank": 14,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.39479970932006836
+    },
+    {
+     "rank": 15,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.38880252838134766
+    },
+    {
+     "rank": 16,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.38526952266693115
+    },
+    {
+     "rank": 17,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.3823661208152771
+    },
+    {
+     "rank": 18,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.36596566438674927
+    },
+    {
+     "rank": 19,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.3229639530181885
+    },
+    {
+     "rank": 20,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3186500072479248
+    },
+    {
+     "rank": 21,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.3169160783290863
+    },
+    {
+     "rank": 22,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.31663811206817627
+    },
+    {
+     "rank": 23,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.30017924308776855
+    }
+   ]
+  },
+  {
+   "id": "A27",
+   "question": "news feed update hone mein 24 ghante kyun lagte hain",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.5292333960533142
+    },
+    {
+     "rank": 2,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.4870898425579071
+    },
+    {
+     "rank": 3,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.46804529428482056
+    },
+    {
+     "rank": 4,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4285961091518402
+    },
+    {
+     "rank": 5,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.39017772674560547
+    },
+    {
+     "rank": 6,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.38076722621917725
+    },
+    {
+     "rank": 7,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.36832383275032043
+    },
+    {
+     "rank": 8,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.3494061231613159
+    },
+    {
+     "rank": 9,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.3476749360561371
+    },
+    {
+     "rank": 10,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.3334225118160248
+    },
+    {
+     "rank": 11,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.33201515674591064
+    },
+    {
+     "rank": 12,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.3198186457157135
+    },
+    {
+     "rank": 13,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.3185666799545288
+    },
+    {
+     "rank": 14,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.3110194206237793
+    },
+    {
+     "rank": 15,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.30812913179397583
+    },
+    {
+     "rank": 16,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.3012486398220062
+    },
+    {
+     "rank": 17,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.2863745093345642
+    },
+    {
+     "rank": 18,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.28424614667892456
+    },
+    {
+     "rank": 19,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.28368550539016724
+    },
+    {
+     "rank": 20,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.2670009136199951
+    },
+    {
+     "rank": 21,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.2665461301803589
+    },
+    {
+     "rank": 22,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.2573741376399994
+    },
+    {
+     "rank": 23,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.23722365498542786
+    }
+   ]
+  },
+  {
+   "id": "A28",
+   "question": "batch learning mein pura data ek saath kaise use hota hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.6151044368743896
+    },
+    {
+     "rank": 2,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5932852029800415
+    },
+    {
+     "rank": 3,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5907192826271057
+    },
+    {
+     "rank": 4,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.5779122114181519
+    },
+    {
+     "rank": 5,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.575934648513794
+    },
+    {
+     "rank": 6,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.567847728729248
+    },
+    {
+     "rank": 7,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.5619796514511108
+    },
+    {
+     "rank": 8,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5478930473327637
+    },
+    {
+     "rank": 9,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.5424193739891052
+    },
+    {
+     "rank": 10,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.537811815738678
+    },
+    {
+     "rank": 11,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5356696844100952
+    },
+    {
+     "rank": 12,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5337562561035156
+    },
+    {
+     "rank": 13,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.5211548209190369
+    },
+    {
+     "rank": 14,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5158708095550537
+    },
+    {
+     "rank": 15,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.5026177167892456
+    },
+    {
+     "rank": 16,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4596847593784332
+    },
+    {
+     "rank": 17,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4513850808143616
+    },
+    {
+     "rank": 18,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.44793808460235596
+    },
+    {
+     "rank": 19,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.4316457509994507
+    },
+    {
+     "rank": 20,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.43147745728492737
+    },
+    {
+     "rank": 21,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.42876917123794556
+    },
+    {
+     "rank": 22,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.41376256942749023
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.38178807497024536
+    }
+   ]
+  },
+  {
+   "id": "A01r",
+   "question": "production ko simple alfaaz mein kaise define kiya hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.4369014501571655
+    },
+    {
+     "rank": 2,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.378878116607666
+    },
+    {
+     "rank": 3,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.3622159957885742
+    },
+    {
+     "rank": 4,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.3566857576370239
+    },
+    {
+     "rank": 5,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.35347750782966614
+    },
+    {
+     "rank": 6,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.34545159339904785
+    },
+    {
+     "rank": 7,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.3340480923652649
+    },
+    {
+     "rank": 8,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.3331857919692993
+    },
+    {
+     "rank": 9,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.3224583864212036
+    },
+    {
+     "rank": 10,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.3183242678642273
+    },
+    {
+     "rank": 11,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.31615009903907776
+    },
+    {
+     "rank": 12,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.30275845527648926
+    },
+    {
+     "rank": 13,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.29843467473983765
+    },
+    {
+     "rank": 14,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.29533374309539795
+    },
+    {
+     "rank": 15,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.29475516080856323
+    },
+    {
+     "rank": 16,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.29409733414649963
+    },
+    {
+     "rank": 17,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.2940368056297302
+    },
+    {
+     "rank": 18,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.2926507294178009
+    },
+    {
+     "rank": 19,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.29199790954589844
+    },
+    {
+     "rank": 20,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.28070268034935
+    },
+    {
+     "rank": 21,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.2745324969291687
+    },
+    {
+     "rank": 22,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.2736968398094177
+    },
+    {
+     "rank": 23,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.2609829902648926
+    }
+   ]
+  },
+  {
+   "id": "A03r",
+   "question": "batch learning ko seedha server pe train kyun nahi karte",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.5851093530654907
+    },
+    {
+     "rank": 2,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.5675714015960693
+    },
+    {
+     "rank": 3,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5513007640838623
+    },
+    {
+     "rank": 4,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5412884950637817
+    },
+    {
+     "rank": 5,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.5392522811889648
+    },
+    {
+     "rank": 6,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5314053893089294
+    },
+    {
+     "rank": 7,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.5302568674087524
+    },
+    {
+     "rank": 8,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5223751068115234
+    },
+    {
+     "rank": 9,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.5171694755554199
+    },
+    {
+     "rank": 10,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5149092674255371
+    },
+    {
+     "rank": 11,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.513700008392334
+    },
+    {
+     "rank": 12,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5031832456588745
+    },
+    {
+     "rank": 13,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.4839889407157898
+    },
+    {
+     "rank": 14,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.47606536746025085
+    },
+    {
+     "rank": 15,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4643673896789551
+    },
+    {
+     "rank": 16,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4579324722290039
+    },
+    {
+     "rank": 17,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.45454201102256775
+    },
+    {
+     "rank": 18,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4526013731956482
+    },
+    {
+     "rank": 19,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.4453026056289673
+    },
+    {
+     "rank": 20,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.4414699971675873
+    },
+    {
+     "rank": 21,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.42930710315704346
+    },
+    {
+     "rank": 22,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.39427852630615234
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.35790494084358215
+    }
+   ]
+  },
+  {
+   "id": "A04r",
+   "question": "Netflix jaisa recommendation engine baar baar update kyun karna parta hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.5081112384796143
+    },
+    {
+     "rank": 2,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.47992056608200073
+    },
+    {
+     "rank": 3,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.4679141938686371
+    },
+    {
+     "rank": 4,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4490160346031189
+    },
+    {
+     "rank": 5,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.44729000329971313
+    },
+    {
+     "rank": 6,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4179834723472595
+    },
+    {
+     "rank": 7,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.4019625782966614
+    },
+    {
+     "rank": 8,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.4008041024208069
+    },
+    {
+     "rank": 9,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.40002506971359253
+    },
+    {
+     "rank": 10,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.39256924390792847
+    },
+    {
+     "rank": 11,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.3812482953071594
+    },
+    {
+     "rank": 12,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.3783842921257019
+    },
+    {
+     "rank": 13,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.3700732886791229
+    },
+    {
+     "rank": 14,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.3529610335826874
+    },
+    {
+     "rank": 15,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.34605497121810913
+    },
+    {
+     "rank": 16,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.3431655764579773
+    },
+    {
+     "rank": 17,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.3427954912185669
+    },
+    {
+     "rank": 18,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.3392431139945984
+    },
+    {
+     "rank": 19,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.3336886763572693
+    },
+    {
+     "rank": 20,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.3268269896507263
+    },
+    {
+     "rank": 21,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.30089032649993896
+    },
+    {
+     "rank": 22,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.29934290051460266
+    },
+    {
+     "rank": 23,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.2857103943824768
+    }
+   ]
+  },
+  {
+   "id": "A05r",
+   "question": "email spam classifier wali example se batch learning ki kya kamzori pata chalti hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5773134231567383
+    },
+    {
+     "rank": 2,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5351859331130981
+    },
+    {
+     "rank": 3,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.5103600025177002
+    },
+    {
+     "rank": 4,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.4992135167121887
+    },
+    {
+     "rank": 5,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.49818897247314453
+    },
+    {
+     "rank": 6,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.49714815616607666
+    },
+    {
+     "rank": 7,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.49214959144592285
+    },
+    {
+     "rank": 8,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.4829036295413971
+    },
+    {
+     "rank": 9,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.48080694675445557
+    },
+    {
+     "rank": 10,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.46078795194625854
+    },
+    {
+     "rank": 11,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.45604532957077026
+    },
+    {
+     "rank": 12,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.45318952202796936
+    },
+    {
+     "rank": 13,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4253257215023041
+    },
+    {
+     "rank": 14,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.4232175350189209
+    },
+    {
+     "rank": 15,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4208032488822937
+    },
+    {
+     "rank": 16,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.4184730052947998
+    },
+    {
+     "rank": 17,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4108704626560211
+    },
+    {
+     "rank": 18,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.3980383574962616
+    },
+    {
+     "rank": 19,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.37841421365737915
+    },
+    {
+     "rank": 20,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.37358981370925903
+    },
+    {
+     "rank": 21,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3670896887779236
+    },
+    {
+     "rank": 22,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.3583333492279053
+    },
+    {
+     "rank": 23,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3516416549682617
+    }
+   ]
+  },
+  {
+   "id": "A06r",
+   "question": "batch learning mein hardware limitation wala masla kya hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.6318143010139465
+    },
+    {
+     "rank": 2,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.5979125499725342
+    },
+    {
+     "rank": 3,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5928699374198914
+    },
+    {
+     "rank": 4,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.582931637763977
+    },
+    {
+     "rank": 5,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5678014755249023
+    },
+    {
+     "rank": 6,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5575709342956543
+    },
+    {
+     "rank": 7,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5563169717788696
+    },
+    {
+     "rank": 8,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.5540658235549927
+    },
+    {
+     "rank": 9,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5524932146072388
+    },
+    {
+     "rank": 10,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.5504822134971619
+    },
+    {
+     "rank": 11,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.5399450063705444
+    },
+    {
+     "rank": 12,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5398638248443604
+    },
+    {
+     "rank": 13,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5021251440048218
+    },
+    {
+     "rank": 14,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.5016103982925415
+    },
+    {
+     "rank": 15,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4985412657260895
+    },
+    {
+     "rank": 16,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.46771419048309326
+    },
+    {
+     "rank": 17,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.46721577644348145
+    },
+    {
+     "rank": 18,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.448829710483551
+    },
+    {
+     "rank": 19,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4470713436603546
+    },
+    {
+     "rank": 20,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4457278549671173
+    },
+    {
+     "rank": 21,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.44001349806785583
+    },
+    {
+     "rank": 22,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4017098546028137
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3889639675617218
+    }
+   ]
+  },
+  {
+   "id": "A07r",
+   "question": "batch learning ki availability problem kis example se samjhai hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5405982136726379
+    },
+    {
+     "rank": 2,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.5236756801605225
+    },
+    {
+     "rank": 3,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.5217128396034241
+    },
+    {
+     "rank": 4,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.49612993001937866
+    },
+    {
+     "rank": 5,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.4929773509502411
+    },
+    {
+     "rank": 6,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.48335760831832886
+    },
+    {
+     "rank": 7,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.48083174228668213
+    },
+    {
+     "rank": 8,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.473019003868103
+    },
+    {
+     "rank": 9,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.47270286083221436
+    },
+    {
+     "rank": 10,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.46697643399238586
+    },
+    {
+     "rank": 11,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.46239399909973145
+    },
+    {
+     "rank": 12,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.4579400420188904
+    },
+    {
+     "rank": 13,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.4532722234725952
+    },
+    {
+     "rank": 14,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.4471251368522644
+    },
+    {
+     "rank": 15,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4448073208332062
+    },
+    {
+     "rank": 16,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.4412710666656494
+    },
+    {
+     "rank": 17,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.40433019399642944
+    },
+    {
+     "rank": 18,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4040447175502777
+    },
+    {
+     "rank": 19,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.39033085107803345
+    },
+    {
+     "rank": 20,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.37187179923057556
+    },
+    {
+     "rank": 21,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.36800670623779297
+    },
+    {
+     "rank": 22,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3521600365638733
+    },
+    {
+     "rank": 23,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3505794405937195
+    }
+   ]
+  },
+  {
+   "id": "A08r",
+   "question": "pichli video mein types of machine learning ke baare mein kya bataya tha",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.6138030290603638
+    },
+    {
+     "rank": 2,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5687488317489624
+    },
+    {
+     "rank": 3,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.5408544540405273
+    },
+    {
+     "rank": 4,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5254867076873779
+    },
+    {
+     "rank": 5,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5074896812438965
+    },
+    {
+     "rank": 6,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.49774670600891113
+    },
+    {
+     "rank": 7,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.49570268392562866
+    },
+    {
+     "rank": 8,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.49555709958076477
+    },
+    {
+     "rank": 9,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.4951462149620056
+    },
+    {
+     "rank": 10,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.494302362203598
+    },
+    {
+     "rank": 11,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.49392184615135193
+    },
+    {
+     "rank": 12,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.4858574867248535
+    },
+    {
+     "rank": 13,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.48358023166656494
+    },
+    {
+     "rank": 14,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.4699936509132385
+    },
+    {
+     "rank": 15,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.46891486644744873
+    },
+    {
+     "rank": 16,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.4675392508506775
+    },
+    {
+     "rank": 17,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.46566131711006165
+    },
+    {
+     "rank": 18,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.4653048515319824
+    },
+    {
+     "rank": 19,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.45759761333465576
+    },
+    {
+     "rank": 20,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.43616145849227905
+    },
+    {
+     "rank": 21,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.43009012937545776
+    },
+    {
+     "rank": 22,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.39800238609313965
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.36922794580459595
+    }
+   ]
+  },
+  {
+   "id": "A09r",
+   "question": "customers ke use ke liye software ko server pe deploy kyun karna parta hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.47380906343460083
+    },
+    {
+     "rank": 2,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4334145188331604
+    },
+    {
+     "rank": 3,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.42368432879447937
+    },
+    {
+     "rank": 4,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4231787621974945
+    },
+    {
+     "rank": 5,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.41471418738365173
+    },
+    {
+     "rank": 6,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.4141473174095154
+    },
+    {
+     "rank": 7,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.40323692560195923
+    },
+    {
+     "rank": 8,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4019251763820648
+    },
+    {
+     "rank": 9,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.39217090606689453
+    },
+    {
+     "rank": 10,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.38892269134521484
+    },
+    {
+     "rank": 11,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.38638025522232056
+    },
+    {
+     "rank": 12,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.38182133436203003
+    },
+    {
+     "rank": 13,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.3766452670097351
+    },
+    {
+     "rank": 14,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.3734830617904663
+    },
+    {
+     "rank": 15,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.3726091980934143
+    },
+    {
+     "rank": 16,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3699994683265686
+    },
+    {
+     "rank": 17,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.3691060245037079
+    },
+    {
+     "rank": 18,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3615868091583252
+    },
+    {
+     "rank": 19,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.3511616587638855
+    },
+    {
+     "rank": 20,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.35102933645248413
+    },
+    {
+     "rank": 21,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.3450658917427063
+    },
+    {
+     "rank": 22,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.31709080934524536
+    },
+    {
+     "rank": 23,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.31301313638687134
+    }
+   ]
+  },
+  {
+   "id": "A10r",
+   "question": "incremental training kya hoti hai aur batch learning isay use kyun nahi karti",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5450809001922607
+    },
+    {
+     "rank": 2,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5156208276748657
+    },
+    {
+     "rank": 3,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.5057647228240967
+    },
+    {
+     "rank": 4,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.5009543895721436
+    },
+    {
+     "rank": 5,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.49259328842163086
+    },
+    {
+     "rank": 6,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.48338621854782104
+    },
+    {
+     "rank": 7,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.4732733368873596
+    },
+    {
+     "rank": 8,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.46014314889907837
+    },
+    {
+     "rank": 9,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.4519988000392914
+    },
+    {
+     "rank": 10,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4450206756591797
+    },
+    {
+     "rank": 11,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.4394878149032593
+    },
+    {
+     "rank": 12,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.43610289692878723
+    },
+    {
+     "rank": 13,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.43248042464256287
+    },
+    {
+     "rank": 14,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4271674156188965
+    },
+    {
+     "rank": 15,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.42230695486068726
+    },
+    {
+     "rank": 16,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.40025588870048523
+    },
+    {
+     "rank": 17,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.3937424123287201
+    },
+    {
+     "rank": 18,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.3768126368522644
+    },
+    {
+     "rank": 19,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.3653375208377838
+    },
+    {
+     "rank": 20,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.34885022044181824
+    },
+    {
+     "rank": 21,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.3364701271057129
+    },
+    {
+     "rank": 22,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.3311331868171692
+    },
+    {
+     "rank": 23,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3251988887786865
+    }
+   ]
+  },
+  {
+   "id": "A11r",
+   "question": "batch learning ka flow data se model aur server tak kaise draw kiya hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.6646887063980103
+    },
+    {
+     "rank": 2,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.5753910541534424
+    },
+    {
+     "rank": 3,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5589742064476013
+    },
+    {
+     "rank": 4,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.5541071891784668
+    },
+    {
+     "rank": 5,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.552019476890564
+    },
+    {
+     "rank": 6,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.5472865104675293
+    },
+    {
+     "rank": 7,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.540115237236023
+    },
+    {
+     "rank": 8,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.5388361215591431
+    },
+    {
+     "rank": 9,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.5356230735778809
+    },
+    {
+     "rank": 10,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5327844619750977
+    },
+    {
+     "rank": 11,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.5306165218353271
+    },
+    {
+     "rank": 12,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.5256504416465759
+    },
+    {
+     "rank": 13,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.5158895254135132
+    },
+    {
+     "rank": 14,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.49799782037734985
+    },
+    {
+     "rank": 15,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.49258387088775635
+    },
+    {
+     "rank": 16,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.47955411672592163
+    },
+    {
+     "rank": 17,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.463094562292099
+    },
+    {
+     "rank": 18,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.4568288326263428
+    },
+    {
+     "rank": 19,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.4502447843551636
+    },
+    {
+     "rank": 20,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.44033339619636536
+    },
+    {
+     "rank": 21,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.4278400242328644
+    },
+    {
+     "rank": 22,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.42065733671188354
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.359626829624176
+    }
+   ]
+  },
+  {
+   "id": "A12r",
+   "question": "am taur par log batch learning models  ko kitni bar dubarah retrain krtay hain?",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4880494475364685
+    },
+    {
+     "rank": 2,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.48572078347206116
+    },
+    {
+     "rank": 3,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.47574883699417114
+    },
+    {
+     "rank": 4,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.47485455870628357
+    },
+    {
+     "rank": 5,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.4722325801849365
+    },
+    {
+     "rank": 6,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.4715877175331116
+    },
+    {
+     "rank": 7,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.4685640335083008
+    },
+    {
+     "rank": 8,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.4566669464111328
+    },
+    {
+     "rank": 9,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4398549199104309
+    },
+    {
+     "rank": 10,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.4388974905014038
+    },
+    {
+     "rank": 11,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.43817663192749023
+    },
+    {
+     "rank": 12,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.43673038482666016
+    },
+    {
+     "rank": 13,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.42069005966186523
+    },
+    {
+     "rank": 14,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4072696566581726
+    },
+    {
+     "rank": 15,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.3955857753753662
+    },
+    {
+     "rank": 16,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.38413214683532715
+    },
+    {
+     "rank": 17,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.3812026381492615
+    },
+    {
+     "rank": 18,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.37667858600616455
+    },
+    {
+     "rank": 19,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.374454140663147
+    },
+    {
+     "rank": 20,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.34185341000556946
+    },
+    {
+     "rank": 21,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.3276064991950989
+    },
+    {
+     "rank": 22,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.3214133381843567
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.2792375385761261
+    }
+   ]
+  },
+  {
+   "id": "A13r",
+   "question": "data scientist batch model kahan train karta hai aur trained model kahan jata hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.5644545555114746
+    },
+    {
+     "rank": 2,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.5465390086174011
+    },
+    {
+     "rank": 3,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.5045462846755981
+    },
+    {
+     "rank": 4,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.4990499019622803
+    },
+    {
+     "rank": 5,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.49587637186050415
+    },
+    {
+     "rank": 6,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.49529096484184265
+    },
+    {
+     "rank": 7,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.48532408475875854
+    },
+    {
+     "rank": 8,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.4832470118999481
+    },
+    {
+     "rank": 9,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.48075658082962036
+    },
+    {
+     "rank": 10,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4695075452327728
+    },
+    {
+     "rank": 11,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.4692878723144531
+    },
+    {
+     "rank": 12,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.46453428268432617
+    },
+    {
+     "rank": 13,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.4641640782356262
+    },
+    {
+     "rank": 14,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.46332216262817383
+    },
+    {
+     "rank": 15,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.4599166214466095
+    },
+    {
+     "rank": 16,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.45805007219314575
+    },
+    {
+     "rank": 17,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.441315233707428
+    },
+    {
+     "rank": 18,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4235823154449463
+    },
+    {
+     "rank": 19,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.406461626291275
+    },
+    {
+     "rank": 20,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.38846224546432495
+    },
+    {
+     "rank": 21,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.36728954315185547
+    },
+    {
+     "rank": 22,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.3671983480453491
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.32974958419799805
+    }
+   ]
+  },
+  {
+   "id": "A14r",
+   "question": "is video mein machine learning ki kaunsi do types parhayi jayengi",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.5350396633148193
+    },
+    {
+     "rank": 2,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.46597379446029663
+    },
+    {
+     "rank": 3,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.4633607268333435
+    },
+    {
+     "rank": 4,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.4557296633720398
+    },
+    {
+     "rank": 5,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.4555931091308594
+    },
+    {
+     "rank": 6,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4477089047431946
+    },
+    {
+     "rank": 7,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.4335874021053314
+    },
+    {
+     "rank": 8,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.4244055151939392
+    },
+    {
+     "rank": 9,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.4242541790008545
+    },
+    {
+     "rank": 10,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.42052873969078064
+    },
+    {
+     "rank": 11,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4178050756454468
+    },
+    {
+     "rank": 12,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.41763412952423096
+    },
+    {
+     "rank": 13,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4167635440826416
+    },
+    {
+     "rank": 14,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4165482521057129
+    },
+    {
+     "rank": 15,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.4143199920654297
+    },
+    {
+     "rank": 16,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.40625953674316406
+    },
+    {
+     "rank": 17,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.40233737230300903
+    },
+    {
+     "rank": 18,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.4019298255443573
+    },
+    {
+     "rank": 19,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.39380308985710144
+    },
+    {
+     "rank": 20,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.3723864257335663
+    },
+    {
+     "rank": 21,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.36806660890579224
+    },
+    {
+     "rank": 22,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.3593427836894989
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3429388999938965
+    }
+   ]
+  },
+  {
+   "id": "A15r",
+   "question": "Lecturer Netflix recommendation engine ko train kar ke server pe dalne ko kis tarah bayan kar raha hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.5298887491226196
+    },
+    {
+     "rank": 2,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.5027087926864624
+    },
+    {
+     "rank": 3,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.4812406599521637
+    },
+    {
+     "rank": 4,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.478318989276886
+    },
+    {
+     "rank": 5,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4647321105003357
+    },
+    {
+     "rank": 6,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.4558923542499542
+    },
+    {
+     "rank": 7,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4482167959213257
+    },
+    {
+     "rank": 8,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.4448402523994446
+    },
+    {
+     "rank": 9,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.423076331615448
+    },
+    {
+     "rank": 10,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.41953063011169434
+    },
+    {
+     "rank": 11,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.4172145128250122
+    },
+    {
+     "rank": 12,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.41542279720306396
+    },
+    {
+     "rank": 13,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.4143573045730591
+    },
+    {
+     "rank": 14,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.39880919456481934
+    },
+    {
+     "rank": 15,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.3962397575378418
+    },
+    {
+     "rank": 16,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3949533700942993
+    },
+    {
+     "rank": 17,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.38718506693840027
+    },
+    {
+     "rank": 18,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3863556385040283
+    },
+    {
+     "rank": 19,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.38290807604789734
+    },
+    {
+     "rank": 20,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.3818657398223877
+    },
+    {
+     "rank": 21,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.3614942729473114
+    },
+    {
+     "rank": 22,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.35871267318725586
+    },
+    {
+     "rank": 23,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.35304194688796997
+    }
+   ]
+  },
+  {
+   "id": "A17r",
+   "question": "agar model ek dafa seekh ke wahin ruk jaye to kya masla hota hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.410198450088501
+    },
+    {
+     "rank": 2,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.401592493057251
+    },
+    {
+     "rank": 3,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.38666659593582153
+    },
+    {
+     "rank": 4,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.3826255798339844
+    },
+    {
+     "rank": 5,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.37906432151794434
+    },
+    {
+     "rank": 6,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.37128758430480957
+    },
+    {
+     "rank": 7,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.3511830270290375
+    },
+    {
+     "rank": 8,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.35015949606895447
+    },
+    {
+     "rank": 9,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.3428008258342743
+    },
+    {
+     "rank": 10,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.3424205780029297
+    },
+    {
+     "rank": 11,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.3408392071723938
+    },
+    {
+     "rank": 12,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3407324552536011
+    },
+    {
+     "rank": 13,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.3404945731163025
+    },
+    {
+     "rank": 14,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.34036096930503845
+    },
+    {
+     "rank": 15,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.3390694260597229
+    },
+    {
+     "rank": 16,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.3353843092918396
+    },
+    {
+     "rank": 17,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.3324458599090576
+    },
+    {
+     "rank": 18,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.3320067524909973
+    },
+    {
+     "rank": 19,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.31850525736808777
+    },
+    {
+     "rank": 20,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.3161107301712036
+    },
+    {
+     "rank": 21,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.2790089249610901
+    },
+    {
+     "rank": 22,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.27859747409820557
+    },
+    {
+     "rank": 23,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.27509355545043945
+    }
+   ]
+  },
+  {
+   "id": "A19r",
+   "question": "jab data itna bara ho jaye ke tools handle na kar sakein to kya hota hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.49111437797546387
+    },
+    {
+     "rank": 2,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.47926944494247437
+    },
+    {
+     "rank": 3,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4511217176914215
+    },
+    {
+     "rank": 4,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.44574928283691406
+    },
+    {
+     "rank": 5,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.43265682458877563
+    },
+    {
+     "rank": 6,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.4315149784088135
+    },
+    {
+     "rank": 7,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.4306042492389679
+    },
+    {
+     "rank": 8,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.429747998714447
+    },
+    {
+     "rank": 9,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.4295419156551361
+    },
+    {
+     "rank": 10,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.42577362060546875
+    },
+    {
+     "rank": 11,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.4170575737953186
+    },
+    {
+     "rank": 12,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.4148455262184143
+    },
+    {
+     "rank": 13,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.4133702516555786
+    },
+    {
+     "rank": 14,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4098471999168396
+    },
+    {
+     "rank": 15,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.4058176279067993
+    },
+    {
+     "rank": 16,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.4001002311706543
+    },
+    {
+     "rank": 17,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.39744848012924194
+    },
+    {
+     "rank": 18,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.39302778244018555
+    },
+    {
+     "rank": 19,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.39259061217308044
+    },
+    {
+     "rank": 20,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3828885853290558
+    },
+    {
+     "rank": 21,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.38287967443466187
+    },
+    {
+     "rank": 22,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.375457227230072
+    },
+    {
+     "rank": 23,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.36485755443573
+    }
+   ]
+  },
+  {
+   "id": "A21r",
+   "question": "aaj wali types kis cheez pe based hain, supervision wali types ke muqable mein",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.477385938167572
+    },
+    {
+     "rank": 2,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.4409470558166504
+    },
+    {
+     "rank": 3,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.42583781480789185
+    },
+    {
+     "rank": 4,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.41790294647216797
+    },
+    {
+     "rank": 5,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.416422963142395
+    },
+    {
+     "rank": 6,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.4076957404613495
+    },
+    {
+     "rank": 7,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.4069540202617645
+    },
+    {
+     "rank": 8,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4060852527618408
+    },
+    {
+     "rank": 9,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.4056628346443176
+    },
+    {
+     "rank": 10,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.4041432738304138
+    },
+    {
+     "rank": 11,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.40095260739326477
+    },
+    {
+     "rank": 12,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.3913358151912689
+    },
+    {
+     "rank": 13,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.3876016139984131
+    },
+    {
+     "rank": 14,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.3861399292945862
+    },
+    {
+     "rank": 15,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.3729896545410156
+    },
+    {
+     "rank": 16,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.3703017234802246
+    },
+    {
+     "rank": 17,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.3699798583984375
+    },
+    {
+     "rank": 18,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.3696116805076599
+    },
+    {
+     "rank": 19,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.36340218782424927
+    },
+    {
+     "rank": 20,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.3624011278152466
+    },
+    {
+     "rank": 21,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.3622611165046692
+    },
+    {
+     "rank": 22,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.36205074191093445
+    },
+    {
+     "rank": 23,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.3505004942417145
+    }
+   ]
+  },
+  {
+   "id": "A22r",
+   "question": "model banane wale ke liye yeh difference janna kyun zaroori hai",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.36748406291007996
+    },
+    {
+     "rank": 2,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.36607640981674194
+    },
+    {
+     "rank": 3,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.35480114817619324
+    },
+    {
+     "rank": 4,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.35367023944854736
+    },
+    {
+     "rank": 5,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.3458992838859558
+    },
+    {
+     "rank": 6,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.34410592913627625
+    },
+    {
+     "rank": 7,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.33070871233940125
+    },
+    {
+     "rank": 8,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.33065298199653625
+    },
+    {
+     "rank": 9,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.3286276161670685
+    },
+    {
+     "rank": 10,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.32708415389060974
+    },
+    {
+     "rank": 11,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.3185373544692993
+    },
+    {
+     "rank": 12,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.3155302107334137
+    },
+    {
+     "rank": 13,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.3142346441745758
+    },
+    {
+     "rank": 14,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.3130635917186737
+    },
+    {
+     "rank": 15,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.30960536003112793
+    },
+    {
+     "rank": 16,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.30678847432136536
+    },
+    {
+     "rank": 17,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.3055131435394287
+    },
+    {
+     "rank": 18,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.30410072207450867
+    },
+    {
+     "rank": 19,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.2902548909187317
+    },
+    {
+     "rank": 20,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.27451395988464355
+    },
+    {
+     "rank": 21,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.27055642008781433
+    },
+    {
+     "rank": 22,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.26915302872657776
+    },
+    {
+     "rank": 23,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.26586341857910156
+    }
+   ]
+  },
+  {
+   "id": "A23r",
+   "question": "Lecturer k mutabiq , Agar platform ke users har mahine double hote jayein to kya hota hai,",
+   "hits": [
+    {
+     "rank": 1,
+     "window_id": 20,
+     "start": 600.0,
+     "end": 630.0,
+     "score": 0.5156106352806091
+    },
+    {
+     "rank": 2,
+     "window_id": 3,
+     "start": 90.0,
+     "end": 120.0,
+     "score": 0.5152020454406738
+    },
+    {
+     "rank": 3,
+     "window_id": 6,
+     "start": 180.0,
+     "end": 210.0,
+     "score": 0.49557286500930786
+    },
+    {
+     "rank": 4,
+     "window_id": 17,
+     "start": 510.0,
+     "end": 540.0,
+     "score": 0.4951884150505066
+    },
+    {
+     "rank": 5,
+     "window_id": 22,
+     "start": 660.0,
+     "end": 688.03,
+     "score": 0.49114611744880676
+    },
+    {
+     "rank": 6,
+     "window_id": 19,
+     "start": 570.0,
+     "end": 600.0,
+     "score": 0.49044620990753174
+    },
+    {
+     "rank": 7,
+     "window_id": 7,
+     "start": 210.0,
+     "end": 240.0,
+     "score": 0.48113328218460083
+    },
+    {
+     "rank": 8,
+     "window_id": 2,
+     "start": 60.0,
+     "end": 90.0,
+     "score": 0.4791826009750366
+    },
+    {
+     "rank": 9,
+     "window_id": 12,
+     "start": 360.0,
+     "end": 390.0,
+     "score": 0.47250595688819885
+    },
+    {
+     "rank": 10,
+     "window_id": 15,
+     "start": 450.0,
+     "end": 480.0,
+     "score": 0.460903525352478
+    },
+    {
+     "rank": 11,
+     "window_id": 8,
+     "start": 240.0,
+     "end": 270.0,
+     "score": 0.45979735255241394
+    },
+    {
+     "rank": 12,
+     "window_id": 16,
+     "start": 480.0,
+     "end": 510.0,
+     "score": 0.458926796913147
+    },
+    {
+     "rank": 13,
+     "window_id": 0,
+     "start": 0.0,
+     "end": 30.0,
+     "score": 0.4566235840320587
+    },
+    {
+     "rank": 14,
+     "window_id": 18,
+     "start": 540.0,
+     "end": 570.0,
+     "score": 0.4563688039779663
+    },
+    {
+     "rank": 15,
+     "window_id": 13,
+     "start": 390.0,
+     "end": 420.0,
+     "score": 0.4556848108768463
+    },
+    {
+     "rank": 16,
+     "window_id": 9,
+     "start": 270.0,
+     "end": 300.0,
+     "score": 0.45404690504074097
+    },
+    {
+     "rank": 17,
+     "window_id": 5,
+     "start": 150.0,
+     "end": 180.0,
+     "score": 0.44449037313461304
+    },
+    {
+     "rank": 18,
+     "window_id": 11,
+     "start": 330.0,
+     "end": 360.0,
+     "score": 0.4383007884025574
+    },
+    {
+     "rank": 19,
+     "window_id": 1,
+     "start": 30.0,
+     "end": 60.0,
+     "score": 0.4275822639465332
+    },
+    {
+     "rank": 20,
+     "window_id": 4,
+     "start": 120.0,
+     "end": 150.0,
+     "score": 0.4194546341896057
+    },
+    {
+     "rank": 21,
+     "window_id": 10,
+     "start": 300.0,
+     "end": 330.0,
+     "score": 0.40796780586242676
+    },
+    {
+     "rank": 22,
+     "window_id": 14,
+     "start": 420.0,
+     "end": 450.0,
+     "score": 0.40272629261016846
+    },
+    {
+     "rank": 23,
+     "window_id": 21,
+     "start": 630.0,
+     "end": 660.0,
+     "score": 0.39951324462890625
+    }
+   ]
+  }
+ ]
+}

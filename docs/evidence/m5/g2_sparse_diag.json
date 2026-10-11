@@ -1,0 +1,237 @@
+[
+ {
+  "id": "A01",
+  "sparse_tokens": 8,
+  "windows_with_sparse_score": 2
+ },
+ {
+  "id": "A02",
+  "sparse_tokens": 10,
+  "windows_with_sparse_score": 14
+ },
+ {
+  "id": "A03",
+  "sparse_tokens": 12,
+  "windows_with_sparse_score": 22
+ },
+ {
+  "id": "A04",
+  "sparse_tokens": 14,
+  "windows_with_sparse_score": 11
+ },
+ {
+  "id": "A05",
+  "sparse_tokens": 12,
+  "windows_with_sparse_score": 20
+ },
+ {
+  "id": "A06",
+  "sparse_tokens": 11,
+  "windows_with_sparse_score": 22
+ },
+ {
+  "id": "A07",
+  "sparse_tokens": 10,
+  "windows_with_sparse_score": 21
+ },
+ {
+  "id": "A08",
+  "sparse_tokens": 9,
+  "windows_with_sparse_score": 20
+ },
+ {
+  "id": "A09",
+  "sparse_tokens": 15,
+  "windows_with_sparse_score": 17
+ },
+ {
+  "id": "A10",
+  "sparse_tokens": 15,
+  "windows_with_sparse_score": 22
+ },
+ {
+  "id": "A11",
+  "sparse_tokens": 15,
+  "windows_with_sparse_score": 23
+ },
+ {
+  "id": "A12",
+  "sparse_tokens": 12,
+  "windows_with_sparse_score": 20
+ },
+ {
+  "id": "A13",
+  "sparse_tokens": 12,
+  "windows_with_sparse_score": 22
+ },
+ {
+  "id": "A14",
+  "sparse_tokens": 13,
+  "windows_with_sparse_score": 22
+ },
+ {
+  "id": "A15",
+  "sparse_tokens": 12,
+  "windows_with_sparse_score": 14
+ },
+ {
+  "id": "A16",
+  "sparse_tokens": 17,
+  "windows_with_sparse_score": 22
+ },
+ {
+  "id": "A17",
+  "sparse_tokens": 12,
+  "windows_with_sparse_score": 17
+ },
+ {
+  "id": "A18",
+  "sparse_tokens": 13,
+  "windows_with_sparse_score": 7
+ },
+ {
+  "id": "A19",
+  "sparse_tokens": 14,
+  "windows_with_sparse_score": 18
+ },
+ {
+  "id": "A20",
+  "sparse_tokens": 16,
+  "windows_with_sparse_score": 20
+ },
+ {
+  "id": "A21",
+  "sparse_tokens": 12,
+  "windows_with_sparse_score": 20
+ },
+ {
+  "id": "A22",
+  "sparse_tokens": 13,
+  "windows_with_sparse_score": 10
+ },
+ {
+  "id": "A23",
+  "sparse_tokens": 13,
+  "windows_with_sparse_score": 12
+ },
+ {
+  "id": "A24",
+  "sparse_tokens": 5,
+  "windows_with_sparse_score": 4
+ },
+ {
+  "id": "A25",
+  "sparse_tokens": 15,
+  "windows_with_sparse_score": 22
+ },
+ {
+  "id": "A26",
+  "sparse_tokens": 15,
+  "windows_with_sparse_score": 19
+ },
+ {
+  "id": "A27",
+  "sparse_tokens": 13,
+  "windows_with_sparse_score": 9
+ },
+ {
+  "id": "A28",
+  "sparse_tokens": 13,
+  "windows_with_sparse_score": 22
+ },
+ {
+  "id": "A01r",
+  "sparse_tokens": 10,
+  "windows_with_sparse_score": 4
+ },
+ {
+  "id": "A03r",
+  "sparse_tokens": 13,
+  "windows_with_sparse_score": 21
+ },
+ {
+  "id": "A04r",
+  "sparse_tokens": 14,
+  "windows_with_sparse_score": 9
+ },
+ {
+  "id": "A05r",
+  "sparse_tokens": 18,
+  "windows_with_sparse_score": 20
+ },
+ {
+  "id": "A06r",
+  "sparse_tokens": 11,
+  "windows_with_sparse_score": 19
+ },
+ {
+  "id": "A07r",
+  "sparse_tokens": 15,
+  "windows_with_sparse_score": 21
+ },
+ {
+  "id": "A08r",
+  "sparse_tokens": 15,
+  "windows_with_sparse_score": 20
+ },
+ {
+  "id": "A09r",
+  "sparse_tokens": 17,
+  "windows_with_sparse_score": 13
+ },
+ {
+  "id": "A10r",
+  "sparse_tokens": 17,
+  "windows_with_sparse_score": 19
+ },
+ {
+  "id": "A11r",
+  "sparse_tokens": 15,
+  "windows_with_sparse_score": 23
+ },
+ {
+  "id": "A12r",
+  "sparse_tokens": 21,
+  "windows_with_sparse_score": 19
+ },
+ {
+  "id": "A13r",
+  "sparse_tokens": 14,
+  "windows_with_sparse_score": 22
+ },
+ {
+  "id": "A14r",
+  "sparse_tokens": 15,
+  "windows_with_sparse_score": 21
+ },
+ {
+  "id": "A15r",
+  "sparse_tokens": 20,
+  "windows_with_sparse_score": 18
+ },
+ {
+  "id": "A17r",
+  "sparse_tokens": 19,
+  "windows_with_sparse_score": 18
+ },
+ {
+  "id": "A19r",
+  "sparse_tokens": 19,
+  "windows_with_sparse_score": 18
+ },
+ {
+  "id": "A21r",
+  "sparse_tokens": 18,
+  "windows_with_sparse_score": 7
+ },
+ {
+  "id": "A22r",
+  "sparse_tokens": 15,
+  "windows_with_sparse_score": 15
+ },
+ {
+  "id": "A23r",
+  "sparse_tokens": 24,
+  "windows_with_sparse_score": 8
+ }
+]
