@@ -67,3 +67,4 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0044](0044-index-stage-design.md) | Index stage design (windows, BGE-M3 dense vectors, FAISS per lecture) | Accepted | M5 | |
 | [0045](0045-m5-retrieval-configuration.md) | M5 retrieval configuration: fixed 30 s windows, dense only, CPU fp32 questions | Accepted | M5 | Amends ADR-0001 (how windows are cut, dense only, where questions are encoded); Roman Urdu fix decided in ADR-0046 |
 | [0046](0046-roman-urdu-question-rewrite.md) | Roman Urdu questions: rewrite every question into English at query time | Accepted | M6 | Resolves the open item of ADR-0045; gate G5 passed (provisional until M9); to be built in M6 |
+| [0047](0047-m6-ask-box-and-citations.md) | M6 ask box and citations | Accepted | M6 | Citation format, `/ask` and `/warm-up`, lease use of the rewrite call, privacy of questions |
