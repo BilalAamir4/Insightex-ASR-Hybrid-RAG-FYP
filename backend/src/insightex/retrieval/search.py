@@ -49,6 +49,10 @@ class QueryEncoder:
 
 
 def check_compatible(settings: Settings, index: LectureIndex) -> None:
+    from insightex.windows.build import SCHEMA_VERSION as WINDOWS_SCHEMA
+
+    if index.meta.get("fingerprint", {}).get("windows_schema_version") != WINDOWS_SCHEMA:
+        raise IndexModelMismatch("index built with an older windows format; re-run the lecture to rebuild its index")
     built = index.meta["model"]
     if built["repo"] != settings.index.model_repo or built["revision"] != settings.index.model_revision:
         raise IndexModelMismatch(
@@ -69,6 +73,21 @@ def search(index: LectureIndex, vectors, k: int) -> list[list[Hit]]:
             hits.append(Hit(rank, int(wid), float(w["start"]), float(w["end"]), float(s)))
         out.append(hits)
     return out
+
+
+def rank_all(index: LectureIndex, vector) -> list[Hit]:
+    """Every window of the lecture for one question vector (shape (1, dim)), best first."""
+    return search(index, vector, index.size)[0]
+
+
+def fuse(rankings: list[list[int]], k: int) -> list[tuple[int, float]]:
+    """Reciprocal Rank Fusion of rankings of window ids: score = sum of 1 / (k + rank) over the rankings, summed in
+    list order, rank counting from 1; best first, ties by smaller window id. The function and parameters of gate G5."""
+    scores: dict[int, float] = {}
+    for ranking in rankings:
+        for rank, wid in enumerate(ranking, start=1):
+            scores[wid] = scores.get(wid, 0.0) + 1.0 / (k + rank)
+    return [(wid, scores[wid]) for wid in sorted(scores, key=lambda w: (-scores[w], w))]
 
 
 def dedupe(hits: list[Hit], min_overlap_s: float) -> list[Hit]:

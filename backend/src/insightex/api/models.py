@@ -59,6 +59,7 @@ class LectureItem(BaseModel):
     thumbnail_url: str | None
     created_at: str | None
     language: LanguageOut | None = None  # null: no transcript yet (for example a lecture added before M4)
+    searchable: bool = False  # true: a question can be asked (the lecture has a usable search index, ADR-0047)
 
 
 class LectureOut(LectureItem):

@@ -58,6 +58,25 @@ def _state(request: Request) -> _State:
     return _app_state(request.app)
 
 
+def load_cached_index(app, directory: Path) -> LectureIndex:
+    """The lecture's index, loaded once per index directory (its name holds the stage key, so it is never stale)."""
+    state = _app_state(app)
+    with state.lock:
+        index = state.indexes.get(directory)
+        if index is None:
+            index = state.indexes[directory] = load_index(directory)
+        return index
+
+
+def encode_text(app, text: str):
+    """The question vector, shape (1, dim). One question at a time: the model is used under the lock."""
+    state = _app_state(app)
+    with state.lock:
+        if state.encoder is None:
+            state.encoder = make_query_encoder(app.state.settings)
+        return state.encoder.encode([text])
+
+
 def preload_query_encoder(app) -> float | None:
     """Load the question encoder and run one question through it (API startup), so the first question does not pay for it.
 

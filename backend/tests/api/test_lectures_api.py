@@ -18,7 +18,7 @@ def test_library_lists_only_workspaces_with_a_completed_normalise(client, make_l
     item = body["lectures"][0]
     assert item["title"] == "Ready lecture" and item["duration_s"] == 60.5
     assert item["thumbnail_url"] == f"/api/lectures/{LID}/thumbnail"
-    assert set(item) == {"lecture_id", "title", "duration_s", "thumbnail_url", "created_at", "language"}
+    assert set(item) == {"lecture_id", "title", "duration_s", "thumbnail_url", "created_at", "language", "searchable"}
 
 
 def test_empty_library(client):

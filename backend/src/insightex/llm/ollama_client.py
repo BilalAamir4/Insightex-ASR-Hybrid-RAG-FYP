@@ -11,6 +11,7 @@ with pydantic.
 """
 from __future__ import annotations
 
+import json
 import logging
 import time
 from dataclasses import dataclass
@@ -33,6 +34,14 @@ class OllamaError(RuntimeError):
 
 class ModelMissingError(OllamaError):
     pass
+
+
+class OllamaTimeout(OllamaError):
+    """The server did not answer within the call's timeout."""
+
+
+class OllamaUnreachable(OllamaError):
+    """The server could not be reached (connection refused, DNS, reset)."""
 
 
 class PromptBudgetError(OllamaError):
@@ -185,6 +194,28 @@ def chat_json[T: BaseModel](
         num_ctx=num_ctx,
     )
     return parsed, metrics
+
+
+def post_chat(body: dict, *, timeout: float, ollama: OllamaSettings | None = None) -> dict:
+    """POST a prebuilt /api/chat body and return the parsed response.
+
+    The body is sent exactly as given (serialised once with json.dumps and its default separators, keys in the
+    caller's order): no schema, budget or model check is added and no /api/tags request is made, so a caller that must
+    send a gated request (the ADR-0046 rewrite) controls every byte. `timeout` applies to connecting and to waiting
+    for the reply (the reply is not streamed). Raises OllamaTimeout, or OllamaError for any other transport or HTTP error.
+    """
+    base = _cfg(ollama).base_url.rstrip("/")
+    payload = json.dumps(body).encode("utf-8")
+    try:
+        r = httpx.post(f"{base}/api/chat", content=payload, headers={"Content-Type": "application/json"}, timeout=timeout)
+        r.raise_for_status()
+    except httpx.TimeoutException as e:
+        raise OllamaTimeout(f"/api/chat did not answer within {timeout:g} s") from e
+    except httpx.TransportError as e:
+        raise OllamaUnreachable(f"/api/chat could not be reached: {type(e).__name__}") from e
+    except httpx.HTTPError as e:
+        raise OllamaError(f"/api/chat failed: {type(e).__name__}") from e  # no response text: it could echo the prompt
+    return r.json()
 
 
 def loaded_models(ollama: OllamaSettings | None = None) -> list[dict]:

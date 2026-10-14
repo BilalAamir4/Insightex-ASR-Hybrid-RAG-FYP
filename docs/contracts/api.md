@@ -89,7 +89,7 @@ A `: keepalive` comment is sent after `api.sse_keepalive_s` of silence. After th
 
 | Request | Response |
 |---|---|
-| `GET /api/lectures` | `{"lectures": [{"lecture_id", "title", "duration_s", "thumbnail_url", "created_at", "language"}]}`, newest first; only workspaces whose `normalise` stage is complete. `language` is `{id, label, tier}` of the current transcript (tier from the current config), or `null` when the lecture has no transcript |
+| `GET /api/lectures` | `{"lectures": [{"lecture_id", "title", "duration_s", "thumbnail_url", "created_at", "language", "searchable"}]}`, newest first; only workspaces whose `normalise` stage is complete. `searchable` is true when the lecture has a search index built with the configured model and the current windows format (a question can be asked, ADR-0047). `language` is `{id, label, tier}` of the current transcript (tier from the current config), or `null` when the lecture has no transcript |
 | `GET /api/lectures/{id}` | the item above plus `video_url`, `external_timestamp_url_template` (`null` unless YouTube) and `warnings` (the `{code, detail}` list from `normalise.json`, for example `AUDIO_NEAR_SILENT`, `ROTATED`, followed by the current transcript's `{code, message, segment_ids}` warnings, `TEMPERATURE_FALLBACK` and `HIGH_COMPRESSION_RATIO`; the UI shows a plain sentence per code, never the code) |
 | `GET/HEAD /api/lectures/{id}/video` | `video/mp4`, Range requests (`206`, `Content-Range`, `416`) |
 | `GET/HEAD /api/lectures/{id}/thumbnail` | `image/jpeg` |
@@ -104,5 +104,12 @@ A `: keepalive` comment is sent after `api.sse_keepalive_s` of silence. After th
 | `POST /api/lectures/{id}/search` with `{"question": str (1 to 2000 chars), "k"?: int (1 to 100), "dedupe"?: bool (default true)}` | `{"lecture_id", "index_config_id", "hits": [{"rank", "window_id", "start", "end", "score"}]}`, best first; `start`/`end` are seconds on the video timeline; `score` is cosine similarity. With `dedupe`, a window overlapping a better one by more than `retrieval.dedupe_min_overlap_s` is dropped (ADR-0043). **404** `LECTURE_NOT_FOUND`; **409** `LECTURE_NOT_SEARCHABLE` while the lecture has no search index or its index was built with another model revision. No window text is returned (ADR-0041). |
 
 The question is encoded in the API process on the CPU in float32 (`retrieval.query_device`, `retrieval.query_dtype`); the model loads on the first question and stays loaded. A citation should seek to the start of the first transcript segment inside the hit's window (ADR-0044); the segment time is not in this response yet (M6).
+
+### Ask (M6, ADR-0047)
+
+| Request | Response |
+|---|---|
+| `POST /api/lectures/{id}/ask` with `{"question": str}` | `{"lecture_id", "index_config_id", "citations": [{"rank", "start", "end", "seek_s"}], "rewrite": {"used": bool, "fallback_reason": str \| null}}`. At most `retrieval.citations` (3) citations, best first, windows not overlapping each other; `start`/`end` are the window's time range and `seek_s` the start of the first transcript segment inside it (what a click seeks to), all in seconds. No text, scores or window ids. **400** `QUESTION_EMPTY`, `QUESTION_TOO_LONG` (over `retrieval.max_question_chars`, 300; the question is never echoed); **404** `LECTURE_NOT_FOUND`; **409** `LECTURE_NOT_SEARCHABLE`. `fallback_reason` is one of `rewrite_disabled`, `gpu_busy`, `llm_not_loaded`, `llm_unreachable`, `timeout`, `unusable`, `error` (the search then used the original question only; ADR-0046) |
+| `POST /api/lectures/{id}/warm-up` | **202** `{"state": "started" \| "skipped", "reason"}`; loads the rewrite model in the background when the GPU lease is free. Same 404/409 as `ask` |
 
 Transcripts are internal (ADR-0041): no endpoint serves `transcript.json` or `transcript.vtt`.

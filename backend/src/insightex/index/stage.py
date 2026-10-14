@@ -85,6 +85,18 @@ def index_is_current(directory: Path, settings: Settings) -> bool:
     return meta.get("stage_version") == IndexStage.version and meta.get("fingerprint") == index_fingerprint(settings)
 
 
+def index_searchable(directory: Path, settings: Settings) -> bool:
+    """True if a question can be searched against the index in `directory`: it was built with the configured model and
+    the current windows format. Reads `index.json` only. (Other settings changes make an index stale, not unusable.)"""
+    try:
+        meta = json.loads((directory / store.INDEX_JSON).read_text(encoding="utf-8"))
+        fp, model = meta["fingerprint"], meta["model"]
+    except (OSError, ValueError, KeyError):
+        return False
+    return (fp.get("windows_schema_version") == WINDOWS_SCHEMA_VERSION
+            and (model.get("repo"), model.get("revision")) == (settings.index.model_repo, settings.index.model_revision))
+
+
 class IndexStage(Stage):
     name = "index"
     version = "1"

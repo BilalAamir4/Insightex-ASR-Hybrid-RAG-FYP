@@ -24,6 +24,15 @@ def test_fixed_windows_assign_segments_by_start_time():
         (0, 0.0, 30.0, 1, 2, "one two"), (1, 30.0, 60.0, 3, 3, "three"), (2, 90.0, 100.0, 5, 5, "five")]
 
 
+def test_windows_record_where_a_citation_seeks_to():
+    segs = [seg(1, 1.5, 9.0, "a"), seg(2, 12.0, 29.0, "b"), seg(3, 33.25, 40.0, "c")]
+    grid = build_windows(segs, window_s=30, stride_s=30, duration_s=60)
+    assert [(w.start, w.first_segment_start) for w in grid] == [(0.0, 1.5), (30.0, 33.25)]  # not the grid start
+    snapped = build_snapped_windows(segs, window_s=30, stride_s=30)
+    assert [(w.start, w.first_segment_start) for w in snapped] == [(1.5, 1.5), (33.25, 33.25)]
+    assert grid[0].to_json()["first_segment_start"] == 1.5
+
+
 def test_window_end_is_clipped_to_the_audio_duration_and_empty_windows_are_dropped():
     w = build_windows(SEGS[:1], window_s=30, stride_s=30, duration_s=12.5)
     assert [(x.start, x.end) for x in w] == [(0.0, 12.5)]

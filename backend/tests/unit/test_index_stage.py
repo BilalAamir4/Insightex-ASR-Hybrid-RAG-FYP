@@ -79,6 +79,7 @@ def test_index_files_and_meta(env):
     assert index.size == 3 and index.faiss_index.d == 8  # 70 s of audio -> windows 0-30, 30-60, 60-70
     assert [(w["start"], w["end"]) for w in index.windows] == [(0.0, 30.0), (30.0, 60.0), (60.0, 70.0)]
     assert index.meta["model"]["revision"] == env[0].index.model_revision and index.meta["windows"]["count"] == 3
+    assert [w["first_segment_start"] for w in index.windows] == [0.0, 30.0, 60.0]
     assert env[2].read_manifest(WS)["stages"]["index"]["windows"] == 3
 
 

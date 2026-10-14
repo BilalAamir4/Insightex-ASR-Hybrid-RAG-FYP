@@ -10,7 +10,7 @@ import unicodedata
 from dataclasses import asdict, dataclass
 from typing import Any
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2  # 2: windows carry first_segment_start (ADR-0047)
 
 
 @dataclass(frozen=True)
@@ -19,6 +19,7 @@ class Window:
     start: float  # seconds; the grid start k * stride_s
     end: float  # seconds; start + window_s, clipped to the audio duration
     first_segment: int  # transcript segment id of the first segment in the window
+    first_segment_start: float  # seconds; where a citation seeks to (ADR-0044, ADR-0047)
     last_segment: int
     n_segments: int
     text: str
@@ -54,7 +55,8 @@ def build_windows(segments: list[dict[str, Any]], *, window_s: float, stride_s: 
         if members:
             out.append(Window(
                 id=len(out), start=start, end=round(min(nominal_end, duration_s), 6),
-                first_segment=int(members[0][0]["id"]), last_segment=int(members[-1][0]["id"]),
+                first_segment=int(members[0][0]["id"]), first_segment_start=float(members[0][0]["start"]),
+                last_segment=int(members[-1][0]["id"]),
                 n_segments=len(members), text=" ".join(t for _, t in members),
             ))
         k += 1
@@ -94,7 +96,7 @@ def build_snapped_windows(segments: list[dict[str, Any]], *, window_s: float, st
         members = segs[i:last + 1]
         out.append(Window(
             id=len(out), start=t0, end=float(members[-1][0]["end"]), first_segment=int(members[0][0]["id"]),
-            last_segment=int(members[-1][0]["id"]), n_segments=len(members), text=" ".join(t for _, t in members),
+            first_segment_start=float(members[0][0]["start"]), last_segment=int(members[-1][0]["id"]), n_segments=len(members), text=" ".join(t for _, t in members),
         ))
         if last == len(segs) - 1:
             break

@@ -175,4 +175,12 @@ retrieval:                          # query side (M5): docs/adr/0043-*.md
   preload_query_encoder: true       # load the question encoder when the API starts (about 5 s, 2.3 GiB RAM) instead of at the first question
   candidates: 10                    # windows returned by one raw search, best first
   dedupe_min_overlap_s: 0           # seconds; a window overlapping a higher-ranked kept one by more than this is dropped (deduplicated search)
+  rrf_k: 60                         # Reciprocal Rank Fusion constant for the original + rewrite rankings (ADR-0046; the value gate G5 used)
+  citations: 3                      # citations shown per question (ADR-0047)
+  max_question_chars: 300           # characters; longer questions are refused (matches the rewrite schema's bound, ADR-0047)
+  rewrite_enabled: true             # rewrite every question into English with the LLM and fuse both searches (ADR-0046)
+  rewrite_timeout_s: 2.0            # seconds; a rewrite call that takes longer is dropped and the original question is searched alone
+  rewrite_num_predict: 64           # tokens; output cap of the rewrite call (fixed by ADR-0046: changing it needs a new gate)
+  rewrite_prompt_file: config/prompts/query_rewrite_v1.txt  # system prompt of the rewrite call; relative paths are under the repo root
+  rewrite_prompt_sha256: edac0394acc27081d904a35c85ac163d5e1011c7e1414b3888d2c59cff32744e  # pinned hash of that file; a mismatch disables the rewrite
 

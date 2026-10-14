@@ -305,6 +305,20 @@ class Retrieval(_Section):
     preload_query_encoder: bool
     candidates: int
     dedupe_min_overlap_s: float
+    rrf_k: int
+    citations: int
+    max_question_chars: int
+    rewrite_enabled: bool
+    rewrite_timeout_s: float
+    rewrite_num_predict: int
+    rewrite_prompt_file: Path
+    rewrite_prompt_sha256: str
+
+    @field_validator("rewrite_prompt_file", mode="after")
+    @classmethod
+    def _under_repo(cls, v: Path) -> Path:
+        v = Path(os.path.expandvars(str(v))).expanduser()
+        return v if v.is_absolute() else repo_root() / v
 
 
 class Settings(_Section):

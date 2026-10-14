@@ -18,6 +18,8 @@ from insightex.api.deps import connection, settings_of, workspaces_of
 from insightex.api.errors import error_response
 from insightex.api.models import LectureItem, LectureList, LectureOut, language_out
 from insightex.asr.languages import Languages, languages_for
+from insightex.core.config import Settings
+from insightex.index.stage import IndexStage, index_searchable
 from insightex.ingest.pipeline import NORMALISE_JSON, SOURCE_JSON, THUMB_NAME, VIDEO_NAME
 from insightex.jobs import cache
 from insightex.jobs.workspace import Workspaces, validate_workspace_id
@@ -60,8 +62,13 @@ def _asr_warnings(workspaces: Workspaces, lecture_id: str) -> list[dict]:
     return warnings if isinstance(warnings, list) else []
 
 
+def _searchable(workspaces: Workspaces, lecture_id: str, settings: Settings) -> bool:
+    directory = workspaces.stage_output_dir(lecture_id, IndexStage.name)
+    return directory is not None and index_searchable(directory, settings)
+
+
 def _item(workspaces: Workspaces, lecture_id: str, normalised: Path, created_at: str | None,
-          languages: Languages) -> LectureItem:
+          languages: Languages, settings: Settings) -> LectureItem:
     fetched = workspaces.stage_output_dir(lecture_id, "fetch")
     source = _json(fetched / SOURCE_JSON) if fetched else {}
     info = _json(normalised / NORMALISE_JSON)
@@ -72,6 +79,7 @@ def _item(workspaces: Workspaces, lecture_id: str, normalised: Path, created_at:
         thumbnail_url=f"/api/lectures/{lecture_id}/thumbnail" if (normalised / THUMB_NAME).is_file() else None,
         created_at=created_at,
         language=_language(workspaces, lecture_id, languages),
+        searchable=_searchable(workspaces, lecture_id, settings),
     )
 
 
@@ -83,7 +91,7 @@ def list_lectures(request: Request):
     for row in cache.list_workspaces(connection(settings_of(request)), workspaces):
         directory = _lecture_dir(workspaces, row["id"])
         if directory is not None:
-            items.append(_item(workspaces, row["id"], directory, row["created_at"], languages))
+            items.append(_item(workspaces, row["id"], directory, row["created_at"], languages, settings_of(request)))
     items.sort(key=lambda i: i.created_at or "", reverse=True)
     return LectureList(lectures=items)
 
@@ -95,7 +103,8 @@ def get_lecture(lecture_id: str, request: Request):
     if directory is None:
         return error_response(*_NOT_FOUND)
     row = connection(settings_of(request)).execute("SELECT created_at FROM workspaces WHERE id = ?", (lecture_id,)).fetchone()
-    item = _item(workspaces, lecture_id, directory, row["created_at"] if row else None, languages_for(settings_of(request)))
+    item = _item(workspaces, lecture_id, directory, row["created_at"] if row else None, languages_for(settings_of(request)),
+                 settings_of(request))
     fetched = workspaces.stage_output_dir(lecture_id, "fetch")
     template = _json(fetched / SOURCE_JSON).get("external_timestamp_url_template") if fetched else None
     warnings = _json(directory / NORMALISE_JSON).get("warnings")
@@ -145,4 +154,8 @@ def delete_lecture(lecture_id: str, request: Request):
     except cache.WorkspaceBusy:
         return error_response("LECTURE_BUSY", "This lecture is still being processed. Cancel the job first.", 409)
     request.app.state.touch_times.pop(lecture_id, None)
+    search_state = getattr(request.app.state, "search", None)
+    if search_state is not None:  # drop the deleted lecture's cached index
+        with search_state.lock:
+            search_state.indexes = {d: i for d, i in search_state.indexes.items() if lecture_id not in d.parts}
     return Response(status_code=204)
