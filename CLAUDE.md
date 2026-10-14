@@ -26,7 +26,8 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
   - M3 link ingestion (6 Oct 2026), moved onto the runner in M1.
 - **Done (M6):**
   - M6 (ADR-0047): session A done (14 Oct 2026): `POST /api/lectures/{id}/ask` (ADR-0046 rewrite with the 2 s timeout and fallback, RRF, de-duplicate, top 3 citations with `seek_s`), `POST .../warm-up`, `searchable` on the lecture document, JSON count-only log lines (no question text). Session B done (14 Oct 2026): ask box + up to 3 citation buttons on the player page, `index` progress label, warm-up on open and after `llm_not_loaded`, `tools/m6_verify` 13/13 (`docs/evidence/m6/`). **M6 closed 15 Oct 2026: manual browser checklist signed (`docs/evidence/m6/manual_check_report.md`; audio at cited moments and the old-lecture disabled box not checked).** A citation seeks to the start of the first transcript segment inside the window (ADR-0044).
-- **Not started:** concept extraction, the graph, the router and answers.
+- **In progress (M7):** Session 1 done (15 Oct 2026): extraction schema v1 (`backend/src/insightex/extract/extraction.schema.json` + `extraction_schema.py`; byte-identical copy in `tools/label_concepts/`, kept equal by a test), labelling guide `docs/labelling/m7_concepts.md`, labelling tool `tools/label_concepts/` (sample, serve, validate, agreement, merge), gate rules **ADR-0048 Proposed (awaiting Bilal's approval)**. Day 4 dev gold = census of 20 windows (0, 3, 5 reserved as guide examples). **Never label or pre-fill gold windows yourself**; the gold set is human-made. No extraction stage or Ollama calls yet.
+- **Not started:** concept extraction stage, the graph, the router and answers.
 - **Before any further WER gate (language promotion, ADR-0040):** re-ingest the eval lectures through normaliser v4. Older `audio.wav` files predate the start-offset padding, so their timings may be shifted. Lectures added before M4 session 2 have no transcript and show "Not transcribed"; add them again with a language.
 - Before starting a module, check its open decisions in `docs/BUILD_ORDER.md` ("Pending decisions by module"). Settle them before building.
 
@@ -108,7 +109,7 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 
 ## Working norms
 
-- Production code goes in `backend/src/insightex/` (workers in `workers/`, UI in `frontend/`). Diagnostic and benchmark scripts go in `tools/`; they are standalone and must never import from `backend/`.
+- Production code goes in `backend/src/insightex/` (workers in `workers/`, UI in `frontend/`). Diagnostic and benchmark scripts go in `tools/`; they are standalone and must never import from `backend/`. When a tool needs a production file (e.g. the extraction schema), it keeps a byte-identical copy and a backend test checks the copy. Tool tests that should run with the suite are added to `testpaths` in `pyproject.toml` (now `tools/label_concepts/tests`).
 - Trust output files over chat summaries, because earlier agent summaries misreported numbers. Recompute derived figures from the files, and tie every number to its window, model and run.
 - Ask before downloads, `sudo`, torch installs or stopping Ollama.
 - Do not generate labelled query ranges from the SRT, because that makes the evaluation circular.
@@ -133,9 +134,10 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 | Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` |
 | Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
-| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0047) | `docs/adr/README.md` |
+| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0048) | `docs/adr/README.md` |
 | API contract (ingest link/upload, jobs, SSE, library) | `docs/contracts/api.md` |
-| Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
+| Extraction schema v1 (gold labels and model output, ADR-0048); the old draft `docs/contracts/extraction.json` is superseded | `backend/src/insightex/extract/extraction.schema.json` |
+| M7 labelling rules and the gold-label tool | `docs/labelling/m7_concepts.md`, `tools/label_concepts/README.md` |
 | Draft JSON Schema: ASR segment list (id, start, end, text, avg_logprob, no_speech_prob) | `docs/contracts/segments.json` |
 | Current environment state, how to verify (`scripts/verify_env.sh`) | `docs/ENVIRONMENT.md` |
 | Ollama call contract (ADR) and probe measurements | `docs/adr/0002-ollama-call-contract.md`, `docs/measurements/` |

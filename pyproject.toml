@@ -19,13 +19,16 @@ insightex = "insightex.cli:main"
 [tool.setuptools.packages.find]
 where = ["backend/src"]
 
+[tool.setuptools.package-data]
+insightex = ["extract/*.json"]  # the M7 extraction JSON Schema (ADR-0048)
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"
 src = ["backend/src"]
 
 [tool.pytest.ini_options]
-testpaths = ["backend/tests"]
+testpaths = ["backend/tests", "tools/label_concepts/tests"]  # the M7 labelling tool's offline tests run with the suite
 pythonpath = ["backend/src"]
 # Network tests hit real YouTube/Drive/HTTP servers: run them explicitly with `pytest -m network`.
 markers = [

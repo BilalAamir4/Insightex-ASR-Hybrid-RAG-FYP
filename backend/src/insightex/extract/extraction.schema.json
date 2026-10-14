@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "insightex/extraction.schema.json",
+  "$comment": "M7 extraction schema, schema_version 1 (ADR-0048). One record per 30 s grid window (ADR-0045); the same shape holds human gold labels and model output. Two identical copies: backend/src/insightex/extract/extraction.schema.json and tools/label_concepts/extraction.schema.json (a test keeps them byte-identical). Rules a JSON Schema cannot state (relation endpoints are concept labels of the same window, no duplicate concepts or relations, end_s > start_s, unique window_index, window lecture_id equal to the document's) are checked by extraction_schema.py next to this file.",
+  "title": "ExtractionDocument",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "lecture_id", "producer", "windows"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "lecture_id": {"$ref": "#/$defs/nonblank"},
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name"],
+      "properties": {
+        "kind": {"enum": ["human", "model"]},
+        "name": {"$ref": "#/$defs/nonblank", "description": "labeller name, or the model and configuration that produced the output"}
+      }
+    },
+    "sample_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "gold files: sha256 of the sample manifest the labels were made against"},
+    "windows": {"type": "array", "items": {"$ref": "#/$defs/window_record"}}
+  },
+  "$defs": {
+    "nonblank": {"type": "string", "minLength": 1, "maxLength": 200, "pattern": "\\S"},
+    "window_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lecture_id", "window_index", "start_s", "end_s"],
+      "properties": {
+        "lecture_id": {"$ref": "#/$defs/nonblank"},
+        "window_index": {"type": "integer", "minimum": 0, "description": "window id as in the index stage's windows.json (kept non-empty windows, counted from 0)"},
+        "start_s": {"type": "number", "minimum": 0, "description": "seconds; grid start k * 30"},
+        "end_s": {"type": "number", "minimum": 0, "description": "seconds; start_s + 30, clipped to the audio duration"}
+      }
+    },
+    "concept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "aliases"],
+      "properties": {
+        "label": {"$ref": "#/$defs/nonblank", "description": "canonical English label (textbook usage, ADR-0029)"},
+        "aliases": {"type": "array", "items": {"$ref": "#/$defs/nonblank"}, "description": "other names the speaker used: Roman Urdu/Hindi or Urdu-script surface forms, abbreviations, English variants"}
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["head", "type", "tail"],
+      "properties": {
+        "head": {"$ref": "#/$defs/nonblank"},
+        "type": {"enum": ["prerequisite_of", "part_of", "example_of", "contrasts_with"]},
+        "tail": {"$ref": "#/$defs/nonblank"}
+      }
+    },
+    "window_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["window", "concepts", "relations", "important", "cue"],
+      "properties": {
+        "window": {"$ref": "#/$defs/window_ref"},
+        "concepts": {"type": "array", "items": {"$ref": "#/$defs/concept"}},
+        "relations": {"type": "array", "items": {"$ref": "#/$defs/relation"}},
+        "important": {"type": "boolean", "description": "true only for an explicit teacher signal (ADR-0048, docs/labelling/m7_concepts.md)"},
+        "cue": {"description": "short English note of the cue when important is true; null otherwise"},
+        "is_recap": {"type": "boolean", "description": "F20, Exploratory: optional, not labelled in gold, not gated"}
+      },
+      "if": {"properties": {"important": {"const": true}}},
+      "then": {"properties": {"cue": {"type": "string", "minLength": 1, "maxLength": 300, "pattern": "\\S"}}},
+      "else": {"properties": {"cue": {"type": "null"}}}
+    }
+  }
+}

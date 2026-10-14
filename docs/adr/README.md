@@ -68,3 +68,4 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0045](0045-m5-retrieval-configuration.md) | M5 retrieval configuration: fixed 30 s windows, dense only, CPU fp32 questions | Accepted | M5 | Amends ADR-0001 (how windows are cut, dense only, where questions are encoded); Roman Urdu fix decided in ADR-0046 |
 | [0046](0046-roman-urdu-question-rewrite.md) | Roman Urdu questions: rewrite every question into English at query time | Accepted | M6 | Resolves the open item of ADR-0045; gate G5 passed (provisional until M9); to be built in M6 |
 | [0047](0047-m6-ask-box-and-citations.md) | M6 ask box and citations | Accepted | M6 | Citation format, `/ask` and `/warm-up`, lease use of the rewrite call, privacy of questions |
+| [0048](0048-m7-extraction-schema-gold-set-and-gate-rules.md) | M7 extraction schema, gold set and gate rules | Proposed | M7 | On acceptance amends ADR-0020 (field `important` + `cue`, not `exam_relevant`) |
