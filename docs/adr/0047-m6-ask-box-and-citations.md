@@ -43,7 +43,7 @@ M5 left a search endpoint that returns ranked windows with scores for tools (`PO
 
 ## Evidence
 
-- To be added under `docs/evidence/m6/` by `tools/m6_verify` and the manual checklist.
+- `docs/evidence/m6/`: `rebuild_check.json` and the session A notes in its README; `m6_verify_<time>.json/.log` (13 checks on Day 4, 14 Oct 2026: all passed); `manual_checklist.md` (browser checks, to be signed).
 
 ## Gate / revisit when
 

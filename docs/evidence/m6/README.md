@@ -19,4 +19,9 @@ Pre-registered rules: `docs/adr/0046-roman-urdu-question-rewrite.md`; prompt `co
   - Another process holding the exclusive GPU lease (which also unloads the model): `ask` answers with `gpu_busy`, and `warm-up` is skipped with `gpu_busy`; after release `ask` falls back with `llm_not_loaded`.
   - Privacy: after these runs `api.log` holds only the JSON count lines (5 `ask`, 1 `warm_up`); none of the question words appear in it.
 
+## M6 session B (ask box, citations, verification), 2026-10-14
+
+- `m6_verify_20261014T173206Z.json` / `.log`: `tools/m6_verify` 13/13 on Day 4 in an isolated data directory (ingest 98 s). Highlights: the five checklist questions with the model warm each have a covering citation (A01 rank 1, A14 rank 2, A16 rank 3, A26 rank 3, A19r rank 2); all 47 questions through `/ask` give Recall@3 0.8511 (English 0.8696, Roman 0.8333) with no fallbacks and the same hit/miss as the gated G5 run; rewrite calls (52) median 556 ms, p95 764 ms, max 998 ms; fallbacks `llm_not_loaded`, `gpu_busy` (also skipping the warm-up) and `timeout` (1 ms limit) all return citations without an error; the API logs contain 59 count lines and no question or rewrite text.
+- `manual_checklist.md`: the browser checks. **Not yet done** (needs you): the page was type-checked and its logic unit-tested (Deno, 26 tests) but not driven in a browser here.
+
 Index config id `56d5cbf47e45` (windows format 1) became `2bdfeed04854` (format 2, same ranks and scores) on 2026-10-14; see `rebuild_check.json`. The `g5_*` files above name the old id.
