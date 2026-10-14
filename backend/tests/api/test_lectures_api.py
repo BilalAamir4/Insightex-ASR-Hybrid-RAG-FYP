@@ -115,9 +115,3 @@ def test_the_lecture_document_gives_the_ask_box_limit(client, make_lecture):
     lecture = make_lecture()
     lecture_id = lecture if isinstance(lecture, str) else "yt-readyvideo1"
     assert client.get(f"/api/lectures/{lecture_id}").json()["max_question_chars"] == 300
-
-
-def test_the_lecture_document_gives_the_ask_box_limit(client, make_lecture):
-    lecture = make_lecture()
-    lecture_id = lecture if isinstance(lecture, str) else "yt-readyvideo1"
-    assert client.get(f"/api/lectures/{lecture_id}").json()["max_question_chars"] == 300
