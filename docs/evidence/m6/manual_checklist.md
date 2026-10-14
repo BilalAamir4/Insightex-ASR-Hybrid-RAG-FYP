@@ -65,4 +65,4 @@ Stop the API (Ctrl-C) and the worker (`kill %1`), then `curl -s localhost:11434/
 
 ## Sign-off
 
-Signed by: ______________________  Date: ____________  Result: pass / fail (note the failing items above)
+Signed by: Bilal Aamir  Date: 2026-10-15  Result: pass. Not done: audio at jumped-to moments not listened to; old-lecture disabled-box check not tried. See `manual_check_report.md`.
