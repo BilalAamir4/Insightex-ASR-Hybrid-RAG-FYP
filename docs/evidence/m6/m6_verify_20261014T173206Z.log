@@ -1,0 +1,49 @@
+m6_verify: isolated data /home/bilal_aamir/insightex-data/m6_verify_run, API http://127.0.0.1:8012, shared GPU lease /home/bilal_aamir/insightex-data/run/gpu.lock, Ollama http://localhost:11434
+      fetch=pending:0% normalise=pending:0% asr=pending:0% index=pending:0%
+      fetch=succeeded:100% normalise=running:0% asr=pending:0% index=pending:0%
+      fetch=succeeded:100% normalise=running:4% asr=pending:0% index=pending:0%
+      fetch=succeeded:100% normalise=running:87% asr=pending:0% index=pending:0%
+      fetch=succeeded:100% normalise=running:94% asr=pending:0% index=pending:0%
+      fetch=succeeded:100% normalise=running:100% asr=pending:0% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:0% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:2% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:4% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:8% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:13% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:17% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:21% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:26% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:30% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:34% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:39% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:43% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:47% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:50% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:55% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:59% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:63% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:67% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:71% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:76% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:80% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:84% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:88% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=running:92% index=pending:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=succeeded:100% index=running:0%
+      fetch=succeeded:100% normalise=succeeded:100% asr=succeeded:100% index=succeeded:100%
+PASS  1. Day 4 ingested (fetch, normalise, asr, index); lecture searchable; windows carry the first segment's start: job succeeded, stages ['fetch', 'normalise', 'asr', 'index'], searchable True, 23 windows, first_segment_start matches the transcript for all: True, duration 688.03, 97.7 s
+PASS  2. empty, blank and over-length questions are refused with clear codes (never echoed); 300 characters is accepted; unknown lecture 404: {'empty': (400, 'QUESTION_EMPTY', ''), 'spaces': (400, 'QUESTION_EMPTY', False), '301 chars': (400, 'QUESTION_TOO_LONG', False)}; 300 chars -> 200; unknown lecture -> 404; non-text question -> 422
+PASS  3. Roman Urdu question with no model loaded: results appear, no error, original-only search: HTTP 200, 3 citations, rewrite {'used': False, 'fallback_reason': 'llm_not_loaded'}, 69 ms
+PASS  4. warm-up (202) loads the model in the background with the rewrite's context: HTTP 202 {'state': 'started', 'reason': None}, loaded after 11.0 s, context_length 8192
+PASS  5. A01, A14, A16, A26, A19r with the model warm: rewrite used, one of the 3 citations covers the gold span, seek times inside their windows: {"A01": {"hit_ranks": [1], "ms": 709}, "A14": {"hit_ranks": [2], "ms": 1119}, "A16": {"hit_ranks": [3], "ms": 801}, "A26": {"hit_ranks": [3], "ms": 897}, "A19r": {"hit_ranks": [2], "ms": 758}}
+PASS  6. all 47 questions through /ask (model warm): no errors, no fallbacks, same hit/miss as the gated G5 run: Recall@3 {'all': 0.8511, 'english': 0.8696, 'roman': 0.8333}; errors []; fallbacks []; differing from G5 []
+PASS  7. rewrite call under the 2 s timeout for every warm question: 52 rewrites, median 556.2 ms, p95 763.8 ms, max 998.0 ms
+PASS  8. a job holds the exclusive GPU lease: results still appear (gpu_busy), the warm-up is skipped: ask HTTP 200 {'used': False, 'fallback_reason': 'gpu_busy'}; warm-up HTTP 202, logged {'event': 'warm_up', 'result': 'skipped', 'reason': 'gpu_busy', 'ms': 0.5}
+PASS  9. rewrite slower than the timeout: results appear with the original search (timeout): HTTP 200, {'used': False, 'fallback_reason': 'timeout'}, 107 ms (timeout set to 0.001 s)
+PASS  10. Ollama unloaded again: A19r still returns citations without an error: unloaded True; HTTP 200, 3 citations, gold hit ranks [] (the original-only search may miss it), 108 ms
+PASS  11. API logs hold only count lines: no question or rewrite text, fixed field set: 59 count lines, fields as specified: True, texts found in logs: 0
+PASS  12. the page has the ask box and the index progress label; ask.js is served; frontend tests pass: / 200, /ask.js 200, deno: [32mok[0m | 26 passed | 0 failed [0m[38;5;245m(189ms)[0m
+PASS  13. no model is left loaded and GPU memory is back within 100 MiB of the start: before 1738 MiB, after 1451 MiB
+
+13/13 checks passed
+evidence: /home/bilal_aamir/insightex/docs/evidence/m6/m6_verify_20261014T173206Z.json
