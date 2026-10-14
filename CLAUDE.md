@@ -25,7 +25,7 @@ Guidance for Claude Code in this repository. This file loads at the start of eve
   - M0 environment verification (7 Oct 2026): cold-boot pass, `scripts/verify_env.sh` 12/12 after a full Windows restart with Ollama started by Task Scheduler. State in `docs/ENVIRONMENT.md`, Ollama contract in `docs/adr/0002-ollama-call-contract.md`.
   - M3 link ingestion (6 Oct 2026), moved onto the runner in M1.
 - **Partial:**
-  - M6: API (with the search endpoint), player, upload form and `seekTo(seconds)` exist. Ask box and citations are still to do; a citation seeks to the start of the first transcript segment inside the window (ADR-0044).
+  - M6 (ADR-0047): session A done (14 Oct 2026): `POST /api/lectures/{id}/ask` (ADR-0046 rewrite with the 2 s timeout and fallback, RRF, de-duplicate, top 3 citations with `seek_s`), `POST .../warm-up`, `searchable` on the lecture document, JSON count-only log lines (no question text). Session B to do: ask box + citations in the page, `index` progress label, `tools/m6_verify`, manual browser checklist. A citation seeks to the start of the first transcript segment inside the window (ADR-0044).
 - **Not started:** concept extraction, the graph, the router and answers.
 - **Before any further WER gate (language promotion, ADR-0040):** re-ingest the eval lectures through normaliser v4. Older `audio.wav` files predate the start-offset padding, so their timings may be shifted. Lectures added before M4 session 2 have no transcript and show "Not transcribed"; add them again with a language.
 - Before starting a module, check its open decisions in `docs/BUILD_ORDER.md` ("Pending decisions by module"). Settle them before building.
@@ -133,7 +133,7 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 | Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` |
 | Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
-| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0045) | `docs/adr/README.md` |
+| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0047) | `docs/adr/README.md` |
 | API contract (ingest link/upload, jobs, SSE, library) | `docs/contracts/api.md` |
 | Draft JSON Schema: Ollama concept-extraction output (`concepts[]` with name, description, exam_relevant) | `docs/contracts/extraction.json` |
 | Draft JSON Schema: ASR segment list (id, start, end, text, avg_logprob, no_speech_prob) | `docs/contracts/segments.json` |

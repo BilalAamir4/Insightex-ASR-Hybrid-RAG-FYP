@@ -1,0 +1,12 @@
+{
+ "index_config_id_before": "56d5cbf47e45",
+ "index_config_id_after": "2bdfeed04854",
+ "windows_schema_version": 2,
+ "identical_ranks_scores_windows": {
+  "GPU fp16 search (insightex search) vs m5/g0_search_gpu.json": true,
+  "GPU fp16 search vs m5/idx_grid30.json": true,
+  "GPU fp16 search vs m5/g1_A_gpu_fp16.json": true,
+  "API CPU fp32 search vs m5/g4_api_cpu_fp32.json": true,
+  "API CPU fp32 search vs m6/g5_A_original.json (G5 baseline, top 10)": true
+ }
+}
