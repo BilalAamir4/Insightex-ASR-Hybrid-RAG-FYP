@@ -64,6 +64,7 @@ class LectureItem(BaseModel):
 
 class LectureOut(LectureItem):
     video_url: str
+    max_question_chars: int  # the longest question the ask box accepts (ADR-0047)
     warnings: list[dict] = []
     external_timestamp_url_template: str | None
 

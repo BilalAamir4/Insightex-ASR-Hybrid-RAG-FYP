@@ -18,3 +18,5 @@ Pre-registered rules: `docs/adr/0046-roman-urdu-question-rewrite.md`; prompt `co
   - Warm: three questions (Roman Urdu, English, Roman Urdu) answered in 0.52 to 0.62 s, rewrite used, 3 citations each; rewrite call 390 to 506 ms.
   - Another process holding the exclusive GPU lease (which also unloads the model): `ask` answers with `gpu_busy`, and `warm-up` is skipped with `gpu_busy`; after release `ask` falls back with `llm_not_loaded`.
   - Privacy: after these runs `api.log` holds only the JSON count lines (5 `ask`, 1 `warm_up`); none of the question words appear in it.
+
+Index config id `56d5cbf47e45` (windows format 1) became `2bdfeed04854` (format 2, same ranks and scores) on 2026-10-14; see `rebuild_check.json`. The `g5_*` files above name the old id.

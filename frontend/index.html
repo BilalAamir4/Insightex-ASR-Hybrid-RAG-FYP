@@ -50,6 +50,13 @@
   .lang { margin: 2px 0; }
   .lang.missing { color: #555; font-style: italic; }
   select { padding: 6px; font-size: 1rem; max-width: 100%; }
+  .ask { margin: 16px 0; }
+  .ask label { display: block; font-weight: 600; margin-bottom: 4px; }
+  .ask .counter { color: #555; font-size: 0.9rem; min-width: 5.5rem; text-align: right; }
+  ol.citations { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-direction: column; gap: 6px; }
+  ol.citations button { width: 100%; text-align: left; border: 1px solid #36c; background: #f4f7ff; color: #123; border-radius: 4px; }
+  ol.citations button:hover { background: #e3ebff; }
+  ol.citations button:focus-visible { outline: 3px solid #36c; outline-offset: 2px; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -147,6 +154,20 @@
   <div class="meta" id="pl-duration"></div>
   <div class="meta" id="pl-language"></div>
   <video id="video" controls preload="metadata"></video>
+  <section class="ask" aria-labelledby="ask-label">
+    <form id="ask-form" autocomplete="off">
+      <label for="ask-input" id="ask-label">Ask a question about this lecture</label>
+      <div class="row">
+        <input type="text" id="ask-input" aria-describedby="ask-count ask-note ask-error" disabled>
+        <button type="submit" id="ask-btn" disabled>Ask</button>
+        <span class="counter" id="ask-count" aria-hidden="true"></span>
+      </div>
+    </form>
+    <div id="ask-note" class="note" hidden>Questions aren't available for this lecture yet. Add it again to prepare it for search.</div>
+    <div id="ask-error" class="error" role="alert" hidden></div>
+    <div id="ask-status" class="meta" role="status" aria-live="polite"></div>
+    <ol id="citations" class="citations" aria-label="Moments in the lecture that answer your question" hidden></ol>
+  </section>
   <div class="row">
     <label for="jump">Jump to</label>
     <input type="text" id="jump" placeholder="mm:ss or h:mm:ss" size="12" style="flex:0 1 160px">
@@ -162,6 +183,7 @@
 <script type="module">
 import { parseTimestamp, formatTimestamp } from "./timestamp.js";
 import { describeWarning } from "./warnings.js";
+import { checkQuestion, citationsToShow, counterText, createWarmUp } from "./ask.js";
 import { PLACEHOLDER, UNTESTED_BADGE, UNTESTED_TOOLTIP, languageDisplay, sortedGroups } from "./languages.js";
 
 const $ = (id) => document.getElementById(id);
@@ -231,6 +253,10 @@ const ERROR_MESSAGES = {
   ENCODE_TIMEOUT: "Preparing the lecture for search took too long and was stopped. Retry when the computer is less busy.",
   NO_WINDOWS: "The transcript has no text to search. Check that the lecture has audible speech.",
   EMPTY_TRANSCRIPT: "No speech was recognised in this lecture. Check that it has audible speech and that the right language was chosen.",
+  // the ask box (ADR-0047)
+  QUESTION_EMPTY: "Type a question first.",
+  QUESTION_TOO_LONG: "That question is too long. Please shorten it.",
+  LECTURE_NOT_SEARCHABLE: "Questions aren't available for this lecture yet. Add it again to prepare it for search.",
   // raised by this page
   CLIENT_NETWORK: "Couldn't reach the Insightex server. Is it running?",
   CLIENT_CANCELLED: "Upload cancelled.",
@@ -442,7 +468,7 @@ function renderPreview(p) {
   show($("preview"));
 }
 
-const STAGE_LABELS = { fetch: "Download", normalise: "Convert video and audio", asr: "Transcribe" };
+const STAGE_LABELS = { fetch: "Download", normalise: "Convert video and audio", asr: "Transcribe", index: "Prepare for search" };
 const STATUS_LABELS = {
   pending: "Waiting", running: "Working", succeeded: "Done", cached: "Done (reused)", failed: "Failed", cancelled: "Cancelled",
 };
@@ -691,6 +717,67 @@ async function initUpload() {
  */
 let seekTo = () => null;
 
+/**
+ * The ask box (ADR-0047): disabled until the lecture is searchable; shows up to three citations (rank and time range
+ * only); a click calls seekTo(seek_s). The rewrite model is warmed when the player opens and again, at most every 30 s,
+ * when an answer says it was not loaded. Nothing about the question is stored by the page.
+ */
+function initAsk(lecture, id, video) {
+  const input = $("ask-input"), button = $("ask-btn"), error = $("ask-error"), status = $("ask-status");
+  const list = $("citations"), counter = $("ask-count");
+  const max = lecture.max_question_chars ?? 300;
+  const warm = createWarmUp({ post: () => fetch(`/api/lectures/${encodeURIComponent(id)}/warm-up`, { method: "POST" }) });
+  const ready = lecture.searchable === true;
+  input.disabled = button.disabled = !ready;
+  show($("ask-note"), !ready);
+  if (!ready) return;
+  warm.warm();
+
+  const showError = (message) => { error.textContent = message; show(error, message !== ""); };
+  const updateCount = () => { counter.textContent = counterText(input.value, max); };
+  input.addEventListener("input", () => { updateCount(); showError(""); });
+  updateCount();
+
+  let sequence = 0;  // only the newest question's answer is drawn
+  $("ask-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const check = checkQuestion(input.value, max);
+    if (!check.ok) { showError(check.message); return; }
+    showError("");
+    const mine = ++sequence;
+    button.disabled = true;
+    status.textContent = "Searching…";
+    list.replaceChildren();
+    show(list, false);
+    try {
+      const answer = await postJson(`/api/lectures/${encodeURIComponent(id)}/ask`, { question: check.question });
+      if (mine !== sequence) return;
+      warm.afterAsk(answer);
+      const shown = citationsToShow(answer);
+      if (shown.length === 0) { status.textContent = "No matching moments were found."; return; }
+      status.textContent = shown.length === 1 ? "1 moment found. Press it to jump there." : `${shown.length} moments found. Press one to jump there.`;
+      for (const c of shown) {
+        const li = document.createElement("li");
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = c.label;
+        b.addEventListener("click", () => {
+          if (seekTo(c.seek_s) === null) showError("The video isn't ready yet.");
+        });
+        li.append(b);
+        list.append(li);
+      }
+      show(list);
+    } catch (e) {
+      if (mine !== sequence) return;
+      status.textContent = "";
+      showError(e.message);
+    } finally {
+      if (mine === sequence) button.disabled = false;
+    }
+  });
+}
+
 async function initPlayer(id) {
   show($("player"));
   const video = $("video");
@@ -753,6 +840,8 @@ async function initPlayer(id) {
   const t = params.get("t");
   const applyDeepLink = () => { if (t !== null) { const s = parseTimestamp(t); if (s !== null) seekTo(s); } };
   video.addEventListener("loadedmetadata", applyDeepLink, { once: true });
+
+  initAsk(lecture, id, video);
 
   video.src = lecture.video_url;
   video.addEventListener("error", () => {

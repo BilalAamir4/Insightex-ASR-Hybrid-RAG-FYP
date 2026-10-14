@@ -110,7 +110,7 @@ def get_lecture(lecture_id: str, request: Request):
     warnings = _json(directory / NORMALISE_JSON).get("warnings")
     warnings = [*(warnings if isinstance(warnings, list) else []), *_asr_warnings(workspaces, lecture_id)]
     return LectureOut(**item.model_dump(), video_url=f"/api/lectures/{lecture_id}/video",
-                      warnings=warnings,
+                      warnings=warnings, max_question_chars=settings_of(request).retrieval.max_question_chars,
                       external_timestamp_url_template=template)
 
 
