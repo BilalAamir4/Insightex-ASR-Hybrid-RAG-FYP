@@ -58,7 +58,7 @@ The validator also enforces rules that a JSON Schema cannot express:
 **2. Data split.**
 
 - **Dev lecture: Day 4** (`sha256-de27cb67c2acbedebd0c2c7416932b8a`). All prompt iteration and all arm comparisons happen on it.
-- **Prompt freeze.** Prompt iteration on the dev lecture uses qwen3.5 only. The extraction prompt is frozen before C1 runs, and its sha256 is recorded in the C1 evidence. Both C1 arms run that frozen prompt. If Gemma 4 E4B wins C1, the frozen prompt is re-checked on it (JSON-valid rate, and a read-through of its output), but there is no Gemma-specific tuning. A prompt change after the freeze is a new freeze with a new hash, and every comparison already run on the old prompt is re-run.
+- **Prompt freeze.** Prompt iteration on the dev lecture uses qwen3.5 only. The extraction prompt is frozen before C1 runs, and its sha256 is recorded in the C1 evidence. Both C1 arms run that frozen prompt. If Gemma 4 E4B wins C1, the frozen prompt is re-checked on it (the validity rule, and a read-through of its output), but there is no Gemma-specific tuning. A prompt change after the freeze is a new freeze with a new hash, and every comparison already run on the old prompt is re-run.
 - **Held-out lecture:** a second lecture, chosen and ingested later. It must be:
   - in Hindi, while Hindi is the only tested language (ADR-0040); lectures transcribed with an untested language are excluded, and the sampler refuses them;
   - by a different speaker;
@@ -82,8 +82,9 @@ The validator also enforces rules that a JSON Schema cannot express:
 
 - **String rule.** A model concept matches a gold concept if, after normalisation, its label or any alias equals the gold label or any gold alias. Normalisation is NFKC, then case-folding, then removing punctuation (Unicode P*), whitespace and separators (Z*) and format characters (Cf, such as the zero-width non-joiner).
 - **One-to-one.** A gold concept matches at most one model concept. The pairs are a maximum bipartite matching over the string-rule edges. It is deterministic: Kuhn's algorithm, run in list order.
-- **Adjudication.** Model concepts that are still unmatched go to an adjudication sheet. Bilal marks each one as a match to a named gold concept of the same window, or as no-match.
-  - On the sheet, each entry shows the window, the model concept and the gold concepts, but **not the arm** that produced it.
+- **Adjudication (blind).** Model concepts still unmatched after the string rule go to an adjudication sheet. Bilal marks each one as a match to a named gold concept of the same window, or as no-match.
+  - For a comparison, the sheet **pools the unmatched concepts from all arms being compared**. It removes duplicates (the same window and the same normalised label count once, whichever arms produced it) and shuffles the entries with a recorded seed. **No arm is shown.** Each entry shows the window, the model concept with its aliases, and that window's gold concepts.
+  - Every decision is made before any arm is scored with adjudication.
   - Decisions are stored in `tools/label_concepts/labels/<lecture_id>/adjudications.json`, keyed by (window_index, normalised model label). The file is append-only and frozen: an entry is never changed once a score has been reported with it, and every later run reuses it.
   - An adjudicated match is used only if that gold concept is still unmatched.
   - Unmatched concepts with no entry yet count as false positives until they are decided.
@@ -97,7 +98,7 @@ The validator also enforces rules that a JSON Schema cannot express:
 - Reported secondaries, which never decide a comparison:
   - relation P/R/F1;
   - importance P/R over windows;
-  - the **JSON-valid rate after one retry**, counted per window. A window is valid if its record passes the v1 validator on the first response, or on one retry of the same call;
+  - the number of **dropped relations** per arm (see the validity rule in section 7);
   - the human ceiling (agreement on the shared windows, string rule only; compared only with the model's string-rule-only F1, as above).
 - **Per-window F1** is 1.0 when both the model and gold have no concepts, and 0 when only one side has none.
 
@@ -106,7 +107,9 @@ The validator also enforces rules that a JSON Schema cannot express:
 - Compute per-window concept F1 for both arms. A window is a win for the arm whose F1 is higher.
 - **Net wins of 2 or fewer is a tie.** A tie keeps the simpler or cheaper arm: the model with the smaller measured VRAM peak at the worst-case prompt (C1), original-language input (C2), and single-window calls (C3).
 - **A change is adopted only if it has net wins of 3 or more AND its micro concept F1 is not lower.**
-- **An arm with a JSON-valid rate below 98% is rejected regardless of its score.** With 20 dev windows, or 40 held-out, that allows no invalid window at all.
+- **Validity rule: every window must be valid after one retry.** A window is valid if its record passes the v1 validator, either on the first response or on one retry of the same call. An arm with any invalid window is rejected, regardless of its score.
+  - **Dangling relations do not make a window invalid.** Before validation, a relation whose head or tail is not in that window's concept list is dropped. The number dropped is counted and reported per arm. Every other validator rule still applies.
+- **If both arms of a comparison fail the validity rule,** fix the validation or retry handling. That fix is a new prompt freeze (new hash), and both arms are re-run. **Never pick the arm that failed less.**
 - At N = 20, one window is 5% of the set, so ties are more likely than at 40, and a tie defaults to the simpler arm.
 
 **8. Arms (to be run in Session 2, not now).**
@@ -164,4 +167,4 @@ Revisit:
 
 - when the held-out lecture is chosen (confirm it is Hindi, a different speaker and at least 20 minutes);
 - if the shared-window discussion changes a definition in a way that affects matching;
-- if the JSON-valid rule rejects every arm.
+- if the validity rule keeps rejecting both arms after a fix.
