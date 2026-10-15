@@ -1,6 +1,6 @@
 # ADR-0020: Importance and recap flags ride on the extraction pass
 
-Status: Accepted
+Status: Accepted; field name amended by ADR-0048
 Date decided: not recorded; on or before 2026-10-04
 Date recorded: 2026-10-08
 Module: M7

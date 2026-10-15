@@ -1,11 +1,11 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
-Status: Proposed
-Date decided: not decided; proposed 2026-10-15
+Status: Accepted
+Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
 
-On acceptance this ADR amends ADR-0020: the importance field is `important` with a `cue`, not the draft `exam_relevant`. It also replaces the "10 labelled windows" extraction gate in the `docs/BUILD_ORDER.md` pending decision "M0 / M7 / M11: qwen3.5 VRAM headroom" with comparison C1 below.
+Amends ADR-0020: the importance field is `important` with a `cue`, not the draft `exam_relevant`. It also replaces the "10 labelled windows" extraction gate in the `docs/BUILD_ORDER.md` pending decision "M0 / M7 / M11: qwen3.5 VRAM headroom" with comparison C1 below.
 
 ## Context
 
@@ -161,7 +161,7 @@ The validator also enforces rules that a JSON Schema cannot express:
 
 ## Gate / revisit when
 
-This ADR becomes Accepted when Bilal approves it before Session 2 starts. After that, the rules above are frozen: any change is a new ADR, made before the affected comparison runs.
+Accepted by Bilal on 2026-10-15, before Session 2 and before any model output existed, after four review rounds and a by-hand browser check of the labelling tool (passed 2026-10-15). The rules above are now frozen: any change is a new ADR, made before the affected comparison runs.
 
 Revisit:
 

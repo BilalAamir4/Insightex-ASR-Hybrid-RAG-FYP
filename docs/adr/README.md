@@ -40,7 +40,7 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0017](0017-window-edges-and-overlap.md) | Window edges and overlap | Proposed | M5 | |
 | [0018](0018-hybrid-retrieval-architecture.md) | Hybrid retrieval architecture | Accepted | Project | |
 | [0019](0019-concept-canonicalisation-across-scripts.md) | Concept canonicalisation across scripts | Proposed | M8 | |
-| [0020](0020-importance-and-recap-flags-on-extraction-pass.md) | Importance and recap flags ride on the extraction pass | Accepted | M7 | |
+| [0020](0020-importance-and-recap-flags-on-extraction-pass.md) | Importance and recap flags ride on the extraction pass | Accepted | M7 | Field name amended by ADR-0048 (`important` + `cue`) |
 | [0021](0021-deferred-infrastructure.md) | Deferred infrastructure | Accepted | Project | |
 | [0022](0022-job-queue-sqlite-single-gpu-worker.md) | Job queue: SQLite + single GPU worker | Superseded by ADR-0033 | M1 | |
 | [0023](0023-workspace-caching-and-session-rule.md) | Workspace caching and session rule | Superseded by ADR-0034 | M1 | |
@@ -68,4 +68,4 @@ An ADR records one project decision: the context, the choice, the alternatives r
 | [0045](0045-m5-retrieval-configuration.md) | M5 retrieval configuration: fixed 30 s windows, dense only, CPU fp32 questions | Accepted | M5 | Amends ADR-0001 (how windows are cut, dense only, where questions are encoded); Roman Urdu fix decided in ADR-0046 |
 | [0046](0046-roman-urdu-question-rewrite.md) | Roman Urdu questions: rewrite every question into English at query time | Accepted | M6 | Resolves the open item of ADR-0045; gate G5 passed (provisional until M9); to be built in M6 |
 | [0047](0047-m6-ask-box-and-citations.md) | M6 ask box and citations | Accepted | M6 | Citation format, `/ask` and `/warm-up`, lease use of the rewrite call, privacy of questions |
-| [0048](0048-m7-extraction-schema-gold-set-and-gate-rules.md) | M7 extraction schema, gold set and gate rules | Proposed | M7 | On acceptance amends ADR-0020 (field `important` + `cue`, not `exam_relevant`) |
+| [0048](0048-m7-extraction-schema-gold-set-and-gate-rules.md) | M7 extraction schema, gold set and gate rules | Accepted | M7 | Amends ADR-0020 (field `important` + `cue`, not `exam_relevant`); replaces the 10-window extraction gate in BUILD_ORDER |

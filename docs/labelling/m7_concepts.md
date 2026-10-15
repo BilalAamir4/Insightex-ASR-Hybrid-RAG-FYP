@@ -10,6 +10,12 @@ Status: version 1, written before the shared-window discussion. The procedure be
 
 The unit is one window: a fixed 30-second slice of the lecture (ADR-0045). The tool shows the window's transcript text and plays that span of the video. Label only what is said inside this window. Use the audio when the transcript is wrong or unclear. Do not use anything said before or after the window.
 
+**Label the text shown in the window, not the audio boundary.** The model receives exactly the text shown, nothing more and nothing less. Whisper splits speech into segments, and each segment belongs to the one window in which it *starts*, even when it runs past the window's end. So the text can start or end a moment away from the 30 s mark:
+- **Window 2 (1:00–1:30) is the example.** Its text ends with «جب آپ اس کو code کر رہے ہوتے» ("when you are coding it"). That segment starts at 1:28.98 and ends at 1:30.78, so you hear its end just after "Play window" stops. It belongs to window 2. The rest of the sentence is the first segment of window 3.
+- No segment appears in two windows. A sentence can still be split across two windows, as this one is.
+- When a sentence is split, label in each window what that window's own text supports. If both parts name and explain a concept, label it in both windows.
+- Use the audio only to read the shown text correctly, not to add words from outside it. 22 of Day 4's 351 segments cross a window edge.
+
 For each window you record:
 
 - **concepts**: each one has a canonical English label and its aliases;
@@ -188,3 +194,4 @@ For the dev lecture (Day 4), the sample is the census of its 20 eligible windows
 ## Changelog
 
 - v1 (15 Oct 2026): first version, before any labelling.
+- v1, addition (15 Oct 2026, still before any labelling): the rule "label the text shown in the window, not the audio boundary", with the window 2 tail as its example. Prompted by the browser check.
