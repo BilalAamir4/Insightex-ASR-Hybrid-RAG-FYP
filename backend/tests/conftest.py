@@ -154,3 +154,14 @@ def serve_bytes(allow_loopback):
 def video_server(media, serve_bytes):
     """The synthetic H.264/AAC clip served at /lecture.mp4."""
     return serve_bytes(media["h264_aac_mp4"].read_bytes())
+
+
+SLOW_MARKER_TIMEOUT_S = 1800  # seconds; per-test timeout for opt-in suites that load real models or use the network
+
+
+def pytest_collection_modifyitems(config, items):
+    """The 120 s per-test timeout (pyproject) is sized for the offline suite; gpu, replay and network tests get longer."""
+    for item in items:
+        if item.get_closest_marker("timeout") is None and any(
+                item.get_closest_marker(m) for m in ("gpu", "replay", "network")):
+            item.add_marker(pytest.mark.timeout(SLOW_MARKER_TIMEOUT_S))

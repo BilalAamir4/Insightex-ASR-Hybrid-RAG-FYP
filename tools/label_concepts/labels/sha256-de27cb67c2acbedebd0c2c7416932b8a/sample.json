@@ -1,0 +1,276 @@
+{
+ "manifest_version": 1,
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "created_at": "2026-10-15T10:04:03Z",
+ "seed": 7,
+ "n_requested": 40,
+ "n_sampled": 20,
+ "n_shared": 10,
+ "labellers": [
+  "bilal",
+  "fatima"
+ ],
+ "grid": {
+  "window_s": 30.0,
+  "stride_s": 30.0,
+  "rule": "ADR-0045 fixed time grid, no overlap, segment assigned by start time, empty windows dropped, ids count kept windows",
+  "index_check": "match"
+ },
+ "transcript": {
+  "duration_s": 688.03,
+  "language_id": "hindi",
+  "language_tier_at_processing": "tested",
+  "asr_key": "52f586fb1d7c8f82",
+  "segment_count": 351
+ },
+ "n_windows_total": 23,
+ "excluded": [
+  {
+   "window_index": 0,
+   "reason": "guide example: passing mention, not labelled"
+  },
+  {
+   "window_index": 3,
+   "reason": "guide example: explicit importance cue"
+  },
+  {
+   "window_index": 5,
+   "reason": "guide example: stated relation (contrasts_with)"
+  }
+ ],
+ "n_eligible": 20,
+ "census": true,
+ "census_note": "N=40 >= 20 eligible windows: the sample is every eligible window",
+ "windows": [
+  {
+   "order": 0,
+   "window_index": 2,
+   "start_s": 60.0,
+   "end_s": 90.0,
+   "text_sha256": "706147bb7519586c5d84791ec316eb53da7ea7face4e3176380f9526db01462c",
+   "shared": true,
+   "assigned_to": [
+    "bilal",
+    "fatima"
+   ]
+  },
+  {
+   "order": 1,
+   "window_index": 4,
+   "start_s": 120.0,
+   "end_s": 150.0,
+   "text_sha256": "dfbf0263b5ed3025cf1a03595e34af3dcee37eb9ac4fafeb8c3a46086f2b37a2",
+   "shared": true,
+   "assigned_to": [
+    "bilal",
+    "fatima"
+   ]
+  },
+  {
+   "order": 2,
+   "window_index": 8,
+   "start_s": 240.0,
+   "end_s": 270.0,
+   "text_sha256": "2048ac68d0ef8a02e889b2568b58561a730b2f554d53dd20166129cab3b16e8e",
+   "shared": true,
+   "assigned_to": [
+    "bilal",
+    "fatima"
+   ]
+  },
+  {
+   "order": 3,
+   "window_index": 9,
+   "start_s": 270.0,
+   "end_s": 300.0,
+   "text_sha256": "7f1640d3e052404f8bde11acf2fc946d8b2590e025208e1ad8f50aaf077c8026",
+   "shared": true,
+   "assigned_to": [
+    "bilal",
+    "fatima"
+   ]
+  },
+  {
+   "order": 4,
+   "window_index": 11,
+   "start_s": 330.0,
+   "end_s": 360.0,
+   "text_sha256": "791ddbdb76a144d08b8932902254772db04a08ab621fcb2c56ab20e9a9b3455a",
+   "shared": true,
+   "assigned_to": [
+    "bilal",
+    "fatima"
+   ]
+  },
+  {
+   "order": 5,
+   "window_index": 13,
+   "start_s": 390.0,
+   "end_s": 420.0,
+   "text_sha256": "85060c60bc64a7e2966590c232b96ae9685e3b8cbcc2f31b46b6f616a603c5bf",
+   "shared": true,
+   "assigned_to": [
+    "bilal",
+    "fatima"
+   ]
+  },
+  {
+   "order": 6,
+   "window_index": 16,
+   "start_s": 480.0,
+   "end_s": 510.0,
+   "text_sha256": "ff9fb273b4089ce6949565a6dce4ac616dfb62c322d37410749ba3c9d1c19288",
+   "shared": true,
+   "assigned_to": [
+    "bilal",
+    "fatima"
+   ]
+  },
+  {
+   "order": 7,
+   "window_index": 17,
+   "start_s": 510.0,
+   "end_s": 540.0,
+   "text_sha256": "ba0fdeaf319ad3f090bf351241f47b417d117b26e0baa9878dd6be73f71ceb2a",
+   "shared": true,
+   "assigned_to": [
+    "bilal",
+    "fatima"
+   ]
+  },
+  {
+   "order": 8,
+   "window_index": 19,
+   "start_s": 570.0,
+   "end_s": 600.0,
+   "text_sha256": "eed43b893e59f7c0e9690d2e9dd7a40f9fb7159bca66064f72f67669b90628ed",
+   "shared": true,
+   "assigned_to": [
+    "bilal",
+    "fatima"
+   ]
+  },
+  {
+   "order": 9,
+   "window_index": 21,
+   "start_s": 630.0,
+   "end_s": 660.0,
+   "text_sha256": "57c04c39076759e130904817c9ab9e80bc3d56792524b2afbbb8a413c1af2b0f",
+   "shared": true,
+   "assigned_to": [
+    "bilal",
+    "fatima"
+   ]
+  },
+  {
+   "order": 10,
+   "window_index": 1,
+   "start_s": 30.0,
+   "end_s": 60.0,
+   "text_sha256": "da8b9ab11849c61168b252752752ac6ff4633e68bd7f86d190a2192542e8f96c",
+   "shared": false,
+   "assigned_to": [
+    "bilal"
+   ]
+  },
+  {
+   "order": 11,
+   "window_index": 6,
+   "start_s": 180.0,
+   "end_s": 210.0,
+   "text_sha256": "41f2e7cc1d2a8b00af4349134f2a69a779a43d46986836b210c63bc7135ce7c1",
+   "shared": false,
+   "assigned_to": [
+    "fatima"
+   ]
+  },
+  {
+   "order": 12,
+   "window_index": 7,
+   "start_s": 210.0,
+   "end_s": 240.0,
+   "text_sha256": "0bc65c850b03c8dfdeba8b312834c3e1766c00a8e74057a642f84efdd6c44691",
+   "shared": false,
+   "assigned_to": [
+    "bilal"
+   ]
+  },
+  {
+   "order": 13,
+   "window_index": 10,
+   "start_s": 300.0,
+   "end_s": 330.0,
+   "text_sha256": "6a28b6c40b701c1736ffbc2afcdcadb575d8fa8a553f48e118ea1bc48ee3ee60",
+   "shared": false,
+   "assigned_to": [
+    "fatima"
+   ]
+  },
+  {
+   "order": 14,
+   "window_index": 12,
+   "start_s": 360.0,
+   "end_s": 390.0,
+   "text_sha256": "f3e41d4872329bbd1173a926ae2c0c3d5c1bb92fa2a6f2e7ee939fe226348e26",
+   "shared": false,
+   "assigned_to": [
+    "bilal"
+   ]
+  },
+  {
+   "order": 15,
+   "window_index": 14,
+   "start_s": 420.0,
+   "end_s": 450.0,
+   "text_sha256": "5a6400ca4fc5ee5618275a75957f1035d7e5f5ebecd7b82cc80a4104eecaa1f5",
+   "shared": false,
+   "assigned_to": [
+    "fatima"
+   ]
+  },
+  {
+   "order": 16,
+   "window_index": 15,
+   "start_s": 450.0,
+   "end_s": 480.0,
+   "text_sha256": "86399007d7635dd1b82890addf18c268d8a5a93a11c28a9ac16cf63d2a77b7ad",
+   "shared": false,
+   "assigned_to": [
+    "bilal"
+   ]
+  },
+  {
+   "order": 17,
+   "window_index": 18,
+   "start_s": 540.0,
+   "end_s": 570.0,
+   "text_sha256": "5c3729e79e88075bd436cf548153e4a3c4426f4ae5ef63ee1cd7c36b61cceec0",
+   "shared": false,
+   "assigned_to": [
+    "fatima"
+   ]
+  },
+  {
+   "order": 18,
+   "window_index": 20,
+   "start_s": 600.0,
+   "end_s": 630.0,
+   "text_sha256": "f6cd3e21a23add803b264ed2e4743adfa6c174ffcb086c3bae7078b6bba764c5",
+   "shared": false,
+   "assigned_to": [
+    "bilal"
+   ]
+  },
+  {
+   "order": 19,
+   "window_index": 22,
+   "start_s": 660.0,
+   "end_s": 688.03,
+   "text_sha256": "20e20fb6b14106237e4182993a75861de60204d85ba59954647afb1d2fe7e6ce",
+   "shared": false,
+   "assigned_to": [
+    "fatima"
+   ]
+  }
+ ]
+}
