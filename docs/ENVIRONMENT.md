@@ -34,7 +34,7 @@ The venv `activate` script (`~/envs/insightex/bin/activate`, last line) sources 
 
 - `~/envs/insightex`: Python 3.12; torch 2.11.0+cu128, faster-whisper 1.2.1, ctranslate2 4.8.2, sentence-transformers 6.1.0, transformers 5.18.0, faiss-cpu 1.15.1, networkx 3.6.1, pydantic 2.13.5, httpx 0.28.1, uroman 1.3.1.1 (romanisation for the WER gate in `tools/eval_wer`; locked 10 Oct 2026).
 - `requirements.lock.txt` (repo root, 97 packages, counted 2026-10-10) is the pin set. It **intentionally omits the editable `insightex` install** (this repo), and `pip freeze` itself omits `pip`, `setuptools` and `wheel`. `tools/verify_env.py` ignores exactly those four and fails on any other mismatch.
-- Dev tools: `ruff==0.16.10`, pinned in the `dev` extra of `pyproject.toml` and in the lockfile (added 9 Oct 2026). Install with `pip install -e '.[dev]'`.
+- Dev tools: `ruff==0.16.10` (added 9 Oct 2026) and `pytest-timeout==2.4.0` (added 15 Oct 2026, M7: a hung test fails instead of stalling the suite), pinned in the `dev` extra of `pyproject.toml` and in the lockfile. Install with `pip install -e '.[dev]'`.
 - No installs, upgrades or removals without asking. `FlagEmbedding` is not installed (and not locked); `tools/bench_models/loadtimes/verify_6b_loadtimes.py` needs it for its bge-m3 step and fails there.
 - ffmpeg/ffprobe: Ubuntu native 6.1.1. Normalisation (ADR-0036 to ADR-0038) requires the `libx264` and `aac` encoders. The media test fixtures also use `libx265`, `libvpx-vp9`, `libaom-av1`, `libsvtav1`, `mpeg2video`, `wmv2`, `libopus`, `libmp3lame` and `mjpeg`. All were present when checked on 9 Oct 2026 (`ffmpeg -hide_banner -encoders`). Normalisation is CPU-only and takes no GPU lease.
 

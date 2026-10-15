@@ -58,6 +58,7 @@ The validator also enforces rules that a JSON Schema cannot express:
 **2. Data split.**
 
 - **Dev lecture: Day 4** (`sha256-de27cb67c2acbedebd0c2c7416932b8a`). All prompt iteration and all arm comparisons happen on it.
+- **Prompt freeze.** Prompt iteration on the dev lecture uses qwen3.5 only. The extraction prompt is frozen before C1 runs, and its sha256 is recorded in the C1 evidence. Both C1 arms run that frozen prompt. If Gemma 4 E4B wins C1, the frozen prompt is re-checked on it (JSON-valid rate, and a read-through of its output), but there is no Gemma-specific tuning. A prompt change after the freeze is a new freeze with a new hash, and every comparison already run on the old prompt is re-run.
 - **Held-out lecture:** a second lecture, chosen and ingested later. It must be:
   - in Hindi, while Hindi is the only tested language (ADR-0040); lectures transcribed with an untested language are excluded, and the sampler refuses them;
   - by a different speaker;
@@ -91,18 +92,19 @@ The validator also enforces rules that a JSON Schema cannot express:
 
 **6. Metrics.**
 
-- **Primary: concept precision, recall and F1, micro-averaged over windows** (summed true positives and set sizes), computed with adjudication applied. The string-rule-only figure is reported next to it.
+- **Primary: concept precision, recall and F1, micro-averaged over windows** (summed true positives and set sizes), computed with adjudication applied. This figure decides the comparisons (section 7). The string-rule-only figure is reported next to it.
+- **Headline comparison with the human ceiling: string rule only on both sides.** The ceiling (human agreement on the shared windows) is computed with the string rule only. It is compared only with the model's string-rule-only concept F1 on the same lecture. The adjudicated model F1 is reported separately and is **never** compared with the ceiling, because only the model's concepts get adjudicated, which would favour the model.
 - Reported secondaries, which never decide a comparison:
   - relation P/R/F1;
   - importance P/R over windows;
   - the **JSON-valid rate after one retry**, counted per window. A window is valid if its record passes the v1 validator on the first response, or on one retry of the same call;
-  - the human ceiling (agreement on the shared windows, string rule only, so it is a conservative bound).
+  - the human ceiling (agreement on the shared windows, string rule only; compared only with the model's string-rule-only F1, as above).
 - **Per-window F1** is 1.0 when both the model and gold have no concepts, and 0 when only one side has none.
 
 **7. Comparison noise rule (dev lecture, N = 20).**
 
 - Compute per-window concept F1 for both arms. A window is a win for the arm whose F1 is higher.
-- **Net wins of 2 or fewer is a tie.** A tie keeps the simpler or cheaper arm: the model with the smaller measured VRAM peak at the worst-case prompt, original-language input, and single-window calls.
+- **Net wins of 2 or fewer is a tie.** A tie keeps the simpler or cheaper arm: the model with the smaller measured VRAM peak at the worst-case prompt (C1), original-language input (C2), and single-window calls (C3).
 - **A change is adopted only if it has net wins of 3 or more AND its micro concept F1 is not lower.**
 - **An arm with a JSON-valid rate below 98% is rejected regardless of its score.** With 20 dev windows, or 40 held-out, that allows no invalid window at all.
 - At N = 20, one window is 5% of the set, so ties are more likely than at 40, and a tie defaults to the simpler arm.
@@ -112,11 +114,16 @@ The validator also enforces rules that a JSON Schema cannot express:
 | Comparison | Arm A (kept on a tie) | Arm B | Held fixed |
 |---|---|---|---|
 | C1 | the model with the smaller VRAM peak at the worst-case prompt | the other model (qwen3.5 vs Gemma 4 E4B) | original transcript, single window |
-| C2 | original transcript | per-window English translation (ADR-0041) | C1 winner, single window |
+| C2 | original transcript | per-window English translation (ADR-0041), made by the C1 winner | C1 winner, single window |
 | C3 | single 30 s window per call | batches of k windows | C1 and C2 winners |
 
 - The comparisons run in the order above, each on the winner of the one before.
-- k is fixed before C3 runs. It is the largest value in 3 to 5 whose worst-case prompt plus `num_predict` fits `num_ctx` 8192 at 100% GPU, under the ADR-0002 budget rule.
+- **C2 translator.** The translation is made by the C1 winner through Ollama (the ADR-0002 call contract), with one fixed translation prompt. That prompt is frozen and its sha256 recorded before C2 runs, under the same rule as the extraction prompt. Translations are cached as their own stage, one per window, keyed by the window text's sha256, the model and the prompt hash, so that extraction reruns reuse them. The translation's wall time and VRAM peak count against arm B's cost. A tie keeps original-language input.
+- **C3 batch size k** is fixed before C3 runs. It is the largest value in 3 to 5 that passes both of these checks:
+  - the worst-case k-window prompt plus `num_predict` fits the `num_ctx` measured and chosen in Session 2, under the ADR-0002 budget rule;
+  - at that prompt, `ollama ps` shows 100% GPU.
+  
+  If no k in 3 to 5 passes, C3 is not run, and single-window calls stay.
 - For every arm, the run records:
   - VRAM peak;
   - tokens per second;
@@ -141,7 +148,7 @@ The validator also enforces rules that a JSON Schema cannot express:
 - Any change to the schema bumps `schema_version`, updates both copies, and re-validates the gold files.
 - Gold files and adjudications are committed under `tools/label_concepts/labels/`. They contain short surface forms from the lectures (aliases), as does the guide's worked examples section. Both are added to the M20 list of lecture-derived text to review before the repo goes final.
 - The held-out numbers come from one run of one configuration, so they carry no comparison and are only reported.
-- The extraction prompt is iterated on 20 windows, so it may overfit them. The held-out lecture is the check on that.
+- The extraction prompt is iterated on 20 windows with qwen3.5 only, so it may overfit those windows and that model. The held-out lecture is the check on the first; on the second, Gemma gets no tuning of its own, so C1 is tilted towards qwen3.5. A tie already favours the smaller model, so this is accepted and recorded.
 
 ## Evidence
 
