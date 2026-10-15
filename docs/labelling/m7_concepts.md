@@ -11,8 +11,8 @@ Status: version 1, written before the shared-window discussion. The procedure be
 The unit is one window: a fixed 30-second slice of the lecture (ADR-0045). The tool shows the window's transcript text and plays that span of the video. Label only what is said inside this window. Use the audio when the transcript is wrong or unclear. Do not use anything said before or after the window.
 
 **Label the text shown in the window, not the audio boundary.** The model receives exactly the text shown, nothing more and nothing less. Whisper splits speech into segments, and each segment belongs to the one window in which it *starts*, even when it runs past the window's end. So the text can start or end a moment away from the 30 s mark:
-- **Window 2 (1:00–1:30) is the example.** Its text ends with «جب آپ اس کو code کر رہے ہوتے» ("when you are coding it"). That segment starts at 1:28.98 and ends at 1:30.78, so you hear its end just after "Play window" stops. It belongs to window 2. The rest of the sentence is the first segment of window 3.
-- No segment appears in two windows. A sentence can still be split across two windows, as this one is.
+- **Window 3 (1:30–2:00, a reserved example) shows this.** Its text ends with «کیونکہ to be honest یہ important ہے» ("because, to be honest, this is important"). That segment starts at 1:58.98 and ends at 2:01.38, so "Play window" stops before the speaker finishes it. It still belongs to window 3 and nowhere else, and its cue is labelled in window 3.
+- No segment appears in two windows. A sentence can still be split across two windows when Whisper splits it into two segments.
 - When a sentence is split, label in each window what that window's own text supports. If both parts name and explain a concept, label it in both windows.
 - Use the audio only to read the shown text correctly, not to add words from outside it. 22 of Day 4's 351 segments cross a window edge.
 
@@ -121,7 +121,7 @@ All three come from the Day 4 dev lecture (workspace `sha256-de27cb67c2acbedebd0
 
 ### Window 3 (1:30–2:00): an importance cue, aliases, and a relation (reserved: "importance cue")
 
-> Gloss: "…[when you are coding it] on your own machine, that is called the development environment. Now, machine learning software behaves, or runs, differently on the server, and on that basis we will study two types of machine learning today. One of them is batch learning, or batch machine learning, which we also call offline learning, and the second one is online machine learning, or online learning. We will study both of them in great detail because, to be honest, this is important."
+> Gloss: "…on your own machine, that is called the development environment. Now, machine learning software behaves, or runs, differently on the server, and on that basis we will study two types of machine learning today. One of them is batch learning, or batch machine learning, which we also call offline learning, and the second one is online machine learning, or online learning. We will study both of them in great detail because, to be honest, this is important."
 
 The cue in the transcript: «ان دونوں کو ہم لوگ بہت detail میں پڑھیں گے کیونکہ to be honest یہ important ہے»
 
@@ -142,13 +142,14 @@ The cue in the transcript: «ان دونوں کو ہم لوگ بہت detail می
 
 - **important**: the teacher says outright that the topic is important. The cue is an English note, not a copy of the transcript.
 - **Aliases**: "offline learning" is a name the speaker gives for batch learning ("which we also call…"). It is an alias, not a second concept. The label follows the book ("batch learning").
-- **Development environment**: the window says what it is (your own machine, where you write the code), so it is labelled. The production environment is defined in the window before this one. It is not labelled here, and there is no relation between the two, because one end would come from another window.
+- **Development environment**: the window says what it is (your own machine), so it is labelled.
+- **A concept defined in another window is not labelled here.** Labelling it here would also need a relation with one end in another window, which is not allowed either. Each window is labelled from its own text only.
 - **Relation**: the speaker sets up batch and online learning as the two opposite types to be compared. That is a clearly implied `contrasts_with`.
 - These two are introduced, not fully explained, but they still count as substantive. The window says what kind of thing each is (a type of machine learning, distinguished by how the model is trained on the server) and gives their alternative names. Window 0 only says the topic's name, and that is the line between the two.
 
 ### Window 5 (2:30–3:00): a stated relation, and a definition that is not important (reserved: "stated relation")
 
-> Gloss: "…[you] use [the whole data] to train machine learning, to train the machine learning model. That is, in the batch case, when you train you use all of your data. There is no incremental training. Incremental training means [training] in small pieces, which you don't do here: you train with the whole lot at once. Now since the data, if you are working on a real-world problem, will generally be big, if you go to train very big data on the server…"
+> Gloss: "…use to train machine learning, to train the machine learning model. That is, in the batch case, when you train you use all of your data. There is no incremental training. Incremental training means [training] in small pieces, which you don't do here: you train with the whole lot at once. Now since the data, if you are working on a real-world problem, will generally be big, if you go to train very big data on the server…"
 
 ```json
 {
@@ -194,4 +195,5 @@ For the dev lecture (Day 4), the sample is the census of its 20 eligible windows
 ## Changelog
 
 - v1 (15 Oct 2026): first version, before any labelling.
-- v1, addition (15 Oct 2026, still before any labelling): the rule "label the text shown in the window, not the audio boundary", with the window 2 tail as its example. Prompted by the browser check.
+- v1, addition (15 Oct 2026, still before any labelling): the rule "label the text shown in the window, not the audio boundary". Prompted by the browser check.
+- v1, correction (15 Oct 2026, still before any labelling): removed every statement about what a gold window contains. The boundary example is now window 3's last segment (a reserved window). Gloss words filled in from neighbouring windows are replaced by "…". A concept defined in another window is now covered by a general rule instead of a named example.
