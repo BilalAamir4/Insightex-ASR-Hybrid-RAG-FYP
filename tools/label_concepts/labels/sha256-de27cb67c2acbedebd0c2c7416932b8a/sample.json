@@ -7,8 +7,7 @@
  "n_sampled": 20,
  "n_shared": 10,
  "labellers": [
-  "bilal",
-  "fatima"
+  "bilal"
  ],
  "grid": {
   "window_s": 30.0,
@@ -50,8 +49,7 @@
    "text_sha256": "706147bb7519586c5d84791ec316eb53da7ea7face4e3176380f9526db01462c",
    "shared": true,
    "assigned_to": [
-    "bilal",
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -62,8 +60,7 @@
    "text_sha256": "dfbf0263b5ed3025cf1a03595e34af3dcee37eb9ac4fafeb8c3a46086f2b37a2",
    "shared": true,
    "assigned_to": [
-    "bilal",
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -74,8 +71,7 @@
    "text_sha256": "2048ac68d0ef8a02e889b2568b58561a730b2f554d53dd20166129cab3b16e8e",
    "shared": true,
    "assigned_to": [
-    "bilal",
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -86,8 +82,7 @@
    "text_sha256": "7f1640d3e052404f8bde11acf2fc946d8b2590e025208e1ad8f50aaf077c8026",
    "shared": true,
    "assigned_to": [
-    "bilal",
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -98,8 +93,7 @@
    "text_sha256": "791ddbdb76a144d08b8932902254772db04a08ab621fcb2c56ab20e9a9b3455a",
    "shared": true,
    "assigned_to": [
-    "bilal",
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -110,8 +104,7 @@
    "text_sha256": "85060c60bc64a7e2966590c232b96ae9685e3b8cbcc2f31b46b6f616a603c5bf",
    "shared": true,
    "assigned_to": [
-    "bilal",
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -122,8 +115,7 @@
    "text_sha256": "ff9fb273b4089ce6949565a6dce4ac616dfb62c322d37410749ba3c9d1c19288",
    "shared": true,
    "assigned_to": [
-    "bilal",
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -134,8 +126,7 @@
    "text_sha256": "ba0fdeaf319ad3f090bf351241f47b417d117b26e0baa9878dd6be73f71ceb2a",
    "shared": true,
    "assigned_to": [
-    "bilal",
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -146,8 +137,7 @@
    "text_sha256": "eed43b893e59f7c0e9690d2e9dd7a40f9fb7159bca66064f72f67669b90628ed",
    "shared": true,
    "assigned_to": [
-    "bilal",
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -158,8 +148,7 @@
    "text_sha256": "57c04c39076759e130904817c9ab9e80bc3d56792524b2afbbb8a413c1af2b0f",
    "shared": true,
    "assigned_to": [
-    "bilal",
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -181,7 +170,7 @@
    "text_sha256": "41f2e7cc1d2a8b00af4349134f2a69a779a43d46986836b210c63bc7135ce7c1",
    "shared": false,
    "assigned_to": [
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -203,7 +192,7 @@
    "text_sha256": "6a28b6c40b701c1736ffbc2afcdcadb575d8fa8a553f48e118ea1bc48ee3ee60",
    "shared": false,
    "assigned_to": [
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -225,7 +214,7 @@
    "text_sha256": "5a6400ca4fc5ee5618275a75957f1035d7e5f5ebecd7b82cc80a4104eecaa1f5",
    "shared": false,
    "assigned_to": [
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -247,7 +236,7 @@
    "text_sha256": "5c3729e79e88075bd436cf548153e4a3c4426f4ae5ef63ee1cd7c36b61cceec0",
    "shared": false,
    "assigned_to": [
-    "fatima"
+    "bilal"
    ]
   },
   {
@@ -269,8 +258,32 @@
    "text_sha256": "20e20fb6b14106237e4182993a75861de60204d85ba59954647afb1d2fe7e6ce",
    "shared": false,
    "assigned_to": [
-    "fatima"
+    "bilal"
    ]
+  }
+ ],
+ "amendments": [
+  {
+   "at": "2026-10-16T21:01:22Z",
+   "previous_sha256": "f4314e961893c808e1a276faaae7003a21a59139d8b85ce4a8fc1083b9431cdd",
+   "change": "reassigned windows; windows, seed and shared flags unchanged",
+   "labellers_before": [
+    "bilal",
+    "fatima"
+   ],
+   "labellers_after": [
+    "bilal"
+   ],
+   "newly_assigned": {
+    "bilal": [
+     6,
+     10,
+     14,
+     18,
+     22
+    ]
+   },
+   "note": "ADR-0048 Amendment 1 (2026-10-17): Fatima will not label; Bilal labels all 20 windows. Same windows, seed and shared flags; the 10 shared windows are for the bilal_repeat intra-rater check."
   }
  ]
 }

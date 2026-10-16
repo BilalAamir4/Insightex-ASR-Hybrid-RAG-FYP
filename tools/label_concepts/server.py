@@ -27,7 +27,10 @@ CHUNK = 1 << 20  # bytes per write when streaming video
 class LabelStore:
     """One labeller's labels file: an extraction document (schema v1) with the windows in labelling order."""
 
-    def __init__(self, path: Path, lecture_id: str, labeller: str, manifest_sha256: str, rows: list[dict[str, Any]]):
+    def __init__(self, path: Path, lecture_id: str, labeller: str, manifest_sha256: str, rows: list[dict[str, Any]],
+                 earlier_manifest_sha256: frozenset[str] = frozenset()):
+        """earlier_manifest_sha256: manifests this one was amended from; a file made against one of them is loaded and
+        written back with the current sha256 on the next save."""
         self.path, self.lecture_id, self.labeller = path, lecture_id, labeller
         self.manifest_sha256 = manifest_sha256
         self.order = {r["window_index"]: r["order"] for r in rows}
@@ -35,7 +38,7 @@ class LabelStore:
         self.records: dict[int, dict[str, Any]] = {}
         if path.is_file():
             doc = json.loads(path.read_text(encoding="utf-8"))
-            if doc.get("sample_manifest_sha256") != manifest_sha256:
+            if doc.get("sample_manifest_sha256") not in {manifest_sha256, *earlier_manifest_sha256}:
                 raise SystemExit(f"{path} was made against another sample manifest; move it away first")
             self.records = {r["window"]["window_index"]: r for r in doc["windows"]}
 

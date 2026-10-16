@@ -29,8 +29,9 @@ def env(tmp_path):
     return run, root, tmp_path
 
 
-def sample(run):
-    assert run("sample", "--lecture", LECTURE, "--n", "8", "--shared", "4", "--exclude", "2=guide example") == 0
+def sample(run, *labellers):
+    assert run("sample", "--lecture", LECTURE, "--n", "8", "--shared", "4", "--exclude", "2=guide example",
+               "--labellers", *(labellers or ("bilal", "fatima"))) == 0
 
 
 def write_labels(root, name, manifest, msha, recs):
@@ -182,3 +183,65 @@ def test_server_video_ranges(server):
     assert status == 206 and data == bytes(range(252, 256))
     status, _, _ = request(port, "GET", "/video.mp4", headers={"Range": "bytes=5000-"})
     assert status == 416
+
+
+def test_single_labeller_repeat_agreement_and_merge(env):
+    run, root, _ = env
+    sample(run, "bilal")
+    m, msha = lc.load_manifest(LECTURE, root)
+    assert m["labellers"] == ["bilal"] and all(r["assigned_to"] == ["bilal"] for r in m["windows"])
+    shared = [r for r in m["windows"] if r["shared"]]
+    assert [r["window_index"] for r in lc.windows_for(m, "bilal_repeat")] == [r["window_index"] for r in shared]
+    w0 = shared[0]
+    first = {w0["window_index"]: record(LECTURE, w0["window_index"], w0["start_s"], w0["end_s"],
+                                        concepts=[concept("batch learning"), concept("online learning")])}
+    repeat = {w0["window_index"]: record(LECTURE, w0["window_index"], w0["start_s"], w0["end_s"],
+                                         concepts=[concept("batch learning")])}
+    write_labels(root, "bilal", m, msha, first)
+    write_labels(root, "bilal_repeat", m, msha, repeat)
+    assert run("validate", "--lecture", LECTURE, "--labeller", "bilal_repeat") == 0
+    assert run("agreement", "--lecture", LECTURE, "--a", "bilal", "--b", "bilal_repeat") == 0
+    report = json.loads((root / LECTURE / "agreement_bilal_bilal_repeat.json").read_text())
+    assert len(report["per_window"]) == 4 and report["micro"]["concept"]["tp"] == 1
+    assert report["micro"]["concept"]["ref"] == 2 and report["micro"]["concept"]["pred"] == 1
+    assert run("merge", "--lecture", LECTURE) == 0  # no consensus file needed
+    gold = json.loads((root / LECTURE / "gold.json").read_text())
+    assert check_document(gold) == [] and gold["producer"]["name"] == "gold: bilal (single annotator)"
+    assert [w["window"]["window_index"] for w in gold["windows"]] == [r["window_index"] for r in m["windows"]]
+    assert gold["windows"][0] == first[w0["window_index"]]  # the shared windows come from bilal, not the repeat
+    with pytest.raises(SystemExit, match="not in the sample manifest"):
+        lc.windows_for(m, "fatima_repeat")
+
+
+def test_reassign_keeps_windows_and_old_labels_files_stay_valid(env):
+    run, root, _ = env
+    sample(run)
+    old, old_sha = lc.load_manifest(LECTURE, root)
+    write_labels(root, "bilal", old, old_sha, {})
+    fatima_only = [r["window_index"] for r in old["windows"] if r["assigned_to"] == ["fatima"]]
+    with pytest.raises(SystemExit):
+        run("reassign", "--lecture", LECTURE, "--labellers", "bilal", "--note", " ")
+    assert run("reassign", "--lecture", LECTURE, "--labellers", "bilal", "--note", "ADR-0048 Amendment 1") == 0
+    new, new_sha = lc.load_manifest(LECTURE, root)
+    assert new_sha != old_sha and new["labellers"] == ["bilal"]
+    strip = ("assigned_to",)
+    assert [{k: v for k, v in r.items() if k not in strip} for r in new["windows"]] == \
+        [{k: v for k, v in r.items() if k not in strip} for r in old["windows"]]
+    assert {k: v for k, v in new.items() if k not in ("windows", "labellers", "amendments")} == \
+        {k: v for k, v in old.items() if k not in ("windows", "labellers")}
+    (amend,) = new["amendments"]
+    assert amend["previous_sha256"] == old_sha and amend["labellers_before"] == ["bilal", "fatima"]
+    assert amend["newly_assigned"] == {"bilal": fatima_only} and amend["note"] == "ADR-0048 Amendment 1"
+    doc, path = lc.load_labels(LECTURE, "bilal", root)
+    assert doc["sample_manifest_sha256"] == old_sha
+    assert lc.validate_labels(doc, new, new_sha, "bilal", complete=False) == []
+    errors = lc.validate_labels(doc, new, new_sha, "bilal")
+    assert len(errors) == 1 and f"{len(fatima_only)} assigned window(s) not labelled yet" in errors[0]
+    rows = lc.windows_for(new, "bilal")
+    store = LabelStore(path, LECTURE, "bilal", new_sha, rows, frozenset(lc.accepted_manifest_sha256(new, new_sha)))
+    assert len(store.records) == 8 - len(fatima_only)
+    r = next(r for r in rows if r["window_index"] == fatima_only[0])
+    store.save(record(LECTURE, r["window_index"], r["start_s"], r["end_s"]))
+    assert json.loads(path.read_text())["sample_manifest_sha256"] == new_sha
+    with pytest.raises(SystemExit, match="another sample manifest"):
+        LabelStore(path, LECTURE, "bilal", "e" * 64, rows)

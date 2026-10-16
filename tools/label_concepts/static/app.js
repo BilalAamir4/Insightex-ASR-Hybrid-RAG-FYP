@@ -149,7 +149,7 @@ function go(i) {
   current = Math.max(0, Math.min(session.windows.length - 1, i));
   const w = win();
   $("span").textContent = `Window #${w.window_index}: ${fmt(w.start_s)} – ${fmt(w.end_s)}`;
-  $("shared").textContent = w.shared ? "shared (both labellers)" : "";
+  $("shared").textContent = w.shared ? "shared" : "";
   $("text").textContent = w.text;
   renderConcepts();
   renderRelations();

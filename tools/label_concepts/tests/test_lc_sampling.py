@@ -3,7 +3,13 @@
 import pytest
 from grid import build_grid
 from lc_fixtures import segment, toy_segments
-from sampling import build_manifest, stratified_pick, windows_for
+from sampling import (
+    accepted_manifest_sha256,
+    build_manifest,
+    reassign_manifest,
+    stratified_pick,
+    windows_for,
+)
 
 INFO = {"asr_key": "a1", "duration_s": 0, "language_id": "hindi", "language_tier_at_processing": "tested",
         "segment_count": 0}
@@ -84,5 +90,34 @@ def test_bad_arguments_are_refused():
         manifest(w, n_shared=6)
     with pytest.raises(ValueError):
         manifest(w, labellers=["bilal", "bilal"])
+    with pytest.raises(ValueError):
+        manifest(w, labellers=[])
+    for reserved in ("consensus", "bilal_repeat"):
+        with pytest.raises(ValueError):
+            manifest(w, labellers=["bilal", reserved])
     with pytest.raises(SystemExit):
         windows_for(manifest(w, n_shared=2), "someone")
+
+
+def test_single_labeller_gets_every_window_and_the_repeat_gets_the_shared_ones():
+    w = build_grid(toy_segments(120), 3600)
+    m = manifest(w, labellers=["bilal"])
+    two = manifest(w)
+    assert [r["window_index"] for r in m["windows"]] == [r["window_index"] for r in two["windows"]]
+    assert all(r["assigned_to"] == ["bilal"] for r in m["windows"])
+    assert len(windows_for(m, "bilal")) == 40
+    assert [r["window_index"] for r in windows_for(m, "bilal_repeat")] == \
+        [r["window_index"] for r in m["windows"] if r["shared"]]
+    assert len(windows_for(two, "fatima_repeat")) == 10
+
+
+def test_reassign_manifest_records_the_change_and_keeps_the_old_sha_accepted():
+    w = build_grid(toy_segments(120), 3600)
+    two = manifest(w)
+    one = reassign_manifest(two, "a" * 64, ["bilal"], "single labeller", "2026-10-17T00:00:00Z")
+    assert one == {**manifest(w, labellers=["bilal"]), "amendments": one["amendments"]}
+    assert two["labellers"] == ["bilal", "fatima"] and "amendments" not in two  # input untouched
+    assert one["amendments"][0]["newly_assigned"]["bilal"] == [r["window_index"] for r in two["windows"]
+                                                              if r["assigned_to"] == ["fatima"]]
+    assert accepted_manifest_sha256(one, "b" * 64) == {"a" * 64, "b" * 64}
+    assert accepted_manifest_sha256(two, "b" * 64) == {"b" * 64}
