@@ -1,6 +1,6 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
-Status: Accepted
+Status: Accepted; amended 2026-10-17 (single labeller, see Amendment 1)
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -168,3 +168,20 @@ Revisit:
 - when the held-out lecture is chosen (confirm it is Hindi, a different speaker and at least 20 minutes);
 - if the shared-window discussion changes a definition in a way that affects matching;
 - if the validity rule keeps rejecting both arms after a fix.
+
+## Amendment 1 (2026-10-17): single labeller
+
+Decided by Bilal on 2026-10-17. Fatima will not label. The Accepted text above is kept as it was; where it conflicts with this amendment, this amendment applies. No model output existed when it was made (no extraction has run), so no comparison is affected.
+
+- **One labeller.** Bilal labels every gold window of both lectures.
+  - Day 4 dev gold: all 20 eligible windows (the same census, windows 0, 3 and 5 still reserved), labelled by Bilal.
+  - Held-out gold: 40 sampled windows, labelled by Bilal. The sample still marks 10 of them as shared.
+  - The Day 4 sample is not re-drawn: same windows, same seed, same 10 shared windows. Only the assignment changes, and the change is recorded in `sample.json` (`amendments`, with the previous manifest's sha256). Labels files made against the previous manifest stay valid.
+- **The human ceiling is replaced by an intra-rater check.** At least 2 days after finishing all his windows, Bilal re-labels the 10 shared windows blind (without opening his first labels) as labeller `bilal_repeat`. Agreement between `bilal` and `bilal_repeat`, string rule only, on the first (pre-revision) `bilal` labels, is reported as the **consistency figure**.
+  - It is not an inter-annotator ceiling and is never called one. Every report describes the gold set as **single-annotator** and the figure as single-annotator (intra-rater) consistency.
+  - Section 6's fairness rule still holds for it: it is shown only next to the model's string-rule-only concept F1, never next to the adjudicated F1.
+- **The consensus step is replaced by a revision.** The differences between `bilal` and `bilal_repeat` take the place of the shared-window discussion and may prompt the one guide update. After that update, Bilal revises his own labels (all his windows) under the updated guide. **Gold = Bilal's revised labels.** The pre-revision `bilal.json` and the agreement report are committed before revising, so the consistency figure stays tied to the files it was computed from.
+- Adjudication (section 4) was already Bilal's alone and is unchanged.
+- The tool keeps `fatima` and `consensus` working, so a second labeller can join later. That would need a new sample manifest or amendment and a new ADR amendment, made before any model output exists for that lecture.
+
+Consequence: with one annotator there is no measure of how far another person would disagree. The gold set carries Bilal's reading of the guide, and the consistency figure bounds only his own repeatability, not inter-annotator agreement.
