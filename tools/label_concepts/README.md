@@ -1,6 +1,6 @@
 # tools/label_concepts
 
-**Purpose:** build the M7 gold set (ADR-0048). The tool samples a lecture's 30 s windows, gives you a browser page to label them (concepts with aliases, relations, importance and cue), validates the labels files, measures agreement on the shared windows, and merges the gold file. Since ADR-0048 Amendment 1 (17 Oct 2026) there is one labeller, Bilal: agreement is his intra-rater consistency (`bilal` against a blind repeat, `bilal_repeat`), and the gold file is his revised labels. Two-labeller mode (`fatima`, `consensus`) still works if a second labeller joins. It does no extraction and makes no LLM calls. Labelling rules: `docs/labelling/m7_concepts.md`.
+**Purpose:** build the M7 gold set (ADR-0048). The tool samples a lecture's 30 s windows, gives you a browser page to label them (concepts with aliases, relations, importance and cue), validates the labels files, measures agreement on the shared windows, and merges the gold file. Since ADR-0048 Amendment 1 (17 Oct 2026) there is one labeller, Bilal: agreement is his intra-rater consistency (`bilal` against a blind repeat, `bilal_repeat`), and the gold file is his finished labels. Two-labeller mode (`fatima`, `consensus`) still works if a second labeller joins. It does no extraction and makes no LLM calls. Labelling rules: `docs/labelling/m7_concepts.md`.
 
 **Standalone:** the tool imports nothing from `backend/`. It reads the lecture workspace directly: `$INSIGHTEX_DATA/workspaces/<lecture_id>/manifest.json`, the `asr` stage's `transcript.json` and the `normalise` stage's `video.mp4`. Two kinds of file are kept in step with production:
 
@@ -23,22 +23,23 @@ $LC sample --lecture $DAY4 --n 40 --shared 10 --seed 7 \
 #    (Day 4 was drawn for bilal + fatima, then reassigned to bilal alone on 17 Oct 2026, see below.)
 #    Held-out lecture (once chosen; one labeller is the default): $LC sample --lecture <id> --n 40 --shared 10 --seed 7
 
-# 2. Label all your windows, then open http://127.0.0.1:8765/ (the machine must hold the lecture's workspace)
+# 2. First pass, then open http://127.0.0.1:8765/ (the machine must hold the lecture's workspace); validate, commit
 $LC serve --lecture $DAY4 --labeller bilal
-
-# 3. Validate (must print "valid"), then commit bilal.json
 $LC validate --lecture $DAY4 --labeller bilal
 
-# 4. At least 2 days later: blind repeat of the 10 shared windows (do not open bilal.json), validate, commit
+# 3. (Day 4 only) the one guide rule update. 4. Revise everything and finish the remaining windows; validate
+#    until it prints "valid"; commit bilal.json
+$LC serve --lecture $DAY4 --labeller bilal
+$LC validate --lecture $DAY4 --labeller bilal
+
+# 5. At least 2 days later: blind repeat of the 10 shared windows (do not open bilal.json), validate, commit
 $LC serve --lecture $DAY4 --labeller bilal_repeat
 $LC validate --lecture $DAY4 --labeller bilal_repeat
 
-# 5. Consistency figure (string rule only, on the first bilal.json); commit the report
+# 6. Consistency figure (string rule only, on the finished bilal.json); commit the report
 $LC agreement --lecture $DAY4 --a bilal --b bilal_repeat
 
-# 6. After the one guide update: revise your windows in place, validate, merge (gold = bilal.json alone)
-$LC serve --lecture $DAY4 --labeller bilal
-$LC validate --lecture $DAY4 --labeller bilal
+# 7. Merge (gold = bilal.json alone); commit
 $LC merge --lecture $DAY4
 ```
 
@@ -68,7 +69,7 @@ All under `labels/<lecture_id>/`, committed:
 | `<labeller>.json` | One extraction document (schema v1, `producer.kind = human`) per labeller; `bilal_repeat.json` for the blind repeat of the shared windows; with two labellers, `consensus.json` for the agreed shared windows. |
 | `agreement_<a>_<b>.json` | Per-window and micro concept, relation and importance agreement, with the sha256 of both inputs. |
 | `adjudications.json` | Session 2 onward: frozen match/no-match decisions for unmatched model concepts (ADR-0048). |
-| `gold.json` | The merged gold set. One labeller: that labeller's (revised) file, every window. Two: consensus for the shared windows, each labeller's own windows for the rest. |
+| `gold.json` | The merged gold set. One labeller: that labeller's finished file, every window. Two: consensus for the shared windows, each labeller's own windows for the rest. |
 
 ## Modules
 
