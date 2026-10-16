@@ -1,6 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
-Status: Accepted; amended 2026-10-17 (single labeller, see Amendment 1)
+Status: Accepted
+Amended: 2026-10-17, Amendment 1 at the end (single labeller)
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
