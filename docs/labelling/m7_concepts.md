@@ -4,11 +4,11 @@ This guide is for the human labeller, Bilal (one labeller since ADR-0048 Amendme
 
 The gold set has to be made by people. Do not paste a window into an LLM, do not look at any model's extraction output for the lecture until its gold set is merged, and do not copy labels from any machine-made source. The M7 numbers measure the model against your labels. If your labels come from a model, those numbers mean nothing.
 
-Status: version 1, written before the repeat-check review (which replaces the shared-window discussion). The procedure below says when this guide may change, and the changelog at the end records each change.
+Status: version 1 with its one rule update (17 Oct 2026, "Unnamed concepts"); no further rule changes are planned. The procedure below says when this guide may change, and the changelog at the end records each change.
 
 ## What you label
 
-The unit is one window: a fixed 30-second slice of the lecture (ADR-0045). The tool shows the window's transcript text and plays that span of the video. Label only what is said inside this window. Use the audio when the transcript is wrong or unclear. Do not use anything said before or after the window.
+The unit is one window: a fixed 30-second slice of the lecture (ADR-0045). The tool shows the window's transcript text and plays that span of the video. Label only what is said inside this window. Use the audio when the transcript is wrong or unclear. The earlier part of the lecture may be used for one thing only: to identify which concept the window means when it does not say its name (see "Unnamed concepts"). Everything you record still comes from this window's own text: whether a concept is substantive, its aliases, the relations and importance. Do not use anything said after the window.
 
 **Label the text shown in the window, not the audio boundary.** The model receives exactly the text shown, nothing more and nothing less. Whisper splits speech into segments, and each segment belongs to the one window in which it *starts*, even when it runs past the window's end. So the text can start or end a moment away from the 30 s mark:
 - **Window 3 (1:30–2:00, a reserved example) shows this.** Its text ends with «کیونکہ to be honest یہ important ہے» ("because, to be honest, this is important"). That segment starts at 1:58.98 and ends at 2:01.38, so "Play window" stops before the speaker finishes it. It still belongs to window 3 and nowhere else, and its cue is labelled in window 3.
@@ -65,6 +65,10 @@ Aliases hold every other name the speaker actually said for this concept in this
 Copy the transcript's spelling even when it is odd, because that is the text the model sees. Do not add names the speaker did not say. Do not add your own romanisation of a name the transcript writes in Urdu script. Do not repeat the label as an alias.
 
 Leave the aliases empty when the label is the only name the speaker used.
+
+### Unnamed concepts
+
+If a window explains something substantive about a concept without saying its name (for example, it continues explaining batch learning with 'this' or 'it'), label that concept. Use the earlier part of the lecture only to identify which concept is meant. The substantive test still applies to this window's own text: it must say something about the concept, such as a property, a problem, how it works or why it's used. Don't label a concept just because it is the lecture's overall topic. Aliases come only from this window's text, so an unnamed concept usually has no aliases. Relations still need both concepts labelled in this window.
 
 ## Relations
 
@@ -143,7 +147,7 @@ The cue in the transcript: «ان دونوں کو ہم لوگ بہت detail می
 - **important**: the teacher says outright that the topic is important. The cue is an English note, not a copy of the transcript.
 - **Aliases**: "offline learning" is a name the speaker gives for batch learning ("which we also call…"). It is an alias, not a second concept. The label follows the book ("batch learning").
 - **Development environment**: the window says what it is (your own machine), so it is labelled.
-- **A concept defined in another window is not labelled here.** Labelling it here would also need a relation with one end in another window, which is not allowed either. Each window is labelled from its own text only.
+- **A concept defined in another window is labelled here only if this window's own text says something substantive about it** (named or not; see "Unnamed concepts"). Being defined elsewhere, or only referred to here, is not enough. A relation still needs both ends labelled in this window.
 - **Relation**: the speaker sets up batch and online learning as the two opposite types to be compared. That is a clearly implied `contrasts_with`.
 - These two are introduced, not fully explained, but they still count as substantive. The window says what kind of thing each is (a type of machine learning, distinguished by how the model is trained on the server) and gives their alternative names. Window 0 only says the topic's name, and that is the line between the two.
 
@@ -203,3 +207,4 @@ If a second labeller joins later, the two-labeller procedure applies to the lect
 - v1, addition (15 Oct 2026, still before any labelling): the rule "label the text shown in the window, not the audio boundary". Prompted by the browser check.
 - v1, correction (15 Oct 2026, still before any labelling): removed every statement about what a gold window contains. The boundary example is now window 3's last segment (a reserved window). Gloss words filled in from neighbouring windows are replaced by "…". A concept defined in another window is now covered by a general rule instead of a named example.
 - v1, procedure change (17 Oct 2026; not the one post-review rule update): one labeller (ADR-0048 Amendment 1). Bilal labels every window; the two-labeller agreement and consensus steps are replaced by a blind repeat of the shared windows at least 2 days later (`bilal_repeat`, the intra-rater consistency figure), a review, the one guide update and a revision of his own labels, which become the gold set. No labelling rule changed.
+- v1, rule update (17 Oct 2026; the one rule update, before the repeat and before any model output): new "Unnamed concepts" rule (a window that explains something substantive about a concept without naming it labels that concept; earlier context only identifies which concept is meant). The "Label only what is said inside this window" paragraph now allows that identification while content still comes only from the window, and the window 3 note on concepts defined in another window is reworded to match. Prompted by Bilal's first pass, in which 7 windows explained a concept without naming it.
