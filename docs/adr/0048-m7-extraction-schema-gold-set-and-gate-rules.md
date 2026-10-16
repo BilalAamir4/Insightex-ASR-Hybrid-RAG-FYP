@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendment 1 at the end (single labeller)
+Amended: 2026-10-17, Amendments 1 (single labeller) and 2 (comparison C4, labelling order) at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -186,3 +186,24 @@ Decided by Bilal on 2026-10-17. Fatima will not label. The Accepted text above i
 - The tool keeps `fatima` and `consensus` working, so a second labeller can join later. That would need a new sample manifest or amendment and a new ADR amendment, made before any model output exists for that lecture.
 
 Consequence: with one annotator there is no measure of how far another person would disagree. The gold set carries Bilal's reading of the guide, and the consistency figure bounds only his own repeatability, not inter-annotator agreement.
+
+## Amendment 2 (2026-10-17): comparison C4 (previous-window context) and the labelling order
+
+Decided by Bilal on 2026-10-17, before any model output existed (no extraction has run). The text above and Amendment 1 are kept; where they conflict with this amendment, this amendment applies.
+
+**Why.** The one rule update to the labelling guide (17 Oct 2026, prompted by Bilal's first pass, in which 7 windows explained a concept without naming it) adds "Unnamed concepts": when a window explains something substantive about a concept without saying its name, the concept is labelled, and the earlier part of the lecture is used only to identify which concept is meant. So the gold set labels some concepts by the lecture's flow, and a model that sees one window alone cannot recover them. C4 measures whether giving the model the previous window recovers them without adding false positives.
+
+**C4: previous-window context.**
+
+| Comparison | Arm A (kept on a tie) | Arm B | Held fixed |
+|---|---|---|---|
+| C4 | window text only | the previous window's text supplied as read-only context, clearly marked as not to be extracted from | C1, C2 and C3 winners |
+
+- C4 runs after C3, on the C1 to C3 winners, under the same noise rule and validity rule (section 7). Scoring is unchanged: per window, against that window's gold. A concept the model takes from the context counts as a false positive like any other.
+- **The previous window** is the window just before it in the lecture's grid (`window_index - 1`, so the previous non-empty window, ADR-0045), whether or not that window is in the gold sample. The reserved guide windows (0, 3, 5) are used as context like any other. The lecture's first window has no context, so its arm B input equals arm A.
+- **Language.** The context is in the same form as the extracted window: the original transcript if C2 kept original input, or the cached English translation if C2 adopted translation.
+- **Prompt freeze.** Arm B is the frozen extraction prompt plus one fixed context block (a delimited "previous window, for reference only; do not extract from it" section). The block's text is fixed before C4 runs, and the sha256 of the arm B prompt is recorded in the C4 evidence, under the section 2 freeze rule. There is no tuning of the block after seeing C4 output.
+- **Context budget.** Arm B's worst-case prompt (the longest window with the longest previous window, or the worst-case batch with its context) plus `num_predict` must fit the `num_ctx` chosen in Session 2 under the ADR-0002 budget rule, at 100% GPU in `ollama ps`. If it does not fit, C4 is not run, is reported as not run, and window-only input stays. Arm B's extra tokens, wall time and VRAM peak are recorded and count against it.
+- **With batching (if C3 adopted batches of k windows).** Each batch gets the previous window of its first window as read-only context. A later window in the batch needs no context when the window before it in the batch is its previous grid window. When it is not (as can happen in a sampled held-out set), its own previous window is added to the context block too, labelled with the window it precedes. Context windows are never extraction targets.
+
+**Labelling order (corrects Amendment 1).** The rule update comes after the first pass. Bilal then revises all his labels under the updated guide and labels the remaining windows (Day 4: 6, 10, 14, 18, 22), and validates and commits `bilal.json`. Only then, at least 2 days later, does he re-label the 10 shared windows blind as `bilal_repeat`, so that the repeat is made under the same guide. The consistency figure is `bilal` (finished) against `bilal_repeat`, string rule only. Gold is that finished `bilal.json`. Differences found by the repeat are reported and change neither the guide nor the gold. The guide is frozen after the rule update; the held-out lecture is labelled under it with no rule update. This replaces Amendment 1's "consistency on the first (pre-revision) labels, then review, update and revise".
