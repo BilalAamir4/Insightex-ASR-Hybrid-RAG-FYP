@@ -1,10 +1,10 @@
 # M7 concept labelling guide
 
-This guide is for the two human labellers, Bilal and Fatima. It covers how to label lecture windows for the M7 gold set: concepts, relations and importance. The rules for using the gold set (sample sizes, matching, metrics) are in ADR-0048. The tool is `tools/label_concepts/` (see its README).
+This guide is for the human labeller, Bilal (one labeller since ADR-0048 Amendment 1; it still works for a second labeller if one joins). It covers how to label lecture windows for the M7 gold set: concepts, relations and importance. The rules for using the gold set (sample sizes, matching, metrics) are in ADR-0048. The tool is `tools/label_concepts/` (see its README).
 
-The gold set has to be made by people. Do not paste a window into an LLM, do not look at any model's extraction output for the lecture until both of you have finished labelling it, and do not copy labels from any machine-made source. The M7 numbers measure the model against your labels. If your labels come from a model, those numbers mean nothing.
+The gold set has to be made by people. Do not paste a window into an LLM, do not look at any model's extraction output for the lecture until its gold set is merged, and do not copy labels from any machine-made source. The M7 numbers measure the model against your labels. If your labels come from a model, those numbers mean nothing.
 
-Status: version 1, written before the shared-window discussion. The procedure below says when this guide may change, and the changelog at the end records each change.
+Status: version 1, written before the repeat-check review (which replaces the shared-window discussion). The procedure below says when this guide may change, and the changelog at the end records each change.
 
 ## What you label
 
@@ -166,7 +166,7 @@ The cue in the transcript: «ان دونوں کو ہم لوگ بہت detail می
 ```
 
 - **Relation**: the speaker states it: in batch learning "there is no incremental training".
-- **Incremental learning**: the window explains it (training in small pieces), so it is a concept. The book's wording is "learning incrementally" (not checked against the book for this guide; check it before the discussion). The speaker's "incremental training" is an alias. Do not merge it into online learning, even if you know the book links the two: the speaker does not link them in this window.
+- **Incremental learning**: the window explains it (training in small pieces), so it is a concept. The book's wording is "learning incrementally" (not checked against the book for this guide; check it before the review in the procedure). The speaker's "incremental training" is an alias. Do not merge it into online learning, even if you know the book links the two: the speaker does not link them in this window.
 - **No alias "batch"**: the speaker says "batch کے case میں" ("in the batch case"), but "batch" alone also names a batch of data. A shorthand that also names something else is not an alias.
 - **important = false**: this is a definition with no teacher signal. A definition alone is not important.
 - *Data*, *server* and *real-world problem* are general words used in passing, so they are not labelled.
@@ -182,18 +182,24 @@ These are marked invented because Day 4 has no named parameter, and its only use
 
 Run every command from the repo root. The exact commands are in `tools/label_concepts/README.md`.
 
-1. **Sample.** Either of you runs `sample` once for the lecture and commits `sample.json`. Never re-run it after labelling has started.
-2. **Shared windows first, separately.** You both label the 10 shared windows (marked "shared" in the tool; they come first) without discussing them. Run `validate`.
-3. **Agreement.** Run `agreement` on the two files and commit `agreement_<a>_<b>.json`. This is the human agreement ceiling. Do not edit your own files for those windows after this, because they are the record the ceiling was computed from.
-4. **Discuss** every disagreement the command lists. Agree a single version of each shared window and enter it with `serve --labeller consensus`.
-5. **Update this guide once**, with the rules the discussion changed. Add a changelog entry that names the windows that prompted each change.
-6. **Split.** Each of you labels the non-shared windows the manifest assigns to you (alternating in time order), under the updated guide. Run `validate` until it reports no problems.
-7. **Merge.** Run `merge` to write `gold.json`: the consensus labels for the shared windows, and each labeller's own windows for the rest. Commit it.
+There is one labeller (ADR-0048 Amendment 1). The gold set is single-annotator, and every report must say so.
 
-For the dev lecture (Day 4), the sample is the census of its 20 eligible windows: 10 shared and 5 each. For the held-out lecture it is 40 sampled windows: 10 shared and 15 each.
+1. **Sample.** Run `sample` once for the lecture and commit `sample.json`. Never re-run it after labelling has started. (To change who labels which window, use `reassign`, which keeps the same windows.)
+2. **Label every window** the manifest assigns to you, as `bilal`. Run `validate` until it reports no problems, then commit `bilal.json`. This first version is the record the consistency figure is computed from.
+3. **Wait at least 2 days**, then re-label the 10 shared windows (marked "shared" in the tool) blind, as `bilal_repeat`. Do not open `bilal.json` or the first labels in the tool before or during the repeat. Run `validate` and commit `bilal_repeat.json`.
+4. **Consistency.** Run `agreement --a bilal --b bilal_repeat` (string rule only) and commit `agreement_bilal_bilal_repeat.json`. This is the single-annotator (intra-rater) consistency figure. It is not an inter-annotator ceiling and must never be called one.
+5. **Review** every difference the command lists, and decide which reading the guide supports.
+6. **Update this guide once**, with the rules the review changed. Add a changelog entry that names the windows that prompted each change.
+7. **Revise** all your windows in `bilal.json` under the updated guide (`serve --labeller bilal`). Run `validate` until it reports no problems.
+8. **Merge.** Run `merge` to write `gold.json` from your revised `bilal.json` alone. Commit both.
+
+For the dev lecture (Day 4), the sample is the census of its 20 eligible windows, all yours, 10 of them shared. For the held-out lecture it is 40 sampled windows, all yours, 10 of them shared.
+
+If a second labeller joins later, the two-labeller procedure applies to the lectures they label: both label the shared windows separately, `agreement` between the two files is the human ceiling, a discussion agrees a `consensus` version of each shared window, and `merge` takes the shared windows from it. That needs a new ADR amendment first.
 
 ## Changelog
 
 - v1 (15 Oct 2026): first version, before any labelling.
 - v1, addition (15 Oct 2026, still before any labelling): the rule "label the text shown in the window, not the audio boundary". Prompted by the browser check.
 - v1, correction (15 Oct 2026, still before any labelling): removed every statement about what a gold window contains. The boundary example is now window 3's last segment (a reserved window). Gloss words filled in from neighbouring windows are replaced by "…". A concept defined in another window is now covered by a general rule instead of a named example.
+- v1, procedure change (17 Oct 2026; not the one post-review rule update): one labeller (ADR-0048 Amendment 1). Bilal labels every window; the two-labeller agreement and consensus steps are replaced by a blind repeat of the shared windows at least 2 days later (`bilal_repeat`, the intra-rater consistency figure), a review, the one guide update and a revision of his own labels, which become the gold set. No labelling rule changed.
