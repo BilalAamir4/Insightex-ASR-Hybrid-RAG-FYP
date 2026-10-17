@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows) at the end
+Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); all at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -225,3 +225,12 @@ Decided by Bilal on 2026-10-17, before any model output existed (no extraction h
 
 Consequence: the agreement figure measures two people on 10 windows, so it is noisy (one window is 10% of the set). Corrections after the review can move the gold set towards Fatima's reading on the shared windows; the figure itself is computed on the pre-review file, so the corrections cannot raise it, and the log makes each one auditable.
 
+## Amendment 4 (2026-10-18): correcting invalid relations in Day 4 gold windows
+
+Decided by Bilal on 2026-10-18, before any model output on a real lecture. The text above and Amendments 1 to 3 are kept; where they conflict with this amendment, this amendment applies.
+
+**Context.** During the Day 4 agreement review, the first annotator's part_of relations in non-shared windows 14 and 15 were found to be invalid: "Batch Learning part_of Problem With Batch Learning" states that batch learning is a component of its own problem. Reversing it is also false, and none of the four relation types describes a weakness of a concept. The guide says a missing relation costs less than an invented one. Amendment 3 allows corrections on shared windows only, so these relations could not be corrected. After the review the Day 4 gold has three relations, two of them these.
+
+**Decision.** In any Day 4 gold window, a relation may be deleted when the guide's own definition of its type does not hold for its two concepts, or reversed when the definition holds only in the other direction. Concepts, aliases and the importance flag may not change under this amendment. Each correction is logged with `log-correction` and its reason, as in Amendment 3. The guide does not change. The test is the guide's type definitions, not the second annotator's labels or any model output; no extraction has run on a real lecture.
+
+**Consequence.** Windows 14 and 15 lose their part_of relations. The Day 4 gold then has one relation (window 16), so Day 4 relation P/R is reported but is not meaningful; relation extraction is evaluated on the held-out lecture. The amendment does not apply to the held-out lecture.
