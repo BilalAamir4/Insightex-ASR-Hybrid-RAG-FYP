@@ -1,6 +1,6 @@
 # tools/label_concepts
 
-**Purpose:** build the M7 gold set (ADR-0048). The tool samples a lecture's 30 s windows, gives you a browser page to label them (concepts with aliases, relations, importance and cue), validates the labels files, measures agreement on the shared windows, and merges the gold file. Since ADR-0048 Amendment 1 (17 Oct 2026) there is one labeller, Bilal: agreement is his intra-rater consistency (`bilal` against a blind repeat, `bilal_repeat`), and the gold file is his finished labels. Two-labeller mode (`fatima`, `consensus`) still works if a second labeller joins. It does no extraction and makes no LLM calls. Labelling rules: `docs/labelling/m7_concepts.md`.
+**Purpose:** build the M7 gold set (ADR-0048). The tool samples a lecture's 30 s windows, gives you a browser page to label them (concepts with aliases, relations, importance and cue), validates the labels files, measures agreement on the shared windows, and merges the gold file. Bilal makes the gold set (ADR-0048 Amendment 1). Since Amendment 3 (17 Oct 2026), Fatima labels the 10 shared Day 4 windows blind as a second annotator: `agreement --a bilal --b fatima` is the inter-annotator figure, Bilal then reviews the disagreements and may correct clear errors in his own labels (each logged with its reason), and the gold file is his reviewed labels. The `bilal_repeat` intra-rater check is dropped. Two-labeller mode with a `consensus` file still works for a future lecture that needs it. It does no extraction and makes no LLM calls. Labelling rules: `docs/labelling/m7_concepts.md`.
 
 **Standalone:** the tool imports nothing from `backend/`. It reads the lecture workspace directly: `$INSIGHTEX_DATA/workspaces/<lecture_id>/manifest.json`, the `asr` stage's `transcript.json` and the `normalise` stage's `video.mp4`. Two kinds of file are kept in step with production:
 
@@ -32,14 +32,23 @@ $LC validate --lecture $DAY4 --labeller bilal
 $LC serve --lecture $DAY4 --labeller bilal
 $LC validate --lecture $DAY4 --labeller bilal
 
-# 5. At least 2 days later: blind repeat of the 10 shared windows (do not open bilal.json), validate, commit
-$LC serve --lecture $DAY4 --labeller bilal_repeat
-$LC validate --lecture $DAY4 --labeller bilal_repeat
+# 5. (Amendment 3) Fatima labels the 10 shared windows blind: she never sees bilal.json. Fatima was added to the Day 4
+#    manifest with `add-annotator` (done 17 Oct 2026); validate checks only those 10 windows. Commit fatima.json.
+$LC serve --lecture $DAY4 --labeller fatima
+$LC validate --lecture $DAY4 --labeller fatima
 
-# 6. Consistency figure (string rule only, on the finished bilal.json); commit the report
-$LC agreement --lecture $DAY4 --a bilal --b bilal_repeat
+# 6. Inter-annotator figure (string rule only). The first run freezes bilal.json as bilal_pre_review.json, and every
+#    run computes the figure on that frozen file. Commit the report and bilal_pre_review.json.
+$LC agreement --lecture $DAY4 --a bilal --b fatima
 
-# 7. Merge (gold = bilal.json alone); commit
+# 7. Review: Bilal goes through the disagreements the report lists and may correct clear errors in his own labels on
+#    the shared windows (in serve), logging each correction with its reason; validate refuses unlogged changes and any
+#    change to a non-shared window. Commit bilal.json and corrections_bilal.json.
+$LC serve --lecture $DAY4 --labeller bilal
+$LC log-correction --lecture $DAY4 --window <I> --reason "<why it was a clear error>"
+$LC validate --lecture $DAY4 --labeller bilal
+
+# 8. Merge (gold = the reviewed bilal.json alone); commit
 $LC merge --lecture $DAY4
 ```
 
@@ -49,13 +58,13 @@ The model runs come from `insightex extract-eval run` (production code, `backend
 
 ```bash
 RUNS=docs/evidence/m7/$DAY4/C1
-# 8. Blind adjudication sheet: unmatched model concepts of every arm in the comparison, pooled, deduplicated and
+# 9. Blind adjudication sheet: unmatched model concepts of every arm in the comparison, pooled, deduplicated and
 #    shuffled with a recorded seed; no arm is shown. Concepts that already have a decision are left out.
 $LC adjudication-sheet --lecture $DAY4 --comparison C1 --arm qwen=$RUNS/qwen --arm gemma=$RUNS/gemma
-# 9. Decide every entry in the terminal: a gold concept's number, n = no match, s = skip, q = quit. Each answer is
+# 10. Decide every entry in the terminal: a gold concept's number, n = no match, s = skip, q = quit. Each answer is
 #    appended to adjudications.json at once; an entry is never changed. Commit adjudications.json and the sheet.
 $LC adjudicate --lecture $DAY4 --sheet tools/label_concepts/labels/$DAY4/adjudication_sheets/C1-<time>.json
-# 10. The ADR-0048 section 7 decision (arm A is the one a tie keeps); refuses while any concept is undecided
+# 11. The ADR-0048 section 7 decision (arm A is the one a tie keeps); refuses while any concept is undecided
 $LC compare --lecture $DAY4 --comparison C1 --a qwen=$RUNS/qwen --b gemma=$RUNS/gemma
 #     Scores alone (also for one arm, e.g. the held-out run): $LC score --lecture <id> --arm NAME=RUN_DIR
 ```
@@ -63,10 +72,12 @@ $LC compare --lecture $DAY4 --comparison C1 --a qwen=$RUNS/qwen --b gemma=$RUNS/
 - **Validity first:** an arm with any gold window lacking a valid record is rejected whatever its score; if both arms fail, `compare` gives no decision (fix the validation or retry handling, freeze a new prompt, re-run both).
 - **Primary figure:** micro concept P/R/F1 with adjudication. Wins per window use the adjudicated per-window F1 (1.0 when both sides are empty). Net wins of 2 or fewer is a tie and keeps arm A. B is adopted only with net wins of 3 or more and a micro F1 that is not lower.
 - **Also reported:** string-rule-only P/R/F1, relation P/R/F1, importance P/R, dropped relations and retried windows.
-- **Consistency figure:** `bilal` against `bilal_repeat` on the shared windows, string rule only. It appears only in the report's `headline_string_rule` block, next to the model's string-rule-only F1 (on all gold windows and on those shared windows), and is described as single-annotator intra-rater consistency. The adjudicated F1 is never put next to it.
+- **Inter-annotator figure:** `bilal_pre_review.json` (or `bilal.json` before the review starts) against `fatima.json` on the shared windows, string rule only. It appears only in the report's `headline_string_rule` block, next to the model's string-rule-only F1 (on all gold windows and on those shared windows). The adjudicated F1 is never put next to it.
 - The console shows counts and metrics only, never concept labels. Labels are in the JSON reports (`compare_<C>.json`, `score.json`, next to the run directories).
 
-Two labellers (if one joins later): sample with `--labellers bilal fatima`, label with `--labeller fatima --port 8766`, measure `agreement --a bilal --b fatima`, enter the agreed shared windows with `--labeller consensus`; `merge` then takes the shared windows from `consensus.json` and the rest from each labeller.
+`add-annotator --lecture <id> --labeller <name> --note TEXT` adds an annotator of the shared windows only, without re-sampling and without changing who makes the gold set (Amendment 3). It appends the change to `amendments` with the previous manifest's sha256, so existing labels files stay valid. `reassign` refuses a manifest that has such an annotator.
+
+Two labellers with a consensus (a future lecture): sample with `--labellers bilal fatima`, label with `--labeller fatima --port 8766`, measure `agreement --a bilal --b fatima`, enter the agreed shared windows with `--labeller consensus`; `merge` then takes the shared windows from `consensus.json` and the rest from each labeller.
 
 `reassign --lecture <id> --labellers <name> ... --note TEXT` changes who labels which window without re-sampling (same windows, order, seed and shared flags). It appends the change to `amendments` in `sample.json` with the previous manifest's sha256 and the newly assigned windows. Labels files made against an earlier manifest in that chain stay valid, and `serve` writes the current sha256 on the next save. Day 4 was reassigned to `bilal` alone this way (ADR-0048 Amendment 1).
 
@@ -79,8 +90,8 @@ Two labellers (if one joins later): sample with `--labellers bilal fatima`, labe
   - rejects an invalid window with the reason, for example a relation endpoint that is not a concept of the window, or an important flag without a cue;
   - refuses to start if the transcript changed since the sample was drawn;
   - "Play window" plays exactly the window's span.
-- `serve` accepts a name from the manifest, `<name>_repeat` (that labeller's shared windows, for the blind repeat), or `consensus`.
-- `agreement` takes `--adjudications <file>`. The default uses the string rule only, which is how the consistency figure (or, with two labellers, the human ceiling) is reported.
+- `serve` accepts a name from the manifest (including a shared-windows-only annotator such as `fatima`), `<name>_repeat` (Amendment 1's repeat, now dropped), or `consensus`. It serves only that labeller's own file, so the labelling is blind.
+- `agreement` takes `--adjudications <file>`. The default uses the string rule only, which is how the inter-annotator figure is reported. With a shared-windows-only annotator as `--b`, `--a` is read from `<a>_pre_review.json` (made on the first run).
 
 ## Files
 
@@ -88,8 +99,10 @@ All under `labels/<lecture_id>/`, committed:
 
 | File | Content |
 |---|---|
-| `sample.json` | The manifest: seed, N, grid parameters and an index-match check; the transcript's asr key and language; excluded windows with reasons; the census flag; per window its index, start/end, text sha256, shared flag and assignment; `amendments` (reassignments, each with the previous sha256). No transcript text. |
-| `<labeller>.json` | One extraction document (schema v1, `producer.kind = human`) per labeller; `bilal_repeat.json` for the blind repeat of the shared windows; with two labellers, `consensus.json` for the agreed shared windows. |
+| `sample.json` | The manifest: seed, N, grid parameters and an index-match check; the transcript's asr key and language; excluded windows with reasons; the census flag; per window its index, start/end, text sha256, shared flag and assignment; `shared_annotators` (Amendment 3); `amendments` (reassignments and added annotators, each with the previous sha256). No transcript text. |
+| `<labeller>.json` | One extraction document (schema v1, `producer.kind = human`) per labeller; `fatima.json` holds only the shared windows (Amendment 3); with two labellers and a consensus, `consensus.json` for the agreed shared windows. |
+| `bilal_pre_review.json` | Amendment 3: `bilal.json` as it was when the first `agreement` against Fatima ran; the inter-annotator figure is computed on it. Never edited. |
+| `corrections_bilal.json` | Amendment 3: every correction after the review, with window, reason, time, and the record before and after. `validate` and `merge` refuse a `bilal.json` that differs from the pre-review file without a matching entry. |
 | `agreement_<a>_<b>.json` | Per-window and micro concept, relation and importance agreement, with the sha256 of both inputs. |
 | `adjudications.json` | Session 2 onward: frozen match/no-match decisions for unmatched model concepts (ADR-0048), keyed by (window_index, normalised model label). Append-only: each entry records who decided, when, and the sha256 of the sheet it came from. |
 | `adjudication_sheets/<C>-<time>.json` | One blind sheet per adjudication round: seed, gold sha256, the sorted sha256 of the arm files (no arm names), and the shuffled entries (window, model concept with aliases, the window's gold concepts). |
@@ -101,7 +114,7 @@ All under `labels/<lecture_id>/`, committed:
 |---|---|
 | `label_concepts.py` | The CLI. |
 | `grid.py` | Workspace access and the grid. |
-| `sampling.py` | Seeded stratified sample, shared windows, assignment and reassignment. |
+| `sampling.py` | Seeded stratified sample, shared windows, assignment, reassignment and shared-windows-only annotators. |
 | `matching.py` | ADR-0048 concept and relation matching, adjudication and micro P/R/F1. |
 | `scoring.py` | Session 2: loads arm runs, the validity rule, per-arm scores (adjudicated and string rule), the section 7 comparison. |
 | `adjudication.py` | Session 2: the blind adjudication sheet and the append-only adjudications file. |
@@ -118,7 +131,8 @@ All under `labels/<lecture_id>/`, committed:
 - the matching rule cases;
 - a toy agreement and merge;
 - the server's save, reject and video range responses;
-- scoring, the comparison rule (tie, adoption, validity), the adjudication sheet (pooling, dedupe, seed, no arm names) and append-only decisions, and a full sheet -> adjudicate -> compare run with the consistency figure.
+- scoring, the comparison rule (tie, adoption, validity), the adjudication sheet (pooling, dedupe, seed, no arm names) and append-only decisions, and a full sheet -> adjudicate -> compare run with the inter-annotator figure;
+- Amendment 3: adding a shared-windows-only annotator, validate scoped to the shared windows, agreement on the frozen pre-review labels, logged corrections enforced by validate and merge.
 
 All fixtures are synthetic.
 

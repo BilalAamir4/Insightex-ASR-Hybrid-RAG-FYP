@@ -5,10 +5,12 @@ Standalone: imports nothing from backend/. Rules for labellers: docs/labelling/m
   python label_concepts.py sample    --lecture <id> [--n 40] [--shared 10] [--seed 7] [--labellers bilal ...]
                                      [--exclude I=REASON ...]
   python label_concepts.py reassign  --lecture <id> --labellers <name> [<name> ...] --note TEXT
+  python label_concepts.py add-annotator --lecture <id> --labeller <name> --note TEXT   (shared windows only)
   python label_concepts.py serve     --lecture <id> --labeller <name> [--port 8765]
   python label_concepts.py validate  --lecture <id> --labeller <name>
   python label_concepts.py agreement --lecture <id> --a <name> --b <name> [--adjudications FILE]
   python label_concepts.py merge     --lecture <id>
+  python label_concepts.py log-correction --lecture <id> --window I --reason TEXT [--labeller bilal]
 
 Session 2 (scoring model runs written by `insightex extract-eval run`; scoring.py, adjudication.py):
 
@@ -20,7 +22,8 @@ Session 2 (scoring model runs written by `insightex extract-eval run`; scoring.p
 
 Files live in tools/label_concepts/labels/<lecture_id>/: sample.json (the manifest), <labeller>.json (labels, one
 extraction document per labeller; <labeller>_repeat.json for the blind repeat of the shared windows),
-agreement_<a>_<b>.json, gold.json, adjudications.json (append-only), adjudication_sheets/<comparison>-<time>.json.
+agreement_<a>_<b>.json, <labeller>_pre_review.json and corrections_<labeller>.json (Amendment 3 review), gold.json,
+adjudications.json (append-only), adjudication_sheets/<comparison>-<time>.json.
 """
 
 from __future__ import annotations
@@ -38,7 +41,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from extraction_schema import check_document
 from grid import Workspace, check_against_index, data_dir, lecture_grid
 from matching import load_adjudications, match_window, micro
-from sampling import accepted_manifest_sha256, build_manifest, reassign_manifest, windows_for
+from sampling import (
+    accepted_manifest_sha256,
+    add_shared_annotator,
+    build_manifest,
+    reassign_manifest,
+    windows_for,
+)
 
 LABELS_ROOT = Path(__file__).resolve().parent / "labels"
 DEFAULT_LABELLERS = ("bilal",)  # single labeller (ADR-0048 Amendment 1)
@@ -121,6 +130,94 @@ def cmd_reassign(a: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_add_annotator(a: argparse.Namespace) -> int:
+    out = lecture_dir(a.lecture, a.labels_root) / "sample.json"
+    manifest, msha = load_manifest(a.lecture, a.labels_root)
+    try:
+        new = add_shared_annotator(manifest, msha, a.labeller, a.note,
+                                   dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    except ValueError as e:
+        raise SystemExit(str(e)) from e
+    write_json(out, new)
+    print(f"wrote {out} (previous sha256 {msha} recorded under amendments)")
+    print(f"  {a.labeller}: shared windows {new['amendments'][-1]['windows']}")
+    return 0
+
+
+# -- review of the gold labeller's labels after an inter-annotator agreement (ADR-0048 Amendment 3) -----------------
+
+
+def pre_review_path(lecture_id: str, labeller: str, root: Path | None = None) -> Path:
+    return lecture_dir(lecture_id, root) / f"{labeller}_pre_review.json"
+
+
+def corrections_path(lecture_id: str, labeller: str, root: Path | None = None) -> Path:
+    return lecture_dir(lecture_id, root) / f"corrections_{labeller}.json"
+
+
+def _records(doc: dict[str, Any]) -> dict[int, dict[str, Any]]:
+    return {r["window"]["window_index"]: r for r in doc["windows"]}
+
+
+def load_corrections(lecture_id: str, labeller: str, root: Path | None = None) -> list[dict[str, Any]]:
+    path = corrections_path(lecture_id, labeller, root)
+    return json.loads(path.read_text(encoding="utf-8"))["entries"] if path.is_file() else []
+
+
+def review_errors(lecture_id: str, labeller: str, doc: dict[str, Any], manifest: dict[str, Any],
+                  root: Path | None = None) -> list[str]:
+    """After the review starts (a pre-review copy exists), every window that differs from it must be a shared window
+    whose current record is the `after` of a logged correction."""
+    pre_path = pre_review_path(lecture_id, labeller, root)
+    if not pre_path.is_file():
+        return []
+    pre, cur = _records(json.loads(pre_path.read_text(encoding="utf-8"))), _records(doc)
+    shared = {r["window_index"] for r in manifest["windows"] if r["shared"]}
+    logged: dict[int, dict[str, Any]] = {}
+    for e in load_corrections(lecture_id, labeller, root):
+        logged[e["window_index"]] = e["after"]  # the latest correction of each window
+    errors = []
+    for i in sorted(set(pre) | set(cur)):
+        if pre.get(i) == cur.get(i):
+            continue
+        if i not in shared:
+            errors.append(f"window {i} changed after the review started; only shared windows may be corrected")
+        elif logged.get(i) != cur.get(i):
+            errors.append(f"window {i} differs from {pre_path.name} without a logged correction for its current "
+                          "labels; run log-correction with the reason")
+    return errors
+
+
+def cmd_log_correction(a: argparse.Namespace) -> int:
+    manifest, msha = load_manifest(a.lecture, a.labels_root)
+    pre_path = pre_review_path(a.lecture, a.labeller, a.labels_root)
+    if not pre_path.is_file():
+        raise SystemExit(f"no {pre_path.name}: the review starts with `agreement` against the second annotator")
+    if not a.reason.strip():
+        raise SystemExit("a correction needs a reason")
+    if a.window not in {r["window_index"] for r in manifest["windows"] if r["shared"]}:
+        raise SystemExit(f"window {a.window} is not a shared window; only shared windows may be corrected")
+    doc, _ = load_labels(a.lecture, a.labeller, a.labels_root)
+    errors = validate_labels(doc, manifest, msha, a.labeller)
+    if errors:
+        raise SystemExit("labels file is invalid; fix it first:\n  - " + "\n  - ".join(errors))
+    entries = load_corrections(a.lecture, a.labeller, a.labels_root)
+    before = next((e["after"] for e in reversed(entries) if e["window_index"] == a.window), None)
+    if before is None:
+        before = _records(json.loads(pre_path.read_text(encoding="utf-8"))).get(a.window)
+    after = _records(doc).get(a.window)
+    if after == before:
+        raise SystemExit(f"window {a.window} has not changed since its last logged state; edit it in serve first")
+    entries.append({"window_index": a.window, "reason": a.reason.strip(),
+                    "at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"), "before": before, "after": after})
+    path = corrections_path(a.lecture, a.labeller, a.labels_root)
+    write_json(path, {"lecture_id": a.lecture, "labeller": a.labeller, "pre_review_sha256": sha256_file(pre_path),
+                      "rule": "ADR-0048 Amendment 3: corrections of clear errors after the inter-annotator review",
+                      "entries": entries})
+    print(f"logged correction {len(entries)} (window {a.window}) in {path}")
+    return 0
+
+
 # -- serve --------------------------------------------------------------------------------------------------------
 
 
@@ -192,6 +289,8 @@ def cmd_validate(a: argparse.Namespace) -> int:
     manifest, msha = load_manifest(a.lecture, a.labels_root)
     doc, path = load_labels(a.lecture, a.labeller, a.labels_root)
     errors = validate_labels(doc, manifest, msha, a.labeller)
+    if not errors:
+        errors = review_errors(a.lecture, a.labeller, doc, manifest, a.labels_root)
     if errors:
         print(f"{path}: {len(errors)} problem(s)")
         for e in errors:
@@ -244,6 +343,13 @@ def cmd_agreement(a: argparse.Namespace) -> int:
         if errors:
             raise SystemExit(f"{path} is invalid; run validate first:\n  - " + "\n  - ".join(errors))
         docs[name], paths[name] = doc, path
+    if a.b in manifest.get("shared_annotators", []) and a.a in manifest["labellers"]:
+        # Amendment 3: the inter-annotator figure is computed on the gold labeller's pre-review labels, frozen here
+        pre = pre_review_path(a.lecture, a.a, a.labels_root)
+        if not pre.is_file():
+            write_json(pre, docs[a.a])
+            print(f"froze {paths[a.a].name} as {pre.name}: the review of {a.a}'s labels starts now")
+        docs[a.a], paths[a.a] = json.loads(pre.read_text(encoding="utf-8")), pre
     adj = load_adjudications(Path(a.adjudications), a.lecture) if a.adjudications else None
     result = agreement(docs[a.a], docs[a.b], manifest, adj)
     print(f"Agreement on {len(result['per_window'])} shared windows of {a.lecture}: A = {a.a}, B = {a.b}"
@@ -290,7 +396,8 @@ def cmd_merge(a: argparse.Namespace) -> int:
     sources: dict[str, dict[int, dict[str, Any]]] = {}
     for name in manifest["labellers"] if single else [*manifest["labellers"], "consensus"]:
         doc, path = load_labels(a.lecture, name, a.labels_root)
-        errors = validate_labels(doc, manifest, msha, name)
+        errors = validate_labels(doc, manifest, msha, name) or review_errors(a.lecture, name, doc, manifest,
+                                                                              a.labels_root)
         if errors:
             raise SystemExit(f"{path} is invalid or incomplete; run validate:\n  - " + "\n  - ".join(errors))
         sources[name] = {r["window"]["window_index"]: r for r in doc["windows"]}
@@ -331,31 +438,33 @@ def load_arms(specs: list[str]) -> list[Any]:
     return arms
 
 
-def consistency(lecture_id: str, root: Path | None = None) -> dict[str, Any]:
-    """ADR-0048 Amendment 1/2: single-annotator intra-rater consistency, `<labeller>` (finished) against
-    `<labeller>_repeat` on the shared windows, string rule only. Never an inter-annotator ceiling."""
+def annotator_agreement(lecture_id: str, root: Path | None = None) -> dict[str, Any]:
+    """ADR-0048 Amendment 3: inter-annotator agreement on the shared windows, the gold labeller's pre-review labels
+    against the shared-windows-only annotator, string rule only. Shown only next to string-rule-only model F1."""
     manifest, msha = load_manifest(lecture_id, root)
-    if len(manifest["labellers"]) != 1:
-        return {"available": False, "reason": "two-labeller manifest: use `agreement` for the human ceiling"}
-    name = manifest["labellers"][0]
+    second = manifest.get("shared_annotators", [])
+    if len(manifest["labellers"]) != 1 or not second:
+        return {"available": False, "reason": "no shared-windows-only annotator in the manifest"}
+    gold_name, other = manifest["labellers"][0], second[0]
+    pre = pre_review_path(lecture_id, gold_name, root)
+    sources = {gold_name: pre if pre.is_file() else lecture_dir(lecture_id, root) / f"{gold_name}.json",
+               other: lecture_dir(lecture_id, root) / f"{other}.json"}
     docs = {}
-    for lab in (name, f"{name}_repeat"):
-        path = lecture_dir(lecture_id, root) / f"{lab}.json"
+    for lab, path in sources.items():
         if not path.is_file():
             return {"available": False, "reason": f"{path.name} does not exist yet"}
         doc = json.loads(path.read_text(encoding="utf-8"))
         errors = validate_labels(doc, manifest, msha, lab)
         if errors:
             return {"available": False, "reason": f"{path.name} is invalid or incomplete ({len(errors)} problem(s))"}
-        docs[lab] = (doc, sha256_file(path))
-    result = agreement(docs[name][0], docs[f"{name}_repeat"][0], manifest, None)
+        docs[lab] = (doc, sha256_file(path), path.name)
+    result = agreement(docs[gold_name][0], docs[other][0], manifest, None)
     return {
         "available": True,
-        "kind": f"single-annotator intra-rater consistency ({name} vs {name}_repeat, string rule only); not an "
-                "inter-annotator ceiling",
+        "kind": f"inter-annotator agreement ({gold_name} pre-review vs {other}, shared windows, string rule only)",
         "windows": [w["window_index"] for w in result["per_window"]],
         "concept_f1": result["micro"]["concept"]["f1"],
-        "inputs_sha256": {lab: sha for lab, (_, sha) in docs.items()},
+        "inputs": {lab: {"file": name, "sha256": sha} for lab, (_, sha, name) in docs.items()},
     }
 
 
@@ -367,14 +476,15 @@ def score_report(lecture_id: str, arms: list[Any], root: Path | None) -> dict[st
     gold = load_gold(gpath, lecture_id)
     adj = load_adjudications(apath, lecture_id) if apath.is_file() else {}
     scores = [score_arm(arm, gold, adj) for arm in arms]
-    cons = consistency(lecture_id, root)
-    shared = set(cons.get("windows", []))
-    headline = {  # ADR-0048 section 6: the consistency figure sits only next to string-rule-only model F1
+    agree = annotator_agreement(lecture_id, root)
+    shared = set(agree.get("windows", []))
+    headline = {  # ADR-0048 section 6: the agreement figure sits only next to string-rule-only model F1
         "note": "string rule only on both sides; the adjudicated F1 is never compared with this figure. Gold is "
-                "single-annotator (ADR-0048 Amendment 1).",
-        "consistency": cons,
+                "made by one annotator (Bilal); a second annotator labelled the shared windows for agreement and "
+                "review (ADR-0048 Amendment 3).",
+        "inter_annotator_agreement": agree,
         "model_string_rule_concept_f1": {s["name"]: s["string_rule"]["micro"]["concept"]["f1"] for s in scores},
-        "model_string_rule_concept_f1_on_consistency_windows": (
+        "model_string_rule_concept_f1_on_agreement_windows": (
             {s["name"]: micro_string_f1_on(s, shared) for s in scores} if shared else None),
     }
     return {
@@ -411,12 +521,12 @@ def cmd_score(a: argparse.Namespace) -> int:
     for s in report["arms"]:
         print_score(s)
     h = report["headline_string_rule"]
-    cons = h["consistency"]
-    print("string rule only, next to the consistency figure:")
+    agree = h["inter_annotator_agreement"]
+    print("string rule only, next to the inter-annotator figure:")
     for name, f in h["model_string_rule_concept_f1"].items():
         print(f"  {name}: model concept F1 {f:.3f}")
-    print(f"  consistency (single annotator): {cons['concept_f1']:.3f} on {len(cons['windows'])} windows"
-          if cons["available"] else f"  consistency: not available ({cons['reason']})")
+    print(f"  inter-annotator agreement: {agree['concept_f1']:.3f} on {len(agree['windows'])} windows"
+          if agree["available"] else f"  inter-annotator agreement: not available ({agree['reason']})")
     out = Path(a.out) if a.out else default_report_path(arms, "score.json")
     write_json(out, report)
     print(f"wrote {out}")
@@ -498,9 +608,22 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--labellers", nargs="+", required=True)
     s.add_argument("--note", required=True, help="why, e.g. the ADR amendment")
     s.set_defaults(fn=cmd_reassign)
+    s = sub.add_parser("add-annotator", help="add a second annotator of the shared windows only (recorded in "
+                       "sample.json under amendments; ADR-0048 Amendment 3)")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--labeller", required=True)
+    s.add_argument("--note", required=True, help="why, e.g. the ADR amendment")
+    s.set_defaults(fn=cmd_add_annotator)
+    s = sub.add_parser("log-correction", help="log the reason for a correction made in serve after the "
+                       "inter-annotator review (ADR-0048 Amendment 3)")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--labeller", default=DEFAULT_LABELLERS[0])
+    s.add_argument("--window", type=int, required=True)
+    s.add_argument("--reason", required=True)
+    s.set_defaults(fn=cmd_log_correction)
     s = sub.add_parser("serve", help="label in the browser at http://127.0.0.1:<port>/")
     s.add_argument("--lecture", required=True)
-    s.add_argument("--labeller", required=True, help="a name from the manifest, <name>_repeat for the blind "
+    s.add_argument("--labeller", required=True, help="a name from the manifest (including a shared-windows-only annotator), <name>_repeat for the blind "
                    "repeat of the shared windows, or 'consensus'")
     s.add_argument("--port", type=int, default=8765)
     s.set_defaults(fn=cmd_serve)
@@ -530,7 +653,7 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--sheet", required=True)
     s.add_argument("--by", default=DEFAULT_LABELLERS[0], help="who decides (recorded per entry)")
     s.set_defaults(fn=cmd_adjudicate)
-    s = sub.add_parser("score", help="score model runs against gold.json (validity, P/R/F1, consistency figure)")
+    s = sub.add_parser("score", help="score model runs against gold.json (validity, P/R/F1, inter-annotator figure)")
     s.add_argument("--lecture", required=True)
     s.add_argument("--arm", action="append", required=True, metavar="NAME=RUN_DIR")
     s.add_argument("--out", help="report file (default: score.json next to the first run directory)")

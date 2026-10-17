@@ -172,7 +172,7 @@ def score_arm(arm: ArmRun, gold: dict[str, Any], adjudications: Adjudications) -
             "pending_concepts": pending,
             "per_window": per_window_rows(adjudicated),
         },
-        "string_rule": {  # reported next to the primary; the only figure shown with the consistency figure
+        "string_rule": {  # reported next to the primary; the only figure shown with the inter-annotator figure
             "micro": micro(string_only),
             "per_window": per_window_rows(string_only),
         },
@@ -180,7 +180,7 @@ def score_arm(arm: ArmRun, gold: dict[str, Any], adjudications: Adjudications) -
 
 
 def micro_string_f1_on(score: dict[str, Any], window_indices: set[int]) -> float:
-    """String-rule micro concept F1 restricted to some windows (e.g. the shared windows of the consistency figure)."""
+    """String-rule micro concept F1 restricted to some windows (e.g. the shared windows of the inter-annotator figure)."""
     rows = [r for r in score["string_rule"]["per_window"] if r["window_index"] in window_indices]
     tp, p, r = (sum(x[k] for x in rows) for k in ("concept_tp", "concept_pred", "concept_ref"))
     return 1.0 if p == 0 and r == 0 else 2 * tp / (p + r)

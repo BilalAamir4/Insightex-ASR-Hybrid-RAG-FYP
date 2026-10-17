@@ -207,7 +207,7 @@ def test_record_decisions_appends_and_never_changes_entries(tmp_path):
     assert doc["entries"][0]["sheet_sha256"] == "s" * 64 and doc["entries"][0]["decided_by"] == "bilal"
 
 
-# -- CLI: full flow with the consistency figure -----------------------------------------------------------------------
+# -- CLI: full flow with the inter-annotator figure -------------------------------------------------------------------
 
 
 def test_cli_flow_sheet_adjudicate_score_compare(tmp_path, monkeypatch, capsys):
@@ -233,9 +233,12 @@ def test_cli_flow_sheet_adjudicate_score_compare(tmp_path, monkeypatch, capsys):
     store = LabelStore(root / LECTURE / "bilal.json", LECTURE, "bilal", msha, lc.windows_for(m, "bilal"))
     for r in rows:
         store.save(gold_rec(r, labels[r["window_index"]]))
-    rep = lc.windows_for(m, "bilal_repeat")
-    store = LabelStore(root / LECTURE / "bilal_repeat.json", LECTURE, "bilal_repeat", msha, rep)
-    for k, r in enumerate(rep):  # the repeat agrees on all but one shared window
+    assert run("add-annotator", "--lecture", LECTURE, "--labeller", "fatima", "--note", "test") == 0
+    m, msha = lc.load_manifest(LECTURE, root)
+    rep = lc.windows_for(m, "fatima")
+    store = LabelStore(root / LECTURE / "fatima.json", LECTURE, "fatima", msha, rep, frozenset(
+        lc.accepted_manifest_sha256(m, msha)))
+    for k, r in enumerate(rep):  # the second annotator agrees on all but one shared window
         store.save(gold_rec(r, labels[r["window_index"]] if k else cs("something else")))
     assert run("merge", "--lecture", LECTURE) == 0
 
@@ -258,12 +261,12 @@ def test_cli_flow_sheet_adjudicate_score_compare(tmp_path, monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "decision: keep_a" in out and "near miss" not in out
     report = json.loads((tmp_path / "runs" / "compare_C1.json").read_text())
-    cons = report["headline_string_rule"]["consistency"]
+    cons = report["headline_string_rule"]["inter_annotator_agreement"]
     assert cons["available"] and len(cons["windows"]) == 3 and cons["concept_f1"] == pytest.approx(4 / 6)
-    assert "not an inter-annotator ceiling" in cons["kind"]
+    assert "bilal pre-review vs fatima" in cons["kind"]
     assert report["adjudications"]["entries"] == 1 and report["comparison"]["net_wins_b"] == 0
-    # the adjudicated F1 stays out of the headline next to the consistency figure
-    assert set(report["headline_string_rule"]) == {"note", "consistency", "model_string_rule_concept_f1",
-                                                   "model_string_rule_concept_f1_on_consistency_windows"}
+    # the adjudicated F1 stays out of the headline next to the inter-annotator figure
+    assert set(report["headline_string_rule"]) == {"note", "inter_annotator_agreement", "model_string_rule_concept_f1",
+                                                   "model_string_rule_concept_f1_on_agreement_windows"}
     assert run("score", "--lecture", LECTURE, "--arm", spec_a) == 0
     assert json.loads((tmp_path / "runs" / "score.json").read_text())["arms"][0]["adjudicated"]["pending"] == 0

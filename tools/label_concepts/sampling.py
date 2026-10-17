@@ -11,6 +11,10 @@ order), then the rest (in time order). Every non-shared window is assigned to on
 labeller list in time order, so each labeller's part also spreads across the lecture. With one labeller, every window
 is theirs; the shared windows are then the ones re-labelled for the intra-rater check (ADR-0048 Amendment 1).
 
+`add_shared_annotator` (ADR-0048 Amendment 3) adds a second annotator who labels only the shared windows, for the
+inter-annotator figure, without changing who makes the gold set: the name goes into `shared_annotators` and onto the
+shared rows' `assigned_to` (after the gold labeller), and the change is recorded under `amendments`.
+
 `reassign_manifest` changes only the assignment of an existing manifest (same windows, seed and shared flags) and
 records the change, with the previous manifest's sha256, under `amendments`. Labels files made against an earlier
 manifest stay valid (`accepted_manifest_sha256`).
@@ -108,6 +112,8 @@ def reassign_manifest(manifest: dict[str, Any], previous_sha256: str, labellers:
     check_labellers(labellers)
     if not note.strip():
         raise ValueError("a reassignment needs a note saying why")
+    if manifest.get("shared_annotators"):
+        raise ValueError("this manifest has shared-windows-only annotators; reassigning would drop them")
     out = json.loads(json.dumps(manifest))
     before = {r["window_index"]: r["assigned_to"] for r in out["windows"]}
     assign(out["windows"], labellers)
@@ -121,22 +127,46 @@ def reassign_manifest(manifest: dict[str, Any], previous_sha256: str, labellers:
     return out
 
 
+def add_shared_annotator(manifest: dict[str, Any], previous_sha256: str, name: str, note: str,
+                         at: str) -> dict[str, Any]:
+    """A copy of the manifest with `name` added as an annotator of the shared windows only (no re-sampling)."""
+    check_labellers([name])
+    if not note.strip():
+        raise ValueError("adding an annotator needs a note saying why")
+    if name in manifest["labellers"] or name in manifest.get("shared_annotators", []):
+        raise ValueError(f"{name!r} is already a labeller in this manifest")
+    out = json.loads(json.dumps(manifest))
+    shared = [r for r in out["windows"] if r["shared"]]
+    if not shared:
+        raise ValueError("the manifest has no shared windows")
+    for r in shared:
+        r["assigned_to"] = [*r["assigned_to"], name]
+    out["shared_annotators"] = [*out.get("shared_annotators", []), name]
+    out["amendments"] = [*out.get("amendments", []), {
+        "at": at, "previous_sha256": previous_sha256, "change": f"added {name} as an annotator of the shared windows "
+        "only; windows, seed, shared flags and the gold labeller unchanged", "shared_annotator": name,
+        "windows": [r["window_index"] for r in shared], "note": note.strip()}]
+    return out
+
+
 def accepted_manifest_sha256(manifest: dict[str, Any], current_sha256: str) -> set[str]:
     """The current manifest's sha256 and every earlier one it was amended from."""
     return {current_sha256, *(a["previous_sha256"] for a in manifest.get("amendments", []))}
 
 
 def windows_for(manifest: dict[str, Any], labeller: str) -> list[dict[str, Any]]:
-    """The manifest rows a labeller must label. 'consensus' (the reconciled shared windows after a two-labeller
-    discussion) gets the shared windows; '<labeller>_repeat' (the blind intra-rater re-labelling, ADR-0048
+    """The manifest rows a labeller must label. A shared-windows-only annotator (Amendment 3) gets the shared windows.
+    'consensus' (the reconciled shared windows after a two-labeller discussion) gets the shared windows; '<labeller>_repeat' (the blind intra-rater re-labelling, ADR-0048
     Amendment 1) gets the shared windows assigned to that labeller."""
     if labeller == "consensus":
         return [r for r in manifest["windows"] if r["shared"]]
     if labeller.endswith(REPEAT_SUFFIX) and labeller[:-len(REPEAT_SUFFIX)] in manifest["labellers"]:
         base = labeller[:-len(REPEAT_SUFFIX)]
         return [r for r in manifest["windows"] if r["shared"] and base in r["assigned_to"]]
+    if labeller in manifest.get("shared_annotators", []):
+        return [r for r in manifest["windows"] if r["shared"] and labeller in r["assigned_to"]]
     if labeller not in manifest["labellers"]:
-        names = ", ".join(manifest["labellers"])
+        names = ", ".join([*manifest["labellers"], *manifest.get("shared_annotators", [])])
         raise SystemExit(f"labeller {labeller!r} is not in the sample manifest ({names}, <name>{REPEAT_SUFFIX} for "
                          "the repeat of the shared windows, or 'consensus')")
     return [r for r in manifest["windows"] if labeller in r["assigned_to"]]
