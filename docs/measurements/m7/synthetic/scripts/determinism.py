@@ -12,7 +12,10 @@ Per case (k = 1: window 18; k = 3: windows 18, 20, 21):
 Each reply's content sha256, done_reason and eval_count are recorded; the replies themselves are about gibberish and
 are not kept.
 
-  determinism.py <model> <synthetic windows.json> <placeholder prompt> <out.json>
+  determinism.py <model> <synthetic windows.json> <placeholder prompt> <out.json> [--draft-off]
+
+With --draft-off every request carries draft_num_predict 0 (Gemma without its draft model) and the draft_off probe
+is skipped: replay_1, replay_2 and reloaded are then all draft-off replies.
 """
 
 import hashlib
@@ -32,7 +35,7 @@ from insightex.llm import ollama_client as oc
 NUM_CTX = 8192
 
 
-def main(model: str, windows_path: str, prompt_path: str, out: str) -> None:
+def main(model: str, windows_path: str, prompt_path: str, out: str, draft_off: bool = False) -> None:
     s = load_settings()
     base = s.ollama.base_url.rstrip("/")
     text = Path(prompt_path).read_text(encoding="utf-8")
@@ -42,7 +45,8 @@ def main(model: str, windows_path: str, prompt_path: str, out: str) -> None:
     def send(targets, extra=None):
         messages = extraction_messages(prompt, None, [(t, grid[t].text) for t in targets], [])
         options = {"num_ctx": NUM_CTX, "temperature": s.ollama.temperature, "seed": s.ollama.seed,
-                   "num_predict": s.extract.num_predict_per_window * len(targets), **(extra or {})}
+                   "num_predict": s.extract.num_predict_per_window * len(targets),
+                   **({"draft_num_predict": 0} if draft_off else {}), **(extra or {})}
         body = {"model": model, "messages": messages, "stream": False, "think": s.ollama.think,
                 "format": extraction_format(list(targets)), "keep_alive": s.ollama.keep_alive, "options": options}
         r = httpx.post(f"{base}/api/chat", json=body, timeout=s.ollama.request_timeout_s)
@@ -58,10 +62,11 @@ def main(model: str, windows_path: str, prompt_path: str, out: str) -> None:
     def unload():
         oc.unload(s.ollama, model, poll_interval_s=s.gpu.ollama_poll_interval_s, timeout_s=s.ollama.unload_wait_s)
 
-    gemma = model.startswith("gemma")
+    gemma = model.startswith("gemma") and not draft_off
     result = {"model": model, "model_digest": oc.model_digest(model, s.ollama), "num_ctx": NUM_CTX,
               "temperature": s.ollama.temperature, "seed": s.ollama.seed, "think": s.ollama.think,
-              "prompt_sha256": prompt.sha256, "prompt_placeholder": True, "cases": []}
+              "prompt_sha256": prompt.sha256, "prompt_placeholder": True, "draft_off_all_requests": draft_off,
+              "cases": []}
     with FileGpuLease(s).exclusive(f"m7-determinism:{model}", s.extract.lease_timeout_s):
         try:
             for targets in ([18], [18, 20, 21]):
@@ -84,4 +89,4 @@ def main(model: str, windows_path: str, prompt_path: str, out: str) -> None:
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:5])
+    main(*sys.argv[1:5], draft_off="--draft-off" in sys.argv[5:])

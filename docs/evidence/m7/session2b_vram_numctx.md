@@ -194,6 +194,17 @@ Considered and rejected: counting pinned host weights, or total resident memory,
 
 Nothing was changed.
 
+### Gemma with the draft off on every request (18 Oct 2026)
+
+The same synthetic inputs, every request with `draft_num_predict: 0`: twice in one session, then after a reload. The prompt file is `placeholder_prompt_retry.txt`, the old placeholder plus a retry section, which harness version 3 requires. Its instructions, and so the system message, are byte-identical to the old placeholder. Results are in `determinism_gemma4_e4b_draft_off.json`, and they repeated exactly in `_run2.json`.
+
+| Case | replay 1 | replay 2 (same session) | after reload | all identical |
+|---|---|---|---|---|
+| k = 1 | `d3c40b8d` | `1d414909` | `d3c40b8d` | **no** |
+| k = 3 | `e2a7020f` | `e2a7020f` | `e2a7020f` | yes |
+
+**Not all byte-identical, so turning the draft off does not make Gemma reproducible.** The second same-session 1-window reply equals the draft-on reply byte for byte. The variation follows session state in both settings (draft on: the k = 3 replay changed; draft off: the k = 1 replay changed). A reply after a fresh load is reproducible. A likely cause is prompt-cache reuse between calls in one session (**unverified**). Per the instruction for this outcome, the Gemma config was not changed and nothing was re-measured. Speculative decoding stays on, as shipped, and is open in ADR-0049.
+
 ## Retry rule (decision 3, applied)
 
 **Implemented for all arms (harness version 3):** if any window of a call is invalid, the call is retried once in the same unit as the first attempt: a single window stays single, a batch stays a batch, and the context stays the same.
@@ -233,7 +244,7 @@ To keep it honest, `run.json` would count per run the windows recovered by a sin
 - `prompt_counts_<model>.json`, `output_tokens_<model>.json`, `gen_check_<model>.json`.
 - `day4_shape.json`, `placeholder_prompt.txt`.
 - `ollama_debug_gemma4_e4b_ctx8192.log`, `ollama_debug_qwen3.5_ctx8192.log`: the debug-log lines of one load per model (the prompt was "hi").
-- `determinism_qwen3.5.json`, `determinism_gemma4_e4b.json`, `determinism_gemma4_e4b_run2.json`.
+- `determinism_qwen3.5.json`, `determinism_gemma4_e4b.json`, `determinism_gemma4_e4b_run2.json`, `determinism_gemma4_e4b_draft_off.json`, `determinism_gemma4_e4b_draft_off_run2.json`; `placeholder_prompt_retry.txt`.
 - `scripts/`: `synth.py`, `fill_sweep.sh`, `prompt_counts.py`, `count_output.py`, `gen_check.py`, `gguf_tensors.py`, `determinism.py`. Run them with `scripts/run_in_env.sh python`. `prompt_counts.py`, `count_output.py`, `gen_check.py` and `determinism.py` import `insightex`, so they are evidence scripts, not `tools/`.
 
 The runner working-set and raw `/api/ps` figures in section 2 were read by hand with PowerShell and curl, and are recorded only here.
