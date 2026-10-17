@@ -1,0 +1,84 @@
+{
+ "model": "gemma4:e4b",
+ "model_digest": "dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c",
+ "num_ctx": 8192,
+ "temperature": 0.0,
+ "seed": 42,
+ "think": false,
+ "prompt_sha256": "e74bdfaaae5ed27f2bf626930840e8c94d85219fc034f423ee35708b011c9a2c",
+ "prompt_placeholder": true,
+ "cases": [
+  {
+   "targets": [
+    18
+   ],
+   "replay_1": {
+    "sha256": "1d4149094132414971d8e5cb17413546784d68741a414ec6176cf1336829e31e",
+    "chars": 1094,
+    "done_reason": "stop",
+    "eval_count": 360,
+    "prompt_eval_count": 1086
+   },
+   "replay_2": {
+    "sha256": "1d4149094132414971d8e5cb17413546784d68741a414ec6176cf1336829e31e",
+    "chars": 1094,
+    "done_reason": "stop",
+    "eval_count": 360,
+    "prompt_eval_count": 1086
+   },
+   "reloaded": {
+    "sha256": "1d4149094132414971d8e5cb17413546784d68741a414ec6176cf1336829e31e",
+    "chars": 1094,
+    "done_reason": "stop",
+    "eval_count": 360,
+    "prompt_eval_count": 1086
+   },
+   "draft_off": {
+    "sha256": "d3c40b8d0c36135e6b08ba8f690a6c98cfa725b323f358b65f51704757350e83",
+    "chars": 993,
+    "done_reason": "stop",
+    "eval_count": 328,
+    "prompt_eval_count": 1086
+   },
+   "all_identical": false,
+   "replay_identical": true
+  },
+  {
+   "targets": [
+    18,
+    20,
+    21
+   ],
+   "replay_1": {
+    "sha256": "e2a7020f993e0b54ab98e5c081d354ada1b8bde8eeec66488b042fe33747bedc",
+    "chars": 4774,
+    "done_reason": "stop",
+    "eval_count": 1536,
+    "prompt_eval_count": 1384
+   },
+   "replay_2": {
+    "sha256": "214e43e60c43a4774e52276cc8ec7564304ea418e1511b354945f4f2167815e6",
+    "chars": 4651,
+    "done_reason": "stop",
+    "eval_count": 1503,
+    "prompt_eval_count": 1384
+   },
+   "reloaded": {
+    "sha256": "e2a7020f993e0b54ab98e5c081d354ada1b8bde8eeec66488b042fe33747bedc",
+    "chars": 4774,
+    "done_reason": "stop",
+    "eval_count": 1536,
+    "prompt_eval_count": 1384
+   },
+   "draft_off": {
+    "sha256": "e2a7020f993e0b54ab98e5c081d354ada1b8bde8eeec66488b042fe33747bedc",
+    "chars": 4774,
+    "done_reason": "stop",
+    "eval_count": 1536,
+    "prompt_eval_count": 1384
+   },
+   "all_identical": false,
+   "replay_identical": false
+  }
+ ]
+}

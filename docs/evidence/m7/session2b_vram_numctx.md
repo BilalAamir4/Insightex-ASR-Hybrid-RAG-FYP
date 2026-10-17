@@ -151,14 +151,59 @@ How "never refuse a k that the real counts allow" is enforced: the 5% margin lea
 4. One `num_ctx`, 8192, for both models. Applied.
 5. k is final only after the prompt freeze: re-run `extract-eval measure --k 3 4 5` with the frozen prompt before C3.
 
-## Effect on the C1 tie-break: reported, not changed
+## C1 tie-break: kept as written (decision, 18 Oct 2026)
+
+**Decision: ADR-0048 section 8 stands. C1 arm A is the model with the smaller VRAM peak at the worst-case prompt; no amendment.** The reasons:
+- VRAM is the constrained resource on this machine (8 GB, shared with the Windows desktop), and system RAM (31.7 GiB) is not.
+- Gemma's per-layer embeddings in RAM are a design feature of the model and the runner, not a spill.
+
+The evidence the C1 ADR can cite:
+- **All layers on the GPU for both models:** Gemma 43/43, qwen3.5 34/34 (Ollama debug log, `num_ctx` 8192; `ollama_debug_<model>_ctx8192.log`).
+- **What stays in system RAM:** input embedding tables only, which are looked up and never multiplied. Gemma: `per_layer_token_embd` 2,205.00 MiB + `token_embd` 525.00 MiB = 2,730.00 MiB. qwen3.5: 545.63 MiB.
+- **The RAM difference against the VRAM gap:** the host-weight difference is **2,184 MiB**, more than the whole measured gap in VRAM peak, **1,406 MiB** (qwen3.5 7,585 against Gemma 6,179 MiB, synthetic input, `num_ctx` 8192).
+
+The analysis behind that decision:
 
 ADR-0048 section 8 makes C1 arm A, the arm a tie keeps, "the model with the smaller VRAM peak at the worst-case prompt". On the measured peaks (synthetic input, `num_ctx` 8192), Gemma's is smaller: 6,179 MiB against 7,585 MiB (4,770 against 6,344 above the desktop baseline). **The debug log shows that this gap comes mostly from where the weights are kept, not from a smaller model.**
 - **Weights in system RAM:** Gemma keeps 2,730 MiB of weights there, qwen3.5 546 MiB. That alone is 2,184 MiB of the difference, more than the whole measured gap of 1,406 MiB.
 - **Total weights:** the two models are about the same size: Gemma 5,224 MiB (its GGUF file; 5,749 MiB resident because `token_embd` is held on both sides), plus a 79 MiB draft model; qwen3.5 5,263 MiB.
 - **What the definition decides:** as written, it measures VRAM only, so it makes Gemma arm A. A tie in C1 would then keep Gemma partly because of its embedding placement.
 
-This affects the tie-break, so per your instruction I have stopped here. Any change to the definition (for example, VRAM plus pinned host weights, or total resident memory) would be an ADR-0048 amendment made before C1. No change is made.
+Considered and rejected: counting pinned host weights, or total resident memory, as well as VRAM (that would have needed an ADR-0048 amendment before C1).
+
+## Determinism and replay at temperature 0 (decision 2; synthetic input only)
+
+`scripts/determinism.py` sends the harness's exact request (placeholder prompt, synthetic windows, extraction format, `think: false`, temperature 0, seed 42, `num_ctx` 8192, `num_predict` 1024 × k). Each case is sent twice in a row with the model kept loaded, which is what the old retry did. Then it is sent once after a reload, and for Gemma once with the draft model off (request option `draft_num_predict: 0`, which starts the runner without any `--spec-*` flag; checked on the runner's command line). Results are content sha256s in `determinism_<model>.json`. Gemma was run twice (`determinism_gemma4_e4b_run2.json`), and every hash repeated exactly.
+
+| Model | Case | replay 1 | replay 2 | after reload | draft off | all identical |
+|---|---|---|---|---|---|---|
+| qwen3.5 | k = 1 (window 18) | `33396914` | `33396914` | `33396914` | – | **yes** |
+| qwen3.5 | k = 3 (18, 20, 21) | `9663eb93` | `9663eb93` | `9663eb93` | – | **yes** |
+| Gemma (draft on) | k = 1 | `1d414909` | `1d414909` | `1d414909` | `d3c40b8d` | **no** |
+| Gemma (draft on) | k = 3 | `e2a7020f` | `214e43e6` | `e2a7020f` | `e2a7020f` | **no** |
+
+- **qwen3.5 is fully deterministic.** An identical re-send returns a byte-identical reply. **The old retry (the same request again) was a pure replay for qwen3.5**, so it could never fix an invalid reply.
+- **Gemma: same prompt twice with the draft on, then once with it off. The three outputs are not all byte-identical, in both cases.**
+  - k = 1: the two draft-on replies are identical, and the draft-off reply differs (993 against 1,094 characters). So the draft model changes the output at temperature 0: decoding with the draft is not equal to plain greedy decoding here.
+  - k = 3: the second draft-on reply in the same session differs from the first, while a reload reproduces the first. It also equals the draft-off reply. The likely cause is the runner reusing the cached prompt between calls in a session with speculative decoding (**unverified**). Either way, the result depends on session state.
+  - Everything repeated exactly across two full runs, so the variation is reproducible, not random.
+- **Consequences, recorded and not acted on:**
+  - Gemma is measured as Ollama ships it, with its draft model on. Its outputs depend on the draft setting and on what ran before in the session.
+  - A C1 rerun reproduces Gemma's results only from the reply cache, or with the same call order after a fresh load.
+  - The harness unloads every resident model before a run, so each run starts from a fresh load.
+
+Nothing was changed.
+
+## Retry rule (decision 3, applied)
+
+**Implemented for all arms (harness version 3):** if any window of a call is invalid, the call is retried once in the same unit as the first attempt: a single window stays single, a batch stays a batch, and the context stays the same.
+- **The retry message:** the retry sends the first attempt's messages plus one more user message, the **retry template** with that attempt's validation errors in place of `{errors}`. Errors are listed one per line and capped at `extract.retry_error_chars` (1,500 characters).
+- **Where the template lives:** in the extraction prompt file, after a line that is exactly `<<<RETRY>>>`. It is frozen and hashed with the prompt (one `prompt_sha256` covers both), and a prompt file without exactly one such line and one `{errors}` is refused.
+- **What the template must say:** it is written with the prompt in Session 2b and must ask for valid JSON only.
+- **Records:** `run.json` records, per window, `needed_retry` (invalid on the first attempt) and `attempt_used`, plus totals `needed_retry_windows` and `retried_windows` (recovered by the retry), `retry_rule` and `retry_error_chars`.
+- **Budget:** `extract-eval measure` now measures each case as its retry call, with errors filled to the cap, because that is the largest prompt a run can send. The k arithmetic after the freeze therefore includes the retry message.
+
+Tests: a single-window retry carries the errors in the template; **a C3 retry is one batch call with the same windows and the same `num_predict`, not single-window calls**; a C4 retry keeps its context; malformed retry sections are refused; errors are capped; the measure tool uses the retry call.
 
 ## Proposal: batch retry rule for C3 (not implemented)
 
@@ -188,6 +233,7 @@ To keep it honest, `run.json` would count per run the windows recovered by a sin
 - `prompt_counts_<model>.json`, `output_tokens_<model>.json`, `gen_check_<model>.json`.
 - `day4_shape.json`, `placeholder_prompt.txt`.
 - `ollama_debug_gemma4_e4b_ctx8192.log`, `ollama_debug_qwen3.5_ctx8192.log`: the debug-log lines of one load per model (the prompt was "hi").
-- `scripts/`: `synth.py`, `fill_sweep.sh`, `prompt_counts.py`, `count_output.py`, `gen_check.py`, `gguf_tensors.py`. Run them with `scripts/run_in_env.sh python`. `prompt_counts.py`, `count_output.py` and `gen_check.py` import `insightex`, so they are evidence scripts, not `tools/`.
+- `determinism_qwen3.5.json`, `determinism_gemma4_e4b.json`, `determinism_gemma4_e4b_run2.json`.
+- `scripts/`: `synth.py`, `fill_sweep.sh`, `prompt_counts.py`, `count_output.py`, `gen_check.py`, `gguf_tensors.py`, `determinism.py`. Run them with `scripts/run_in_env.sh python`. `prompt_counts.py`, `count_output.py`, `gen_check.py` and `determinism.py` import `insightex`, so they are evidence scripts, not `tools/`.
 
 The runner working-set and raw `/api/ps` figures in section 2 were read by hand with PowerShell and curl, and are recorded only here.
