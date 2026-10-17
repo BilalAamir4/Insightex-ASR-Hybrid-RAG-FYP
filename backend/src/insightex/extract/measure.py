@@ -8,11 +8,17 @@ harness's own request builder (prompts.py), so the measured prompt is the one a 
 - k > 1: an upper bound, not a plan the harness would make: the k largest windows (by window tokens, or by window plus
   previous-window tokens with context), each carrying its own previous window as context.
 
-Each case runs once per requested num_ctx: every resident model is unloaded, the VRAM baseline is sampled, one real
-call is made (`chat_raw`; the output may be truncated, which is recorded and does not stop the measurement), and
-`ollama ps` is read while the model is still loaded, then the model is unloaded. A case passes at a num_ctx when the
-real prompt_eval_count + num_predict fits in num_ctx (the budget rule with real tokens) and `ollama ps` shows 100%
-GPU. Cases whose estimated tokens already break the budget rule are not sent (chat_raw would refuse them).
+Each case runs once per requested num_ctx with num_predict = `num_predict_per_window` x k (the harness's output cap,
+Session 2b decision 1): every resident model is unloaded, the VRAM baseline is sampled, one real call is made
+(`chat_raw`; the output may be truncated, which is recorded and does not stop the measurement), and `ollama ps` is
+read while the model is still loaded, then the model is unloaded. A case passes at a num_ctx when the real
+prompt_eval_count + num_predict fits in num_ctx (the budget rule with real tokens) and `ollama ps` shows 100% GPU.
+
+The calibrated budget rule (`extract.token_estimate_scale`) is not applied here: every case is sent (unless
+num_predict alone fills num_ctx), so the report can compare it with the real counts. `gate_refuses_real_fit` marks a
+case the real counts allow but a run's calibrated estimate would refuse: the scale must then be lowered, because the
+gate may never refuse a k that the real measurement allows (Session 2b decision 2). `gate_allows_real_overflow`
+marks the opposite (the gate is too loose; Ollama would truncate the prompt silently).
 
 The report records the prompt's sha256 and whether it is the frozen prompt or a draft. The window texts are not
 printed or written; only indices and token counts.
@@ -34,9 +40,9 @@ from insightex.extract.prompts import (
     sha256_text,
 )
 from insightex.extract.vram import VramSampler
-from insightex.llm.ollama_client import OutputTruncated, estimate_prompt_tokens
+from insightex.llm.ollama_client import OutputTruncated, estimate_prompt_tokens, scaled_estimate
 
-MEASURE_VERSION = 1
+MEASURE_VERSION = 2  # 2: num_predict per window x k, every case sent, calibrated-gate comparison
 
 
 def window_tokens(text: str) -> int:
@@ -79,12 +85,16 @@ def case_messages(case: Case, grid: dict[int, WindowText], prompt: FrozenText,
 
 
 def measure_case(client: ModelClient, model: str, messages: list[dict], fmt: dict, num_ctx: int, num_predict: int,
-                 sampler: VramSampler) -> dict[str, Any]:
+                 sampler: VramSampler, estimate_scale: float = 1.0) -> dict[str, Any]:
     estimated = estimate_prompt_tokens(messages)
-    out: dict[str, Any] = {"num_ctx": num_ctx, "num_predict": num_predict, "estimated_prompt_tokens": estimated}
-    if estimated + num_predict > num_ctx:
-        return {**out, "sent": False, "passes": False,
-                "reason": "estimated prompt tokens + num_predict > num_ctx (budget rule; chat_raw refuses it)"}
+    gate_estimate = scaled_estimate(messages, estimate_scale)
+    gate_allows = gate_estimate + num_predict <= num_ctx
+    out: dict[str, Any] = {"num_ctx": num_ctx, "num_predict": num_predict, "estimated_prompt_tokens": estimated,
+                           "token_estimate_scale": estimate_scale, "gate_estimated_prompt_tokens": gate_estimate,
+                           "gate_allows": gate_allows}
+    if num_predict >= num_ctx:
+        return {**out, "sent": False, "passes": False, "gate_refuses_real_fit": False,
+                "gate_allows_real_overflow": False, "reason": "num_predict alone fills num_ctx"}
     for m in client.resident():
         client.unload(m["name"])
     sampler.start()
@@ -112,6 +122,8 @@ def measure_case(client: ModelClient, model: str, messages: list[dict], fmt: dic
         "ollama_ps": ps,
         "vram": sampler.report(),
         "fits_real_budget": fits,
+        "gate_refuses_real_fit": fits and not gate_allows,
+        "gate_allows_real_overflow": gate_allows and prompt_n is not None and not fits,
         "full_gpu": full_gpu,
         "passes": fits and full_gpu,
         "reason": None if fits and full_gpu else ("real prompt tokens + num_predict > num_ctx" if not fits
@@ -123,7 +135,7 @@ def run_measurement(settings: Settings, client: ModelClient, lease: Callable[[st
                     sampler_factory: Callable[[], VramSampler], *, lecture_id: str, model: str,
                     windows: list[WindowText], prompt: FrozenText, prompt_frozen: bool,
                     context_block: FrozenText | None, ks: list[int], contexts: list[bool], num_ctxs: list[int],
-                    num_predict: int) -> dict[str, Any]:
+                    num_predict_per_window: int) -> dict[str, Any]:
     grid = {w.window_index: w for w in windows}
     if any(contexts) and context_block is None:
         raise ValueError("context cases need the context block (--context-block-file or the frozen one)")
@@ -134,15 +146,18 @@ def run_measurement(settings: Settings, client: ModelClient, lease: Callable[[st
             for with_context in contexts:
                 case = worst_case(windows, k, with_context)
                 messages, fmt = case_messages(case, grid, prompt, context_block)
-                runs = [measure_case(client, model, messages, fmt, n, num_predict, sampler_factory())
-                        for n in num_ctxs]
+                runs = [measure_case(client, model, messages, fmt, n, num_predict_per_window * k, sampler_factory(),
+                                     settings.extract.estimate_scale(model)) for n in num_ctxs]
                 cases.append({"k": k, "context": with_context, "targets": list(case.targets),
                               "context_windows": [list(p) for p in case.context_pairs], "note": case.note,
                               "window_tokens_estimated": {t: window_tokens(grid[t].text) for t in case.targets},
                               "system_message_sha256": sha256_text(messages[0]["content"]),
                               "runs": runs})
     summary = {str(n): {"passing": [{"k": c["k"], "context": c["context"]} for c in cases
-                                    for r in c["runs"] if r["num_ctx"] == n and r["passes"]]} for n in num_ctxs}
+                                    for r in c["runs"] if r["num_ctx"] == n and r["passes"]],
+                        "gate_refuses_real_fit": [{"k": c["k"], "context": c["context"]} for c in cases
+                                                  for r in c["runs"] if r["num_ctx"] == n
+                                                  and r["gate_refuses_real_fit"]]} for n in num_ctxs}
     return {
         "measure_version": MEASURE_VERSION,
         "created_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -152,8 +167,10 @@ def run_measurement(settings: Settings, client: ModelClient, lease: Callable[[st
         "context_block_sha256": context_block.sha256 if context_block else None,
         "ollama_options": {"temperature": settings.ollama.temperature, "seed": settings.ollama.seed,
                            "think": settings.ollama.think},
+        "num_predict_per_window": num_predict_per_window,
+        "token_estimate_scale": settings.extract.estimate_scale(model),
         "rule": "passes = real prompt_eval_count + num_predict <= num_ctx and ollama ps 100% GPU (ADR-0048 s8, "
-                "Amendment 2; ADR-0002 budget rule)",
+                "Amendment 2; ADR-0002 budget rule); num_predict = num_predict_per_window x k",
         "cases": cases,
         "summary_by_num_ctx": summary,
     }

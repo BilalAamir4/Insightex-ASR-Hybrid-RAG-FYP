@@ -340,7 +340,8 @@ class Extract(_Section):
     translate_prompt_file: Path | None
     translate_prompt_sha256: str | None
     num_ctx: int
-    num_predict: int
+    num_predict_per_window: int
+    token_estimate_scale: dict[str, float]
     translate_num_predict: int
     evidence_dir: Path
     measure_dir: Path
@@ -358,6 +359,18 @@ class Extract(_Section):
     @classmethod
     def _local_absolute(cls, v: Path) -> Path:
         return _local_path(v)
+
+    @field_validator("token_estimate_scale", mode="after")
+    @classmethod
+    def _scales_positive(cls, v: dict[str, float]) -> dict[str, float]:
+        bad = {m: s for m, s in v.items() if not 0 < s <= 1.0}
+        if bad:
+            raise ValueError(f"token_estimate_scale must be in (0, 1]: {bad}")
+        return v
+
+    def estimate_scale(self, model: str) -> float:
+        """The budget rule's calibration factor for `model`; an uncalibrated model keeps the full estimate (1.0)."""
+        return self.token_estimate_scale.get(model, 1.0)
 
 
 class Settings(_Section):

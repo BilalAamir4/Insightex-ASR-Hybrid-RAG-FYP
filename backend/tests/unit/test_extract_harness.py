@@ -393,17 +393,78 @@ def test_measurement_budget_gpu_share_and_cli(tmp_path, monkeypatch):
     client = PartialGpuClient()
     assert cli.main(["measure", "--lecture", LECTURE, "--model", "qwen3.5:latest", "--prompt-file", str(prompt),
                      "--context-block-file", str(block), "--k", "1", "3", "--context", "both",
-                     "--num-ctx", "256", "4096", "8192", "--num-predict", "200", "--windows", str(win_file),
+                     "--num-ctx", "256", "4096", "8192", "--num-predict-per-window", "200", "--windows", str(win_file),
                      "--out", str(out)], client=client) == 0
     report = json.loads(out.read_text())
     assert report["prompt"]["frozen"] is False and len(report["cases"]) == 4
     runs = {(c["k"], c["context"], r["num_ctx"]): r for c in report["cases"] for r in c["runs"]}
-    assert runs[(1, False, 256)]["sent"] is False  # the estimate already breaks the budget rule
+    assert runs[(3, False, 256)]["sent"] is False  # num_predict 3 x 200 alone fills num_ctx 256
+    assert runs[(1, False, 256)]["sent"] and runs[(1, False, 256)]["passes"]  # sent: the gate is compared, not applied
     assert runs[(1, False, 4096)]["passes"] and runs[(3, True, 4096)]["passes"]
     assert not runs[(1, False, 8192)]["passes"] and runs[(1, False, 8192)]["reason"].endswith("100% GPU")
     assert {"k": 3, "context": True} in report["summary_by_num_ctx"]["4096"]["passing"]
     sent = client.chats
-    assert len(sent) == 8 and all(c["num_predict"] == 200 for c in sent)
+    assert len(sent) == 10 and {c["num_predict"] for c in sent if len(c["user"]["windows"]) == 1} == {200}
+    assert {c["num_predict"] for c in sent if len(c["user"]["windows"]) == 3} == {600}  # per window x k
+    assert report["num_predict_per_window"] == 200 and report["token_estimate_scale"] == 0.68
     ctx_call = next(c for c in sent if "context" in c["user"])
     assert ctx_call["messages"][0]["content"].endswith("BLOCK PLACEHOLDER\n")
     assert "x" * 30 not in out.read_text()  # window text is never written to the report
+
+
+def test_measure_flags_a_gate_that_refuses_a_real_fit_or_allows_an_overflow():
+    from insightex.extract.measure import measure_case
+
+    class CountClient(FakeClient):
+        def __init__(self, prompt_n):
+            super().__init__()
+            self.prompt_n = prompt_n
+
+        def chat(self, model, messages, format_schema, num_ctx, num_predict):
+            self.chats.append({"num_ctx": num_ctx, "num_predict": num_predict})
+            self.loaded.add(model)
+            return "{}", {"prompt_eval_count": self.prompt_n, "eval_count": 2, "tokens_per_sec": 10.0}
+
+    msgs = [{"role": "user", "content": "x" * 3500}]  # estimate 1009
+    sampler = VramSampler(0.01, read=lambda: 1000)
+    r = measure_case(CountClient(50), "m", msgs, {}, 1100, 100, sampler, estimate_scale=1.0)
+    assert r["sent"] and r["fits_real_budget"] and not r["gate_allows"] and r["gate_refuses_real_fit"]
+    r = measure_case(CountClient(50), "m", msgs, {}, 1100, 100, VramSampler(0.01, read=lambda: 1000), 0.68)
+    assert r["gate_allows"] and not r["gate_refuses_real_fit"] and r["gate_estimated_prompt_tokens"] == 687
+    r = measure_case(CountClient(250), "m", msgs, {}, 300, 100, VramSampler(0.01, read=lambda: 1000), 0.1)
+    assert r["gate_allows"] and not r["fits_real_budget"] and r["gate_allows_real_overflow"]
+
+
+def test_batch_calls_get_num_predict_per_window_times_k(setup):
+    settings, prompts, ctx = setup
+    client = FakeClient()
+    _, run = h.run_arm(ctx(client), arm(batch_k=3), prompts, LECTURE, windows(5), [0, 1, 2, 3, 4])
+    per = settings.extract.num_predict_per_window
+    assert [len(c["user"]["windows"]) for c in client.chats] == [3, 2]
+    assert [c["num_predict"] for c in client.chats] == [3 * per, 2 * per]
+    assert run["options"]["num_predict_per_window"] == per and run["options"]["num_predict"] == per
+    assert run["options"]["token_estimate_scale"] == settings.extract.estimate_scale("qwen3.5:latest") == 0.68
+
+
+def test_ollama_client_applies_the_model_calibration_and_measure_turns_it_off(monkeypatch):
+    seen = []
+
+    def fake_chat_raw(messages, fmt, num_ctx, **kw):
+        seen.append(kw["estimate_scale"])
+        from insightex.llm.ollama_client import ChatMetrics
+        return "{}", ChatMetrics(1, 1, 1.0, 1.0, 1.0, 0.0, "stop", num_ctx)
+
+    monkeypatch.setattr(h.ollama_client, "chat_raw", fake_chat_raw)
+    s = load_settings()
+    for model in ("qwen3.5:latest", "gemma4:e4b", "unlisted:tag"):
+        h.OllamaModelClient(s).chat(model, [{"role": "user", "content": "x"}], {}, 8192, 1024)
+    h.OllamaModelClient(s, estimate_gate=False).chat("qwen3.5:latest", [{"role": "user", "content": "x"}], {}, 8192,
+                                                    1024)
+    assert seen == [0.68, 0.64, 1.0, 0.0]
+
+
+def test_token_estimate_scale_must_be_in_unit_interval():
+    from insightex.core.config import ConfigError
+
+    with pytest.raises((ConfigError, ValueError)):
+        load_settings({"extract": {"token_estimate_scale": {"m": 1.5}}})

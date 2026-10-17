@@ -15,6 +15,8 @@ One run:
    the result is a full schema v1 record, checked by `check_window_record`. If any window of a call is invalid, the
    same call is made once more and each still-invalid window takes its record from that retry if it is valid there
    ("every window valid after one retry"). A truncated reply (done_reason length) is an invalid attempt.
+   The output cap of a call is `extract.num_predict_per_window` times its number of target windows, so every window
+   has the same output allowance in every arm (ADR-0048 decision 8; Session 2b decision 1).
 5. The model is unloaded in a `finally` block.
 
 Cache. Every model reply is cached under `extract.cache_dir`, keyed by the sha256 of the full request (model tag and
@@ -59,7 +61,7 @@ from insightex.llm.ollama_client import OutputTruncated
 
 log = logging.getLogger(__name__)
 
-HARNESS_VERSION = 1  # bump when request building or reply handling changes in a way that changes output
+HARNESS_VERSION = 2  # 2: num_predict per window (k x num_predict_per_window), calibrated budget estimate. Bump when request building or reply handling changes in a way that changes output
 RUN_VERSION = 1  # run.json layout (tools/label_concepts/scoring.py RUN_VERSION)
 RETRIES = 1  # ADR-0048 section 7: "valid after one retry"; a gate rule, not a tunable
 
@@ -166,16 +168,20 @@ class ModelClient(Protocol):
 class OllamaModelClient:
     """The ADR-0002 contract: chat_raw (budget rule, think false, length is an error) and unload with polling."""
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, estimate_gate: bool = True) -> None:
+        """`estimate_gate=False` (the measure tool only) sends every prompt so its real prompt_eval_count can be
+        compared with what the calibrated budget rule would have allowed; runs always keep the gate."""
         self.settings = settings
+        self.estimate_gate = estimate_gate
 
     def digest(self, model: str) -> str:
         return ollama_client.model_digest(model, self.settings.ollama)
 
     def chat(self, model: str, messages: list[dict], format_schema: dict, num_ctx: int,
              num_predict: int) -> tuple[str, dict[str, Any]]:
+        scale = self.settings.extract.estimate_scale(model) if self.estimate_gate else 0.0
         content, m = ollama_client.chat_raw(messages, format_schema, num_ctx, ollama=self.settings.ollama,
-                                            num_predict=num_predict, model=model)
+                                            num_predict=num_predict, model=model, estimate_scale=scale)
         return content, asdict(m)
 
     def resident(self) -> list[dict[str, Any]]:
@@ -297,6 +303,11 @@ class RunContext:
     calls_log: list[dict[str, Any]] = field(default_factory=list)
 
 
+def extraction_num_predict(settings: Settings, n_targets: int) -> int:
+    """Output cap of one extraction call: the same allowance per target window in every arm (Session 2b decision 1)."""
+    return settings.extract.num_predict_per_window * n_targets
+
+
 def _options(settings: Settings, num_predict: int) -> dict[str, Any]:
     o = settings.ollama
     return {"num_ctx": settings.extract.num_ctx, "num_predict": num_predict, "temperature": o.temperature,
@@ -392,8 +403,8 @@ def run_arm(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, window
                 fmt = extraction_format(list(plan.targets))
                 pending = list(plan.targets)
                 for attempt in range(1, RETRIES + 2):
-                    entry = _cached_call(ctx, "extract", arm.model, digest, messages, fmt, ctx.settings.extract.num_predict,
-                                         attempt, {"targets": list(plan.targets), "context": [list(c) for c in plan.context]})
+                    entry = _cached_call(ctx, "extract", arm.model, digest, messages, fmt,
+                                         extraction_num_predict(ctx.settings, len(plan.targets)), attempt, {"targets": list(plan.targets), "context": [list(c) for c in plan.context]})
                     parsed = parse_reply(entry["content"], entry["error"], plan, lecture_id, grid)
                     for t in pending:
                         errors[t].append(parsed[t].errors)
@@ -450,7 +461,10 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
         "context_block_sha256": prompts.context_block.sha256 if prompts.context_block else None,
         "translation_prompt_sha256": prompts.translation.sha256 if prompts.translation else None,
         "system_message_sha256": [sha256_text(s) for s in systems],  # with the context block: the arm B prompt hash
-        "options": _options(ctx.settings, ctx.settings.extract.num_predict),
+        "options": {**_options(ctx.settings, extraction_num_predict(ctx.settings, 1)),
+                    "num_predict_per_window": ctx.settings.extract.num_predict_per_window,
+                    "num_predict_rule": "num_predict_per_window x target windows in the call",
+                    "token_estimate_scale": ctx.settings.extract.estimate_scale(arm.model)},
         "translate_num_predict": ctx.settings.extract.translate_num_predict if arm.input == "english" else None,
         "retries": RETRIES,
         "targets": sorted(targets),

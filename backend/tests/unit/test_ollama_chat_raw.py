@@ -90,3 +90,14 @@ def test_chat_json_still_validates_through_chat_raw(http):
     fake = http(reply(json.dumps({"a": 5})))
     obj, _ = oc.chat_json(MSGS, A, num_ctx=2048, num_predict=64)
     assert obj.a == 5 and fake.posts[0]["format"] == A.model_json_schema()
+
+
+def test_chat_raw_calibrated_estimate_scales_the_budget_rule(http):
+    msgs = [{"role": "user", "content": "x" * 3500}]  # estimate 3500 / 3.5 + 8 overhead + 1 = 1009
+    assert oc.estimate_prompt_tokens(msgs) == 1009 and oc.scaled_estimate(msgs, 0.5) == 505
+    fake = http(reply("{}"))
+    with pytest.raises(oc.PromptBudgetError) as e:  # default 1.0: the uncalibrated estimate, as every other caller
+        oc.chat_raw(msgs, FMT, num_ctx=1100, num_predict=100)
+    assert e.value.estimated_prompt_tokens == 1009 and fake.posts == []
+    oc.chat_raw(msgs, FMT, num_ctx=1100, num_predict=100, estimate_scale=0.5)  # 505 + 100 <= 1100
+    assert len(fake.posts) == 1

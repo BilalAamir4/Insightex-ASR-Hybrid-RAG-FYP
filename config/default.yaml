@@ -193,8 +193,11 @@ extract:                            # M7 extraction evaluation harness (ADR-0048
   context_block_sha256: null        # pinned sha256 of context_block_file
   translate_prompt_file: null       # C2 arm B: fixed per-window English translation prompt (ADR-0041)
   translate_prompt_sha256: null     # pinned sha256 of translate_prompt_file
-  num_ctx: 8192                     # tokens; context of every harness call (chosen in Session 2b from `extract-eval measure`)
-  num_predict: 1024                 # tokens; output cap of one extraction call
+  num_ctx: 8192                     # tokens; context of every harness call, one value for both C1 models (Session 2b decision 4)
+  num_predict_per_window: 1024      # tokens; output cap per target window: a call of k windows gets k x this (Session 2b decision 1)
+  token_estimate_scale:             # per-model factor on the budget rule's prompt estimate: max measured real/estimate + 5% (Session 2b)
+    "qwen3.5:latest": 0.68          # measured 0.625-0.647 over 9 synthetic prompts (docs/evidence/m7/session2b_vram_numctx.md)
+    "gemma4:e4b": 0.64              # measured 0.543-0.602 over 18 synthetic prompts; unlisted models use 1.0 (uncalibrated)
   translate_num_predict: 1024       # tokens; output cap of one translation call
   evidence_dir: docs/evidence/m7    # run directories <evidence_dir>/<lecture_id>/<comparison>/<arm>/; relative = under the repo root
   measure_dir: docs/measurements/m7 # VRAM / num_ctx measurement reports; relative = under the repo root

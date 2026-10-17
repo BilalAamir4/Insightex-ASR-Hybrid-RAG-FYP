@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import time
 from dataclasses import dataclass
 from typing import TypeVar
@@ -78,6 +79,12 @@ def _is_arabic_script(ch: str) -> bool:
     return 0x0600 <= o <= 0x06FF or 0x0750 <= o <= 0x077F or 0xFB50 <= o <= 0xFDFF or 0xFE70 <= o <= 0xFEFF
 
 
+def scaled_estimate(messages: list[dict], estimate_scale: float) -> int:
+    """The budget rule's prompt estimate times a per-model calibration factor (real prompt_eval_count / estimate,
+    measured, plus a margin; M7 Session 2b). 1.0 keeps the uncalibrated, deliberately high estimate."""
+    return math.ceil(estimate_prompt_tokens(messages) * estimate_scale)
+
+
 def estimate_prompt_tokens(messages: list[dict]) -> int:
     total = 0.0
     for m in messages:
@@ -136,11 +143,14 @@ def chat_raw(
     num_predict: int | None = None,
     timeout: float | None = None,
     model: str | None = None,
+    estimate_scale: float = 1.0,
 ) -> tuple[str, ChatMetrics]:
     """POST /api/chat with `format_schema` (a JSON Schema dict) as `format`; return (reply content, metrics).
 
     The same contract as chat_json (budget rule before sending, think check, done_reason "length" raises
     OutputTruncated), but the content is returned unparsed, for callers that validate it themselves (M7 extraction).
+    `estimate_scale` calibrates the budget rule's prompt estimate for the model (`extract.token_estimate_scale`);
+    the default 1.0 is the uncalibrated estimate every other caller uses.
     """
     cfg = _cfg(ollama)
     keep_alive = cfg.keep_alive if keep_alive is None else keep_alive
@@ -149,7 +159,7 @@ def chat_raw(
     num_predict = cfg.num_predict if num_predict is None else num_predict
     timeout = cfg.request_timeout_s if timeout is None else timeout
     model = model or cfg.model
-    estimated = estimate_prompt_tokens(messages)
+    estimated = scaled_estimate(messages, estimate_scale)
     if estimated + num_predict > num_ctx:
         raise PromptBudgetError(estimated, num_predict, num_ctx)
     base = cfg.base_url.rstrip("/")
