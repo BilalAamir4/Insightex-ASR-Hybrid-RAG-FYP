@@ -348,3 +348,62 @@ def test_cli_run_with_fixture_windows_writes_evidence_the_scorer_reads(tmp_path,
                          "relations": [], "important": False, "cue": None} for i in range(3)]}
     score = scoring.score_arm(scoring.load_arm_run("C1-qwen3.5", out), gold, {})
     assert score["validity"]["valid"] and score["adjudicated"]["micro"]["concept"]["f1"] == 1.0
+
+
+# -- worst-case measurement (Session 2b tool) -------------------------------------------------------------------------
+
+
+def uneven_windows() -> list[h.WindowText]:
+    lengths = [10, 200, 30, 180, 20, 5]  # window 1 is the largest; 2+1 is the largest window-with-previous pair
+    return [h.WindowText(i, 30.0 * i, 30.0 * i + 30, "x" * n) for i, n in enumerate(lengths)]
+
+
+def test_worst_case_selection():
+    from insightex.extract.measure import worst_case
+
+    ws = uneven_windows()
+    assert worst_case(ws, 1, False).targets == (1,)
+    c = worst_case(ws, 1, True)
+    assert c.targets == (2,) and c.context_pairs == ((1, 2),)  # 30 + 200 beats 200 + 10
+    c = worst_case(ws, 3, True)
+    assert c.targets == (1, 2, 3) and c.context_pairs == ((0, 1), (1, 2), (2, 3)) and "upper bound" in c.note
+    with pytest.raises(ValueError):
+        worst_case(ws, 7, False)
+
+
+def test_measurement_budget_gpu_share_and_cli(tmp_path, monkeypatch):
+    from insightex.extract import cli
+
+    class PartialGpuClient(FakeClient):
+        def resident(self):  # at the larger context the model spills to the CPU
+            big = any(c["num_ctx"] >= 8192 for c in self.chats[-1:])
+            return [{"name": m, "size": 1000, "size_vram": 900 if big else 1000} for m in sorted(self.loaded)]
+
+    prompt = tmp_path / "draft.txt"
+    prompt.write_text("DRAFT PLACEHOLDER\n")
+    block = tmp_path / "block.txt"
+    block.write_text("BLOCK PLACEHOLDER\n")
+    win_file = tmp_path / "windows.json"
+    win_file.write_text(json.dumps({"windows": [{"id": w.window_index, "start": w.start_s, "end": w.end_s,
+                                                  "text": w.text} for w in uneven_windows()]}))
+    s = load_settings({"gpu": {"lease_enabled": False}})
+    monkeypatch.setattr(cli, "load_settings", lambda: s)
+    monkeypatch.setattr(cli, "VramSampler", lambda interval: VramSampler(interval, read=lambda: 2000))
+    out = tmp_path / "measure.json"
+    client = PartialGpuClient()
+    assert cli.main(["measure", "--lecture", LECTURE, "--model", "qwen3.5:latest", "--prompt-file", str(prompt),
+                     "--context-block-file", str(block), "--k", "1", "3", "--context", "both",
+                     "--num-ctx", "256", "4096", "8192", "--num-predict", "200", "--windows", str(win_file),
+                     "--out", str(out)], client=client) == 0
+    report = json.loads(out.read_text())
+    assert report["prompt"]["frozen"] is False and len(report["cases"]) == 4
+    runs = {(c["k"], c["context"], r["num_ctx"]): r for c in report["cases"] for r in c["runs"]}
+    assert runs[(1, False, 256)]["sent"] is False  # the estimate already breaks the budget rule
+    assert runs[(1, False, 4096)]["passes"] and runs[(3, True, 4096)]["passes"]
+    assert not runs[(1, False, 8192)]["passes"] and runs[(1, False, 8192)]["reason"].endswith("100% GPU")
+    assert {"k": 3, "context": True} in report["summary_by_num_ctx"]["4096"]["passing"]
+    sent = client.chats
+    assert len(sent) == 8 and all(c["num_predict"] == 200 for c in sent)
+    ctx_call = next(c for c in sent if "context" in c["user"])
+    assert ctx_call["messages"][0]["content"].endswith("BLOCK PLACEHOLDER\n")
+    assert "x" * 30 not in out.read_text()  # window text is never written to the report

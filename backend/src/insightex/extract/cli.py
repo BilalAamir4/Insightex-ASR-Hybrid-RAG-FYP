@@ -2,11 +2,19 @@
 
     insightex extract-eval arms                                  the configured arms and which fields are still unset
     insightex extract-eval run --arm NAME --lecture ID --targets FILE [--windows FILE] [--out DIR] [--force]
+    insightex extract-eval measure --lecture ID --model TAG [--prompt-file FILE] [--context-block-file FILE]
+                                   [--k 1 3 4 5] [--context both|none|previous] [--num-ctx 4096 8192 ...]
+                                   [--windows FILE] [--out FILE]
 
 `run` extracts the target windows (a label_concepts sample.json or a JSON list of window indices) with one arm and
 writes extraction.json, run.json and calls.jsonl to the run directory, which the scorer in tools/label_concepts reads.
 It refuses to run until the extraction prompt is frozen (`extract.prompt_file` and `extract.prompt_sha256`).
 Windows come from the lecture's index stage (windows.json) unless `--windows` names a file of the same shape.
+
+`measure` makes real calls (one per case and num_ctx) under the exclusive GPU lease with the worst-case prompt for
+each batch size k, with and without previous-window context, and reports VRAM, tokens/s, the real prompt tokens and
+`ollama ps` (insightex.extract.measure). Before the freeze it takes a draft prompt with `--prompt-file` (its sha256 is
+recorded and the report says it was not frozen).
 """
 
 from __future__ import annotations
@@ -82,6 +90,53 @@ def _run(settings: Settings, args: argparse.Namespace, client: h.ModelClient | N
     return 0
 
 
+def _measure(settings: Settings, args: argparse.Namespace, client: h.ModelClient | None = None) -> int:
+    import datetime as dt
+    import json
+
+    from insightex.extract.measure import run_measurement
+    from insightex.extract.prompts import draft_text, load_frozen
+
+    x = settings.extract
+    if args.prompt_file:
+        prompt, frozen = draft_text(Path(args.prompt_file)), False
+    else:
+        prompt, frozen = load_frozen(x.prompt_file, x.prompt_sha256, "extraction prompt"), True
+    contexts = {"both": [False, True], "none": [False], "previous": [True]}[args.context]
+    block = None
+    if True in contexts:
+        block = (draft_text(Path(args.context_block_file)) if args.context_block_file
+                 else load_frozen(x.context_block_file, x.context_block_sha256, "context block"))
+    windows = lecture_windows(settings, args.lecture, args.windows)
+    report = run_measurement(
+        settings, client or h.OllamaModelClient(settings), lease_factory(settings),
+        lambda: VramSampler(x.vram_poll_interval_s), lecture_id=args.lecture, model=args.model, windows=windows,
+        prompt=prompt, prompt_frozen=frozen, context_block=block, ks=args.k, contexts=contexts,
+        num_ctxs=args.num_ctx or [x.num_ctx], num_predict=args.num_predict or x.num_predict)
+    print(f"{args.model} on {args.lecture} ({len(windows)} windows); prompt {prompt.sha256[:12]} "
+          f"({'frozen' if frozen else 'DRAFT, not frozen'})")
+    print(f"{'k':>2} {'ctx':>4} {'num_ctx':>7} {'est':>6} {'real':>6} {'tok/s':>6} {'gpu%':>5} {'peak MiB':>8} "
+          f"{'+base':>6}  result")
+    for c in report["cases"]:
+        for r in c["runs"]:
+            ps, vram = r.get("ollama_ps") or {}, r.get("vram") or {}
+            tps = r.get("tokens_per_sec")
+            cells = [r.get("prompt_eval_count"), f"{tps:.1f}" if tps else None, ps.get("gpu_pct"),
+                     vram.get("peak_mib"), vram.get("peak_above_baseline_mib")]
+            real, rate, gpu, peak, above = ("-" if v is None else v for v in cells)
+            print(f"{c['k']:>2} {'yes' if c['context'] else 'no':>4} {r['num_ctx']:>7} {r['estimated_prompt_tokens']:>6} "
+                  f"{real:>6} {rate:>6} {gpu:>5} {peak:>8} {above:>6}  "
+                  f"{'PASS' if r['passes'] else 'fail: ' + str(r['reason'])}"
+                  f"{' (output truncated)' if r.get('truncated') else ''}")
+    stamp = dt.datetime.now(dt.UTC).strftime("%Y%m%dT%H%M%SZ")
+    safe_model = "".join(ch if ch.isalnum() or ch in "-_." else "_" for ch in args.model)
+    out = Path(args.out) if args.out else x.measure_dir / args.lecture / f"{safe_model}_{stamp}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    print(f"wrote {out}")
+    return 0
+
+
 def main(argv: list[str], client: h.ModelClient | None = None) -> int:
     parser = argparse.ArgumentParser(prog="insightex extract-eval", description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -94,11 +149,25 @@ def main(argv: list[str], client: h.ModelClient | None = None) -> int:
     p.add_argument("--windows", help="windows.json-shaped file to use instead of the lecture's index stage")
     p.add_argument("--out", help="run directory (default: <extract.evidence_dir>/<lecture>/<comparison>/<arm>)")
     p.add_argument("--force", action="store_true", help="replace an existing run directory's files")
+    p = sub.add_parser("measure", help="VRAM / num_ctx at the worst-case prompt (real Ollama calls)")
+    p.add_argument("--lecture", required=True, help="workspace id")
+    p.add_argument("--model", required=True, help="exact Ollama tag")
+    p.add_argument("--prompt-file", help="draft extraction prompt (default: the frozen one from the config)")
+    p.add_argument("--context-block-file", help="draft context block (default: the frozen one)")
+    p.add_argument("--k", type=int, nargs="+", default=[1], help="batch sizes to measure (C3: 3 4 5)")
+    p.add_argument("--context", choices=["both", "none", "previous"], default="none",
+                   help="measure without, with, or both with and without previous-window context (C4)")
+    p.add_argument("--num-ctx", type=int, nargs="+", help="context sizes to try (default: extract.num_ctx)")
+    p.add_argument("--num-predict", type=int, help="output cap (default: extract.num_predict)")
+    p.add_argument("--windows", help="windows.json-shaped file to use instead of the lecture's index stage")
+    p.add_argument("--out", help="report file (default: <extract.measure_dir>/<lecture>/<model>_<time>.json)")
     args = parser.parse_args(argv)
     try:
         settings = load_settings()
         if args.action == "arms":
             return _arms(settings, args)
+        if args.action == "measure":
+            return _measure(settings, args, client)
         return _run(settings, args, client)
     except (ConfigError, ArmConfigError, PromptNotFrozen, h.HarnessError, OllamaError, OSError, ValueError,
             GpuBusy, GpuUnavailable) as exc:

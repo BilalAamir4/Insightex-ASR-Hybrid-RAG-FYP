@@ -15,6 +15,7 @@ docs/evidence/m7/<lecture_id>/<comparison>/<arm>/      written by `insightex ext
     calls.jsonl        every attempt of every call: targets, context, attempt, cache hit, raw reply, metrics, ollama ps
 docs/evidence/m7/<lecture_id>/<comparison>/compare_<comparison>.json   label_concepts.py compare
 docs/evidence/m7/<lecture_id>/<comparison>/score.json                  label_concepts.py score
+docs/measurements/m7/<lecture_id>/<model>_<time>.json                  insightex extract-eval measure
 ```
 
 `cost.measured` is false when any reply came from the reply cache (`<extract.cache_dir>`): then the model was not loaded for those calls and the wall time, tokens/s and VRAM figures do not describe the arm. Report cost only from a run with `cost.measured: true`.

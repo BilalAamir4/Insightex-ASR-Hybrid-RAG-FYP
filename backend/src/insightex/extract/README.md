@@ -16,6 +16,7 @@ M7 Session 2a (17 Oct 2026): the evaluation harness, `insightex extract-eval` (t
 | `prompts.py` | Frozen prompt files (used only with their pinned sha256), the request layout (system prompt, plus the context block only when a call has context; user message = JSON of the windows and context), and the Ollama `format` (one record per target window). No prompt wording. |
 | `harness.py` | One arm over the target windows: call plan (batches, Amendment 2 context rules), exclusive GPU lease, unload every resident model first, translation (C2 arm B), extraction through `ollama_client.chat_raw`, dangling relations dropped and counted, v1 validation, one retry of the same call, model unloaded in `finally`; reply cache keyed by the full request (model digest, messages, format, options), harness version and attempt; evidence `extraction.json`, `run.json`, `calls.jsonl`. |
 | `vram.py` | nvidia-smi VRAM peak sampler (baseline, peak, difference). |
-| `cli.py` | `insightex extract-eval arms|run`. |
+| `measure.py` | Worst-case prompt VRAM / `num_ctx` measurement for Session 2b (`insightex extract-eval measure`): per batch size k, with and without previous-window context, one real call per `num_ctx`; passes when real prompt tokens + `num_predict` fit and `ollama ps` shows 100% GPU. Accepts a draft prompt before the freeze (recorded as not frozen). |
+| `cli.py` | `insightex extract-eval arms|run|measure`. |
 
 Evidence layout: `docs/evidence/m7/README.md`. The scorer that reads it: `tools/label_concepts/` (`score`, `compare`, `adjudication-sheet`, `adjudicate`).
