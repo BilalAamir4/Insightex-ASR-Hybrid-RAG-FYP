@@ -21,7 +21,8 @@ Each run is scored with `tools/label_concepts` (`score`, string rule) and report
 
 | Version | File | sha256 | Status |
 |---|---|---|---|
-| 1 | `config/prompts/m7_extraction_v1.txt` | `d2a50e58ac5cb630e69516d59d537d9574de18ec926c187826434bafa696f6a8` | approved as drafted, 18 Oct 2026 |
+| 1 | `config/prompts/m7_extraction_v1.txt` | `d2a50e58ac5cb630e69516d59d537d9574de18ec926c187826434bafa696f6a8` | approved as drafted, 18 Oct 2026; run, concept F1 0.340 |
+| 2 | `config/prompts/m7_extraction_v2.txt` | `c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648` | approved 18 Oct 2026 with conditions: version 1 + change (a) and (b) only |
 
 ### Version 1 notes
 
