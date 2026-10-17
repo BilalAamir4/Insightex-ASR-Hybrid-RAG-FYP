@@ -48,6 +48,12 @@ $LC serve --lecture $DAY4 --labeller bilal
 $LC log-correction --lecture $DAY4 --window <I> --reason "<why it was a clear error>"
 $LC validate --lecture $DAY4 --labeller bilal
 
+# 7b. (Amendment 4, Day 4 only) On any gold window, shared or not, a relation whose type definition does not hold may
+#     be deleted, or reversed when it holds only the other way; concepts, aliases and importance may not change. Edit
+#     in serve, then log it; validate refuses anything beyond deleting or reversing relations on a non-shared window.
+$LC log-correction --lecture $DAY4 --window <I> --amendment 4 --reason "<which type definition fails and why>"
+$LC validate --lecture $DAY4 --labeller bilal
+
 # 8. Merge (gold = the reviewed bilal.json alone); commit
 $LC merge --lecture $DAY4
 ```
@@ -102,7 +108,7 @@ All under `labels/<lecture_id>/`, committed:
 | `sample.json` | The manifest: seed, N, grid parameters and an index-match check; the transcript's asr key and language; excluded windows with reasons; the census flag; per window its index, start/end, text sha256, shared flag and assignment; `shared_annotators` (Amendment 3); `amendments` (reassignments and added annotators, each with the previous sha256). No transcript text. |
 | `<labeller>.json` | One extraction document (schema v1, `producer.kind = human`) per labeller; `fatima.json` holds only the shared windows (Amendment 3); with two labellers and a consensus, `consensus.json` for the agreed shared windows. |
 | `bilal_pre_review.json` | Amendment 3: `bilal.json` as it was when the first `agreement` against Fatima ran; the inter-annotator figure is computed on it. Never edited. |
-| `corrections_bilal.json` | Amendment 3: every correction after the review, with window, reason, time, and the record before and after. `validate` and `merge` refuse a `bilal.json` that differs from the pre-review file without a matching entry. |
+| `corrections_bilal.json` | Amendments 3 and 4: every correction after the review, with window, amendment (entries without it are Amendment 3), reason, time, and the record before and after. `validate` and `merge` refuse a `bilal.json` that differs from the pre-review file without a matching entry, and on a non-shared window accept only an Amendment 4 entry that deletes or reverses relations. |
 | `agreement_<a>_<b>.json` | Per-window and micro concept, relation and importance agreement, with the sha256 of both inputs. |
 | `adjudications.json` | Session 2 onward: frozen match/no-match decisions for unmatched model concepts (ADR-0048), keyed by (window_index, normalised model label). Append-only: each entry records who decided, when, and the sha256 of the sheet it came from. |
 | `adjudication_sheets/<C>-<time>.json` | One blind sheet per adjudication round: seed, gold sha256, the sorted sha256 of the arm files (no arm names), and the shuffled entries (window, model concept with aliases, the window's gold concepts). |
@@ -132,7 +138,8 @@ All under `labels/<lecture_id>/`, committed:
 - a toy agreement and merge;
 - the server's save, reject and video range responses;
 - scoring, the comparison rule (tie, adoption, validity), the adjudication sheet (pooling, dedupe, seed, no arm names) and append-only decisions, and a full sheet -> adjudicate -> compare run with the inter-annotator figure;
-- Amendment 3: adding a shared-windows-only annotator, validate scoped to the shared windows, agreement on the frozen pre-review labels, logged corrections enforced by validate and merge.
+- Amendment 3: adding a shared-windows-only annotator, validate scoped to the shared windows, agreement on the frozen pre-review labels, logged corrections enforced by validate and merge;
+- Amendment 4: relation deletion and reversal accepted on a non-shared window; concept, alias, importance and relation-type changes refused there; shared-window corrections unchanged.
 
 All fixtures are synthetic.
 

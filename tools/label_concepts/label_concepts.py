@@ -10,7 +10,7 @@ Standalone: imports nothing from backend/. Rules for labellers: docs/labelling/m
   python label_concepts.py validate  --lecture <id> --labeller <name>
   python label_concepts.py agreement --lecture <id> --a <name> --b <name> [--adjudications FILE]
   python label_concepts.py merge     --lecture <id>
-  python label_concepts.py log-correction --lecture <id> --window I --reason TEXT [--labeller bilal]
+  python label_concepts.py log-correction --lecture <id> --window I --reason TEXT [--labeller bilal] [--amendment 4]
 
 Session 2 (scoring model runs written by `insightex extract-eval run`; scoring.py, adjudication.py):
 
@@ -164,10 +164,36 @@ def load_corrections(lecture_id: str, labeller: str, root: Path | None = None) -
     return json.loads(path.read_text(encoding="utf-8"))["entries"] if path.is_file() else []
 
 
+# ADR-0048 Amendment 4 applies to the Day 4 gold only, never to the held-out lecture.
+AMENDMENT4_LECTURES = frozenset({"sha256-de27cb67c2acbedebd0c2c7416932b8a"})
+
+
+def _reversed(rel: dict[str, Any]) -> dict[str, Any]:
+    return {**rel, "head": rel["tail"], "tail": rel["head"]}
+
+
+def relation_only_errors(before: dict[str, Any] | None, after: dict[str, Any] | None) -> list[str]:
+    """Amendment 4: `after` may differ from `before` only by deleting relations or reversing them (head and tail
+    swapped, same type); concepts, aliases, importance and everything else in the record stay as they were."""
+    if before is None or after is None:
+        return ["the window was added or removed; Amendment 4 only deletes or reverses relations"]
+    if {k: v for k, v in before.items() if k != "relations"} != {k: v for k, v in after.items() if k != "relations"}:
+        return ["concepts, aliases, importance or the window changed; Amendment 4 only deletes or reverses relations"]
+    unused = list(before.get("relations", []))
+    for rel in after.get("relations", []):
+        match = next((j for j, old in enumerate(unused) if old == rel or _reversed(old) == rel), None)
+        if match is None:
+            return [(f"relation {rel.get('head')!r} {rel.get('type')} {rel.get('tail')!r} is new; Amendment 4 only "
+                     "deletes or reverses relations")]
+        unused.pop(match)
+    return []
+
+
 def review_errors(lecture_id: str, labeller: str, doc: dict[str, Any], manifest: dict[str, Any],
                   root: Path | None = None) -> list[str]:
-    """After the review starts (a pre-review copy exists), every window that differs from it must be a shared window
-    whose current record is the `after` of a logged correction."""
+    """After the review starts (a pre-review copy exists), every window that differs from it must have its current
+    record as the `after` of its latest logged correction: any change on a shared window (Amendment 3), and on a
+    non-shared window only an Amendment 4 correction that deletes or reverses relations."""
     pre_path = pre_review_path(lecture_id, labeller, root)
     if not pre_path.is_file():
         return []
@@ -175,14 +201,22 @@ def review_errors(lecture_id: str, labeller: str, doc: dict[str, Any], manifest:
     shared = {r["window_index"] for r in manifest["windows"] if r["shared"]}
     logged: dict[int, dict[str, Any]] = {}
     for e in load_corrections(lecture_id, labeller, root):
-        logged[e["window_index"]] = e["after"]  # the latest correction of each window
+        logged[e["window_index"]] = e  # the latest correction of each window
     errors = []
     for i in sorted(set(pre) | set(cur)):
         if pre.get(i) == cur.get(i):
             continue
+        entry = logged.get(i)
         if i not in shared:
-            errors.append(f"window {i} changed after the review started; only shared windows may be corrected")
-        elif logged.get(i) != cur.get(i):
+            if entry is None or entry.get("amendment") != 4:
+                errors.append(f"window {i} changed after the review started; only shared windows may be corrected "
+                              "(or relations deleted or reversed under Amendment 4, logged with --amendment 4)")
+            elif entry["after"] != cur.get(i):
+                errors.append(f"window {i} differs from its last logged Amendment 4 correction; run log-correction "
+                              "--amendment 4 with the reason")
+            else:
+                errors.extend(f"window {i}: {msg}" for msg in relation_only_errors(pre.get(i), cur.get(i)))
+        elif entry is None or entry["after"] != cur.get(i):
             errors.append(f"window {i} differs from {pre_path.name} without a logged correction for its current "
                           "labels; run log-correction with the reason")
     return errors
@@ -195,8 +229,14 @@ def cmd_log_correction(a: argparse.Namespace) -> int:
         raise SystemExit(f"no {pre_path.name}: the review starts with `agreement` against the second annotator")
     if not a.reason.strip():
         raise SystemExit("a correction needs a reason")
-    if a.window not in {r["window_index"] for r in manifest["windows"] if r["shared"]}:
-        raise SystemExit(f"window {a.window} is not a shared window; only shared windows may be corrected")
+    if a.amendment == 4:
+        if a.lecture not in AMENDMENT4_LECTURES:
+            raise SystemExit(f"Amendment 4 applies only to {', '.join(sorted(AMENDMENT4_LECTURES))}")
+        if a.window not in {r["window_index"] for r in windows_for(manifest, a.labeller)}:
+            raise SystemExit(f"window {a.window} is not one of {a.labeller}'s gold windows")
+    elif a.window not in {r["window_index"] for r in manifest["windows"] if r["shared"]}:
+        raise SystemExit(f"window {a.window} is not a shared window; only shared windows may be corrected "
+                         "(Amendment 4 relation deletions or reversals: --amendment 4)")
     doc, _ = load_labels(a.lecture, a.labeller, a.labels_root)
     errors = validate_labels(doc, manifest, msha, a.labeller)
     if errors:
@@ -208,13 +248,19 @@ def cmd_log_correction(a: argparse.Namespace) -> int:
     after = _records(doc).get(a.window)
     if after == before:
         raise SystemExit(f"window {a.window} has not changed since its last logged state; edit it in serve first")
-    entries.append({"window_index": a.window, "reason": a.reason.strip(),
+    if a.amendment == 4:
+        problems = relation_only_errors(before, after)
+        if problems:
+            raise SystemExit(f"window {a.window}: " + "; ".join(problems))
+    entries.append({"window_index": a.window, "amendment": a.amendment, "reason": a.reason.strip(),
                     "at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"), "before": before, "after": after})
     path = corrections_path(a.lecture, a.labeller, a.labels_root)
     write_json(path, {"lecture_id": a.lecture, "labeller": a.labeller, "pre_review_sha256": sha256_file(pre_path),
-                      "rule": "ADR-0048 Amendment 3: corrections of clear errors after the inter-annotator review",
+                      "rule": "ADR-0048 Amendment 3: corrections of clear errors on shared windows after the "
+                              "inter-annotator review; Amendment 4: deleting or reversing invalid relations in any "
+                              "Day 4 gold window (entry `amendment`; entries without it are Amendment 3)",
                       "entries": entries})
-    print(f"logged correction {len(entries)} (window {a.window}) in {path}")
+    print(f"logged correction {len(entries)} (window {a.window}, Amendment {a.amendment}) in {path}")
     return 0
 
 
@@ -620,6 +666,9 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--labeller", default=DEFAULT_LABELLERS[0])
     s.add_argument("--window", type=int, required=True)
     s.add_argument("--reason", required=True)
+    s.add_argument("--amendment", type=int, choices=[3, 4], default=3,
+                   help="3: any correction on a shared window (default); 4: only deleting or reversing relations, "
+                        "on any Day 4 gold window")
     s.set_defaults(fn=cmd_log_correction)
     s = sub.add_parser("serve", help="label in the browser at http://127.0.0.1:<port>/")
     s.add_argument("--lecture", required=True)
