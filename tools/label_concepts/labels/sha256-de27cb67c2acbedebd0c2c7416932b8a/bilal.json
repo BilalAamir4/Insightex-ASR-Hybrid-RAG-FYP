@@ -5,7 +5,7 @@
   "kind": "human",
   "name": "bilal"
  },
- "sample_manifest_sha256": "c704f9b0567ba9b4310e753d7ca53b641a1eaeddac676f68b4037791a43b973c",
+ "sample_manifest_sha256": "50fe40c678c2d5dce17987b2ee3a0074ca5dbbffa4317d4f473beff7a928d72d",
  "windows": [
   {
    "window": {
@@ -303,13 +303,7 @@
      "aliases": []
     }
    ],
-   "relations": [
-    {
-     "head": "Batch Learning",
-     "type": "part_of",
-     "tail": "Problem With Batch Learning"
-    }
-   ],
+   "relations": [],
    "important": false,
    "cue": null
   },
@@ -330,13 +324,7 @@
      "aliases": []
     }
    ],
-   "relations": [
-    {
-     "head": "batch learning",
-     "type": "part_of",
-     "tail": "problem with Batch Learning"
-    }
-   ],
+   "relations": [],
    "important": false,
    "cue": null
   },

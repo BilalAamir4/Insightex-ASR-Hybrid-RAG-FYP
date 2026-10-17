@@ -2,7 +2,7 @@
  "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
  "labeller": "bilal",
  "pre_review_sha256": "94f15c4145e8a5da90ba9d40ff8cacf84780e25234426f8efea306ae823b891e",
- "rule": "ADR-0048 Amendment 3: corrections of clear errors after the inter-annotator review",
+ "rule": "ADR-0048 Amendment 3: corrections of clear errors on shared windows after the inter-annotator review; Amendment 4: deleting or reversing invalid relations in any Day 4 gold window (entry `amendment`; entries without it are Amendment 3)",
  "entries": [
   {
    "window_index": 2,
@@ -211,6 +211,114 @@
      },
      {
       "label": "Hardware Limitation",
+      "aliases": []
+     }
+    ],
+    "relations": [],
+    "important": false,
+    "cue": null
+   }
+  },
+  {
+   "window_index": 14,
+   "amendment": 4,
+   "reason": "part_of relation removed (Amendment 4): no relation type fits a concept and its own problem; reversed it is also false",
+   "at": "2026-10-17T19:45:13Z",
+   "before": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 14,
+     "start_s": 420.0,
+     "end_s": 450.0
+    },
+    "concepts": [
+     {
+      "label": "Problem With Batch Learning",
+      "aliases": []
+     },
+     {
+      "label": "Batch Learning",
+      "aliases": []
+     }
+    ],
+    "relations": [
+     {
+      "head": "Batch Learning",
+      "type": "part_of",
+      "tail": "Problem With Batch Learning"
+     }
+    ],
+    "important": false,
+    "cue": null
+   },
+   "after": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 14,
+     "start_s": 420.0,
+     "end_s": 450.0
+    },
+    "concepts": [
+     {
+      "label": "Problem With Batch Learning",
+      "aliases": []
+     },
+     {
+      "label": "Batch Learning",
+      "aliases": []
+     }
+    ],
+    "relations": [],
+    "important": false,
+    "cue": null
+   }
+  },
+  {
+   "window_index": 15,
+   "amendment": 4,
+   "reason": "part_of relation removed (Amendment 4): no relation type fits a concept and its own problem; reversed it is also false",
+   "at": "2026-10-17T19:45:13Z",
+   "before": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 15,
+     "start_s": 450.0,
+     "end_s": 480.0
+    },
+    "concepts": [
+     {
+      "label": "batch learning",
+      "aliases": []
+     },
+     {
+      "label": "problem with Batch Learning",
+      "aliases": []
+     }
+    ],
+    "relations": [
+     {
+      "head": "batch learning",
+      "type": "part_of",
+      "tail": "problem with Batch Learning"
+     }
+    ],
+    "important": false,
+    "cue": null
+   },
+   "after": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 15,
+     "start_s": 450.0,
+     "end_s": 480.0
+    },
+    "concepts": [
+     {
+      "label": "batch learning",
+      "aliases": []
+     },
+     {
+      "label": "problem with Batch Learning",
       "aliases": []
      }
     ],
