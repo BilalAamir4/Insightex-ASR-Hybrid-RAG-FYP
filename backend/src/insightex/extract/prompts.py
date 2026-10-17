@@ -29,10 +29,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from insightex.extract.extraction_schema import CUE_MAX, NAME_MAX, RELATION_TYPES
+from insightex.extract.extraction_schema import CUE_MAX, LIST_MAX, NAME_MAX, RELATION_TYPES
 
 USER_FORMAT_VERSION = 1
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2  # 2: concepts and relations capped at LIST_MAX items
 
 
 class PromptNotFrozen(Exception):
@@ -142,10 +142,10 @@ def extraction_format(target_indices: list[int]) -> dict[str, Any]:
         "required": ["window_index", "concepts", "relations", "important", "cue", "is_recap"],
         "properties": {
             "window_index": {"type": "integer", "enum": list(target_indices)},
-            "concepts": {"type": "array", "items": {
+            "concepts": {"type": "array", "maxItems": LIST_MAX, "items": {
                 "type": "object", "additionalProperties": False, "required": ["label", "aliases"],
                 "properties": {"label": _name(), "aliases": {"type": "array", "items": _name()}}}},
-            "relations": {"type": "array", "items": {
+            "relations": {"type": "array", "maxItems": LIST_MAX, "items": {
                 "type": "object", "additionalProperties": False, "required": ["head", "type", "tail"],
                 "properties": {"head": _name(), "type": {"type": "string", "enum": list(RELATION_TYPES)},
                                "tail": _name()}}},

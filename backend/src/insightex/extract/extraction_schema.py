@@ -27,6 +27,7 @@ SYMMETRIC_TYPES = frozenset({"contrasts_with"})
 PRODUCER_KINDS = ("human", "model")
 NAME_MAX = 200  # characters; labels, aliases, ids and names (matches $defs/nonblank)
 CUE_MAX = 300  # characters
+LIST_MAX = 10  # items; at most this many concepts, and this many relations, per window (ADR-0049)
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -117,6 +118,8 @@ def check_labels(rec: Any, where: str = "window") -> list[str]:
     if not isinstance(concepts, list):
         errors.append(f"{where}.concepts: must be a list")
         concepts = []
+    if len(concepts) > LIST_MAX:
+        errors.append(f"{where}.concepts: at most {LIST_MAX} items, got {len(concepts)}")
     for i, c in enumerate(concepts):
         cw = f"{where}.concepts[{i}]"
         if not _keys(c, cw, ("label", "aliases"), (), errors):
@@ -150,6 +153,8 @@ def check_labels(rec: Any, where: str = "window") -> list[str]:
     if not isinstance(relations, list):
         errors.append(f"{where}.relations: must be a list")
         relations = []
+    if len(relations) > LIST_MAX:
+        errors.append(f"{where}.relations: at most {LIST_MAX} items, got {len(relations)}")
     label_set = set(labels)
     seen_rel: set[tuple[str, str, str]] = set()
     for i, r in enumerate(relations):

@@ -59,8 +59,8 @@
       "required": ["window", "concepts", "relations", "important", "cue"],
       "properties": {
         "window": {"$ref": "#/$defs/window_ref"},
-        "concepts": {"type": "array", "items": {"$ref": "#/$defs/concept"}},
-        "relations": {"type": "array", "items": {"$ref": "#/$defs/relation"}},
+        "concepts": {"type": "array", "maxItems": 10, "items": {"$ref": "#/$defs/concept"}},
+        "relations": {"type": "array", "maxItems": 10, "items": {"$ref": "#/$defs/relation"}},
         "important": {"type": "boolean", "description": "true only for an explicit teacher signal (ADR-0048, docs/labelling/m7_concepts.md)"},
         "cue": {"description": "short English note of the cue when important is true; null otherwise"},
         "is_recap": {"type": "boolean", "description": "F20, Exploratory: optional, not labelled in gold, not gated"}

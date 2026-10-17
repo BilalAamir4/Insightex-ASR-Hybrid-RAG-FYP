@@ -89,3 +89,14 @@ Before the extraction prompt is frozen and C1 runs, the harness needed rules tha
 - **After the prompt freeze:** run `extract-eval measure --k 3 4 5` with the frozen prompt (its retry call). k is final only then. If `gate_refuses_real_fit` is flagged, lower that model's `token_estimate_scale`.
 - **New models or a new Ollama version:** when a model's digest or the Ollama version changes, re-measure the calibration factors, `num_ctx` and the reference VRAM peak, and repeat the debug-log layer check for Gemma.
 - **Production use (Session 3):** decide whether the production extraction stage reloads per call and keeps Gemma's draft model. Reload per call is an evaluation rule for reproducibility.
+
+## Amendment 1 (2026-10-18): at most 10 concepts and 10 relations per window
+
+Decided by Bilal on 2026-10-18, before version 1 of the extraction prompt ran. The text above is kept.
+
+- **The cap:** extraction schema v1 caps the `concepts` list and the `relations` list of a window record at 10 items each. It is set as `"maxItems": 10` in `extraction.schema.json` (both byte-identical copies) and as `LIST_MAX = 10` in `extraction_schema.py`, whose validator reports an 11th item as an error.
+- **The model's output:** the Ollama `format` the harness sends carries the same `maxItems`, so the model's constrained output can hold at most 10 of each (`FORMAT_VERSION` 2, which changes every request and so every reply-cache key).
+- **Schema version:** it stays 1. The change only tightens the schema, and the existing label files still validate (Day 4 gold has at most 3 concepts per window).
+- **Reason:** a hard bound on one record's size keeps the output-token budget of decision 1 meaningful, and stops a looping reply from growing a list without limit inside its `num_predict`.
+- **Effect:** a window with more than 10 genuine concepts would be cut to 10. No Day 4 gold window comes near that.
+

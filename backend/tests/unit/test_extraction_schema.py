@@ -46,3 +46,31 @@ def test_production_validator_rejects_a_dangling_relation():
     doc = model_output()
     doc["windows"][0]["relations"][0]["tail"] = "stochastic gradient descent"
     assert any("not the label of a concept" in e for e in es.check_document(doc))
+
+
+def test_concepts_and_relations_are_capped_at_list_max():
+    """At most LIST_MAX (10) concepts and 10 relations per window (ADR-0049); the JSON Schema says the same."""
+    schema = es.load_schema()
+    props = schema["$defs"]["window_record"]["properties"]
+    assert props["concepts"]["maxItems"] == props["relations"]["maxItems"] == es.LIST_MAX == 10
+    doc = model_output()
+    rec = doc["windows"][0]
+    rec["concepts"] = [{"label": f"concept {i}", "aliases": []} for i in range(10)]
+    rec["relations"] = [{"head": "concept 0", "type": "part_of", "tail": f"concept {i}"} for i in range(1, 10)]
+    rec["relations"].append({"head": "concept 1", "type": "part_of", "tail": "concept 2"})
+    assert es.check_document(doc) == []  # exactly 10 of each is allowed
+    rec["concepts"].append({"label": "concept 10", "aliases": []})
+    rec["relations"].append({"head": "concept 1", "type": "part_of", "tail": "concept 3"})
+    errors = es.check_document(doc)
+    assert any("concepts: at most 10 items, got 11" in e for e in errors)
+    assert any("relations: at most 10 items, got 11" in e for e in errors)
+    jsonschema = pytest.importorskip("jsonschema")
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(doc, schema)
+
+
+def test_model_output_format_carries_the_same_cap():
+    from insightex.extract.prompts import extraction_format
+
+    record = extraction_format([3, 4])["properties"]["windows"]["items"]
+    assert record["properties"]["concepts"]["maxItems"] == record["properties"]["relations"]["maxItems"] == 10
