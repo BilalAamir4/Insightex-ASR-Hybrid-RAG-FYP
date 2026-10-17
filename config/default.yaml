@@ -199,6 +199,7 @@ extract:                            # M7 extraction evaluation harness (ADR-0048
     "qwen3.5:latest": 0.68          # measured 0.625-0.647 over 9 synthetic prompts (docs/evidence/m7/session2b_vram_numctx.md)
     "gemma4:e4b": 0.64              # measured 0.543-0.602 over 18 synthetic prompts; unlisted models use 1.0 (uncalibrated)
   translate_num_predict: 1024       # tokens; output cap of one translation call
+  retry_error_chars: 1500           # characters; cap on the validation errors quoted in a retry message (Session 2b decision 3)
   evidence_dir: docs/evidence/m7    # run directories <evidence_dir>/<lecture_id>/<comparison>/<arm>/; relative = under the repo root
   measure_dir: docs/measurements/m7 # VRAM / num_ctx measurement reports; relative = under the repo root
   cache_dir: null                   # raw model replies and translations; null = <paths.data_dir>/eval_cache/m7. Never under /mnt/

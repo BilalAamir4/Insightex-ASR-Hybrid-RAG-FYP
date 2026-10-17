@@ -4,8 +4,14 @@ No prompt wording lives here. The instructions are the frozen files named in the
 prompt, the C4 context block and the C2 translation prompt), each used only when its sha256 equals the pinned value.
 This module only arranges data around them:
 
-- system message: the extraction prompt, followed by the context block when (and only when) the call carries
-  context. A call without context (C4 arm B on the lecture's first window) is therefore byte-identical to arm A's;
+- system message: the extraction prompt's instructions, followed by the context block when (and only when) the call
+  carries context. A call without context (C4 arm B on the lecture's first window) is therefore byte-identical to
+  arm A's;
+- retry (all arms): the same call again, in the same unit (a single window stays single, a batch stays a batch),
+  with one more user message: the retry template with the first attempt's validation errors in place of `{errors}`.
+  The template is the part of the extraction prompt file after a line that is exactly `<<<RETRY>>>`, so it is frozen
+  and hashed with the prompt; a prompt file without exactly one such line, or whose template does not contain
+  `{errors}` exactly once, is refused (Session 2b decision 3);
 - user message: one JSON object, `{"windows": [{"window_index", "text"}, ...]}`, plus
   `"context": [{"window_index", "precedes_window_index", "text"}, ...]` when the call has context;
 - `format`: the subset of extraction schema v1 the model fills, always `{"windows": [record, ...]}` with exactly one
@@ -54,6 +60,45 @@ def load_frozen(path: Path | None, pinned_sha256: str | None, what: str) -> Froz
     return FrozenText(path, digest, raw.decode("utf-8"))
 
 
+RETRY_MARKER = "<<<RETRY>>>"
+ERRORS_SLOT = "{errors}"
+
+
+def split_extraction_prompt(prompt: FrozenText) -> tuple[str, str]:
+    """(instructions, retry template) of an extraction prompt file; raises PromptNotFrozen if the retry section is
+    missing or malformed."""
+    lines = prompt.text.split("\n")
+    marks = [i for i, line in enumerate(lines) if line.strip() == RETRY_MARKER]
+    if len(marks) != 1:
+        raise PromptNotFrozen(f"the extraction prompt at {prompt.path} needs exactly one line `{RETRY_MARKER}` "
+                              f"followed by the retry template (found {len(marks)})")
+    instructions = "\n".join(lines[:marks[0]]).rstrip("\n") + "\n"
+    template = "\n".join(lines[marks[0] + 1:]).strip("\n")
+    if template.count(ERRORS_SLOT) != 1:
+        raise PromptNotFrozen(f"the retry template in {prompt.path} must contain {ERRORS_SLOT} exactly once")
+    return instructions, template
+
+
+def errors_text(errors: list[str], max_chars: int) -> str:
+    """The validation errors quoted in a retry message, one per line, cut at `max_chars` with a count of the rest."""
+    lines, used = [], 0
+    for i, e in enumerate(errors):
+        line = f"- {e}"
+        if used + len(line) + 1 > max_chars:
+            lines.append(f"- ... and {len(errors) - i} more")
+            break
+        lines.append(line)
+        used += len(line) + 1
+    return "\n".join(lines)
+
+
+def retry_messages(messages: list[dict[str, str]], prompt: FrozenText, errors: list[str],
+                   max_chars: int) -> list[dict[str, str]]:
+    """The first attempt's messages plus the retry template carrying its validation errors."""
+    _, template = split_extraction_prompt(prompt)
+    return [*messages, {"role": "user", "content": template.replace(ERRORS_SLOT, errors_text(errors, max_chars))}]
+
+
 def draft_text(path: Path) -> FrozenText:
     """An unpinned prompt (measurement only, before the freeze): read as is, hash recorded."""
     raw = path.read_bytes()
@@ -65,11 +110,12 @@ def sha256_text(text: str) -> str:
 
 
 def system_message(prompt: FrozenText, context_block: FrozenText | None, has_context: bool) -> str:
+    instructions, _ = split_extraction_prompt(prompt)
     if has_context:
         if context_block is None:
             raise PromptNotFrozen("a call with context needs the frozen context block")
-        return prompt.text.rstrip("\n") + "\n\n" + context_block.text
-    return prompt.text
+        return instructions.rstrip("\n") + "\n\n" + context_block.text
+    return instructions
 
 
 def extraction_messages(prompt: FrozenText, context_block: FrozenText | None, targets: list[tuple[int, str]],

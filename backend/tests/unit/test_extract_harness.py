@@ -52,7 +52,7 @@ class FakeClient:
 
     def chat(self, model, messages, format_schema, num_ctx, num_predict):
         user = json.loads(messages[1]["content"])
-        attempt = 1 + sum(1 for c in self.chats if c["messages"] == messages)
+        attempt = 2 if len(messages) == 3 else 1  # a retry carries one more user message (the retry template)
         self.chats.append({"model": model, "messages": messages, "format": format_schema, "user": user,
                            "num_ctx": num_ctx, "num_predict": num_predict})
         self.loaded.add(model)
@@ -80,6 +80,9 @@ class FakeLease:
         return contextlib.nullcontext()
 
 
+RETRY = "<<<RETRY>>>\nPLACEHOLDER RETRY. Errors:\n{errors}\nReply with valid JSON only.\n"
+
+
 def frozen(tmp_path: Path, name: str, text: str):
     p = tmp_path / name
     p.write_text(text, encoding="utf-8")
@@ -89,7 +92,7 @@ def frozen(tmp_path: Path, name: str, text: str):
 @pytest.fixture
 def setup(tmp_path):
     settings = load_settings()
-    prompts = h.Prompts(frozen(tmp_path, "prompt.txt", "PLACEHOLDER EXTRACTION PROMPT\n"),
+    prompts = h.Prompts(frozen(tmp_path, "prompt.txt", "PLACEHOLDER EXTRACTION PROMPT\n" + RETRY),
                         frozen(tmp_path, "context.txt", "PLACEHOLDER CONTEXT BLOCK\n"),
                         frozen(tmp_path, "translate.txt", "PLACEHOLDER TRANSLATION PROMPT\n"))
 
@@ -206,7 +209,7 @@ def test_cache_reuses_replies_and_keys_cover_settings_and_prompt(setup, tmp_path
     other = load_settings({"extract": {"num_ctx": settings.extract.num_ctx // 2}})
     h.run_arm(ctx(client, s=other), arm(), prompts, LECTURE, windows(2), [0, 1])
     assert len(client.chats) == 4
-    changed = h.Prompts(frozen(tmp_path, "prompt2.txt", "PLACEHOLDER v2\n"), None, None)
+    changed = h.Prompts(frozen(tmp_path, "prompt2.txt", "PLACEHOLDER v2\n" + RETRY), None, None)
     h.run_arm(ctx(client), arm(), changed, LECTURE, windows(2), [0, 1])
     assert len(client.chats) == 6
     h.run_arm(ctx(client), arm(model="other:tag"), prompts, LECTURE, windows(2), [0, 1])
@@ -317,14 +320,14 @@ def test_cli_run_with_fixture_windows_writes_evidence_the_scorer_reads(tmp_path,
     from insightex.extract import cli
 
     prompt = tmp_path / "prompt.txt"
-    prompt.write_text("PLACEHOLDER\n")
+    prompt.write_text("PLACEHOLDER\n" + RETRY)
     win_file = tmp_path / "windows.json"
     win_file.write_text(json.dumps({"schema_version": 2, "windows": [
         {"id": w.window_index, "start": w.start_s, "end": w.end_s, "text": w.text} for w in windows(3)]}))
     targets = tmp_path / "targets.json"
     targets.write_text("[0, 1, 2]")
     s = load_settings({"extract": {"prompt_file": str(prompt),
-                                   "prompt_sha256": hashlib.sha256(b"PLACEHOLDER\n").hexdigest()},
+                                   "prompt_sha256": hashlib.sha256(("PLACEHOLDER\n" + RETRY).encode()).hexdigest()},
                        "gpu": {"lease_enabled": False}})
     monkeypatch.setattr(cli, "load_settings", lambda: s)
     monkeypatch.setattr(cli, "VramSampler", lambda interval: VramSampler(interval, read=lambda: None))
@@ -380,7 +383,7 @@ def test_measurement_budget_gpu_share_and_cli(tmp_path, monkeypatch):
             return [{"name": m, "size": 1000, "size_vram": 900 if big else 1000} for m in sorted(self.loaded)]
 
     prompt = tmp_path / "draft.txt"
-    prompt.write_text("DRAFT PLACEHOLDER\n")
+    prompt.write_text("DRAFT PLACEHOLDER\n" + RETRY)
     block = tmp_path / "block.txt"
     block.write_text("BLOCK PLACEHOLDER\n")
     win_file = tmp_path / "windows.json"
@@ -468,3 +471,103 @@ def test_token_estimate_scale_must_be_in_unit_interval():
 
     with pytest.raises((ConfigError, ValueError)):
         load_settings({"extract": {"token_estimate_scale": {"m": 1.5}}})
+
+
+# -- retry in the same unit with the validation errors (Session 2b decision 3) ---------------------------------------
+
+
+def test_single_window_retry_carries_the_errors_in_the_frozen_template(setup):
+    _, prompts, ctx = setup
+
+    def respond(user, messages, attempt):
+        w = user["windows"][0]["window_index"]
+        bad = item(w, cue="cue without importance")  # invalid: a cue needs important = true
+        return json.dumps({"windows": [bad if attempt == 1 else item(w)]})
+
+    client = FakeClient(respond)
+    _, run = h.run_arm(ctx(client), arm(), prompts, LECTURE, windows(2), [0, 1])
+    assert len(client.chats) == 4  # each single-window call once, then once more as a single-window retry
+    first, retry = client.chats[0], client.chats[1]
+    assert retry["messages"][:2] == first["messages"] and len(retry["messages"]) == 3
+    note = retry["messages"][2]
+    assert note["role"] == "user" and note["content"].startswith("PLACEHOLDER RETRY. Errors:\n- ")
+    assert "cue" in note["content"] and note["content"].endswith("Reply with valid JSON only.")
+    assert "<<<RETRY>>>" not in first["messages"][0]["content"] and "PLACEHOLDER RETRY" not in first["messages"][0][
+        "content"]  # the system message is the instructions part only
+    assert [w["needed_retry"] for w in run["windows"]] == [True, True]
+    assert [w["attempt_used"] for w in run["windows"]] == [2, 2]
+    assert run["totals"]["needed_retry_windows"] == 2 and run["retry_error_chars"] == 1500
+
+
+def test_c3_retry_is_one_batch_call_not_single_window_calls(setup):
+    settings, prompts, ctx = setup
+
+    def respond(user, messages, attempt):
+        ws = [w["window_index"] for w in user["windows"]]
+        recs = [item(w, cue="cue without importance") if attempt == 1 and w == ws[1] else item(w) for w in ws]
+        return json.dumps({"windows": recs})
+
+    client = FakeClient(respond)
+    _, run = h.run_arm(ctx(client), arm(name="C3-batch", comparison="C3", batch_k=3), prompts, LECTURE, windows(3),
+                       [0, 1, 2])
+    assert len(client.chats) == 2  # one batch call and one batch retry; no single-window calls
+    retry = client.chats[1]
+    assert [w["window_index"] for w in retry["user"]["windows"]] == [0, 1, 2]  # the same batch
+    assert retry["num_predict"] == 3 * settings.extract.num_predict_per_window
+    assert retry["format"] == client.chats[0]["format"] and len(retry["messages"]) == 3
+    assert "window 1" in retry["messages"][2]["content"]  # only the failed window's errors are quoted
+    assert [w["needed_retry"] for w in run["windows"]] == [False, True, False]
+    assert [w["attempt_used"] for w in run["windows"]] == [1, 2, 1]  # windows 0 and 2 keep their first record
+
+
+def test_context_arm_retry_keeps_its_context(setup):
+    _, prompts, ctx = setup
+
+    def respond(user, messages, attempt):
+        w = user["windows"][0]["window_index"]
+        return json.dumps({"windows": [item(w, cue="x") if attempt == 1 else item(w)]})
+
+    client = FakeClient(respond)
+    h.run_arm(ctx(client), arm(name="C4-previous", comparison="C4", context="previous"), prompts, LECTURE,
+              windows(2), [1])
+    first, retry = client.chats
+    assert retry["user"] == first["user"] and "context" in retry["user"]
+    assert retry["messages"][0]["content"].endswith("PLACEHOLDER CONTEXT BLOCK\n")
+
+
+def test_prompt_without_a_valid_retry_section_is_refused(tmp_path):
+    from insightex.extract.prompts import split_extraction_prompt
+
+    for text in ("NO RETRY SECTION\n", "A\n<<<RETRY>>>\nno slot\n", "A\n<<<RETRY>>>\n{errors}\n<<<RETRY>>>\n{errors}\n",
+                 "A\n<<<RETRY>>>\n{errors} {errors}\n"):
+        with pytest.raises(PromptNotFrozen):
+            split_extraction_prompt(frozen(tmp_path, "p.txt", text))
+    ok = frozen(tmp_path, "p.txt", "Instructions.\n\n<<<RETRY>>>\nFix: {errors}\n")
+    assert split_extraction_prompt(ok) == ("Instructions.\n", "Fix: {errors}")
+    p = tmp_path / "noretry.txt"
+    p.write_text("NO RETRY SECTION\n")
+    s = load_settings({"extract": {"prompt_file": str(p), "prompt_sha256": hashlib.sha256(p.read_bytes()).hexdigest()}})
+    with pytest.raises(PromptNotFrozen, match="RETRY"):
+        h.load_prompts(s, arm())
+
+
+def test_retry_errors_are_capped():
+    from insightex.extract.prompts import errors_text
+
+    text = errors_text([f"window 1: error number {i} " + "x" * 40 for i in range(100)], 300)
+    assert len(text) <= 300 + len("- ... and 100 more") + 1 and text.endswith("more")
+    assert errors_text(["a", "b"], 300) == "- a\n- b"
+
+
+def test_measure_uses_the_retry_call_at_the_error_cap(tmp_path):
+    from insightex.extract.measure import case_messages, filler_errors, worst_case
+    from insightex.extract.prompts import draft_text
+
+    p = tmp_path / "draft.txt"
+    p.write_text("DRAFT\n" + RETRY)
+    ws = uneven_windows()
+    case = worst_case(ws, 3, False)
+    messages, _ = case_messages(case, {w.window_index: w for w in ws}, draft_text(p), None, 500)
+    assert len(messages) == 3 and messages[2]["content"].startswith("PLACEHOLDER RETRY")
+    assert messages[2]["content"].count("\n- ") >= 3 and messages[2]["content"].rstrip().endswith("JSON only.")
+    assert sum(len(e) for e in filler_errors(case.targets, 500)) > 500

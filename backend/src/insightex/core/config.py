@@ -343,6 +343,7 @@ class Extract(_Section):
     num_predict_per_window: int
     token_estimate_scale: dict[str, float]
     translate_num_predict: int
+    retry_error_chars: int
     evidence_dir: Path
     measure_dir: Path
     cache_dir: Path

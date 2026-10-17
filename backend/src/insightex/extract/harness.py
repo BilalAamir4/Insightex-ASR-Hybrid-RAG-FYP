@@ -13,8 +13,12 @@ One run:
    extraction call per planned call (ADR-0002 contract through `ollama_client.chat_raw`, JSON Schema `format`).
 4. Per target window: relations whose head or tail is not a concept label of the window are dropped and counted;
    the result is a full schema v1 record, checked by `check_window_record`. If any window of a call is invalid, the
-   same call is made once more and each still-invalid window takes its record from that retry if it is valid there
-   ("every window valid after one retry"). A truncated reply (done_reason length) is an invalid attempt.
+   call is retried once in the same unit (a single window stays single, a batch stays a batch, with the same
+   context): the first attempt's messages plus the frozen retry template carrying that attempt's validation errors
+   (prompts.retry_messages; Session 2b decision 3). Each still-invalid window takes its record from the retry if it is
+   valid there ("every window valid after one retry"); run.json records per window whether it needed the retry. A
+   truncated reply (done_reason length) is an invalid attempt. An identical re-send would be a replay: at
+   temperature 0 qwen3.5 returned byte-identical replies (docs/evidence/m7/session2b_vram_numctx.md).
    The output cap of a call is `extract.num_predict_per_window` times its number of target windows, so every window
    has the same output allowance in every arm (ADR-0048 decision 8; Session 2b decision 1).
 5. The model is unloaded in a `finally` block.
@@ -52,7 +56,9 @@ from insightex.extract.prompts import (
     extraction_format,
     extraction_messages,
     load_frozen,
+    retry_messages,
     sha256_text,
+    split_extraction_prompt,
     translation_messages,
 )
 from insightex.extract.vram import VramSampler
@@ -61,7 +67,7 @@ from insightex.llm.ollama_client import OutputTruncated
 
 log = logging.getLogger(__name__)
 
-HARNESS_VERSION = 2  # 2: num_predict per window (k x num_predict_per_window), calibrated budget estimate. Bump when request building or reply handling changes in a way that changes output
+HARNESS_VERSION = 3  # 3: retry carries the validation errors; 2: num_predict per window, calibrated estimate. Bump when request building or reply handling changes in a way that changes output
 RUN_VERSION = 1  # run.json layout (tools/label_concepts/scoring.py RUN_VERSION)
 RETRIES = 1  # ADR-0048 section 7: "valid after one retry"; a gate rule, not a tunable
 
@@ -117,8 +123,10 @@ class Prompts:
 
 def load_prompts(settings: Settings, arm: Arm) -> Prompts:
     x = settings.extract
+    extraction = load_frozen(x.prompt_file, x.prompt_sha256, "extraction prompt")
+    split_extraction_prompt(extraction)  # the retry template is part of the freeze; refuse a prompt without it
     return Prompts(
-        extraction=load_frozen(x.prompt_file, x.prompt_sha256, "extraction prompt"),
+        extraction=extraction,
         context_block=(load_frozen(x.context_block_file, x.context_block_sha256, "context block")
                        if arm.context == "previous" else None),
         translation=(load_frozen(x.translate_prompt_file, x.translate_prompt_sha256, "translation prompt")
@@ -402,9 +410,11 @@ def run_arm(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, window
                 systems.add(messages[0]["content"])
                 fmt = extraction_format(list(plan.targets))
                 pending = list(plan.targets)
+                sent = messages
                 for attempt in range(1, RETRIES + 2):
-                    entry = _cached_call(ctx, "extract", arm.model, digest, messages, fmt,
-                                         extraction_num_predict(ctx.settings, len(plan.targets)), attempt, {"targets": list(plan.targets), "context": [list(c) for c in plan.context]})
+                    entry = _cached_call(ctx, "extract", arm.model, digest, sent, fmt,
+                                         extraction_num_predict(ctx.settings, len(plan.targets)), attempt,
+                                         {"targets": list(plan.targets), "context": [list(c) for c in plan.context]})
                     parsed = parse_reply(entry["content"], entry["error"], plan, lecture_id, grid)
                     for t in pending:
                         errors[t].append(parsed[t].errors)
@@ -415,6 +425,9 @@ def run_arm(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, window
                     pending = [t for t in pending if not outcomes[t].valid]
                     if not pending:
                         break
+                    # retry in the same unit: the same targets and context, plus this attempt's validation errors
+                    sent = retry_messages(messages, prompts.extraction, [e for t in pending for e in parsed[t].errors],
+                                          ctx.settings.extract.retry_error_chars)
                 for t in pending:
                     attempts_used[t] = None
         finally:
@@ -446,7 +459,9 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
              if c["metrics"]]
     eval_n, eval_s = sum(n for n, _ in evals), sum(s for _, s in evals)
     worst = max(extract_calls, key=lambda c: c["metrics"].get("prompt_eval_count", 0), default=None)
+    # a window invalid on the first attempt has a second attempt's entry in `errors` (one list per attempt)
     windows = [{"window_index": t, "valid": outcomes[t].valid, "attempt_used": attempts_used.get(t),
+                "needed_retry": len(errors[t]) > 1,
                 "dropped_relations": outcomes[t].dropped_relations if outcomes[t].valid else 0,
                 "errors": errors[t]} for t in sorted(targets)]
     return {
@@ -467,13 +482,16 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
                     "token_estimate_scale": ctx.settings.extract.estimate_scale(arm.model)},
         "translate_num_predict": ctx.settings.extract.translate_num_predict if arm.input == "english" else None,
         "retries": RETRIES,
+        "retry_rule": "once, in the same unit as the first attempt, with the frozen retry template and its errors",
+        "retry_error_chars": ctx.settings.extract.retry_error_chars,
         "targets": sorted(targets),
         "plan": [{"targets": list(p.targets), "context": [list(c) for c in p.context]} for p in plans],
         "windows": windows,
         "totals": {
             "windows": len(targets),
             "invalid_windows": sum(1 for w in windows if not w["valid"]),
-            "retried_windows": sum(1 for w in windows if w["attempt_used"] == 2),
+            "retried_windows": sum(1 for w in windows if w["attempt_used"] == 2),  # recovered by the retry
+            "needed_retry_windows": sum(1 for w in windows if w["needed_retry"]),
             "dropped_relations": sum(w["dropped_relations"] for w in windows),
             "calls": len(calls), "cache_hits": len(calls) - len(fresh),
         },

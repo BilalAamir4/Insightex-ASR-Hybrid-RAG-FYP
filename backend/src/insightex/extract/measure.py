@@ -8,6 +8,9 @@ harness's own request builder (prompts.py), so the measured prompt is the one a 
 - k > 1: an upper bound, not a plan the harness would make: the k largest windows (by window tokens, or by window plus
   previous-window tokens with context), each carrying its own previous window as context.
 
+Every case is measured as its retry call, the largest prompt a run can send for it: the first attempt's messages plus
+the frozen retry template with validation errors filled to `extract.retry_error_chars` (Session 2b decision 3).
+
 Each case runs once per requested num_ctx with num_predict = `num_predict_per_window` x k (the harness's output cap,
 Session 2b decision 1): every resident model is unloaded, the VRAM baseline is sampled, one real call is made
 (`chat_raw`; the output may be truncated, which is recorded and does not stop the measurement), and `ollama ps` is
@@ -37,12 +40,13 @@ from insightex.extract.prompts import (
     FrozenText,
     extraction_format,
     extraction_messages,
+    retry_messages,
     sha256_text,
 )
 from insightex.extract.vram import VramSampler
 from insightex.llm.ollama_client import OutputTruncated, estimate_prompt_tokens, scaled_estimate
 
-MEASURE_VERSION = 2  # 2: num_predict per window x k, every case sent, calibrated-gate comparison
+MEASURE_VERSION = 3  # 3: the retry call (errors filled to the cap) is the measured prompt; 2: per-window num_predict
 
 
 def window_tokens(text: str) -> int:
@@ -77,10 +81,21 @@ def worst_case(windows: list[WindowText], k: int, context: bool) -> Case:
     return Case(k, context, tuple(chosen), pairs, note)
 
 
-def case_messages(case: Case, grid: dict[int, WindowText], prompt: FrozenText,
-                  context_block: FrozenText | None) -> tuple[list[dict[str, str]], dict[str, Any]]:
+def filler_errors(targets: tuple[int, ...], max_chars: int) -> list[str]:
+    """Synthetic validation errors at least `max_chars` long, so the retry message is at its cap."""
+    out: list[str] = []
+    while sum(len(e) + 3 for e in out) <= max_chars:
+        t = targets[len(out) % len(targets)]
+        out.append(f"window {t}: relation head is not a concept label of the window; the cue must be empty unless "
+                   f"the window is marked important (error {len(out) + 1})")
+    return out
+
+
+def case_messages(case: Case, grid: dict[int, WindowText], prompt: FrozenText, context_block: FrozenText | None,
+                  retry_error_chars: int) -> tuple[list[dict[str, str]], dict[str, Any]]:
     messages = extraction_messages(prompt, context_block, [(t, grid[t].text) for t in case.targets],
                                    [(c, p, grid[c].text) for c, p in case.context_pairs])
+    messages = retry_messages(messages, prompt, filler_errors(case.targets, retry_error_chars), retry_error_chars)
     return messages, extraction_format(list(case.targets))
 
 
@@ -145,7 +160,7 @@ def run_measurement(settings: Settings, client: ModelClient, lease: Callable[[st
         for k in ks:
             for with_context in contexts:
                 case = worst_case(windows, k, with_context)
-                messages, fmt = case_messages(case, grid, prompt, context_block)
+                messages, fmt = case_messages(case, grid, prompt, context_block, settings.extract.retry_error_chars)
                 runs = [measure_case(client, model, messages, fmt, n, num_predict_per_window * k, sampler_factory(),
                                      settings.extract.estimate_scale(model)) for n in num_ctxs]
                 cases.append({"k": k, "context": with_context, "targets": list(case.targets),
@@ -168,6 +183,8 @@ def run_measurement(settings: Settings, client: ModelClient, lease: Callable[[st
         "ollama_options": {"temperature": settings.ollama.temperature, "seed": settings.ollama.seed,
                            "think": settings.ollama.think},
         "num_predict_per_window": num_predict_per_window,
+        "measured_prompt": "the retry call: first attempt + retry template with errors at retry_error_chars",
+        "retry_error_chars": settings.extract.retry_error_chars,
         "token_estimate_scale": settings.extract.estimate_scale(model),
         "rule": "passes = real prompt_eval_count + num_predict <= num_ctx and ollama ps 100% GPU (ADR-0048 s8, "
                 "Amendment 2; ADR-0002 budget rule); num_predict = num_predict_per_window x k",

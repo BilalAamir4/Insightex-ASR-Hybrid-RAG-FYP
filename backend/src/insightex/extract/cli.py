@@ -84,7 +84,8 @@ def _run(settings: Settings, args: argparse.Namespace, client: h.ModelClient | N
     doc, run = h.run_arm(ctx, arm, prompts, args.lecture, windows, targets)
     h.write_evidence(out, doc, run, ctx.calls_log)
     t = run["totals"]
-    print(f"{arm.name}: {t['windows']} windows, {t['invalid_windows']} invalid, {t['retried_windows']} retried, "
+    print(f"{arm.name}: {t['windows']} windows, {t['invalid_windows']} invalid, {t['needed_retry_windows']} needed "
+          f"the retry ({t['retried_windows']} recovered by it), "
           f"{t['dropped_relations']} dangling relations dropped; {t['calls']} calls ({t['cache_hits']} from cache)")
     print(f"wrote {out}")
     return 0
