@@ -187,8 +187,8 @@ retrieval:                          # query side (M5): docs/adr/0043-*.md
 
 extract:                            # M7 extraction evaluation harness (ADR-0048, Amendment 2); `insightex extract-eval`
   arms_file: config/m7_arms.yaml    # arms C1 to C4: model, input language, batch size k, previous-window context
-  prompt_file: null                 # frozen extraction system prompt; null until the Session 2b freeze (runs refuse without it)
-  prompt_sha256: null               # pinned sha256 of prompt_file; any other hash refuses the run (ADR-0048 prompt freeze)
+  prompt_file: config/prompts/m7_extraction_v1.txt  # extraction prompt (system prompt + <<<RETRY>>> template); Session 2b version 1, not yet the freeze
+  prompt_sha256: d2a50e58ac5cb630e69516d59d537d9574de18ec926c187826434bafa696f6a8  # pinned sha256 of prompt_file; any other hash refuses the run (ADR-0048 prompt freeze)
   context_block_file: null          # C4 arm B: fixed "previous window, reference only" block appended to the prompt
   context_block_sha256: null        # pinned sha256 of context_block_file
   translate_prompt_file: null       # C2 arm B: fixed per-window English translation prompt (ADR-0041)

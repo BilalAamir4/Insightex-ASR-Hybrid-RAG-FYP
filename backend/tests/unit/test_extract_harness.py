@@ -284,7 +284,10 @@ def test_prompt_freeze_is_enforced(tmp_path):
         load_frozen(p, "0" * 64, "extraction prompt")
     assert draft_text(p).sha256 == hashlib.sha256(b"x").hexdigest()
     with pytest.raises(PromptNotFrozen):
-        h.load_prompts(load_settings(), arm())  # the shipped config has no frozen prompt yet
+        h.load_prompts(load_settings({"extract": {"prompt_file": None, "prompt_sha256": None}}), arm())
+    shipped = load_settings().extract  # the configured prompt file must have its pinned sha256
+    if shipped.prompt_file is not None:
+        assert h.load_prompts(load_settings(), arm()).extraction.sha256 == shipped.prompt_sha256
 
 
 def test_targets_from_sample_manifest_are_checked_against_the_grid(tmp_path):
