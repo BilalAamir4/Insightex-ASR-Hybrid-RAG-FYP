@@ -1,0 +1,193 @@
+{
+ "schema_version": 1,
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "producer": {
+  "kind": "human",
+  "name": "fatima"
+ },
+ "sample_manifest_sha256": "50fe40c678c2d5dce17987b2ee3a0074ca5dbbffa4317d4f473beff7a928d72d",
+ "windows": [
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 2,
+    "start_s": 60.0,
+    "end_s": 90.0
+   },
+   "concepts": [
+    {
+     "label": "production environment",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 4,
+    "start_s": 120.0,
+    "end_s": 150.0
+   },
+   "concepts": [
+    {
+     "label": "batch learning",
+     "aliases": [
+      "Offline Learning"
+     ]
+    },
+    {
+     "label": "Types Of Machine Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "batch learning",
+     "type": "part_of",
+     "tail": "Types Of Machine Learning"
+    }
+   ],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 8,
+    "start_s": 240.0,
+    "end_s": 270.0
+   },
+   "concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 9,
+    "start_s": 270.0,
+    "end_s": 300.0
+   },
+   "concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 11,
+    "start_s": 330.0,
+    "end_s": 360.0
+   },
+   "concepts": [
+    {
+     "label": "Problem with Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 13,
+    "start_s": 390.0,
+    "end_s": 420.0
+   },
+   "concepts": [
+    {
+     "label": "Problem with Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 16,
+    "start_s": 480.0,
+    "end_s": 510.0
+   },
+   "concepts": [
+    {
+     "label": "Disadvantages Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 17,
+    "start_s": 510.0,
+    "end_s": 540.0
+   },
+   "concepts": [
+    {
+     "label": "Disadvantages Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 19,
+    "start_s": 570.0,
+    "end_s": 600.0
+   },
+   "concepts": [
+    {
+     "label": "Disadvantages Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 21,
+    "start_s": 630.0,
+    "end_s": 660.0
+   },
+   "concepts": [
+    {
+     "label": "Disadvantages Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  }
+ ]
+}

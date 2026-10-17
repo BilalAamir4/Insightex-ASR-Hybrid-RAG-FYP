@@ -1,0 +1,270 @@
+{
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "a": "bilal",
+ "b": "fatima",
+ "sample_manifest_sha256": "50fe40c678c2d5dce17987b2ee3a0074ca5dbbffa4317d4f473beff7a928d72d",
+ "inputs": {
+  "bilal": {
+   "path": "labels/sha256-de27cb67c2acbedebd0c2c7416932b8a/bilal_pre_review.json",
+   "sha256": "94f15c4145e8a5da90ba9d40ff8cacf84780e25234426f8efea306ae823b891e"
+  },
+  "fatima": {
+   "path": "labels/sha256-de27cb67c2acbedebd0c2c7416932b8a/fatima.json",
+   "sha256": "91fb58b16cda8bba3c153501344c8cf4b5c5e5fc9e6578ededa61c5ff84ab7b0"
+  }
+ },
+ "adjudications": null,
+ "rule": "ADR-0048 concept and relation matching",
+ "per_window": [
+  {
+   "window_index": 2,
+   "start_s": 60.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Production"
+   ],
+   "only_b": [
+    "production environment"
+   ]
+  },
+  {
+   "window_index": 4,
+   "start_s": 120.0,
+   "concepts_a": 2,
+   "concepts_b": 2,
+   "concepts_matched": 1,
+   "concept_f1": 0.5,
+   "relations_a": 1,
+   "relations_b": 1,
+   "relations_matched": 0,
+   "relation_f1": 0.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [
+    {
+     "b": "batch learning",
+     "a": "Batch Learning",
+     "by": "string"
+    }
+   ],
+   "only_a": [
+    "Online Learning"
+   ],
+   "only_b": [
+    "Types Of Machine Learning"
+   ]
+  },
+  {
+   "window_index": 8,
+   "start_s": 240.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 1,
+   "concept_f1": 1.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [
+    {
+     "b": "Batch Learning",
+     "a": "Batch Learning",
+     "by": "string"
+    }
+   ],
+   "only_a": [],
+   "only_b": []
+  },
+  {
+   "window_index": 9,
+   "start_s": 270.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 1,
+   "concept_f1": 1.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [
+    {
+     "b": "Batch Learning",
+     "a": "Batch Learning",
+     "by": "string"
+    }
+   ],
+   "only_a": [],
+   "only_b": []
+  },
+  {
+   "window_index": 11,
+   "start_s": 330.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "batch learning"
+   ],
+   "only_b": [
+    "Problem with Batch Learning"
+   ]
+  },
+  {
+   "window_index": 13,
+   "start_s": 390.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Problem Of Batch Learning"
+   ],
+   "only_b": [
+    "Problem with Batch Learning"
+   ]
+  },
+  {
+   "window_index": 16,
+   "start_s": 480.0,
+   "concepts_a": 2,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 1,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 0.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Disadvantages Of Batch ML",
+    "Lots Of Data"
+   ],
+   "only_b": [
+    "Disadvantages Of Batch Learning"
+   ]
+  },
+  {
+   "window_index": 17,
+   "start_s": 510.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Hardware Limitation"
+   ],
+   "only_b": [
+    "Disadvantages Of Batch Learning"
+   ]
+  },
+  {
+   "window_index": 19,
+   "start_s": 570.0,
+   "concepts_a": 3,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 2,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 0.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Batch Learning",
+    "Availability",
+    "Hardware Limitation"
+   ],
+   "only_b": [
+    "Disadvantages Of Batch Learning"
+   ]
+  },
+  {
+   "window_index": 21,
+   "start_s": 630.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Availability"
+   ],
+   "only_b": [
+    "Disadvantages Of Batch Learning"
+   ]
+  }
+ ],
+ "micro": {
+  "windows": 10,
+  "concept": {
+   "tp": 3,
+   "pred": 11,
+   "ref": 14,
+   "precision": 0.2727272727272727,
+   "recall": 0.21428571428571427,
+   "f1": 0.24
+  },
+  "relation": {
+   "tp": 0,
+   "pred": 1,
+   "ref": 4,
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0
+  },
+  "important": {
+   "tp": 0,
+   "pred": 0,
+   "ref": 0,
+   "precision": null,
+   "recall": null,
+   "agreement": 1.0
+  }
+ }
+}
