@@ -10,9 +10,17 @@ Standalone: imports nothing from backend/. Rules for labellers: docs/labelling/m
   python label_concepts.py agreement --lecture <id> --a <name> --b <name> [--adjudications FILE]
   python label_concepts.py merge     --lecture <id>
 
+Session 2 (scoring model runs written by `insightex extract-eval run`; scoring.py, adjudication.py):
+
+  python label_concepts.py adjudication-sheet --lecture <id> --comparison C1 --arm NAME=RUN_DIR ... [--seed N]
+  python label_concepts.py adjudicate         --lecture <id> --sheet FILE [--by bilal]
+  python label_concepts.py score              --lecture <id> --arm NAME=RUN_DIR ... [--out FILE]
+  python label_concepts.py compare            --lecture <id> --comparison C1 --a NAME=RUN_DIR --b NAME=RUN_DIR
+                                              [--out FILE]
+
 Files live in tools/label_concepts/labels/<lecture_id>/: sample.json (the manifest), <labeller>.json (labels, one
 extraction document per labeller; <labeller>_repeat.json for the blind repeat of the shared windows),
-agreement_<a>_<b>.json, gold.json.
+agreement_<a>_<b>.json, gold.json, adjudications.json (append-only), adjudication_sheets/<comparison>-<time>.json.
 """
 
 from __future__ import annotations
@@ -303,6 +311,169 @@ def cmd_merge(a: argparse.Namespace) -> int:
     return 0
 
 
+# -- Session 2: adjudication, scoring, comparison -------------------------------------------------------------------
+
+
+def gold_path(lecture_id: str, root: Path | None = None) -> Path:
+    return lecture_dir(lecture_id, root) / "gold.json"
+
+
+def adjudications_path(lecture_id: str, root: Path | None = None) -> Path:
+    return lecture_dir(lecture_id, root) / "adjudications.json"
+
+
+def load_arms(specs: list[str]) -> list[Any]:
+    from scoring import load_arm_run, parse_arm
+
+    arms = [load_arm_run(*parse_arm(s)) for s in specs]
+    if len({a.name for a in arms}) != len(arms):
+        raise SystemExit("arm names must differ")
+    return arms
+
+
+def consistency(lecture_id: str, root: Path | None = None) -> dict[str, Any]:
+    """ADR-0048 Amendment 1/2: single-annotator intra-rater consistency, `<labeller>` (finished) against
+    `<labeller>_repeat` on the shared windows, string rule only. Never an inter-annotator ceiling."""
+    manifest, msha = load_manifest(lecture_id, root)
+    if len(manifest["labellers"]) != 1:
+        return {"available": False, "reason": "two-labeller manifest: use `agreement` for the human ceiling"}
+    name = manifest["labellers"][0]
+    docs = {}
+    for lab in (name, f"{name}_repeat"):
+        path = lecture_dir(lecture_id, root) / f"{lab}.json"
+        if not path.is_file():
+            return {"available": False, "reason": f"{path.name} does not exist yet"}
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        errors = validate_labels(doc, manifest, msha, lab)
+        if errors:
+            return {"available": False, "reason": f"{path.name} is invalid or incomplete ({len(errors)} problem(s))"}
+        docs[lab] = (doc, sha256_file(path))
+    result = agreement(docs[name][0], docs[f"{name}_repeat"][0], manifest, None)
+    return {
+        "available": True,
+        "kind": f"single-annotator intra-rater consistency ({name} vs {name}_repeat, string rule only); not an "
+                "inter-annotator ceiling",
+        "windows": [w["window_index"] for w in result["per_window"]],
+        "concept_f1": result["micro"]["concept"]["f1"],
+        "inputs_sha256": {lab: sha for lab, (_, sha) in docs.items()},
+    }
+
+
+def score_report(lecture_id: str, arms: list[Any], root: Path | None) -> dict[str, Any]:
+    from matching import load_adjudications
+    from scoring import adjudications_summary, load_gold, micro_string_f1_on, score_arm
+
+    gpath, apath = gold_path(lecture_id, root), adjudications_path(lecture_id, root)
+    gold = load_gold(gpath, lecture_id)
+    adj = load_adjudications(apath, lecture_id) if apath.is_file() else {}
+    scores = [score_arm(arm, gold, adj) for arm in arms]
+    cons = consistency(lecture_id, root)
+    shared = set(cons.get("windows", []))
+    headline = {  # ADR-0048 section 6: the consistency figure sits only next to string-rule-only model F1
+        "note": "string rule only on both sides; the adjudicated F1 is never compared with this figure. Gold is "
+                "single-annotator (ADR-0048 Amendment 1).",
+        "consistency": cons,
+        "model_string_rule_concept_f1": {s["name"]: s["string_rule"]["micro"]["concept"]["f1"] for s in scores},
+        "model_string_rule_concept_f1_on_consistency_windows": (
+            {s["name"]: micro_string_f1_on(s, shared) for s in scores} if shared else None),
+    }
+    return {
+        "lecture_id": lecture_id,
+        "gold": {"path": str(gpath), "sha256": sha256_file(gpath), "windows": len(gold["windows"])},
+        "adjudications": adjudications_summary(apath),
+        "headline_string_rule": headline,
+        "arms": scores,
+    }
+
+
+def print_score(s: dict[str, Any]) -> None:
+    v = s["validity"]
+    state = "VALID" if v["valid"] else f"INVALID (invalid {v['invalid_windows']}, missing {v['missing_windows']})"
+    print(f"arm {s['name']}: {state}; retried windows {len(v['retried_windows'])}; "
+          f"dropped relations {s['dropped_relations']}")
+    for part, title in (("adjudicated", "adjudicated (primary)"), ("string_rule", "string rule only")):
+        c = s[part]["micro"]["concept"]
+        print(f"  concept {title}: tp {c['tp']} pred {c['pred']} gold {c['ref']}; P {fmt_ratio(c['precision'])} "
+              f"R {fmt_ratio(c['recall'])} F1 {c['f1']:.3f}")
+    print(f"  pending adjudication: {s['adjudicated']['pending']}")
+    r, imp = s["adjudicated"]["micro"]["relation"], s["adjudicated"]["micro"]["important"]
+    print(f"  relation (adjudicated mapping): P {fmt_ratio(r['precision'])} R {fmt_ratio(r['recall'])} F1 "
+          f"{r['f1']:.3f}; important: P {fmt_ratio(imp['precision'])} R {fmt_ratio(imp['recall'])}")
+
+
+def default_report_path(arms: list[Any], name: str) -> Path:
+    return arms[0].directory.parent / name
+
+
+def cmd_score(a: argparse.Namespace) -> int:
+    arms = load_arms(a.arm)
+    report = score_report(a.lecture, arms, a.labels_root)
+    for s in report["arms"]:
+        print_score(s)
+    h = report["headline_string_rule"]
+    cons = h["consistency"]
+    print("string rule only, next to the consistency figure:")
+    for name, f in h["model_string_rule_concept_f1"].items():
+        print(f"  {name}: model concept F1 {f:.3f}")
+    print(f"  consistency (single annotator): {cons['concept_f1']:.3f} on {len(cons['windows'])} windows"
+          if cons["available"] else f"  consistency: not available ({cons['reason']})")
+    out = Path(a.out) if a.out else default_report_path(arms, "score.json")
+    write_json(out, report)
+    print(f"wrote {out}")
+    return 0
+
+
+def cmd_compare(a: argparse.Namespace) -> int:
+    from scoring import compare
+
+    arms = load_arms([a.a, a.b])
+    report = score_report(a.lecture, arms, a.labels_root)
+    result = compare(a.comparison, report["arms"][0], report["arms"][1])
+    for s in report["arms"]:
+        print_score(s)
+    print(f"{a.comparison}: A = {result['arm_a']}, B = {result['arm_b']}; wins A {result['wins_a']}, B "
+          f"{result['wins_b']}, ties {result['ties']}; net for B {result['net_wins_b']}; micro F1 A "
+          f"{result['micro_concept_f1_a']:.3f}, B {result['micro_concept_f1_b']:.3f}")
+    print(f"decision: {result['decision']} ({result['reason']})")
+    out = Path(a.out) if a.out else default_report_path(arms, f"compare_{a.comparison}.json")
+    write_json(out, {**report, "comparison": result})
+    print(f"wrote {out}")
+    return 0
+
+
+def cmd_adjudication_sheet(a: argparse.Namespace) -> int:
+    from adjudication import build_sheet
+    from matching import load_adjudications
+    from scoring import load_gold
+
+    arms = load_arms(a.arm)
+    gpath, apath = gold_path(a.lecture, a.labels_root), adjudications_path(a.lecture, a.labels_root)
+    gold = load_gold(gpath, a.lecture)
+    adj = load_adjudications(apath, a.lecture) if apath.is_file() else {}
+    sheet = build_sheet(a.lecture, a.comparison, gold, sha256_file(gpath), arms, adj, a.seed)
+    stamp = sheet["created_at"].replace("-", "").replace(":", "")
+    out = lecture_dir(a.lecture, a.labels_root) / "adjudication_sheets" / f"{a.comparison}-{stamp}.json"
+    if out.exists():
+        raise SystemExit(f"{out} exists")
+    write_json(out, sheet)
+    print(f"wrote {out}: {len(sheet['entries'])} entries to decide (seed {sheet['seed']}); "
+          f"{len(adj)} earlier decisions reused")
+    print(f"decide them with: label_concepts.py adjudicate --lecture {a.lecture} --sheet {out}")
+    return 0
+
+
+def cmd_adjudicate(a: argparse.Namespace) -> int:
+    from adjudication import check_sheet, load_sheet, record_decisions
+
+    sheet, ssha = load_sheet(Path(a.sheet))
+    gpath = gold_path(a.lecture, a.labels_root)
+    check_sheet(sheet, a.lecture, sha256_file(gpath))
+    counts = record_decisions(sheet, ssha, adjudications_path(a.lecture, a.labels_root), a.by)
+    print(f"\nrecorded {counts['match']} match, {counts['no_match']} no-match; skipped {counts['skipped']}; "
+          f"{counts['remaining']} still undecided")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--data-dir", help="Insightex data directory (default $INSIGHTEX_DATA or ~/insightex-data)")
@@ -347,6 +518,30 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("merge", help="write gold.json (one labeller: their file alone; else consensus + own windows)")
     s.add_argument("--lecture", required=True)
     s.set_defaults(fn=cmd_merge)
+    s = sub.add_parser("adjudication-sheet", help="blind sheet of the model concepts the string rule left unmatched, "
+                       "pooled over the arms of one comparison")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--comparison", required=True, help="C1, C2, C3 or C4")
+    s.add_argument("--arm", action="append", required=True, metavar="NAME=RUN_DIR", help="repeat for every arm")
+    s.add_argument("--seed", type=int, help="shuffle seed (default: random; always recorded in the sheet)")
+    s.set_defaults(fn=cmd_adjudication_sheet)
+    s = sub.add_parser("adjudicate", help="decide the sheet's entries in the terminal (appended to adjudications.json)")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--sheet", required=True)
+    s.add_argument("--by", default=DEFAULT_LABELLERS[0], help="who decides (recorded per entry)")
+    s.set_defaults(fn=cmd_adjudicate)
+    s = sub.add_parser("score", help="score model runs against gold.json (validity, P/R/F1, consistency figure)")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--arm", action="append", required=True, metavar="NAME=RUN_DIR")
+    s.add_argument("--out", help="report file (default: score.json next to the first run directory)")
+    s.set_defaults(fn=cmd_score)
+    s = sub.add_parser("compare", help="ADR-0048 section 7 decision between arm A (kept on a tie) and arm B")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--comparison", required=True, choices=["C1", "C2", "C3", "C4"])
+    s.add_argument("--a", required=True, metavar="NAME=RUN_DIR", help="arm A, kept on a tie")
+    s.add_argument("--b", required=True, metavar="NAME=RUN_DIR")
+    s.add_argument("--out", help="report file (default: compare_<comparison>.json next to arm A's run directory)")
+    s.set_defaults(fn=cmd_compare)
     a = p.parse_args(argv)
     return a.fn(a)
 

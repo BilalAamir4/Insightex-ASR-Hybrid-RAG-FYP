@@ -55,3 +55,28 @@ def labels(concepts=(), relations=(), important=False, cue=None) -> dict[str, An
 def record(lecture_id: str, index: int, start: float, end: float, **kw: Any) -> dict[str, Any]:
     return {"window": {"lecture_id": lecture_id, "window_index": index, "start_s": start, "end_s": end},
             **labels(**kw)}
+
+
+def gold_doc(lecture_id: str, records: list[dict[str, Any]]) -> dict[str, Any]:
+    return {"schema_version": 1, "lecture_id": lecture_id, "producer": {"kind": "human", "name": "gold: test"},
+            "windows": records}
+
+
+def write_run(directory: Path, lecture_id: str, name: str, records: list[dict[str, Any]],
+              invalid: tuple[int, ...] = (), dropped: dict[int, int] | None = None,
+              retried: tuple[int, ...] = ()) -> Path:
+    """A synthetic arm run as the extraction harness writes it: extraction.json (valid records only) + run.json."""
+    directory.mkdir(parents=True, exist_ok=True)
+    valid = [r for r in records if r["window"]["window_index"] not in invalid]
+    doc = {"schema_version": 1, "lecture_id": lecture_id, "producer": {"kind": "model", "name": name},
+           "windows": valid}
+    run = {"run_version": 1, "lecture_id": lecture_id, "arm": {"name": name}, "prompt_sha256": "0" * 64,
+           "windows": [{"window_index": r["window"]["window_index"],
+                        "valid": r["window"]["window_index"] not in invalid,
+                        "attempt_used": None if r["window"]["window_index"] in invalid
+                        else 2 if r["window"]["window_index"] in retried else 1,
+                        "dropped_relations": (dropped or {}).get(r["window"]["window_index"], 0)}
+                       for r in records]}
+    (directory / "extraction.json").write_text(json.dumps(doc), encoding="utf-8")
+    (directory / "run.json").write_text(json.dumps(run), encoding="utf-8")
+    return directory

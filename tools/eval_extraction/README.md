@@ -2,12 +2,6 @@
 
 **Purpose:** Evaluation of LLM concept extraction quality.
 
-**How to run:** Not written yet.
+**Where it lives:** the M7 scorer and the blind adjudication sheet were built inside `tools/label_concepts/` (Session 2a, 17 Oct 2026) because they reuse its matching code and gold files: `label_concepts.py score|compare|adjudication-sheet|adjudicate` (`scoring.py`, `adjudication.py`). The model runs they score are written by `insightex extract-eval run` (`backend/src/insightex/extract/`). See `tools/label_concepts/README.md`.
 
-**Inputs:** Extraction output in schema v1 (`backend/src/insightex/extract/extraction.schema.json`, ADR-0048) and the gold files from `tools/label_concepts/labels/`. Matching and metrics: ADR-0048, implemented in `tools/label_concepts/matching.py`.
-
-**Outputs:** Quality report.
-
-**Status:** Planned. Extraction quality is provisional pending human inspection (see `docs/adr/0002-ollama-call-contract.md`, open items for M7).
-
-Standalone tool: it must not import from `backend/`.
+This folder holds nothing else yet.
