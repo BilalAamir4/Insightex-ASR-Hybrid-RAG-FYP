@@ -1,0 +1,276 @@
+{
+ "measure_version": 3,
+ "created_at": "2026-10-17T22:58:07Z",
+ "lecture_id": "synthetic-day4-shape",
+ "windows_in_lecture": 23,
+ "model": "qwen3.5:latest",
+ "model_digest": "44a38603922e14f1e3ae68c5d900cc39f2a925a9749d12ab6d268d75a01a399f",
+ "prompt": {
+  "path": "docs/measurements/m7/synthetic/placeholder_prompt_retry.txt",
+  "sha256": "c45d0efec3e3af35375d7b70c3c737951d4e60b917aa1729484725a56ee263d9",
+  "frozen": false
+ },
+ "context_block_sha256": null,
+ "ollama_options": {
+  "temperature": 0.0,
+  "seed": 42,
+  "think": false,
+  "keep_alive": 0
+ },
+ "num_predict_per_window": 1024,
+ "measured_prompt": "the retry call: first attempt + retry template with errors at retry_error_chars",
+ "retry_error_chars": 1500,
+ "token_estimate_scale": 0.68,
+ "rule": "passes = real prompt_eval_count + num_predict <= num_ctx and ollama ps 100% GPU (ADR-0048 s8, Amendment 2; ADR-0002 budget rule); num_predict = num_predict_per_window x k",
+ "cases": [
+  {
+   "k": 1,
+   "context": false,
+   "targets": [
+    18
+   ],
+   "context_windows": [],
+   "note": "largest window",
+   "window_tokens_estimated": {
+    "18": 271
+   },
+   "system_message_sha256": "e74bdfaaae5ed27f2bf626930840e8c94d85219fc034f423ee35708b011c9a2c",
+   "runs": [
+    {
+     "num_ctx": 8192,
+     "num_predict": 1024,
+     "estimated_prompt_tokens": 2265,
+     "token_estimate_scale": 0.68,
+     "gate_estimated_prompt_tokens": 1541,
+     "gate_allows": true,
+     "sent": true,
+     "truncated": false,
+     "prompt_eval_count": 1537,
+     "estimate_over_real": 1.4736499674690957,
+     "eval_count": 38,
+     "tokens_per_sec": 45.38185848264562,
+     "load_duration_s": 3.8550534,
+     "prompt_near_ctx_limit": false,
+     "ollama_ps": {
+      "size": 5628493822,
+      "size_vram": 5628493822,
+      "gpu_pct": 100.0,
+      "processor": "100% GPU",
+      "context_length": 8192
+     },
+     "vram": {
+      "baseline_mib": 1358,
+      "peak_mib": 7732,
+      "peak_above_baseline_mib": 6374,
+      "samples": 23,
+      "interval_s": 0.2,
+      "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+     },
+     "fits_real_budget": true,
+     "gate_refuses_real_fit": false,
+     "gate_allows_real_overflow": false,
+     "full_gpu": true,
+     "passes": true,
+     "reason": null
+    }
+   ]
+  },
+  {
+   "k": 3,
+   "context": false,
+   "targets": [
+    18,
+    20,
+    21
+   ],
+   "context_windows": [],
+   "note": "upper bound: the 3 largest windows",
+   "window_tokens_estimated": {
+    "18": 271,
+    "20": 269,
+    "21": 261
+   },
+   "system_message_sha256": "e74bdfaaae5ed27f2bf626930840e8c94d85219fc034f423ee35708b011c9a2c",
+   "runs": [
+    {
+     "num_ctx": 8192,
+     "num_predict": 3072,
+     "estimated_prompt_tokens": 2796,
+     "token_estimate_scale": 0.68,
+     "gate_estimated_prompt_tokens": 1902,
+     "gate_allows": true,
+     "sent": true,
+     "truncated": false,
+     "prompt_eval_count": 1891,
+     "estimate_over_real": 1.4785827604442094,
+     "eval_count": 108,
+     "tokens_per_sec": 55.94637436412801,
+     "load_duration_s": 4.1389208,
+     "prompt_near_ctx_limit": false,
+     "ollama_ps": {
+      "size": 5628493822,
+      "size_vram": 5628493822,
+      "gpu_pct": 100.0,
+      "processor": "100% GPU",
+      "context_length": 8192
+     },
+     "vram": {
+      "baseline_mib": 1307,
+      "peak_mib": 7737,
+      "peak_above_baseline_mib": 6430,
+      "samples": 30,
+      "interval_s": 0.2,
+      "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+     },
+     "fits_real_budget": true,
+     "gate_refuses_real_fit": false,
+     "gate_allows_real_overflow": false,
+     "full_gpu": true,
+     "passes": true,
+     "reason": null
+    }
+   ]
+  },
+  {
+   "k": 4,
+   "context": false,
+   "targets": [
+    10,
+    18,
+    20,
+    21
+   ],
+   "context_windows": [],
+   "note": "upper bound: the 4 largest windows",
+   "window_tokens_estimated": {
+    "10": 258,
+    "18": 271,
+    "20": 269,
+    "21": 261
+   },
+   "system_message_sha256": "e74bdfaaae5ed27f2bf626930840e8c94d85219fc034f423ee35708b011c9a2c",
+   "runs": [
+    {
+     "num_ctx": 8192,
+     "num_predict": 4096,
+     "estimated_prompt_tokens": 3055,
+     "token_estimate_scale": 0.68,
+     "gate_estimated_prompt_tokens": 2078,
+     "gate_allows": true,
+     "sent": true,
+     "truncated": false,
+     "prompt_eval_count": 2077,
+     "estimate_over_real": 1.470871449205585,
+     "eval_count": 142,
+     "tokens_per_sec": 56.20583685741291,
+     "load_duration_s": 4.0779277,
+     "prompt_near_ctx_limit": false,
+     "ollama_ps": {
+      "size": 5628493822,
+      "size_vram": 5628493822,
+      "gpu_pct": 100.0,
+      "processor": "100% GPU",
+      "context_length": 8192
+     },
+     "vram": {
+      "baseline_mib": 1312,
+      "peak_mib": 7706,
+      "peak_above_baseline_mib": 6394,
+      "samples": 32,
+      "interval_s": 0.2,
+      "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+     },
+     "fits_real_budget": true,
+     "gate_refuses_real_fit": false,
+     "gate_allows_real_overflow": false,
+     "full_gpu": true,
+     "passes": true,
+     "reason": null
+    }
+   ]
+  },
+  {
+   "k": 5,
+   "context": false,
+   "targets": [
+    10,
+    16,
+    18,
+    20,
+    21
+   ],
+   "context_windows": [],
+   "note": "upper bound: the 5 largest windows",
+   "window_tokens_estimated": {
+    "10": 258,
+    "16": 251,
+    "18": 271,
+    "20": 269,
+    "21": 261
+   },
+   "system_message_sha256": "e74bdfaaae5ed27f2bf626930840e8c94d85219fc034f423ee35708b011c9a2c",
+   "runs": [
+    {
+     "num_ctx": 8192,
+     "num_predict": 5120,
+     "estimated_prompt_tokens": 3307,
+     "token_estimate_scale": 0.68,
+     "gate_estimated_prompt_tokens": 2249,
+     "gate_allows": true,
+     "sent": true,
+     "truncated": false,
+     "prompt_eval_count": 2248,
+     "estimate_over_real": 1.471085409252669,
+     "eval_count": 176,
+     "tokens_per_sec": 56.993914280505265,
+     "load_duration_s": 4.1434353,
+     "prompt_near_ctx_limit": false,
+     "ollama_ps": {
+      "size": 5628493822,
+      "size_vram": 5628493822,
+      "gpu_pct": 100.0,
+      "processor": "100% GPU",
+      "context_length": 8192
+     },
+     "vram": {
+      "baseline_mib": 1281,
+      "peak_mib": 7708,
+      "peak_above_baseline_mib": 6427,
+      "samples": 35,
+      "interval_s": 0.2,
+      "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+     },
+     "fits_real_budget": true,
+     "gate_refuses_real_fit": false,
+     "gate_allows_real_overflow": false,
+     "full_gpu": true,
+     "passes": true,
+     "reason": null
+    }
+   ]
+  }
+ ],
+ "summary_by_num_ctx": {
+  "8192": {
+   "passing": [
+    {
+     "k": 1,
+     "context": false
+    },
+    {
+     "k": 3,
+     "context": false
+    },
+    {
+     "k": 4,
+     "context": false
+    },
+    {
+     "k": 5,
+     "context": false
+    }
+   ],
+   "gate_refuses_real_fit": []
+  }
+ }
+}

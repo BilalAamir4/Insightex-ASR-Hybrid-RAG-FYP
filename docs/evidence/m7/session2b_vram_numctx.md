@@ -205,6 +205,49 @@ The same synthetic inputs, every request with `draft_num_predict: 0`: twice in o
 
 **Not all byte-identical, so turning the draft off does not make Gemma reproducible.** The second same-session 1-window reply equals the draft-on reply byte for byte. The variation follows session state in both settings (draft on: the k = 3 replay changed; draft off: the k = 1 replay changed). A reply after a fresh load is reproducible. A likely cause is prompt-cache reuse between calls in one session (**unverified**). Per the instruction for this outcome, the Gemma config was not changed and nothing was re-measured. Speculative decoding stays on, as shipped, and is open in ADR-0049.
 
+## Reload per call: `keep_alive` 0 for every harness call (18 Oct 2026)
+
+**Decision:** every harness call, for both models and retries included, is sent with `extract.keep_alive: 0`, so each call starts from a freshly loaded model. Gemma keeps its default speculative decoding (draft on).
+- **Code:** harness version 4, commit `fae14d9`. `OllamaModelClient` sends it on every call. `keep_alive` is in each call's options, so it is in the reply-cache key and in `run.json`.
+- **Where `ollama ps` is read:** the model is gone as soon as a call returns, so `ollama ps` is now read during the call (`PsWatch`) in both the harness and `extract-eval measure`.
+- **C2 translation calls:** these go through the same client, so they reload per call too.
+
+### Verification (synthetic input only)
+
+`scripts/reload_determinism.py`, through the harness's own client, `num_ctx` 8192, `num_predict` 1024 × k, three calls in a row per case. Results are in `reload_determinism_<model>.json`.
+
+| Model | Case | call 1 | call 2 | call 3 | load time per call (s) | all identical |
+|---|---|---|---|---|---|---|
+| Gemma (draft on) | k = 1 (window 18) | `1d414909` | `1d414909` | `1d414909` | 6.30 / 6.03 / 5.99 | **yes** |
+| Gemma (draft on) | k = 3 (18, 20, 21) | `e2a7020f` | `e2a7020f` | `e2a7020f` | 5.97 / 5.76 / 5.73 | **yes** |
+| qwen3.5 | k = 1 | `33396914` | `33396914` | `33396914` | 17.10 / 3.46 / 3.67 | **yes** |
+| qwen3.5 | k = 3 | `9663eb93` | `9663eb93` | `9663eb93` | 3.48 / 3.65 / 3.66 | **yes** |
+
+**All outputs per case are byte-identical, for both models.**
+- **Fresh loads:** every call shows a load time, so each one started from a fresh load.
+- **Matches earlier runs:** the hashes equal the fresh-load replies of the earlier runs (Gemma draft on `1d414909` / `e2a7020f`; qwen3.5 `33396914` / `9663eb93`).
+- **Cost:** about 6 s of load per Gemma call and 3.5 s per qwen3.5 call (17 s for qwen3.5's first, cold load). This counts in each arm's wall time.
+
+### Re-measured VRAM peak and tokens/s under reload per call (the configuration C1 evaluates)
+
+`extract-eval measure` (harness version 4: `keep_alive` 0, `ollama ps` read during the call, each case measured as its retry call with errors at the 1,500-character cap). `num_ctx` 8192, placeholder prompt with retry section. Reports: `reload_measure_<model>_day4shape.json` and `reload_measure_<model>_fill_ctx8192.json`.
+
+| Model | Case | real prompt tokens | num_predict | `ollama ps` | peak VRAM (MiB) | above baseline | tokens/s |
+|---|---|---|---|---|---|---|---|
+| qwen3.5 | **k = 1, largest window (C1's worst case)** | 1,537 | 1,024 | 100% (5,368 MiB) | **7,732** | 6,374 | **45.4** |
+| qwen3.5 | k = 3 / 4 / 5 | 1,891 / 2,077 / 2,248 | 3,072 / 4,096 / 5,120 | 100% | 7,737 / 7,706 / 7,708 | 6,430 / 6,394 / 6,427 | 55.9 / 56.2 / 57.0 |
+| qwen3.5 | fill to the budget | 4,953 | 1,024 | 100% | 7,697 | 6,409 | 42.1 |
+| Gemma | **k = 1, largest window (C1's worst case)** | 1,498 | 1,024 | 100%* (249 MiB) | **6,198** | 4,892 | **94.7** |
+| Gemma | k = 3 / 4 / 5 | 1,796 / 1,944 / 2,087 | 3,072 / 4,096 / 5,120 | 100%* | 6,120 / 6,104 / 6,123 | 4,779 / 4,765 / 4,784 | 158.0 / 165.4 / 170.6 |
+| Gemma | fill to the budget | 4,354 | 1,024 | 100%* | 6,053 | 4,768 | 121.6 |
+
+\* `ollama ps` under-reports Gemma (section 2). All 43 layers are on the GPU per the debug log.
+
+- **C1 tie-break under the evaluated configuration:** Gemma's VRAM peak at the worst-case prompt is smaller: 6,198 against 7,732 MiB, a 1,534 MiB gap (1,482 MiB above the baseline). Gemma remains arm A. The gap is still smaller than the 2,184 MiB host-weight difference.
+- **No gate refusals:** no case was flagged `gate_refuses_real_fit`. qwen3.5's k = 5 retry call is 2,248 real tokens + 5,120 = 7,368 ≤ 8,192.
+- **Tokens/s is decode speed:** reload time is excluded, and it is counted separately in wall time. Gemma's figure includes its draft model.
+- **Placeholder figures:** these are measured with the placeholder prompt. The post-freeze `measure --k 3 4 5` replaces them for the k decision.
+
 ## Retry rule (decision 3, applied)
 
 **Implemented for all arms (harness version 3):** if any window of a call is invalid, the call is retried once in the same unit as the first attempt: a single window stays single, a batch stays a batch, and the context stays the same.
@@ -244,7 +287,8 @@ To keep it honest, `run.json` would count per run the windows recovered by a sin
 - `prompt_counts_<model>.json`, `output_tokens_<model>.json`, `gen_check_<model>.json`.
 - `day4_shape.json`, `placeholder_prompt.txt`.
 - `ollama_debug_gemma4_e4b_ctx8192.log`, `ollama_debug_qwen3.5_ctx8192.log`: the debug-log lines of one load per model (the prompt was "hi").
+- `reload_determinism_<model>.json`, `reload_measure_<model>_day4shape.json`, `reload_measure_<model>_fill_ctx8192.json` (reload per call).
 - `determinism_qwen3.5.json`, `determinism_gemma4_e4b.json`, `determinism_gemma4_e4b_run2.json`, `determinism_gemma4_e4b_draft_off.json`, `determinism_gemma4_e4b_draft_off_run2.json`; `placeholder_prompt_retry.txt`.
-- `scripts/`: `synth.py`, `fill_sweep.sh`, `prompt_counts.py`, `count_output.py`, `gen_check.py`, `gguf_tensors.py`, `determinism.py`. Run them with `scripts/run_in_env.sh python`. `prompt_counts.py`, `count_output.py`, `gen_check.py` and `determinism.py` import `insightex`, so they are evidence scripts, not `tools/`.
+- `scripts/`: `synth.py`, `fill_sweep.sh`, `prompt_counts.py`, `count_output.py`, `gen_check.py`, `gguf_tensors.py`, `determinism.py`, `reload_determinism.py`. Run them with `scripts/run_in_env.sh python`. `prompt_counts.py`, `count_output.py`, `gen_check.py`, `determinism.py` and `reload_determinism.py` import `insightex`, so they are evidence scripts, not `tools/`.
 
 The runner working-set and raw `/api/ps` figures in section 2 were read by hand with PowerShell and curl, and are recorded only here.

@@ -1,11 +1,11 @@
-# ADR-0049: M7 extraction harness call rules (output cap, budget gate, context, retry, C1 tie-break)
+# ADR-0049: M7 extraction harness call rules (output cap, budget gate, context, retry, C1 tie-break, reload per call)
 
 Status: Proposed
 Date decided: 2026-10-18 (decisions by Bilal in Session 2b; this record awaits his review)
 Date recorded: 2026-10-18
 Module: M7
 
-Records the decisions taken in M7 Session 2b on how the evaluation harness (`insightex extract-eval`, `backend/src/insightex/extract/`) calls the models. They apply ADR-0048 (gate rules, section 8 arms and fairness) and refine ADR-0002 (Ollama call contract) for M7 extraction calls only. ADR-0048 is not amended: its "every window valid after one retry", the C3 k rule and the C1 tie-break are unchanged in substance. All measurements behind these decisions used synthetic input only (no lecture text): `docs/evidence/m7/session2b_vram_numctx.md`.
+Records the decisions taken in M7 Session 2b (18 Oct 2026) on how the evaluation harness (`insightex extract-eval`, `backend/src/insightex/extract/`) calls the models. They apply ADR-0048 (gate rules, section 8 arms and fairness) and refine ADR-0002 (Ollama call contract) for M7 extraction calls only. ADR-0048 is not amended: its "every window valid after one retry", the C3 k rule and the C1 tie-break are unchanged in substance. All measurements behind these decisions used synthetic input only (no lecture text): `docs/evidence/m7/session2b_vram_numctx.md`.
 
 ## Context
 
@@ -33,7 +33,14 @@ Before the extraction prompt is frozen and C1 runs, the harness needed rules tha
 5. **C1 tie-break kept as written.** C1 arm A remains "the model with the smaller VRAM peak at the worst-case prompt" (ADR-0048 section 8).
    - **Reason:** VRAM is the constrained resource on this machine, and system RAM is not. Gemma's per-layer embeddings in RAM are a design feature of the model and the runner, not a spill.
    - **Evidence (Ollama debug log, `num_ctx` 8192):** all layers are on the GPU for both models (Gemma 43/43, qwen3.5 34/34). Only input embedding tables are held in pinned system RAM: Gemma 2,730.00 MiB (`per_layer_token_embd` 2,205.00 + `token_embd` 525.00), qwen3.5 545.63 MiB. That host-weight difference (2,184 MiB) is larger than the whole measured VRAM-peak gap (1,406 MiB: qwen3.5 7,585 against Gemma 6,179, synthetic input).
-   - **Result:** on these peaks Gemma is arm A.
+   - **Re-measured under the evaluated configuration (decision 6, reload per call):** at C1's worst-case prompt (k = 1, largest synthetic window) the peaks are qwen3.5 7,732 MiB and Gemma 6,198 MiB. The gap is 1,534 MiB, still smaller than the 2,184 MiB host-weight difference.
+   - **Result:** Gemma is arm A.
+6. **Reload per call; speculative decoding left at Gemma's default.** Every harness call, for both models and retries included (and C2 translation calls, which use the same client), is sent with `extract.keep_alive: 0`, so each call starts from a freshly loaded model.
+   - **Reason:** Gemma's output depended on session state. A request repeated within one loaded session could return a different reply, with its MTP draft model on and also with it off. A request after a fresh load was reproducible.
+   - **Verified on synthetic input:** under reload per call, the 1-window and 3-window cases, each sent three times in a row through the harness's own client, gave byte-identical outputs for both models.
+   - **Speculative decoding:** it stays at Gemma's default (draft on), because it is reproducible under reload. Turning it off did not remove the session-state effect.
+   - **Recorded:** `keep_alive` is in each call's cache key and in `run.json`, and `ollama ps` is read during the call.
+   - **Production:** whether production uses speculative decoding or reloads is a Session 3 decision.
 
 ## Alternatives considered
 
@@ -41,6 +48,8 @@ Before the extraction prompt is frozen and C1 runs, the harness needed rules tha
 - **Keep the uncalibrated estimate.** With the frozen prompt it would refuse k values that the real budget allows. Also considered: replacing the estimate with a real-count pre-check. Rejected because it would need an extra tokenisation call per request. Calibration plus the measure-tool check is enough.
 - **A larger `num_ctx` for Gemma.** That would give the two C1 arms different context limits and k arithmetic. Rejected for comparability.
 - **Retry the identical request (old rule).** Shown to be a replay at temperature 0 for qwen3.5. Rejected.
+- **Turn Gemma's draft model off instead of reloading.** Tested: a same-session repeat still changed the output with the draft off. Rejected.
+- **Keep the model loaded and rely on the reply cache or a fixed call order.** That would make reruns reproducible only by replaying stored replies. Any change to the order or the set of windows could change outputs, so arms would not be comparable call by call. Rejected for reload per call, which costs about 6 s per Gemma call and 3.5 s per qwen3.5 call.
 - **Retry failed windows singly.** It would give batched windows arm A's attempt as a second chance, but C3 would then partly measure single-window extraction. Rejected for "same unit".
 - **Count pinned host weights, or total resident memory, in the C1 tie-break.** It would remove Gemma's placement advantage, but it would measure a resource that is not constrained here, and it would need an ADR-0048 amendment. Rejected.
 
@@ -49,21 +58,22 @@ Before the extraction prompt is frozen and C1 runs, the harness needed rules tha
 - `config/default.yaml` `extract:` gains `num_predict_per_window`, `token_estimate_scale` and `retry_error_chars` (replacing `num_predict`). `HARNESS_VERSION` is 3 and `MEASURE_VERSION` 3, and both are in the cache keys, so replies from earlier harness versions are not reused.
 - The extraction prompt written in Session 2b must contain the `<<<RETRY>>>` section, or the harness refuses it. The k check after the freeze includes the retry message.
 - C1's tie-break favours Gemma because of where it keeps its embeddings. The C1 report must say so, citing the evidence above.
-- **Open, not decided here: Gemma's speculative decoding.** Ollama runs Gemma with an MTP draft model by default. On synthetic input, Gemma's outputs at temperature 0 depend on session state, with the draft on and also with it off (`draft_num_predict: 0`):
-  - with the draft on, a 3-window request repeated in the same session changed its output;
-  - with the draft off, a 1-window request repeated in the same session changed its output (to the draft-on reply);
-  - a request after a fresh load is reproducible, and every pattern repeated exactly across two runs each.
+- **Gemma's session-state dependence, resolved by decision 6.** On synthetic input, Gemma's outputs at temperature 0 depended on session state, with its draft model on and also off (`draft_num_predict: 0`):
+  - draft on: a 3-window request repeated in the same session changed its output;
+  - draft off: a 1-window request repeated in the same session changed to the draft-on reply;
+  - after a fresh load: reproducible, and every pattern repeated exactly across two runs.
 
-  Turning the draft off therefore does not make Gemma reproducible, and it stays on, as shipped. A likely cause is prompt-cache reuse between calls in one session (**unverified**). If so, a Gemma run's outputs may depend on call order: within a run, calls share the system prompt prefix. qwen3.5 was byte-identical in every repeat. The reproducibility of Gemma runs, and whether to use the draft in production (Session 3), are open before C1.
+  A likely cause is prompt-cache reuse between calls in one session (**unverified**). qwen3.5 was byte-identical in every repeat. With reload per call, both models are byte-identical across repeats.
+- **Cost of reload per call:** every call pays a model load: about 6 s for Gemma and 3.5 s for qwen3.5, from `E:\FYP\LLMs`. This counts in each arm's wall time; tokens/s is decode speed only. `HARNESS_VERSION` is 4.
 
 ## Evidence
 
 - `docs/evidence/m7/session2b_vram_numctx.md`: `num_ctx` sweep, real token counts, output-record sizes, the think check, the debug-log offload table, the determinism tables and the k arithmetic.
 - `docs/measurements/m7/synthetic/`: `fill_*`, `prompt_counts_*`, `output_tokens_*`, `gen_check_*`, `determinism_*` and `ollama_debug_*` files, plus the scripts.
-- Code: commits `9c791aa` (decisions 1, 2, 3) and `6aaebdc` (decision 4). Tests are in `backend/tests/unit/test_extract_harness.py`, including a C3 retry being one batch call, and `test_ollama_chat_raw.py`.
+- Code: commits `9c791aa` (decisions 1, 2, 3), `6aaebdc` (decision 4) and `fae14d9` (decision 6). Tests are in `backend/tests/unit/test_extract_harness.py`, including a C3 retry being one batch call, and `test_ollama_chat_raw.py`.
 
 ## Gate / revisit when
 
 - **After the prompt freeze:** run `extract-eval measure --k 3 4 5` with the frozen prompt (its retry call). k is final only then. If `gate_refuses_real_fit` is flagged, lower that model's `token_estimate_scale`.
 - **New models or a new Ollama version:** re-measure the calibration factors and `num_ctx` when a model's digest or the Ollama version changes.
-- **Before C1:** decide how Gemma's session-state dependence is handled (see Consequences).
+- **Production use (Session 3):** decide whether the production extraction stage reloads per call and keeps Gemma's draft model. Reload per call is an evaluation rule for reproducibility.
