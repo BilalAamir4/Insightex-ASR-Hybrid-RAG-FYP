@@ -25,15 +25,19 @@ Under Amendment 3, this figure may be compared only with string-rule-only model 
 | 4 | Removed "Online Learning" and its contrasts_with relation | Only named, not explained (passing mention); a relation needs both ends labelled |
 | 16 | "Disadvantages Of Batch ML" renamed to "Disadvantages Of Batch Learning"; part_of reversed to Lots Of Data part_of Disadvantages Of Batch Learning | Full name preferred over acronym; part_of(A, B) means A is a component of B, so the relation was inverted |
 | 19 | Both part_of relations removed | Inverted, and Availability and Hardware Limitation are not components of batch learning; a missing relation costs less than an invented one |
+| 14 | part_of relation removed (Amendment 4) | part_of relation removed (Amendment 4): no relation type fits a concept and its own problem; reversed it is also false |
+| 15 | part_of relation removed (Amendment 4) | part_of relation removed (Amendment 4): no relation type fits a concept and its own problem; reversed it is also false |
 
-These four corrections are logged in `corrections_bilal.json`, one entry per window with the labels before and after. The corrected `bilal.json` has sha256 `5d75ead717bdeb6cca6fd047246cccb3c65e3e9394f21d2898d482df64943369`. A per-window diff against `bilal_pre_review.json` shows changes on windows 2, 4, 16 and 19 only, exactly as in the table. Every other window, and the file header, is identical.
+The first four rows are review corrections on shared windows (Amendment 3). The last two are on non-shared windows under ADR-0048 Amendment 4, which allows only deleting or reversing relations. All six are logged in `corrections_bilal.json`, one entry per correction, each with the labels before and after.
+
+After the Amendment 3 corrections, `bilal.json` had sha256 `5d75ead717bdeb6cca6fd047246cccb3c65e3e9394f21d2898d482df64943369`. A per-window diff against `bilal_pre_review.json` then showed changes on windows 2, 4, 16 and 19 only, exactly as in the table, with every other window and the file header identical. The Amendment 4 corrections then removed only the part_of relations in windows 14 and 15. That save in serve also updated the header field `sample_manifest_sha256` from `c704f9b0…973c` to the current manifest's `50fe40c6…2d72d`, with no label change. The final `bilal.json` has sha256 `72a84060f720c323fe9bfcb80ae2930290e246a0765a288f196a4080189a3fe9`.
 
 ## c. Findings
 
 1. **Naming and granularity.** Most of the disagreement comes from naming variants and from granularity: one annotator labelled the section heading, the other labelled the specific point being made. The guide does not settle either case.
 2. **Carry-over from the previous window.** In window 4 the second annotator labelled "Types Of Machine Learning", which appears only in window 3. This is a carry-over from the previous window, and it bears on the C4 previous-window context arm (Amendment 2), where the same carry-over could come from the model.
-3. **Inverted part_of relations.** The first annotator's part_of relations were inverted. They are corrected on the shared windows (reversed in 16, removed in 19). The same inversion remains in non-shared windows 14 and 15, which step 7 does not allow correcting. **Open:** this waits on a decision about an ADR-0048 amendment. Until that is decided, gold relations on windows 14 and 15 carry the inversion.
+3. **Inverted part_of relations.** The first annotator's part_of relations were inverted. On the shared windows they were corrected under Amendment 3 (reversed in 16, removed in 19). The same inverted relations in non-shared windows 14 and 15 were removed under ADR-0048 Amendment 4. The Day 4 gold now has one relation (window 16), so Day 4 relation scores are not meaningful. Relation extraction is evaluated on the held-out lecture.
 
 ## Status
 
-Not merged yet: `gold.json` has not been produced from these labels.
+Merged 18 Oct 2026: `tools/label_concepts/labels/sha256-de27cb67c2acbedebd0c2c7416932b8a/gold.json`, sha256 `7fcec636170248ed48df8badacf2b40dc1c8edfc96aa073cf8ef90ec58b8a4ff`, made from the final `bilal.json` alone: 20 windows, 27 concepts, 1 relation (window 16).

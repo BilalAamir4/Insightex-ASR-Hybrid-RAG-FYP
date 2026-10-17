@@ -1,0 +1,387 @@
+{
+ "schema_version": 1,
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "producer": {
+  "kind": "human",
+  "name": "gold: bilal (single annotator)"
+ },
+ "sample_manifest_sha256": "50fe40c678c2d5dce17987b2ee3a0074ca5dbbffa4317d4f473beff7a928d72d",
+ "windows": [
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 2,
+    "start_s": 60.0,
+    "end_s": 90.0
+   },
+   "concepts": [
+    {
+     "label": "Production",
+     "aliases": [
+      "production environment"
+     ]
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 4,
+    "start_s": 120.0,
+    "end_s": 150.0
+   },
+   "concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 8,
+    "start_s": 240.0,
+    "end_s": 270.0
+   },
+   "concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 9,
+    "start_s": 270.0,
+    "end_s": 300.0
+   },
+   "concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 11,
+    "start_s": 330.0,
+    "end_s": 360.0
+   },
+   "concepts": [
+    {
+     "label": "batch learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 13,
+    "start_s": 390.0,
+    "end_s": 420.0
+   },
+   "concepts": [
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 16,
+    "start_s": 480.0,
+    "end_s": 510.0
+   },
+   "concepts": [
+    {
+     "label": "Disadvantages Of Batch Learning",
+     "aliases": []
+    },
+    {
+     "label": "Lots Of Data",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "Lots Of Data",
+     "type": "part_of",
+     "tail": "Disadvantages Of Batch Learning"
+    }
+   ],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 17,
+    "start_s": 510.0,
+    "end_s": 540.0
+   },
+   "concepts": [
+    {
+     "label": "Hardware Limitation",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 19,
+    "start_s": 570.0,
+    "end_s": 600.0
+   },
+   "concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    },
+    {
+     "label": "Availability",
+     "aliases": []
+    },
+    {
+     "label": "Hardware Limitation",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 21,
+    "start_s": 630.0,
+    "end_s": 660.0
+   },
+   "concepts": [
+    {
+     "label": "Availability",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 1,
+    "start_s": 30.0,
+    "end_s": 60.0
+   },
+   "concepts": [
+    {
+     "label": "Production",
+     "aliases": []
+    },
+    {
+     "label": "Types of Machine Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 6,
+    "start_s": 180.0,
+    "end_s": 210.0
+   },
+   "concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 7,
+    "start_s": 210.0,
+    "end_s": 240.0
+   },
+   "concepts": [
+    {
+     "label": "batch learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 10,
+    "start_s": 300.0,
+    "end_s": 330.0
+   },
+   "concepts": [
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 12,
+    "start_s": 360.0,
+    "end_s": 390.0
+   },
+   "concepts": [
+    {
+     "label": "Problem of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 14,
+    "start_s": 420.0,
+    "end_s": 450.0
+   },
+   "concepts": [
+    {
+     "label": "Problem With Batch Learning",
+     "aliases": []
+    },
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 15,
+    "start_s": 450.0,
+    "end_s": 480.0
+   },
+   "concepts": [
+    {
+     "label": "batch learning",
+     "aliases": []
+    },
+    {
+     "label": "problem with Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 18,
+    "start_s": 540.0,
+    "end_s": 570.0
+   },
+   "concepts": [
+    {
+     "label": "Availability",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 20,
+    "start_s": 600.0,
+    "end_s": 630.0
+   },
+   "concepts": [
+    {
+     "label": "batch learning",
+     "aliases": []
+    },
+    {
+     "label": "Problem With Batch Learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 22,
+    "start_s": 660.0,
+    "end_s": 688.03
+   },
+   "concepts": [
+    {
+     "label": "Availability",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  }
+ ]
+}
