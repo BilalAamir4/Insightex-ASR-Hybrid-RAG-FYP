@@ -1,6 +1,6 @@
 # M7 Session 2b, part 1: VRAM, num_ctx and the C3 batch size (synthetic input only)
 
-Measured 18 Oct 2026 on the RTX 3070 (8 GB), Ollama 0.40.2, under the exclusive GPU lease. **No model was run on Day 4 windows or any lecture text.** All inputs are synthetic (below). The extraction prompt is not drafted yet, so every figure that involves the prompt uses a **placeholder** (`docs/measurements/m7/synthetic/placeholder_prompt.txt`, sha256 `e74bdfaa…9a2c`). k is re-checked with the frozen prompt before C3 (ADR-0048 section 8).
+Measured 18 Oct 2026 on the RTX 3070 (8 GB), Ollama 0.40.2, under the exclusive GPU lease. The decisions taken on these results are listed under "Decisions (18 Oct 2026)" below, and sections 4 and 5 note what was applied. **No model was run on Day 4 windows or any lecture text.** All inputs are synthetic (below). The extraction prompt is not drafted yet, so every figure that involves the prompt uses a **placeholder** (`docs/measurements/m7/synthetic/placeholder_prompt.txt`, sha256 `e74bdfaa…9a2c`). k is re-checked with the frozen prompt before C3 (ADR-0048 section 8).
 
 | Model | Tag | Digest | Size |
 |---|---|---|---|
@@ -64,7 +64,26 @@ Gemma also passed at 12288, 24576, 49152 and 98304 (see the report files).
 | Gemma | 32768 | 5,171 | 3,525 |
 | Gemma | 131072 | 6,463 | 4,026 |
 
-Gemma keeps about 2.4 GB more in system RAM than qwen3.5 does, at every `num_ctx`, and its GPU share is below the size of its weights file. Some of the model therefore stays on the CPU by design. A likely reason (**unverified**) is that the E-series per-layer embedding tables stay in host memory. That host share is flat from 8192 to 32768 (+49 MiB), which shows no sign of spilling. At 131072 it grows by 550 MiB, which may be spilling or may be host-side buffers. Gemma's decode speed (84–116 tokens/s up to 65536) is 2–4× qwen3.5's. **Open:** the runner's layer-offload count would settle this. It is in Ollama's server log, which the hidden Task Scheduler start does not keep, so reading it needs Ollama restarted with logging (needs approval).
+Gemma keeps about 2.4 GB more in system RAM than qwen3.5 does, at every `num_ctx`, and its GPU share is below the size of its weights file. That host share is flat from 8192 to 32768 (+49 MiB), which shows no sign of spilling. At 131072 it grows by 550 MiB (not examined further; 131072 is not used).
+
+### Layer offload from Ollama's debug log (18 Oct 2026, decision 3)
+
+Ollama was restarted once with `OLLAMA_DEBUG=1` (log in `E:\FYP\logs\`; excerpts committed as `docs/measurements/m7/synthetic/ollama_debug_<model>_ctx8192.log`). Each model was loaded at `num_ctx` 8192 with a one-word prompt, then unloaded. Ollama was then restarted normally with `E:\FYP\start_ollama.ps1`; nothing else was changed. The tensor sizes come from the GGUF header (`scripts/gguf_tensors.py`, which reads the header only).
+
+| | Gemma 4 E4B | qwen3.5 |
+|---|---|---|
+| layers offloaded | **43/43** (all 42 blocks + output) | **34/34** |
+| weights on the GPU (`CUDA0 model buffer`) | 3,018.87 MiB = 42 blocks 2,441.35 + `per_layer_model_proj` 52.50 + `token_embd` 525.00 (tied output head) | 4,717.38 MiB |
+| weights in pinned system RAM (`CUDA_Host model buffer`) | **2,730.00 MiB** = `per_layer_token_embd` 2,205.00 (Q6_K, 262144 × 10752) + `token_embd` 525.00 (Q6_K) | **545.63 MiB** (its input embedding table) |
+| KV cache on the GPU at 8192 | 168 MiB (128 global + 40 sliding-window; 4 global and 20 SWA layers hold KV, the rest share it) | 256 MiB |
+| vision/audio projector, on the GPU | 945.51 MiB (`--mmproj`, CLIP on CUDA0) | 878.99 MiB |
+| speculative decoding | **yes**: MTP draft model "Gemma4Assistant" (`--spec-type draft-mtp`, up to 3 drafted tokens; 79 MiB on the GPU) | no |
+
+**What runs where.** Every transformer layer and the output head of both models run on the GPU. What stays in system RAM are the input lookup tables, which are only indexed by token id (get_rows), never multiplied: `token_embd` for both models, and for Gemma also `per_layer_token_embd`. That is Gemma E4B's per-layer embedding table (a 256-wide vector per token for each of its 42 layers), and it is 42% of its weights file. The runner keeps input embeddings in host memory by default for both models (the log shows the same split for qwen3.5 at a smaller size). This is not a spill: the log reports all layers offloaded, and Ollama decided "no changes needed" when fitting (3,296 MiB projected against 7,114 MiB free). **So both models run fully on the GPU in the sense that matters for speed. The 100% from `ollama ps` is still not evidence of that for Gemma, because its `size` field leaves out the host and projector buffers.**
+
+Two further points the log shows:
+- **Both peaks include about 0.9 GB of unused projector.** Both models load a vision projector on the GPU at every call (Gemma's also covers audio), though the harness sends text only.
+- **Gemma decodes with speculative decoding** (an MTP draft model). At temperature 0 the output should match plain greedy decoding (**unverified here**). Its tokens/s (84–116, against qwen3.5's 26–50) is inflated by the draft model, so the two models' tokens/s are not a like-for-like speed comparison.
 
 ## 3. Real token counts (prompt_eval_count, per model)
 
@@ -89,7 +108,7 @@ Expected output per window: a gold-dense window costs 63–172 tokens (mean to m
 - **Proposal A (recommended): `num_predict(k) = 1024 × k`.** Every window keeps the single-window arm's output allowance, so the per-window cap is equal across C3's arms.
 - Proposal B: `num_predict(k) = 1024 + 512 × (k − 1)`. Each extra window gets 512, above one headroom record. Cheaper in context, but a batched window gets half the single arm's allowance.
 
-Neither is applied: the harness and `extract.num_predict` are unchanged until you decide. One caveat applies to both. On the gibberish synthetic input, both models sometimes wrote far longer replies than any real record: qwen3.5 1,739 content tokens at k = 3 and truncated at 4,096 at k = 4 and 5; Gemma up to 2,538 at k = 5, ending by itself. That is degenerate output on meaningless input, not an estimate of real extraction size. It does show that a looping reply hits any cap, and that in a batch it invalidates k windows at once. That cost is part of batching and counts against arm B under the validity rule.
+**Decided and applied (decision 1, commit `9c791aa`): proposal A.** `extract.num_predict_per_window: 1024`, and an extraction call of k windows gets k × 1024 (`harness.extraction_num_predict`; recorded in `run.json` options and in each call's cache key). `extract-eval measure` uses the same rule (`--num-predict-per-window`). If the frozen prompt exceeds the k = 5 limit, k falls to 4 or 3 under the existing rule. The prompt is not trimmed to keep k = 5. One caveat: On the gibberish synthetic input, both models sometimes wrote far longer replies than any real record: qwen3.5 1,739 content tokens at k = 3 and truncated at 4,096 at k = 4 and 5; Gemma up to 2,538 at k = 5, ending by itself. That is degenerate output on meaningless input, not an estimate of real extraction size. It does show that a looping reply hits any cap, and that in a batch it invalidates k windows at once. That cost is part of batching and counts against arm B under the validity rule.
 
 ## 5. C3 batch size k (ADR-0048 section 8)
 
@@ -113,15 +132,54 @@ k is the largest value in 3–5 whose worst-case k-window prompt plus `num_predi
 - **Proposal B:** k = 5 holds up to 4,221 (4,382).
 - **At a larger `num_ctx`:** Gemma's larger usable context would relax this for Gemma only.
 
-**The harness's own gate uses estimates, not real counts.** `chat_raw` refuses a call when estimated prompt + `num_predict` > `num_ctx`. The estimator over-counts this text by 1.5–1.7×. With the placeholder, k = 5 under A is estimated at 2,846 + 5,120 = 7,966: inside 8192 by 226 estimated tokens. So under A at 8192, the frozen prompt may be at most about 1,745 estimated tokens (about 6,100 English characters) before the harness refuses k = 5 calls, even though the real budget allows more. The k that the real counts allow and the k the harness will send can differ. Fixing that (per-model calibration of the estimator, or a real-count check) is a harness change and is not made.
+**The harness's own gate uses estimates, not real counts.** `chat_raw` refuses a call when estimated prompt + `num_predict` > `num_ctx`. The estimator over-counts this text by 1.5–1.7×. With the placeholder, k = 5 under A is estimated at 2,846 + 5,120 = 7,966: inside 8192 by 226 estimated tokens. So under A at 8192, the frozen prompt may be at most about 1,745 estimated tokens (about 6,100 English characters) before the harness refuses k = 5 calls, even though the real budget allows more. The k that the real counts allow and the k the harness will send could therefore differ.
 
-## Open decisions (not made here)
+**Decided and applied (decision 2, commit `9c791aa`): per-model calibration.** `extract.token_estimate_scale` multiplies the estimate in the harness's budget rule:
+- **Values:** qwen3.5 0.68 and Gemma 0.64. Each is the highest real/estimate ratio measured for that model (0.647 over 9 prompts; 0.602 over 18) plus 5%, rounded up.
+- **Unlisted models** keep 1.0, so every other `chat_raw` caller (M6 ask, rewrite) is unchanged.
+- **Measured k = 5 prompts under A:** qwen3.5 ⌈2,846 × 0.68⌉ + 5,120 = 7,056 and Gemma 1,822 + 5,120 = 6,942, both ≤ 8,192. Both pass the gate, as the real counts allow.
 
-1. `num_predict(k)`: proposal A or B (or another), before C3. It changes the harness and `config/default.yaml`.
-2. The estimator gate in `chat_raw` against real counts: accept the estimator's tighter limit on prompt length for k, or calibrate it per model.
-3. Gemma's GPU-residency check: `ollama ps` cannot show it. Restart Ollama with logging to read the offload count (needs approval), or adopt another criterion (for example, a flat runner working set and steady tokens/s across `num_ctx`). This affects C1 arm A ("the model with the smaller VRAM peak at the worst-case prompt"), because Gemma's lower peak partly reflects weights held in system RAM.
-4. One `extract.num_ctx` for both C1 arms (8192 now, qwen3.5's maximum), or Gemma at a larger context. The table above uses 8192 for both.
-5. k is final only after the prompt freeze: re-run `extract-eval measure --k 3 4 5` with the frozen prompt.
+How "never refuse a k that the real counts allow" is enforced: the 5% margin leaves a narrow band, a worst-case k = 5 prompt between about 2,920 and 3,072 real tokens (prompt plus windows), that the real budget allows but the gate might refuse. So `extract-eval measure` no longer applies the gate. It sends every case and reports, per case, `gate_allows` and `gate_refuses_real_fit`, and it prints "GATE REFUSES A REAL FIT" when that happens. The post-freeze `measure --k 3 4 5` run (decision 5) therefore shows whether the gate would refuse the chosen k. If it would, the scale for that model is lowered before C3. The opposite case, the gate passing a prompt that really overflows, is reported as `gate_allows_real_overflow`.
+
+**Decided (decision 4): one `num_ctx`, 8192, for both models** (`extract.num_ctx`, unchanged value, comment updated).
+
+## Decisions (18 Oct 2026)
+
+1. `num_predict(k)` = 1024 × k (proposal A). Applied.
+2. Estimator gate calibrated per model (0.68 / 0.64), with the gate checked against real counts by `measure`. Applied.
+3. Gemma's GPU residency: read from the debug log (section 2). All layers on the GPU, input embedding tables in system RAM.
+4. One `num_ctx`, 8192, for both models. Applied.
+5. k is final only after the prompt freeze: re-run `extract-eval measure --k 3 4 5` with the frozen prompt before C3.
+
+## Effect on the C1 tie-break: reported, not changed
+
+ADR-0048 section 8 makes C1 arm A, the arm a tie keeps, "the model with the smaller VRAM peak at the worst-case prompt". On the measured peaks (synthetic input, `num_ctx` 8192), Gemma's is smaller: 6,179 MiB against 7,585 MiB (4,770 against 6,344 above the desktop baseline). **The debug log shows that this gap comes mostly from where the weights are kept, not from a smaller model.**
+- **Weights in system RAM:** Gemma keeps 2,730 MiB of weights there, qwen3.5 546 MiB. That alone is 2,184 MiB of the difference, more than the whole measured gap of 1,406 MiB.
+- **Total weights:** the two models are about the same size: Gemma 5,224 MiB (its GGUF file; 5,749 MiB resident because `token_embd` is held on both sides), plus a 79 MiB draft model; qwen3.5 5,263 MiB.
+- **What the definition decides:** as written, it measures VRAM only, so it makes Gemma arm A. A tie in C1 would then keep Gemma partly because of its embedding placement.
+
+This affects the tie-break, so per your instruction I have stopped here. Any change to the definition (for example, VRAM plus pinned host weights, or total resident memory) would be an ADR-0048 amendment made before C1. No change is made.
+
+## Proposal: batch retry rule for C3 (not implemented)
+
+Current behaviour (harness, Session 2a): if any window of a call is invalid, the same call is made once more with identical messages, and each still-invalid window takes its record from the retry if it is valid there. For a k-window call, that re-sends the whole batch.
+
+| | Retry the whole batch once (current) | Retry only the failed windows, each as a single-window call |
+|---|---|---|
+| Request on retry | identical to attempt 1 | new requests (k = 1, `num_predict` 1024) |
+| Temperature 0, fixed seed | likely reproduces attempt 1's reply, so the retry may recover nothing (**unverified**; affects C1/C2 single-window retries too) | a different prompt gives a real second chance |
+| A looping or truncated batch | likely loops again; all k windows lost | each failed window retried on its own |
+| Valid windows | asked again (their first valid record is kept) | not asked again |
+| Fairness against arm A | arm B gets a second batched attempt | a failed window gets exactly arm A's single-window attempt as its second chance |
+| What arm B measures | batching only | mostly batching; recovered windows are single-window extractions |
+| Cost | k windows re-sent | only the failed windows re-sent; counted against arm B |
+
+**Recommendation: retry only the failed windows, singly.**
+- **A real second chance:** at temperature 0 an identical re-send is probably a replay.
+- **Fair to arm A:** a failed batched window gets the same second chance arm A's windows get.
+- **No pointless re-asking:** valid windows are not asked again.
+
+To keep it honest, `run.json` would count per run the windows recovered by a single-window retry, and the C3 report would show them, so a batch arm that only scores well through single-window retries is visible. A cheap check before deciding: on synthetic input, re-send one identical request at temperature 0 and compare the replies. That shows whether the current retry is a replay.
 
 ## Files
 
@@ -129,6 +187,7 @@ k is the largest value in 3–5 whose worst-case k-window prompt plus `num_predi
 - `fill_<model>_ctx<N>.json`: the `measure` reports.
 - `prompt_counts_<model>.json`, `output_tokens_<model>.json`, `gen_check_<model>.json`.
 - `day4_shape.json`, `placeholder_prompt.txt`.
-- `scripts/`: `synth.py`, `fill_sweep.sh`, `prompt_counts.py`, `count_output.py`, `gen_check.py`. Run them with `scripts/run_in_env.sh python`. The last three import `insightex`, so they are evidence scripts, not `tools/`.
+- `ollama_debug_gemma4_e4b_ctx8192.log`, `ollama_debug_qwen3.5_ctx8192.log`: the debug-log lines of one load per model (the prompt was "hi").
+- `scripts/`: `synth.py`, `fill_sweep.sh`, `prompt_counts.py`, `count_output.py`, `gen_check.py`, `gguf_tensors.py`. Run them with `scripts/run_in_env.sh python`. `prompt_counts.py`, `count_output.py` and `gen_check.py` import `insightex`, so they are evidence scripts, not `tools/`.
 
 The runner working-set and raw `/api/ps` figures in section 2 were read by hand with PowerShell and curl, and are recorded only here.
