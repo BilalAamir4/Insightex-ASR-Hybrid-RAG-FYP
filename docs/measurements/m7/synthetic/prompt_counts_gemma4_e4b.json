@@ -1,0 +1,80 @@
+{
+ "model": "gemma4:e4b",
+ "model_digest": "dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c",
+ "think_sent": false,
+ "prompt_sha256": "e74bdfaaae5ed27f2bf626930840e8c94d85219fc034f423ee35708b011c9a2c",
+ "prompt_placeholder": true,
+ "prompt_only": 935,
+ "k": {
+  "1": {
+   "targets": [
+    18
+   ],
+   "prompt_eval_count": 1086,
+   "estimated_prompt_tokens": 1804
+  },
+  "2": {
+   "targets": [
+    18,
+    20
+   ],
+   "prompt_eval_count": 1238,
+   "estimated_prompt_tokens": 2074
+  },
+  "3": {
+   "targets": [
+    18,
+    20,
+    21
+   ],
+   "prompt_eval_count": 1384,
+   "estimated_prompt_tokens": 2335
+  },
+  "4": {
+   "targets": [
+    10,
+    18,
+    20,
+    21
+   ],
+   "prompt_eval_count": 1532,
+   "estimated_prompt_tokens": 2594
+  },
+  "5": {
+   "targets": [
+    10,
+    16,
+    18,
+    20,
+    21
+   ],
+   "prompt_eval_count": 1675,
+   "estimated_prompt_tokens": 2846
+  }
+ },
+ "per_window": {
+  "0": 109,
+  "1": 128,
+  "2": 139,
+  "3": 134,
+  "4": 119,
+  "5": 136,
+  "6": 131,
+  "7": 94,
+  "8": 129,
+  "9": 130,
+  "10": 147,
+  "11": 144,
+  "12": 123,
+  "13": 113,
+  "14": 120,
+  "15": 137,
+  "16": 142,
+  "17": 126,
+  "18": 151,
+  "19": 127,
+  "20": 151,
+  "21": 145,
+  "22": 135
+ }
+}

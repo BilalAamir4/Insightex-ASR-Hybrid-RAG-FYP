@@ -1,6 +1,6 @@
 # M7 evidence: extraction arms (ADR-0048)
 
-Nothing here yet: no extraction has run on a real lecture. Session 2a (17 Oct 2026) built the machinery and tested it on synthetic fixtures only.
+No extraction has run on a real lecture. Session 2a (17 Oct 2026) built the machinery and tested it on synthetic fixtures only. Session 2b part 1 (18 Oct 2026): VRAM, `num_ctx` and the C3 batch size measured on synthetic input only, in [`session2b_vram_numctx.md`](session2b_vram_numctx.md).
 
 ## Layout
 

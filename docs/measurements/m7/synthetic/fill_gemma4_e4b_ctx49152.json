@@ -1,0 +1,79 @@
+{
+ "measure_version": 1,
+ "created_at": "2026-10-17T20:15:55Z",
+ "lecture_id": "synthetic-fill",
+ "windows_in_lecture": 1,
+ "model": "gemma4:e4b",
+ "model_digest": "dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c",
+ "prompt": {
+  "path": "/tmp/claude-1000/-home-bilal-aamir-insightex/a8f738d3-1b5b-4366-bc56-45f0ee46872d/scratchpad/m7m/placeholder_prompt.txt",
+  "sha256": "e74bdfaaae5ed27f2bf626930840e8c94d85219fc034f423ee35708b011c9a2c",
+  "frozen": false
+ },
+ "context_block_sha256": null,
+ "ollama_options": {
+  "temperature": 0.0,
+  "seed": 42,
+  "think": false
+ },
+ "rule": "passes = real prompt_eval_count + num_predict <= num_ctx and ollama ps 100% GPU (ADR-0048 s8, Amendment 2; ADR-0002 budget rule)",
+ "cases": [
+  {
+   "k": 1,
+   "context": false,
+   "targets": [
+    0
+   ],
+   "context_windows": [],
+   "note": "largest window",
+   "window_tokens_estimated": {
+    "0": 46503
+   },
+   "system_message_sha256": "e74bdfaaae5ed27f2bf626930840e8c94d85219fc034f423ee35708b011c9a2c",
+   "runs": [
+    {
+     "num_ctx": 49152,
+     "num_predict": 1024,
+     "estimated_prompt_tokens": 48035,
+     "sent": true,
+     "truncated": false,
+     "prompt_eval_count": 26140,
+     "estimate_over_real": 1.8376052027543994,
+     "eval_count": 286,
+     "tokens_per_sec": 96.8225283679852,
+     "load_duration_s": 5.6812726,
+     "prompt_near_ctx_limit": false,
+     "ollama_ps": {
+      "size": 303290121,
+      "size_vram": 303290121,
+      "gpu_pct": 100.0,
+      "processor": "100% GPU",
+      "context_length": 49152
+     },
+     "vram": {
+      "baseline_mib": 1420,
+      "peak_mib": 6900,
+      "peak_above_baseline_mib": 5480,
+      "samples": 71,
+      "interval_s": 0.2,
+      "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+     },
+     "fits_real_budget": true,
+     "full_gpu": true,
+     "passes": true,
+     "reason": null
+    }
+   ]
+  }
+ ],
+ "summary_by_num_ctx": {
+  "49152": {
+   "passing": [
+    {
+     "k": 1,
+     "context": false
+    }
+   ]
+  }
+ }
+}

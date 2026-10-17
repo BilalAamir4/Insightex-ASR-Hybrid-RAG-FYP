@@ -1,0 +1,31 @@
+{
+ "model": "qwen3.5:latest",
+ "model_digest": "44a38603922e14f1e3ae68c5d900cc39f2a925a9749d12ab6d268d75a01a399f",
+ "records": {
+  "gold_mean": {
+   "chars": 215,
+   "tokens": 63,
+   "concepts": 2,
+   "relations": 0,
+   "cue_chars": 0,
+   "tokens_k5": 303
+  },
+  "gold_max": {
+   "chars": 549,
+   "tokens": 172,
+   "concepts": 3,
+   "relations": 1,
+   "cue_chars": 125,
+   "tokens_k5": 848
+  },
+  "headroom": {
+   "chars": 1560,
+   "tokens": 478,
+   "concepts": 8,
+   "relations": 6,
+   "cue_chars": 302,
+   "tokens_k5": 2378
+  }
+ },
+ "baseline_prompt_eval_count": 13
+}

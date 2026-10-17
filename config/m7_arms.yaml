@@ -13,7 +13,7 @@
 # tie keeps (C1: the model with the smaller measured VRAM peak at the worst-case prompt, decided by measurement).
 arms:
   - {name: C1-qwen3.5, comparison: C1, model: "qwen3.5:latest", input: original, batch_k: 1, context: none}
-  # UNVERIFIED tag: Gemma 4 E4B is not pulled or measured yet (ADR-0002). Check `ollama list` before Session 2b.
+  # gemma4:e4b pulled 18 Oct 2026, digest dc35e8d9c606...; measured in docs/evidence/m7/session2b_vram_numctx.md
   - {name: C1-gemma4-e4b, comparison: C1, model: "gemma4:e4b", input: original, batch_k: 1, context: none}
   - {name: C2-original, comparison: C2, model: null, input: original, batch_k: 1, context: none}
   - {name: C2-english, comparison: C2, model: null, input: english, batch_k: 1, context: none}
