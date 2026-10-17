@@ -1,6 +1,7 @@
 # ADR-0049: M7 extraction harness call rules (output cap, budget gate, context, retry, C1 tie-break, reload per call)
 
-Status: Accepted (2026-10-18, by Bilal after review)
+Status: Accepted
+Accepted: 2026-10-18, by Bilal after review. Amended: 2026-10-18, Amendment 1 (at most 10 concepts and 10 relations per window) at the end
 Date decided: 2026-10-18
 Date recorded: 2026-10-18
 Module: M7
