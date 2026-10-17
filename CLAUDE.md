@@ -134,7 +134,7 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 | Build plan, exit criteria, pending decisions | `docs/BUILD_ORDER.md` |
 | Per-feature spec (F1–F20) | `docs/features/README.md` |
 | Why a decision was made | `docs/adr/`, `docs/reports/` |
-| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0048) | `docs/adr/README.md` |
+| Decision log: one ADR per decision, with index and status (ADR-0001 to ADR-0049) | `docs/adr/README.md` |
 | API contract (ingest link/upload, jobs, SSE, library) | `docs/contracts/api.md` |
 | Extraction schema v1 (gold labels and model output, ADR-0048); the old draft `docs/contracts/extraction.json` is superseded | `backend/src/insightex/extract/extraction.schema.json` |
 | M7 labelling rules and the gold-label tool | `docs/labelling/m7_concepts.md`, `tools/label_concepts/README.md` |
