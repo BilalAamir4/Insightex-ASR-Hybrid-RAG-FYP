@@ -17,7 +17,9 @@
    "concepts": [
     {
      "label": "Production",
-     "aliases": []
+     "aliases": [
+      "production environment"
+     ]
     }
    ],
    "relations": [],
@@ -35,19 +37,9 @@
     {
      "label": "Batch Learning",
      "aliases": []
-    },
-    {
-     "label": "Online Learning",
-     "aliases": []
     }
    ],
-   "relations": [
-    {
-     "head": "Batch Learning",
-     "type": "contrasts_with",
-     "tail": "Online Learning"
-    }
-   ],
+   "relations": [],
    "important": false,
    "cue": null
   },
@@ -128,7 +120,7 @@
    },
    "concepts": [
     {
-     "label": "Disadvantages Of Batch ML",
+     "label": "Disadvantages Of Batch Learning",
      "aliases": []
     },
     {
@@ -138,9 +130,9 @@
    ],
    "relations": [
     {
-     "head": "Disadvantages Of Batch ML",
+     "head": "Lots Of Data",
      "type": "part_of",
-     "tail": "Lots Of Data"
+     "tail": "Disadvantages Of Batch Learning"
     }
    ],
    "important": false,
@@ -184,18 +176,7 @@
      "aliases": []
     }
    ],
-   "relations": [
-    {
-     "head": "Batch Learning",
-     "type": "part_of",
-     "tail": "Availability"
-    },
-    {
-     "head": "Batch Learning",
-     "type": "part_of",
-     "tail": "Hardware Limitation"
-    }
-   ],
+   "relations": [],
    "important": false,
    "cue": null
   },

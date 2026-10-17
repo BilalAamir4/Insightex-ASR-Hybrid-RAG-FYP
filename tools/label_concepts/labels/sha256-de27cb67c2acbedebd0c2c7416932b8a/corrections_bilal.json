@@ -1,0 +1,223 @@
+{
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "labeller": "bilal",
+ "pre_review_sha256": "94f15c4145e8a5da90ba9d40ff8cacf84780e25234426f8efea306ae823b891e",
+ "rule": "ADR-0048 Amendment 3: corrections of clear errors after the inter-annotator review",
+ "entries": [
+  {
+   "window_index": 2,
+   "reason": "Aliases hold every name the speaker said in the window; said at 88 s",
+   "at": "2026-10-17T19:14:43Z",
+   "before": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 2,
+     "start_s": 60.0,
+     "end_s": 90.0
+    },
+    "concepts": [
+     {
+      "label": "Production",
+      "aliases": []
+     }
+    ],
+    "relations": [],
+    "important": false,
+    "cue": null
+   },
+   "after": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 2,
+     "start_s": 60.0,
+     "end_s": 90.0
+    },
+    "concepts": [
+     {
+      "label": "Production",
+      "aliases": [
+       "production environment"
+      ]
+     }
+    ],
+    "relations": [],
+    "important": false,
+    "cue": null
+   }
+  },
+  {
+   "window_index": 4,
+   "reason": "Only named, not explained (passing mention); a relation needs both ends labelled",
+   "at": "2026-10-17T19:14:43Z",
+   "before": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 4,
+     "start_s": 120.0,
+     "end_s": 150.0
+    },
+    "concepts": [
+     {
+      "label": "Batch Learning",
+      "aliases": []
+     },
+     {
+      "label": "Online Learning",
+      "aliases": []
+     }
+    ],
+    "relations": [
+     {
+      "head": "Batch Learning",
+      "type": "contrasts_with",
+      "tail": "Online Learning"
+     }
+    ],
+    "important": false,
+    "cue": null
+   },
+   "after": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 4,
+     "start_s": 120.0,
+     "end_s": 150.0
+    },
+    "concepts": [
+     {
+      "label": "Batch Learning",
+      "aliases": []
+     }
+    ],
+    "relations": [],
+    "important": false,
+    "cue": null
+   }
+  },
+  {
+   "window_index": 16,
+   "reason": "Full name preferred over acronym; part_of(A, B) means A is a component of B, so the relation was inverted",
+   "at": "2026-10-17T19:14:43Z",
+   "before": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 16,
+     "start_s": 480.0,
+     "end_s": 510.0
+    },
+    "concepts": [
+     {
+      "label": "Disadvantages Of Batch ML",
+      "aliases": []
+     },
+     {
+      "label": "Lots Of Data",
+      "aliases": []
+     }
+    ],
+    "relations": [
+     {
+      "head": "Disadvantages Of Batch ML",
+      "type": "part_of",
+      "tail": "Lots Of Data"
+     }
+    ],
+    "important": false,
+    "cue": null
+   },
+   "after": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 16,
+     "start_s": 480.0,
+     "end_s": 510.0
+    },
+    "concepts": [
+     {
+      "label": "Disadvantages Of Batch Learning",
+      "aliases": []
+     },
+     {
+      "label": "Lots Of Data",
+      "aliases": []
+     }
+    ],
+    "relations": [
+     {
+      "head": "Lots Of Data",
+      "type": "part_of",
+      "tail": "Disadvantages Of Batch Learning"
+     }
+    ],
+    "important": false,
+    "cue": null
+   }
+  },
+  {
+   "window_index": 19,
+   "reason": "Inverted, and Availability and Hardware Limitation are not components of batch learning; a missing relation costs less than an invented one",
+   "at": "2026-10-17T19:14:43Z",
+   "before": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 19,
+     "start_s": 570.0,
+     "end_s": 600.0
+    },
+    "concepts": [
+     {
+      "label": "Batch Learning",
+      "aliases": []
+     },
+     {
+      "label": "Availability",
+      "aliases": []
+     },
+     {
+      "label": "Hardware Limitation",
+      "aliases": []
+     }
+    ],
+    "relations": [
+     {
+      "head": "Batch Learning",
+      "type": "part_of",
+      "tail": "Availability"
+     },
+     {
+      "head": "Batch Learning",
+      "type": "part_of",
+      "tail": "Hardware Limitation"
+     }
+    ],
+    "important": false,
+    "cue": null
+   },
+   "after": {
+    "window": {
+     "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+     "window_index": 19,
+     "start_s": 570.0,
+     "end_s": 600.0
+    },
+    "concepts": [
+     {
+      "label": "Batch Learning",
+      "aliases": []
+     },
+     {
+      "label": "Availability",
+      "aliases": []
+     },
+     {
+      "label": "Hardware Limitation",
+      "aliases": []
+     }
+    ],
+    "relations": [],
+    "important": false,
+    "cue": null
+   }
+  }
+ ]
+}
