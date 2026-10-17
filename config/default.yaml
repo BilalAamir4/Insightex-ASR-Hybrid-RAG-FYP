@@ -184,3 +184,20 @@ retrieval:                          # query side (M5): docs/adr/0043-*.md
   rewrite_prompt_file: config/prompts/query_rewrite_v1.txt  # system prompt of the rewrite call; relative paths are under the repo root
   rewrite_prompt_sha256: edac0394acc27081d904a35c85ac163d5e1011c7e1414b3888d2c59cff32744e  # pinned hash of that file; a mismatch disables the rewrite
 
+
+extract:                            # M7 extraction evaluation harness (ADR-0048, Amendment 2); `insightex extract-eval`
+  arms_file: config/m7_arms.yaml    # arms C1 to C4: model, input language, batch size k, previous-window context
+  prompt_file: null                 # frozen extraction system prompt; null until the Session 2b freeze (runs refuse without it)
+  prompt_sha256: null               # pinned sha256 of prompt_file; any other hash refuses the run (ADR-0048 prompt freeze)
+  context_block_file: null          # C4 arm B: fixed "previous window, reference only" block appended to the prompt
+  context_block_sha256: null        # pinned sha256 of context_block_file
+  translate_prompt_file: null       # C2 arm B: fixed per-window English translation prompt (ADR-0041)
+  translate_prompt_sha256: null     # pinned sha256 of translate_prompt_file
+  num_ctx: 8192                     # tokens; context of every harness call (chosen in Session 2b from `extract-eval measure`)
+  num_predict: 1024                 # tokens; output cap of one extraction call
+  translate_num_predict: 1024       # tokens; output cap of one translation call
+  evidence_dir: docs/evidence/m7    # run directories <evidence_dir>/<lecture_id>/<comparison>/<arm>/; relative = under the repo root
+  measure_dir: docs/measurements/m7 # VRAM / num_ctx measurement reports; relative = under the repo root
+  cache_dir: null                   # raw model replies and translations; null = <paths.data_dir>/eval_cache/m7. Never under /mnt/
+  lease_timeout_s: 600              # seconds to wait for the exclusive GPU lease before a run gives up
+  vram_poll_interval_s: 0.2         # seconds between nvidia-smi samples for the VRAM peak

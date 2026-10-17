@@ -321,6 +321,45 @@ class Retrieval(_Section):
         return v if v.is_absolute() else repo_root() / v
 
 
+def _repo_relative(v: Path | None) -> Path | None:
+    if v is None:
+        return None
+    v = Path(os.path.expandvars(str(v))).expanduser()
+    return v if v.is_absolute() else repo_root() / v
+
+
+class Extract(_Section):
+    """M7 extraction evaluation harness (ADR-0048). Prompt files are frozen: each is used only when its sha256 equals
+    the pinned value. Relative paths are under the repo root; `cache_dir` is local and never under /mnt/."""
+
+    arms_file: Path
+    prompt_file: Path | None
+    prompt_sha256: str | None
+    context_block_file: Path | None
+    context_block_sha256: str | None
+    translate_prompt_file: Path | None
+    translate_prompt_sha256: str | None
+    num_ctx: int
+    num_predict: int
+    translate_num_predict: int
+    evidence_dir: Path
+    measure_dir: Path
+    cache_dir: Path
+    lease_timeout_s: float
+    vram_poll_interval_s: float
+
+    @field_validator("arms_file", "prompt_file", "context_block_file", "translate_prompt_file", "evidence_dir",
+                     "measure_dir", mode="after")
+    @classmethod
+    def _under_repo(cls, v: Path | None) -> Path | None:
+        return _repo_relative(v)
+
+    @field_validator("cache_dir", mode="after")
+    @classmethod
+    def _local_absolute(cls, v: Path) -> Path:
+        return _local_path(v)
+
+
 class Settings(_Section):
     paths: Paths
     api: Api
@@ -334,6 +373,7 @@ class Settings(_Section):
     asr: Asr
     index: Index
     retrieval: Retrieval
+    extract: Extract
 
     @model_validator(mode="before")
     @classmethod
@@ -354,6 +394,9 @@ class Settings(_Section):
                 file_cfg = ingest.get("file") if isinstance(ingest, dict) else None
                 if isinstance(file_cfg, dict) and file_cfg.get("staging_dir") is None:
                     data = {**data, "ingest": {**ingest, "file": {**file_cfg, "staging_dir": str(Path(str(data_dir)) / "staging")}}}
+                extract = data.get("extract")
+                if isinstance(extract, dict) and extract.get("cache_dir") is None:
+                    data = {**data, "extract": {**extract, "cache_dir": str(Path(str(data_dir)) / "eval_cache" / "m7")}}
         return data
 
 

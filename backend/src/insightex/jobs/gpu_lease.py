@@ -87,7 +87,7 @@ def status(lease_path: Path) -> dict[str, Any]:
         os.close(fd)
 
 
-def _gpu_memory_used_mib() -> int | None:
+def gpu_memory_used_mib() -> int | None:
     exe = shutil.which("nvidia-smi")
     if not exe:
         return None
@@ -126,13 +126,13 @@ class FileGpuLease(GpuLease):
         fd = self._acquire(fcntl.LOCK_EX, purpose, timeout_s)
         try:
             self._write_holder("exclusive", purpose)
-            before = _gpu_memory_used_mib()
+            before = gpu_memory_used_mib()
             log.info("gpu lease exclusive acquired: %s (memory.used before: %s MiB)", purpose, before)
             self._unload_ollama()
             try:
                 yield
             finally:
-                log.info("gpu lease exclusive released: %s (memory.used after: %s MiB)", purpose, _gpu_memory_used_mib())
+                log.info("gpu lease exclusive released: %s (memory.used after: %s MiB)", purpose, gpu_memory_used_mib())
         finally:
             self._clear_holder()
             os.close(fd)

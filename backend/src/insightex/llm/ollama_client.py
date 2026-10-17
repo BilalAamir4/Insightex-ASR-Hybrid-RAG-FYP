@@ -125,9 +125,9 @@ def _ensure_model(client: httpx.Client, base: str, model: str) -> None:
     _checked_models.add((base, model))
 
 
-def chat_json[T: BaseModel](
+def chat_raw(
     messages: list[dict],
-    schema: type[T],
+    format_schema: dict,
     num_ctx: int,
     ollama: OllamaSettings | None = None,
     keep_alive: str | int | None = None,
@@ -136,12 +136,11 @@ def chat_json[T: BaseModel](
     num_predict: int | None = None,
     timeout: float | None = None,
     model: str | None = None,
-) -> tuple[T, ChatMetrics]:
-    """POST /api/chat with a JSON Schema `format`; return (validated object, metrics).
+) -> tuple[str, ChatMetrics]:
+    """POST /api/chat with `format_schema` (a JSON Schema dict) as `format`; return (reply content, metrics).
 
-    `schema` is a pydantic model class; its JSON Schema is sent as `format` and the
-    reply is validated against it. Raises PromptBudgetError (before sending),
-    OutputTruncated, ModelMissingError / OllamaError, or pydantic.ValidationError.
+    The same contract as chat_json (budget rule before sending, think check, done_reason "length" raises
+    OutputTruncated), but the content is returned unparsed, for callers that validate it themselves (M7 extraction).
     """
     cfg = _cfg(ollama)
     keep_alive = cfg.keep_alive if keep_alive is None else keep_alive
@@ -160,7 +159,7 @@ def chat_json[T: BaseModel](
         "messages": messages,
         "stream": False,
         "think": cfg.think,
-        "format": schema.model_json_schema(),
+        "format": format_schema,
         "keep_alive": keep_alive,
         "options": options,
     }
@@ -180,7 +179,6 @@ def chat_json[T: BaseModel](
              estimated, prompt_n, data.get("eval_count", 0), num_predict, num_ctx, data.get("done_reason"))
     if data.get("done_reason") == "length":
         raise OutputTruncated(data.get("eval_count", 0), num_predict)
-    parsed = schema.model_validate_json(msg.get("content", ""))
     eval_s = data.get("eval_duration", 0) / 1e9
     eval_n = data.get("eval_count", 0)
     metrics = ChatMetrics(
@@ -193,7 +191,45 @@ def chat_json[T: BaseModel](
         done_reason=data.get("done_reason"),
         num_ctx=num_ctx,
     )
-    return parsed, metrics
+    return msg.get("content", ""), metrics
+
+
+def chat_json[T: BaseModel](
+    messages: list[dict],
+    schema: type[T],
+    num_ctx: int,
+    ollama: OllamaSettings | None = None,
+    keep_alive: str | int | None = None,
+    temperature: float | None = None,
+    seed: int | None = None,
+    num_predict: int | None = None,
+    timeout: float | None = None,
+    model: str | None = None,
+) -> tuple[T, ChatMetrics]:
+    """POST /api/chat with a JSON Schema `format`; return (validated object, metrics).
+
+    `schema` is a pydantic model class; its JSON Schema is sent as `format` and the
+    reply is validated against it. Raises PromptBudgetError (before sending),
+    OutputTruncated, ModelMissingError / OllamaError, or pydantic.ValidationError.
+    """
+    content, metrics = chat_raw(messages, schema.model_json_schema(), num_ctx, ollama=ollama, keep_alive=keep_alive,
+                                temperature=temperature, seed=seed, num_predict=num_predict, timeout=timeout,
+                                model=model)
+    return schema.model_validate_json(content), metrics
+
+
+def model_digest(model: str, ollama: OllamaSettings | None = None) -> str:
+    """The model's digest from /api/tags (changes when the tag is re-pulled). Raises ModelMissingError / OllamaError."""
+    cfg = _cfg(ollama)
+    try:
+        r = httpx.get(f"{cfg.base_url.rstrip('/')}/api/tags", timeout=cfg.ps_timeout_s)
+        r.raise_for_status()
+    except httpx.HTTPError as e:
+        raise OllamaError(f"Cannot reach Ollama at {cfg.base_url}: {e}") from e
+    for m in r.json().get("models", []):
+        if m.get("name") == model:
+            return str(m.get("digest", ""))
+    raise ModelMissingError(f"Model {model!r} not found in Ollama at {cfg.base_url}")
 
 
 def post_chat(body: dict, *, timeout: float, ollama: OllamaSettings | None = None) -> dict:

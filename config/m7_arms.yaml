@@ -1,0 +1,23 @@
+# M7 extraction arms (ADR-0048 section 8 and Amendment 2), read by `insightex extract-eval run --arm NAME`.
+#
+# Fields per arm:
+#   name        unique; also the run directory name under <extract.evidence_dir>/<lecture_id>/<comparison>/
+#   comparison  C1, C2, C3 or C4
+#   model       exact Ollama tag (checked against /api/tags; its digest goes into the cache key)
+#   input       original (the window's transcript text) or english (per-window translation by the C1 winner, C2 arm B)
+#   batch_k     windows per call: 1 = single window; C3 arm B uses k in 3..5, fixed before C3 by `extract-eval measure`
+#   context     none, or previous (C4 arm B: the previous grid window as read-only context)
+#
+# null means "set from the earlier comparison's winner before this arm runs"; an arm with any null field refuses to
+# run. Fill them in only after the earlier comparison's decision is committed. Arm A of each comparison is the one a
+# tie keeps (C1: the model with the smaller measured VRAM peak at the worst-case prompt, decided by measurement).
+arms:
+  - {name: C1-qwen3.5, comparison: C1, model: "qwen3.5:latest", input: original, batch_k: 1, context: none}
+  # UNVERIFIED tag: Gemma 4 E4B is not pulled or measured yet (ADR-0002). Check `ollama list` before Session 2b.
+  - {name: C1-gemma4-e4b, comparison: C1, model: "gemma4:e4b", input: original, batch_k: 1, context: none}
+  - {name: C2-original, comparison: C2, model: null, input: original, batch_k: 1, context: none}
+  - {name: C2-english, comparison: C2, model: null, input: english, batch_k: 1, context: none}
+  - {name: C3-single, comparison: C3, model: null, input: null, batch_k: 1, context: none}
+  - {name: C3-batch, comparison: C3, model: null, input: null, batch_k: null, context: none}
+  - {name: C4-window, comparison: C4, model: null, input: null, batch_k: null, context: none}
+  - {name: C4-previous, comparison: C4, model: null, input: null, batch_k: null, context: previous}
