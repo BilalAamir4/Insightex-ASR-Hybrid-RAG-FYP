@@ -9,6 +9,7 @@ import contextlib
 import hashlib
 import json
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -454,6 +455,7 @@ def test_ollama_client_applies_the_model_calibration_and_measure_turns_it_off(mo
 
     def fake_chat_raw(messages, fmt, num_ctx, **kw):
         seen.append(kw["estimate_scale"])
+        assert kw["keep_alive"] == 0  # every harness call reloads the model (ADR-0049)
         from insightex.llm.ollama_client import ChatMetrics
         return "{}", ChatMetrics(1, 1, 1.0, 1.0, 1.0, 0.0, "stop", num_ctx)
 
@@ -571,3 +573,54 @@ def test_measure_uses_the_retry_call_at_the_error_cap(tmp_path):
     assert len(messages) == 3 and messages[2]["content"].startswith("PLACEHOLDER RETRY")
     assert messages[2]["content"].count("\n- ") >= 3 and messages[2]["content"].rstrip().endswith("JSON only.")
     assert sum(len(e) for e in filler_errors(case.targets, 500)) > 500
+
+
+# -- reload per call (keep_alive 0, ADR-0049) ------------------------------------------------------------------------
+
+
+class UnloadAfterCallClient(FakeClient):
+    """Like Ollama with keep_alive 0: the model is resident only while a call runs."""
+
+    def chat(self, model, messages, format_schema, num_ctx, num_predict):
+        self.loaded.add(model)
+        time.sleep(0.05)
+        try:
+            return super().chat(model, messages, format_schema, num_ctx, num_predict)
+        finally:
+            self.loaded.discard(model)
+
+
+def test_every_call_uses_keep_alive_zero_and_ps_is_read_during_the_call(setup):
+    settings, prompts, ctx = setup
+    assert settings.extract.keep_alive == 0
+
+    def respond(user, messages, attempt):
+        w = user["windows"][0]["window_index"]
+        return json.dumps({"windows": [item(w, cue="x") if attempt == 1 else item(w)]})
+
+    client = UnloadAfterCallClient(respond)
+    fast = load_settings({"extract": {"vram_poll_interval_s": 0.01}})
+    _, run = h.run_arm(ctx(client, s=fast), arm(), prompts, LECTURE, windows(1), [0])
+    assert run["options"]["keep_alive"] == 0
+    assert len(client.chats) == 2  # the retry is a call of its own, also with keep_alive 0
+    assert run["cost"]["ollama_ps_at_largest_prompt"]["size_vram"] == 1000  # seen during the call, not after it
+
+
+def test_keep_alive_is_in_the_cache_key(setup, tmp_path):
+    _, prompts, ctx = setup
+    h.run_arm(ctx(), arm(), prompts, LECTURE, windows(1), [0])
+    other = load_settings({"extract": {"keep_alive": "10m"}})
+    client = FakeClient()
+    h.run_arm(ctx(client, s=other), arm(), prompts, LECTURE, windows(1), [0])
+    assert len(client.chats) == 1  # a different keep_alive is a different request: no cache hit
+
+
+def test_ps_watch_keeps_the_entry_seen_during_a_call():
+    client = FakeClient()
+    client.loaded = set()
+    with h.PsWatch(client, "m", 0.01) as watch:
+        client.loaded.add("m")
+        time.sleep(0.05)
+        client.loaded.discard("m")
+    assert watch.seen == {"size": 1000, "size_vram": 1000, "gpu_pct": 100.0, "processor": "100% GPU",
+                          "context_length": None}

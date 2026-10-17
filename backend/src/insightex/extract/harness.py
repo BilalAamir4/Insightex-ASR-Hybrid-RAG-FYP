@@ -40,12 +40,13 @@ import hashlib
 import json
 import logging
 import os
+import threading
 import time
 from collections.abc import Callable
 from contextlib import AbstractContextManager
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Protocol, Self
 
 from insightex.core.config import Settings
 from insightex.extract.arms import Arm
@@ -67,7 +68,7 @@ from insightex.llm.ollama_client import OutputTruncated
 
 log = logging.getLogger(__name__)
 
-HARNESS_VERSION = 3  # 3: retry carries the validation errors; 2: num_predict per window, calibrated estimate. Bump when request building or reply handling changes in a way that changes output
+HARNESS_VERSION = 4  # 4: keep_alive per call; 3: retry with errors; 2: per-window num_predict, calibrated estimate. Bump when request building or reply handling changes in a way that changes output
 RUN_VERSION = 1  # run.json layout (tools/label_concepts/scoring.py RUN_VERSION)
 RETRIES = 1  # ADR-0048 section 7: "valid after one retry"; a gate rule, not a tunable
 
@@ -189,7 +190,8 @@ class OllamaModelClient:
              num_predict: int) -> tuple[str, dict[str, Any]]:
         scale = self.settings.extract.estimate_scale(model) if self.estimate_gate else 0.0
         content, m = ollama_client.chat_raw(messages, format_schema, num_ctx, ollama=self.settings.ollama,
-                                            num_predict=num_predict, model=model, estimate_scale=scale)
+                                            num_predict=num_predict, model=model, estimate_scale=scale,
+                                            keep_alive=self.settings.extract.keep_alive)
         return content, asdict(m)
 
     def resident(self) -> list[dict[str, Any]]:
@@ -210,6 +212,41 @@ def ps_entry(client: ModelClient, model: str) -> dict[str, Any] | None:
                     "processor": f"{pct:g}% GPU" if pct is not None else None,
                     "context_length": m.get("context_length")}
     return None
+
+
+class PsWatch:
+    """Reads `ollama ps` for one model while a call runs. With `extract.keep_alive` 0 the model unloads as soon as
+    the call returns, so a read afterwards finds nothing; this keeps the largest entry seen during the call (and one
+    read after it, for a model that stays loaded)."""
+
+    def __init__(self, client: ModelClient, model: str, interval_s: float) -> None:
+        self.client, self.model, self.interval_s = client, model, interval_s
+        self.seen: dict[str, Any] | None = None
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+
+    def _read(self) -> None:
+        try:
+            entry = ps_entry(self.client, self.model)
+        except Exception as e:  # noqa: BLE001 - a failed status read must not fail the call it observes
+            log.debug("ollama ps read failed: %s", e)
+            return
+        if entry is not None and (self.seen is None or entry["size_vram"] >= self.seen["size_vram"]):
+            self.seen = entry
+
+    def _run(self) -> None:
+        while not self._stop.is_set():
+            self._read()
+            self._stop.wait(self.interval_s)
+
+    def __enter__(self) -> Self:
+        self._thread.start()
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self._stop.set()
+        self._thread.join()
+        self._read()
 
 
 # -- cache ---------------------------------------------------------------------------------------------------------
@@ -319,7 +356,7 @@ def extraction_num_predict(settings: Settings, n_targets: int) -> int:
 def _options(settings: Settings, num_predict: int) -> dict[str, Any]:
     o = settings.ollama
     return {"num_ctx": settings.extract.num_ctx, "num_predict": num_predict, "temperature": o.temperature,
-            "seed": o.seed, "think": o.think}
+            "seed": o.seed, "think": o.think, "keep_alive": settings.extract.keep_alive}
 
 
 def _cached_call(ctx: RunContext, kind: str, model: str, digest: str, messages: list[dict], fmt: dict,
@@ -331,13 +368,14 @@ def _cached_call(ctx: RunContext, kind: str, model: str, digest: str, messages: 
     hit = entry is not None
     if entry is None:
         t0 = ctx.clock()
-        try:
-            content, metrics = ctx.client.chat(model, messages, fmt, ctx.settings.extract.num_ctx, num_predict)
-            error = None
-        except OutputTruncated as e:
-            content, metrics, error = None, {"eval_count": e.eval_count, "done_reason": "length"}, str(e)
+        with PsWatch(ctx.client, model, ctx.settings.extract.vram_poll_interval_s) as watch:
+            try:
+                content, metrics = ctx.client.chat(model, messages, fmt, ctx.settings.extract.num_ctx, num_predict)
+                error = None
+            except OutputTruncated as e:
+                content, metrics, error = None, {"eval_count": e.eval_count, "done_reason": "length"}, str(e)
         entry = {"key": key, "kind": kind, "attempt": attempt, "content": content, "error": error,
-                 "metrics": metrics, "wall_s": ctx.clock() - t0, "ps": ps_entry(ctx.client, model),
+                 "metrics": metrics, "wall_s": ctx.clock() - t0, "ps": watch.seen,
                  "created_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")}
         ctx.cache.put(kind, key, entry)
     ctx.calls_log.append({**label, "kind": kind, "attempt": attempt, "cache_hit": hit, "key": key,

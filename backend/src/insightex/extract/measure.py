@@ -35,7 +35,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from insightex.core.config import Settings
-from insightex.extract.harness import ModelClient, WindowText, ps_entry
+from insightex.extract.harness import ModelClient, PsWatch, WindowText
 from insightex.extract.prompts import (
     FrozenText,
     extraction_format,
@@ -100,7 +100,7 @@ def case_messages(case: Case, grid: dict[int, WindowText], prompt: FrozenText, c
 
 
 def measure_case(client: ModelClient, model: str, messages: list[dict], fmt: dict, num_ctx: int, num_predict: int,
-                 sampler: VramSampler, estimate_scale: float = 1.0) -> dict[str, Any]:
+                 sampler: VramSampler, estimate_scale: float = 1.0, ps_interval_s: float = 0.2) -> dict[str, Any]:
     estimated = estimate_prompt_tokens(messages)
     gate_estimate = scaled_estimate(messages, estimate_scale)
     gate_allows = gate_estimate + num_predict <= num_ctx
@@ -115,11 +115,12 @@ def measure_case(client: ModelClient, model: str, messages: list[dict], fmt: dic
     sampler.start()
     truncated, metrics = False, {}
     try:
-        try:
-            _, metrics = client.chat(model, messages, fmt, num_ctx, num_predict)
-        except OutputTruncated as e:
-            truncated, metrics = True, {"eval_count": e.eval_count}
-        ps = ps_entry(client, model)
+        with PsWatch(client, model, ps_interval_s) as watch:  # read during the call: keep_alive 0 unloads after it
+            try:
+                _, metrics = client.chat(model, messages, fmt, num_ctx, num_predict)
+            except OutputTruncated as e:
+                truncated, metrics = True, {"eval_count": e.eval_count}
+        ps = watch.seen
     finally:
         sampler.stop()
         client.unload(model)
@@ -162,7 +163,8 @@ def run_measurement(settings: Settings, client: ModelClient, lease: Callable[[st
                 case = worst_case(windows, k, with_context)
                 messages, fmt = case_messages(case, grid, prompt, context_block, settings.extract.retry_error_chars)
                 runs = [measure_case(client, model, messages, fmt, n, num_predict_per_window * k, sampler_factory(),
-                                     settings.extract.estimate_scale(model)) for n in num_ctxs]
+                                     settings.extract.estimate_scale(model), settings.extract.vram_poll_interval_s)
+                        for n in num_ctxs]
                 cases.append({"k": k, "context": with_context, "targets": list(case.targets),
                               "context_windows": [list(p) for p in case.context_pairs], "note": case.note,
                               "window_tokens_estimated": {t: window_tokens(grid[t].text) for t in case.targets},
@@ -181,7 +183,7 @@ def run_measurement(settings: Settings, client: ModelClient, lease: Callable[[st
         "prompt": {"path": str(prompt.path), "sha256": prompt.sha256, "frozen": prompt_frozen},
         "context_block_sha256": context_block.sha256 if context_block else None,
         "ollama_options": {"temperature": settings.ollama.temperature, "seed": settings.ollama.seed,
-                           "think": settings.ollama.think},
+                           "think": settings.ollama.think, "keep_alive": settings.extract.keep_alive},
         "num_predict_per_window": num_predict_per_window,
         "measured_prompt": "the retry call: first attempt + retry template with errors at retry_error_chars",
         "retry_error_chars": settings.extract.retry_error_chars,
