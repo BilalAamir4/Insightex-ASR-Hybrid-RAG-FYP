@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendments 1 (single labeller) and 2 (comparison C4, labelling order) at the end
+Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows) at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -207,3 +207,21 @@ Decided by Bilal on 2026-10-17, before any model output existed (no extraction h
 - **With batching (if C3 adopted batches of k windows).** Each batch gets the previous window of its first window as read-only context. A later window in the batch needs no context when the window before it in the batch is its previous grid window. When it is not (as can happen in a sampled held-out set), its own previous window is added to the context block too, labelled with the window it precedes. Context windows are never extraction targets.
 
 **Labelling order (corrects Amendment 1).** The rule update comes after the first pass. Bilal then revises all his labels under the updated guide and labels the remaining windows (Day 4: 6, 10, 14, 18, 22), and validates and commits `bilal.json`. Only then, at least 2 days later, does he re-label the 10 shared windows blind as `bilal_repeat`, so that the repeat is made under the same guide. The consistency figure is `bilal` (finished) against `bilal_repeat`, string rule only. Gold is that finished `bilal.json`. Differences found by the repeat are reported and change neither the guide nor the gold. The guide is frozen after the rule update; the held-out lecture is labelled under it with no rule update. This replaces Amendment 1's "consistency on the first (pre-revision) labels, then review, update and revise".
+
+## Amendment 3 (2026-10-17): a second annotator on the Day 4 shared windows
+
+Decided by Bilal on 2026-10-17, before any model output existed (no extraction has run on any lecture). The text above and Amendments 1 and 2 are kept; where they conflict with this amendment, this amendment applies.
+
+- **Fatima labels the 10 shared Day 4 windows** (2, 4, 8, 9, 11, 13, 16, 17, 19, 21) as a second annotator, labeller name `fatima`.
+  - She labels blind: she does not see `bilal.json` or any of Bilal's labels, before or during her labelling. The tool serves only her own file.
+  - She labels under the current, frozen guide. The guide's one rule update is already used, so the guide does not change because of her labels or the disagreements.
+  - The Day 4 sample is not re-drawn. The manifest records her as a shared-windows-only annotator (an entry under `amendments` with the previous manifest's sha256). Bilal's labels files stay valid.
+- **Inter-annotator figure.** Agreement between `bilal` and `fatima` on the 10 shared windows, string rule only, is the inter-annotator agreement figure. It is computed on Bilal's labels as they were before his review (below), and that file is kept as `bilal_pre_review.json`. Section 6's fairness rule holds: it is shown only next to the model's string-rule-only concept F1 on the same lecture, never next to the adjudicated F1.
+- **Gold stays Bilal's labels.** There is no consensus step and Fatima's labels never enter the gold set.
+- **Review.** After the agreement is computed, Bilal reviews the disagreements on the shared windows. He may correct clear errors in his own labels on those windows. Every correction is logged with its reason (window, reason, the record before and after) in `corrections_bilal.json`. `validate` refuses a `bilal.json` whose shared windows differ from `bilal_pre_review.json` without a matching logged correction, and refuses any change to a non-shared window after the review starts. Gold is the reviewed `bilal.json`.
+- **The `bilal_repeat` intra-rater check is dropped.** Amendment 1's consistency figure is replaced by the inter-annotator figure above, and the 2-day wait goes with it.
+- Reports describe the gold set as made by one annotator (Bilal), with a second annotator's labels on 10 shared windows used for agreement and for reviewing his labels.
+- **Held-out lecture:** this amendment covers Day 4. Whether a second annotator labels the held-out lecture's shared windows is decided, in a new amendment, before that lecture is sampled.
+
+Consequence: the agreement figure measures two people on 10 windows, so it is noisy (one window is 10% of the set). Corrections after the review can move the gold set towards Fatima's reading on the shared windows; the figure itself is computed on the pre-review file, so the corrections cannot raise it, and the log makes each one auditable.
+
