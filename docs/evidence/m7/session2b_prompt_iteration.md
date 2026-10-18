@@ -157,3 +157,79 @@ Neither the known-mismatch misses nor the unnamed-concept misses are named failu
 - **Likely cause:** examples 2 and 3 show a `contrasts_with` between two concepts. Both are explained there, but the prompt never says that a named contrast alone is not enough.
 - **Change (one addition to the leave-out list under CONCEPTS):** "a concept named only as the opposite of, or a comparison to, the concept being explained ("there is no X", "the difference between A and X", "unlike X"), or announced for later, unless the window also explains X itself. If you leave X out, leave out any relation to it." The examples are unchanged; examples 2 and 3 still show the allowed case, where both concepts are explained.
 - **Expected effect:** fewer extras (up to 4) and fewer invented relations (up to 4). It should not change the concepts that are explained.
+
+## Version 3 run (18 Oct 2026)
+
+- **Prompt:** `config/prompts/m7_extraction_v3.txt`, sha256 `8857a328…0e9c`. It is version 2 plus one bullet in the leave-out list under CONCEPTS, nothing else: "a concept named only as the opposite of, or a comparison to, the concept being explained ("there is no X", "the difference between A and X", "unlike X"), or announced for later, unless the window also explains X itself. If you leave X out, leave out any relation to it. Example 3 shows the difference: incremental learning is included there because the window defines it."
+- **Gold-overlap check:** the added text shares no 5- or 4-word sequence with any gold window. Its one shared 3-word sequence is "there is no" (window 14), a generic phrase from the approved wording. The whole prompt shares no 5-word sequence.
+- **Run:** same settings. Wall time 134.7 s, 61.4 tokens/s, largest prompt 2,053 real tokens, VRAM peak 7,727 MiB (baseline 1,333), 100% GPU. Evidence: `prompt_iteration/v3/`.
+
+### Scores (string rule)
+
+| | v1 | v2 | v3 |
+|---|---|---|---|
+| Concepts tp / pred / gold | 8 / 20 / 27 | 10 / 22 / 27 | 10 / 22 / 27 |
+| Concept P / R / **F1** | 0.400 / 0.296 / 0.340 | 0.455 / 0.370 / **0.408** | 0.455 / 0.370 / **0.408** |
+| Relations tp / pred / gold (P/R/F1 all 0.000) | 0 / 4 / 1 | 0 / 5 / 1 | 0 / 6 / 1 |
+
+- **Validity:** all 20 windows valid on the first attempt. 0 needed the retry, 0 still invalid.
+- **Importance:** none predicted, none in the gold.
+- **Stop rule:** F1 did not improve over version 2. That is the first version without improvement; one more without improvement meets the stop rule. We are at version 3 of 5.
+
+**No correct concept was lost.** Every gold concept matched in version 2 is matched in version 3.
+
+**Only two windows changed, and neither is a window the change was aimed at:**
+- window 9 dropped "recommendation engine";
+- window 11 again labels "retraining", with the relation "batch learning part_of retraining" (as in version 1).
+
+**Windows 4, 14 and 22 are unchanged:** the new rule did not remove the passing-contrast concepts or their relations.
+
+### Missed gold concepts (17, unchanged from version 2)
+
+| Category | Count | Windows (gold label) |
+|---|---|---|
+| Known gold/guide mismatch (fixed rule 7) | 7 | 10, 12, 13, 14, 15, 16, 20 |
+| Not named in the window's text (C1 gives no earlier context) | 7 | 8, 9 (Batch Learning); 17, 19 (Hardware Limitation); 18, 21, 22 (Availability) |
+| Named and explained in the window, still missed | 1 | 1 (Production) |
+| Extracted under a different name (string-rule miss, pending adjudication) | 1 | 16 (Lots Of Data, as "big data") |
+| Announced topic | 1 | 1 (Types of Machine Learning) |
+
+Neither the known-mismatch nor the unnamed-concept misses are named failures for prompt changes (fixed rule 7, and the C1 setting).
+
+### Extra model concepts (12)
+
+| Category | Count | Windows (model label) | v2 |
+|---|---|---|---|
+| Example settings and general words | 3 | 9 (static model); 10 (recommendation engine, machine learning model) | 4 |
+| Named in passing as a contrast or a later topic, with a `contrasts_with` built on it | 3 | 4 (online learning); 14 (incremental learning); 22 (online learning) | 3 |
+| **Concept not in the window's text** (no label or alias in the window; from the model's own knowledge), with a `contrasts_with` | **1** | 12 (incremental learning) | 1 (12) |
+| Named and explained in the window, not in the gold | 2 | 11 (retraining); 16 (hardware limitation) | 1 |
+| Naming variant of a missed gold concept | 1 | 16 (big data) | 1 |
+| Guide-consistent (a problem of batch learning stated, the model labels batch learning) | 2 | 12 (inside rule 7's windows; not named in window 12, its procedure is described); 22 | 2 |
+
+The "concept not in the window's text" category was checked by script: every model concept's label and aliases were matched against its window's text. In versions 2 and 3, only window 12's "incremental learning" and "batch learning" fail the check; window 12's "batch learning" is listed as guide-consistent. Version 1 had none.
+
+### Relations (6 predicted, 0 correct; gold has 1)
+
+- **`contrasts_with` to a passing-contrast concept, or to one not in the text:** 4 relations, in windows 4, 12, 14 and 22.
+- **Wrong type:** 2 relations: window 11 "batch learning part_of retraining" (retraining is part of the batch procedure, not the reverse) and window 19 "batch learning contrasts_with availability" (a problem, which no type fits).
+
+### What the persistent extras have in common
+
+- **Every one comes from the examples:** the 3 passing-contrast extras (online learning in windows 4 and 22, incremental learning in window 14), the not-in-text extra (incremental learning in window 12) and their 4 relations are all concepts and relations from examples 2 and 3: "batch learning contrasts_with online learning" and "batch learning contrasts_with incremental learning".
+- **Why that matters:** examples 2 and 3 are glosses of Day 4's own reserved windows (3 and 5), so they show the model this lecture's concepts and pairings.
+- **What did not work:** the version 3 rule told the model to leave such concepts out, and pointed to example 3 as the allowed case. It did not change any of these windows.
+
+### Proposed change for version 4 (awaiting approval)
+
+- **Named failure:** "Example concepts carried into the windows", **4 extra concepts and 4 invented `contrasts_with` relations in windows 4, 12, 14 and 22**:
+  - online learning (4, 22) and incremental learning (14): named only in passing;
+  - incremental learning (12): not in the window's text.
+
+  Each is a concept from examples 2 or 3, linked to batch learning exactly as those examples link it. The pattern persisted through versions 1 to 3 (window 12 since version 2), and the version 3 rule did not remove it.
+- **Change:** replace examples 2 and 3, the glosses of reserved windows 3 and 5, with two invented examples on other machine learning topics that teach the same lessons:
+  - **New example 2**, which teaches what example 2 taught: aliases given by the speaker ("which we also call ..."), an explicit importance cue, and a `contrasts_with` between two concepts the window explains. Proposed topic: classification and regression as two kinds of supervised task.
+  - **New example 3**, which teaches what example 3 taught: a definition with no importance signal, and a concept explained alongside another. It also shows the leave-out case: a concept named only in passing as a contrast ("unlike X") is left out, with no relation to it. Proposed topic: precision defined, with recall mentioned only in passing.
+  - Examples 1, 4 and 5 and all rules stay as they are. Example 1 (reserved window 0) is an empty record and adds no concept.
+- **Constraints:** no batch, online or incremental learning, no deployment or product story, no list of limitations. The new examples are checked for overlap with the gold windows before running. I will show their text for approval before the run.
+- **Expected effect:** fewer extras (up to 4) and invented relations (up to 4) in windows 4, 12, 14 and 22. The batch-learning matches in those windows come from the window text itself and should stay.

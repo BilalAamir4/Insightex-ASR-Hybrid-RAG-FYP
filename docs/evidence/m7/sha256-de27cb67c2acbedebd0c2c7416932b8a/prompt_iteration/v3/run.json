@@ -1,0 +1,996 @@
+{
+ "run_version": 1,
+ "harness_version": 4,
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "created_at": "2026-10-18T00:03:18Z",
+ "comparison": "C1",
+ "arm": {
+  "name": "C1-qwen3.5",
+  "comparison": "C1",
+  "model": "qwen3.5:latest",
+  "input": "original",
+  "batch_k": 1,
+  "context": "none"
+ },
+ "model_digest": "44a38603922e14f1e3ae68c5d900cc39f2a925a9749d12ab6d268d75a01a399f",
+ "prompt_sha256": "8857a3283b9ee9f05e7ed96e7e1b3b259fefb6d167f07185af53c54f8e1b0e9c",
+ "context_block_sha256": null,
+ "translation_prompt_sha256": null,
+ "system_message_sha256": [
+  "77d69c8db355d78401e246790e12446e4a2b44d2aa8317bd9699293a7b2c1b20"
+ ],
+ "options": {
+  "num_ctx": 8192,
+  "num_predict": 1024,
+  "temperature": 0.0,
+  "seed": 42,
+  "think": false,
+  "keep_alive": 0,
+  "num_predict_per_window": 1024,
+  "num_predict_rule": "num_predict_per_window x target windows in the call",
+  "token_estimate_scale": 0.68
+ },
+ "translate_num_predict": null,
+ "retries": 1,
+ "retry_rule": "once, in the same unit as the first attempt, with the frozen retry template and its errors",
+ "retry_error_chars": 1500,
+ "targets": [
+  1,
+  2,
+  4,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20,
+  21,
+  22
+ ],
+ "plan": [
+  {
+   "targets": [
+    1
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    2
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    4
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    6
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    7
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    8
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    9
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    10
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    11
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    12
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    13
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    14
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    15
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    16
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    17
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    18
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    19
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    20
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    21
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    22
+   ],
+   "context": []
+  }
+ ],
+ "windows": [
+  {
+   "window_index": 1,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 2,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 4,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 6,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 7,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 8,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 9,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 10,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 11,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 12,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 13,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 14,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 15,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 16,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 17,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 18,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 19,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 20,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 21,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 22,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  }
+ ],
+ "totals": {
+  "windows": 20,
+  "invalid_windows": 0,
+  "retried_windows": 0,
+  "needed_retry_windows": 0,
+  "dropped_relations": 0,
+  "calls": 20,
+  "cache_hits": 0
+ },
+ "cost": {
+  "measured": true,
+  "wall_s": 134.68976662500063,
+  "translation_wall_s": 0.0,
+  "tokens_per_sec": 61.36880878609028,
+  "max_prompt_eval_count": 2053,
+  "ollama_ps_at_largest_prompt": {
+   "size": 5628493822,
+   "size_vram": 5628493822,
+   "gpu_pct": 100.0,
+   "processor": "100% GPU",
+   "context_length": 8192
+  },
+  "vram": {
+   "baseline_mib": 1333,
+   "peak_mib": 7727,
+   "peak_above_baseline_mib": 6394,
+   "samples": 499,
+   "interval_s": 0.2,
+   "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+  }
+ },
+ "calls": [
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "9d25341a7ffccfb17554a82850d2ad9c4fb13edb8c8fe34740f21a64536d7e0c",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2000,
+    "eval_count": 39,
+    "eval_duration_s": 0.670537,
+    "tokens_per_sec": 58.162338543585214,
+    "total_duration_s": 5.1849874,
+    "load_duration_s": 3.6109698,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 5.73000998399948,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    1
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "52f8787f9204fc2a4427e510aad10a4fbeb96136828c6ed7830d3c42ffa74a1c",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2020,
+    "eval_count": 88,
+    "eval_duration_s": 1.39093,
+    "tokens_per_sec": 63.267022783317636,
+    "total_duration_s": 5.8943986,
+    "load_duration_s": 3.6073643,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 6.4632598429998325,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    2
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "0eb4d1d80664a1f01028acceeecc92b1b00b6b1d5fb7e3caf65729ee45af7671",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 1994,
+    "eval_count": 146,
+    "eval_duration_s": 2.273815,
+    "tokens_per_sec": 64.20926944364427,
+    "total_duration_s": 6.7379998,
+    "load_duration_s": 3.6006194,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 7.399178941999708,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    4
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "76f0f248fb07d0763686ba2b6a868085958e1f0622e6f8cbb5eca5f3c1a9b1eb",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2007,
+    "eval_count": 97,
+    "eval_duration_s": 1.529254,
+    "tokens_per_sec": 63.429619932333026,
+    "total_duration_s": 6.0485146,
+    "load_duration_s": 3.6269901,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 6.723753930000385,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    6
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "cfc127ee67c2bee9cdaf53675154c9a0d35343cbd59db1548e20b34cf312fe99",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 1969,
+    "eval_count": 88,
+    "eval_duration_s": 1.388446,
+    "tokens_per_sec": 63.38021068158214,
+    "total_duration_s": 5.8695289,
+    "load_duration_s": 3.6353806,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 6.5000780290001785,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    7
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "8dc7789f9b4c3a8afdf26293d5b58d179fd5f2687f25c4b3d2cf8edd19864710",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2011,
+    "eval_count": 39,
+    "eval_duration_s": 0.638497,
+    "tokens_per_sec": 61.08094478125974,
+    "total_duration_s": 5.1153699,
+    "load_duration_s": 3.5977633,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 5.65148458099975,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    8
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "f94d5ced96e7236bf15911ea4be0abebd445989e072e66ef33536ab3f664f9a6",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2015,
+    "eval_count": 88,
+    "eval_duration_s": 1.405187,
+    "tokens_per_sec": 62.62511679940108,
+    "total_duration_s": 5.9233279,
+    "load_duration_s": 3.6389088,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 6.527170634999493,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    9
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "084b5b836e5131e7b0ea5d4da29a24871d762d428a5bc25ae6ff51a42fd21a76",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2037,
+    "eval_count": 112,
+    "eval_duration_s": 1.750369,
+    "tokens_per_sec": 63.9865079877443,
+    "total_duration_s": 6.2495565,
+    "load_duration_s": 3.6083247,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 6.952642631999879,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    10
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "ba04fa256ea6b5f2de85257864d4ca3b847ae35b7d7bd5efb466381bd3ffe362",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2034,
+    "eval_count": 155,
+    "eval_duration_s": 2.416629,
+    "tokens_per_sec": 64.13893071712704,
+    "total_duration_s": 6.9248407,
+    "load_duration_s": 3.6046572,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 7.68876768500013,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    11
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "457fb41c8ca7e3673f30011f14a00659596d8b29d0a0f51905a2ab475559aa5f",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2014,
+    "eval_count": 149,
+    "eval_duration_s": 2.356702,
+    "tokens_per_sec": 63.223946005901475,
+    "total_duration_s": 6.8929662,
+    "load_duration_s": 3.6327433,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 7.569394336000187,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    12
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "facd7969a79a1a4d92c2751553cc84a1d34162492c37f4fc7a37bab8e77d4bb5",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2001,
+    "eval_count": 40,
+    "eval_duration_s": 0.661066,
+    "tokens_per_sec": 60.50833048439944,
+    "total_duration_s": 5.1789013,
+    "load_duration_s": 3.6336483,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 5.710688727000161,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    13
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "a9a98d263716013f5a61086a83a3859f41272485810cafbf5e05719739c54ad4",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 1986,
+    "eval_count": 175,
+    "eval_duration_s": 3.099993,
+    "tokens_per_sec": 56.45174037489762,
+    "total_duration_s": 7.8576563,
+    "load_duration_s": 3.6330163,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 8.621239118999256,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    14
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "604c1b2e048c58c999c17b11d53198e5452f13364ff2580cf59eb595794f04da",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2036,
+    "eval_count": 89,
+    "eval_duration_s": 1.412757,
+    "tokens_per_sec": 62.99738737801334,
+    "total_duration_s": 6.2195368,
+    "load_duration_s": 3.9106692,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 6.9360291920002055,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    15
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "d455f89f3d1f011e75f0b3417d4c884c418635e91ce3fed6a21857b613ee9174",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2029,
+    "eval_count": 110,
+    "eval_duration_s": 1.711789,
+    "tokens_per_sec": 64.26025637505558,
+    "total_duration_s": 6.2486064,
+    "load_duration_s": 3.6501397,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 6.919953249000173,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    16
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "751f90e60978e6c00d8e02b8d7c5747513ff9d8c9c5643c8a210e870b6c5b319",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2017,
+    "eval_count": 40,
+    "eval_duration_s": 0.654528,
+    "tokens_per_sec": 61.11274078419869,
+    "total_duration_s": 5.2849799,
+    "load_duration_s": 3.626485,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 5.829473771999801,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    17
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "6e420252921d83528ed7b0c8747865366b8d1e548404596796672f802bf25fe9",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2037,
+    "eval_count": 65,
+    "eval_duration_s": 1.041834,
+    "tokens_per_sec": 62.38997767398646,
+    "total_duration_s": 5.5378392,
+    "load_duration_s": 3.6036858,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 6.129753872999572,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    18
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "116f3421a7380cc767894ea3e8befdb8fea7f879d2b24f20a75bc489e57d338e",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2011,
+    "eval_count": 83,
+    "eval_duration_s": 1.333291,
+    "tokens_per_sec": 62.25197650025388,
+    "total_duration_s": 5.8039848,
+    "load_duration_s": 3.5903729,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 6.4593975750003665,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    19
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "5fabf8bb822638063d4cef841558571e372cfa14a29731121464f6bf36ff4cff",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2053,
+    "eval_count": 55,
+    "eval_duration_s": 1.160905,
+    "tokens_per_sec": 47.376831006843794,
+    "total_duration_s": 6.2069062,
+    "load_duration_s": 3.8541034,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 6.950784746999489,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    20
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "c778f307897b233f420f5e0f33cfd08bb1be4bab4348249ae61f014f529c4fe7",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2049,
+    "eval_count": 40,
+    "eval_duration_s": 0.745347,
+    "tokens_per_sec": 53.666278927801415,
+    "total_duration_s": 5.8387206,
+    "load_duration_s": 4.1548715,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 6.520201085999361,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    21
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "4db1423c68d05f5c4faddfd9e8c65f021c2ef125ae96187408195b99549eb06e",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2017,
+    "eval_count": 89,
+    "eval_duration_s": 1.477151,
+    "tokens_per_sec": 60.2511185383214,
+    "total_duration_s": 6.4293131,
+    "load_duration_s": 4.0146605,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 7.048450151999532,
+   "ps": {
+    "size": 5628493822,
+    "size_vram": 5628493822,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    22
+   ],
+   "context": []
+  }
+ ]
+}
