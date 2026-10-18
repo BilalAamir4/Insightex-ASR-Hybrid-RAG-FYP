@@ -1,0 +1,51 @@
+{
+ "model": "gemma4:e4b",
+ "model_digest": "dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c",
+ "think": false,
+ "expected": {
+  "first_code_word": "ORCHID",
+  "last_code_word": "GRANITE"
+ },
+ "calibration": {
+  "tokens_per_line": 25.0,
+  "fixed_tokens": -24.0
+ },
+ "true_length": {
+  "case_a": 9201,
+  "case_b": 7701
+ },
+ "case_a": {
+  "lines": 369,
+  "num_ctx": 8192,
+  "num_predict": 64,
+  "prompt_eval_count": 4099,
+  "eval_count": 31,
+  "done_reason": "stop",
+  "reply": {
+   "first_code_word": "light wind",
+   "last_code_word": "GRANITE"
+  },
+  "true_prompt_tokens": 9201,
+  "prompt_was_cut": true,
+  "first_code_word_ok": false,
+  "last_code_word_ok": true,
+  "post_call_check": null
+ },
+ "case_b": {
+  "lines": 309,
+  "num_ctx": 8192,
+  "num_predict": 1024,
+  "prompt_eval_count": 7701,
+  "eval_count": 30,
+  "done_reason": "stop",
+  "reply": {
+   "first_code_word": "ORCHID",
+   "last_code_word": "GRANITE"
+  },
+  "true_prompt_tokens": 7701,
+  "prompt_was_cut": false,
+  "first_code_word_ok": true,
+  "last_code_word_ok": true,
+  "post_call_check": "prompt overflow: prompt_eval_count 7701 + num_predict 1024 = 8725 > num_ctx 8192; the reply is not used"
+ }
+}

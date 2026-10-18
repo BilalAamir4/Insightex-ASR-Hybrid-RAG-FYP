@@ -1,7 +1,7 @@
 # ADR-0049: M7 extraction harness call rules (output cap, budget gate, context, retry, C1 tie-break, reload per call)
 
 Status: Accepted
-Accepted: 2026-10-18, by Bilal after review. Amended: 2026-10-18, Amendment 1 (at most 10 concepts and 10 relations per window); Amendment 2 (budget gate recalibrated on the frozen prompt, post-call overflow check, valid-but-empty-after-retry category) **Proposed**, awaiting review; both at the end
+Accepted: 2026-10-18, by Bilal after review. Amended: 2026-10-18, Amendment 1 (at most 10 concepts and 10 relations per window); Amendment 2 (budget gate recalibrated on the frozen prompt, post-call overflow check, valid-but-empty-after-retry category) **Proposed**, awaiting review (the overflow test shows the post-call check does not catch a prompt longer than num_ctx); both at the end
 Date decided: 2026-10-18
 Date recorded: 2026-10-18
 Module: M7
@@ -132,6 +132,29 @@ That is well above the synthetic-input ratios behind decision 2's factors (0.68 
    - the scorer (`tools/label_concepts`, `score` and `compare`): `valid_empty_after_retry_windows` in the validity section, plus `valid_empty_after_retry_a` / `_b` in a comparison. The scorer derives it from the record and `attempt_used`, so earlier runs are covered.
 
    Reason: in prompt version 4, windows 15 and 20 counted as valid and recovered by the retry, but the retry returned an empty record, and the window's concept was lost.
+
+**Test of the unverified point (18 Oct 2026, synthetic input only, before acceptance).** `docs/measurements/m7/synthetic/scripts/overflow_probe.py`, results in `overflow_probe_qwen3.5.json` and `overflow_probe_gemma4_e4b.json`.
+- **The prompt:** a synthetic document with a first code word at the very start and a last code word at the very end, around numbered English filler lines. The model was asked for both code words.
+- **How it was sent:** directly to `/api/chat` with `chat_raw`'s body (think false, temperature 0, the config seed, `keep_alive` 0), because the harness gate would not have stopped these prompts (see below) but is not the subject of the test.
+- **True lengths:** measured first at `num_ctx` 16384.
+
+| Model | Case | true prompt tokens | `num_ctx` | `num_predict` | reported `prompt_eval_count` | `done_reason` | first / last code word | prompt cut? | post-call check |
+|---|---|---|---|---|---|---|---|---|---|
+| qwen3.5 | A: prompt about 1,000 over `num_ctx` | 9,204 | 8,192 | 64 | **4,098** | stop | **lost** ("the") / kept | **yes, silently, from the start** | **not caught** (4,098 + 64 ≤ 8,192) |
+| Gemma | A | 9,201 | 8,192 | 64 | **4,099** | stop | **lost** ("light wind") / kept | **yes, silently, from the start** | **not caught** (4,099 + 64 ≤ 8,192) |
+| qwen3.5 | B: prompt fits, prompt + `num_predict` does not | 7,704 | 8,192 | 1,024 | 7,704 | stop | kept / kept | no | **caught** (7,704 + 1,024 = 8,728) |
+| Gemma | B | 7,701 | 8,192 | 1,024 | 7,701 | stop | kept / kept | no | **caught** (7,701 + 1,024 = 8,725) |
+
+What the test shows:
+- **A prompt longer than `num_ctx` is cut silently.** Ollama keeps only the end of a prompt that does not fit, about half of `num_ctx` (4,098 of 9,204 tokens here). It reports `prompt_eval_count` as the kept part only and returns `done_reason: stop`, with no error. The start of the prompt (here the first code word; in a real call, the system prompt with its instructions) is lost, and the reply looks normal.
+- **The post-call check therefore does not catch case A**: the reported count plus `num_predict` fits. It does catch case B, where Ollama does not cut the prompt. In case B the reply was correct, because the generation was short, but the check rejects it by rule: the call did not have its full `num_predict` available.
+- **The gate did not stop either case.** This filler tokenises at 0.996 real tokens per estimated token, far above the frozen prompt's 0.734–0.793. With the factors of decision 1 here, the gate passes a prompt longer than 8,192 real tokens (one window, `num_predict` 1,024) only when real / estimate exceeds 0.960 (qwen3.5) or 0.870 (Gemma). Day 4's frozen-prompt calls are well below that; text that tokenises like this filler is not.
+
+**Conclusion: point 2's claim does not hold as written.** The post-call check guarantees against a prompt that fits but leaves too little room for `num_predict` (case B). It does **not** guarantee against silent truncation of a prompt longer than `num_ctx` (case A). For that case, the only guard today is the estimate, and only while real / estimate stays below 0.960 / 0.870. Options for decision, none applied:
+1. **Detect the cut from the count:** treat a reply as invalid when its `prompt_eval_count` is far below what the request's estimate implies. Truncation leaves about half of `num_ctx`; here the count was 0.44 of the estimate, against measured ratios of 0.54 or more without truncation. The margin is narrow, so a fixed threshold could misfire.
+2. **Count the real prompt before sending:** a count-only call per window, at a larger `num_ctx` with `num_predict` 1, cached by text hash, then the budget rule on real tokens. This is exact but adds calls.
+3. **Ask Ollama not to truncate,** if Ollama 0.40.2's `/api/chat` has such an option (**unverified**; not tested here). Ollama would then return an error instead of cutting the prompt.
+4. **Raise both factors to 1.0** (uncalibrated). That refuses case A, but also refuses Gemma's k = 5, whose real prompt fits.
 
 **Consequences.**
 - `HARNESS_VERSION` is 5, which changes every reply-cache key. The frozen prompt's runs are made under version 5.
