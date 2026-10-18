@@ -287,3 +287,35 @@ Both stay unchanged. Neither has caused a named failure, so changing them would 
 - **Frozen prompt: version 2**, `config/prompts/m7_extraction_v2.txt`, sha256 **`c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648`**. `extract.prompt_file` and `extract.prompt_sha256` in `config/default.yaml` now pin it.
 - **Consequence:** the frozen prompt keeps examples 2 and 3 as glosses of Day 4's reserved windows 3 and 5. The carry-over finding above therefore applies to the frozen prompt: on Day 4, its extras include the carried-over online-learning and incremental-learning concepts (windows 4, 12, 14, 22). The held-out lecture has no such link to the examples.
 
+
+## Final k with the frozen prompt (18 Oct 2026)
+
+`insightex extract-eval measure --lecture sha256-de27cb67c2acbedebd0c2c7416932b8a --model <model> --k 3 4 5 --num-ctx 8192`.
+- **Prompt and settings:** the frozen version 2 prompt (`c7e061fc…4648`, recorded as frozen in the reports); `keep_alive` 0; `num_predict` = 1024 × k.
+- **Worst case:** each case is the k largest Day 4 windows (an upper bound), measured as its retry call with errors at the 1,500-character cap.
+- **Reports:** `docs/measurements/m7/sha256-de27cb67c2acbedebd0c2c7416932b8a/qwen3.5_latest_20261018T002351Z.json` and `gemma4_e4b_20261018T002436Z.json`.
+- **Window text:** the reports hold window indices and token counts only.
+
+| Model | k | windows | real prompt tokens | num_predict | total | fits 8192 | `ollama ps` | peak VRAM (MiB) | gate estimate (scale) | gate |
+|---|---|---|---|---|---|---|---|---|---|---|
+| qwen3.5 | 3 | 18, 20, 21 | 2,768 | 3,072 | 5,840 | yes | 100% | 7,503 | 2,373 (0.68) | allows |
+| qwen3.5 | **4** | 10, 18, 20, 21 | 2,942 | 4,096 | 7,038 | **yes** | 100% | 7,879 | 2,548 | allows |
+| qwen3.5 | 5 | 10, 16, 18, 20, 21 | 3,108 | 5,120 | **8,228** | **no** (36 over) | 100% | 7,816 | 2,718 | **allows: real overflow** |
+| Gemma | 3 | 18, 20, 21 | 2,655 | 3,072 | 5,727 | yes | 100%* | 5,950 | 2,233 (0.64) | allows |
+| Gemma | 4 | 10, 18, 20, 21 | 2,796 | 4,096 | 6,892 | yes | 100%* | 5,925 | 2,398 | allows |
+| Gemma | **5** | 10, 16, 18, 20, 21 | 2,932 | 5,120 | 8,052 | **yes** | 100%* | 5,947 | 2,558 | allows |
+
+\* `ollama ps` under-reports Gemma (ADR-0049 decision 6). By ADR-0049's residency check, Gemma's peaks (5,925–5,950 MiB; 4,553–4,787 MiB above the baseline) are in line with its reference (6,198 MiB; 4,892 above the baseline). That shows no sign of layers leaving the GPU.
+
+**Final k (ADR-0048 section 8): qwen3.5 k = 4, Gemma k = 5.** The two models differ, so both are reported and neither is picked here. C3 uses the k of the C1 winner.
+
+### Finding: the calibrated gate is too loose for the frozen prompt (not acted on)
+
+- **Measured ratios:** with the frozen prompt and the retry message, real `prompt_eval_count` / estimate is 0.778–0.793 for qwen3.5 (k = 5, 4, 3) and 0.734–0.761 for Gemma. That is well above the synthetic-input ratios behind the scales (qwen3.5 at most 0.647, scale 0.68; Gemma at most 0.602, scale 0.64).
+- **What it means:** the gate under-estimates these prompts. For qwen3.5 at k = 5 it would allow a call whose real prompt + `num_predict` (8,228) exceeds `num_ctx` (8,192). That is the silent-truncation case the ADR-0002 budget rule exists to prevent; the measure tool flagged it (`gate_allows_real_overflow`).
+- **No refusal of a real fit:** no case was flagged `gate_refuses_real_fit`.
+- **Not covered by ADR-0049:** decision 2 only covers lowering a scale when the gate refuses a real fit. Raising a scale is not decided there, so the scales are unchanged.
+
+What would satisfy both requirements, for decision:
+- **qwen3.5:** a scale of at least 0.793 (the highest measured ratio). For example, 0.84 (+5%) makes the gate allow k = 4 (est. 3,147 + 4,096 = 7,243) and refuse k = 5 (3,357 + 5,120 = 8,477), which matches the real counts.
+- **Gemma:** a scale of at least 0.761 (the highest measured ratio) and at most 0.768. Above 0.768 the gate would refuse k = 5 (3,996 × scale + 5,120 > 8,192), although the real prompt fits. So the "+5% margin" of ADR-0049 cannot hold for Gemma at k = 5. The margin available is about 1%.

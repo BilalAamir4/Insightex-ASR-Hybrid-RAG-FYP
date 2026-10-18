@@ -1,0 +1,216 @@
+{
+ "measure_version": 3,
+ "created_at": "2026-10-18T00:23:51Z",
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "windows_in_lecture": 23,
+ "model": "qwen3.5:latest",
+ "model_digest": "44a38603922e14f1e3ae68c5d900cc39f2a925a9749d12ab6d268d75a01a399f",
+ "prompt": {
+  "path": "/home/bilal_aamir/insightex/config/prompts/m7_extraction_v2.txt",
+  "sha256": "c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648",
+  "frozen": true
+ },
+ "context_block_sha256": null,
+ "ollama_options": {
+  "temperature": 0.0,
+  "seed": 42,
+  "think": false,
+  "keep_alive": 0
+ },
+ "num_predict_per_window": 1024,
+ "measured_prompt": "the retry call: first attempt + retry template with errors at retry_error_chars",
+ "retry_error_chars": 1500,
+ "token_estimate_scale": 0.68,
+ "rule": "passes = real prompt_eval_count + num_predict <= num_ctx and ollama ps 100% GPU (ADR-0048 s8, Amendment 2; ADR-0002 budget rule); num_predict = num_predict_per_window x k",
+ "cases": [
+  {
+   "k": 3,
+   "context": false,
+   "targets": [
+    18,
+    20,
+    21
+   ],
+   "context_windows": [],
+   "note": "upper bound: the 3 largest windows",
+   "window_tokens_estimated": {
+    "18": 271,
+    "20": 266,
+    "21": 259
+   },
+   "system_message_sha256": "f2d8742f5155f1d1afef4ebc0324cfb0108a05de97185ff2167e4d30bac1a35f",
+   "runs": [
+    {
+     "num_ctx": 8192,
+     "num_predict": 3072,
+     "estimated_prompt_tokens": 3489,
+     "token_estimate_scale": 0.68,
+     "gate_estimated_prompt_tokens": 2373,
+     "gate_allows": true,
+     "sent": true,
+     "truncated": false,
+     "prompt_eval_count": 2768,
+     "estimate_over_real": 1.2604768786127167,
+     "eval_count": 214,
+     "tokens_per_sec": 58.49068877432489,
+     "load_duration_s": 3.62107,
+     "prompt_near_ctx_limit": false,
+     "ollama_ps": {
+      "size": 5628493822,
+      "size_vram": 5628493822,
+      "gpu_pct": 100.0,
+      "processor": "100% GPU",
+      "context_length": 8192
+     },
+     "vram": {
+      "baseline_mib": 1058,
+      "peak_mib": 7503,
+      "peak_above_baseline_mib": 6445,
+      "samples": 36,
+      "interval_s": 0.2,
+      "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+     },
+     "fits_real_budget": true,
+     "gate_refuses_real_fit": false,
+     "gate_allows_real_overflow": false,
+     "full_gpu": true,
+     "passes": true,
+     "reason": null
+    }
+   ]
+  },
+  {
+   "k": 4,
+   "context": false,
+   "targets": [
+    10,
+    18,
+    20,
+    21
+   ],
+   "context_windows": [],
+   "note": "upper bound: the 4 largest windows",
+   "window_tokens_estimated": {
+    "10": 256,
+    "18": 271,
+    "20": 266,
+    "21": 259
+   },
+   "system_message_sha256": "f2d8742f5155f1d1afef4ebc0324cfb0108a05de97185ff2167e4d30bac1a35f",
+   "runs": [
+    {
+     "num_ctx": 8192,
+     "num_predict": 4096,
+     "estimated_prompt_tokens": 3746,
+     "token_estimate_scale": 0.68,
+     "gate_estimated_prompt_tokens": 2548,
+     "gate_allows": true,
+     "sent": true,
+     "truncated": false,
+     "prompt_eval_count": 2942,
+     "estimate_over_real": 1.273283480625425,
+     "eval_count": 336,
+     "tokens_per_sec": 54.85387401403835,
+     "load_duration_s": 4.0552829,
+     "prompt_near_ctx_limit": false,
+     "ollama_ps": {
+      "size": 5628493822,
+      "size_vram": 5628493822,
+      "gpu_pct": 100.0,
+      "processor": "100% GPU",
+      "context_length": 8192
+     },
+     "vram": {
+      "baseline_mib": 1074,
+      "peak_mib": 7879,
+      "peak_above_baseline_mib": 6805,
+      "samples": 46,
+      "interval_s": 0.2,
+      "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+     },
+     "fits_real_budget": true,
+     "gate_refuses_real_fit": false,
+     "gate_allows_real_overflow": false,
+     "full_gpu": true,
+     "passes": true,
+     "reason": null
+    }
+   ]
+  },
+  {
+   "k": 5,
+   "context": false,
+   "targets": [
+    10,
+    16,
+    18,
+    20,
+    21
+   ],
+   "context_windows": [],
+   "note": "upper bound: the 5 largest windows",
+   "window_tokens_estimated": {
+    "10": 256,
+    "16": 249,
+    "18": 271,
+    "20": 266,
+    "21": 259
+   },
+   "system_message_sha256": "f2d8742f5155f1d1afef4ebc0324cfb0108a05de97185ff2167e4d30bac1a35f",
+   "runs": [
+    {
+     "num_ctx": 8192,
+     "num_predict": 5120,
+     "estimated_prompt_tokens": 3996,
+     "token_estimate_scale": 0.68,
+     "gate_estimated_prompt_tokens": 2718,
+     "gate_allows": true,
+     "sent": true,
+     "truncated": false,
+     "prompt_eval_count": 3108,
+     "estimate_over_real": 1.2857142857142858,
+     "eval_count": 412,
+     "tokens_per_sec": 59.88701123404745,
+     "load_duration_s": 4.3529907,
+     "prompt_near_ctx_limit": false,
+     "ollama_ps": {
+      "size": 5628493822,
+      "size_vram": 5628493822,
+      "gpu_pct": 100.0,
+      "processor": "100% GPU",
+      "context_length": 8192
+     },
+     "vram": {
+      "baseline_mib": 1371,
+      "peak_mib": 7816,
+      "peak_above_baseline_mib": 6445,
+      "samples": 50,
+      "interval_s": 0.2,
+      "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+     },
+     "fits_real_budget": false,
+     "gate_refuses_real_fit": false,
+     "gate_allows_real_overflow": true,
+     "full_gpu": true,
+     "passes": false,
+     "reason": "real prompt tokens + num_predict > num_ctx"
+    }
+   ]
+  }
+ ],
+ "summary_by_num_ctx": {
+  "8192": {
+   "passing": [
+    {
+     "k": 3,
+     "context": false
+    },
+    {
+     "k": 4,
+     "context": false
+    }
+   ],
+   "gate_refuses_real_fit": []
+  }
+ }
+}
