@@ -1,7 +1,7 @@
 # ADR-0049: M7 extraction harness call rules (output cap, budget gate, context, retry, C1 tie-break, reload per call)
 
 Status: Accepted
-Accepted: 2026-10-18, by Bilal after review. Amended: 2026-10-18, Amendment 1 (at most 10 concepts and 10 relations per window); Amendment 2 (budget gate recalibrated on the frozen prompt, `truncate: false` and a post-call overflow check, valid-but-empty-after-retry category) **Proposed**, awaiting review; both at the end
+Accepted: 2026-10-18, by Bilal after review. Amended: 2026-10-18, Amendment 1 (at most 10 concepts and 10 relations per window); Amendment 2 (accepted 2026-10-18: `truncate: false` with a run-start self-test and a post-call overflow check, the estimate a warning only, valid-but-empty-after-retry category); both at the end
 Date decided: 2026-10-18
 Date recorded: 2026-10-18
 Module: M7
@@ -101,9 +101,9 @@ Decided by Bilal on 2026-10-18, before version 1 of the extraction prompt ran. T
 - **Reason:** a hard bound on one record's size keeps the output-token budget of decision 1 meaningful, and stops a looping reply from growing a list without limit inside its `num_predict`.
 - **Effect:** a window with more than 10 genuine concepts would be cut to 10. No Day 4 gold window comes near that.
 
-## Amendment 2 (2026-10-18, Proposed): budget gate recalibrated on the frozen prompt, post-call overflow check
+## Amendment 2 (2026-10-18, Accepted): prompts that do not fit num_ctx; the estimate as a warning; valid-but-empty-after-retry
 
-Status of this amendment: **Proposed**, awaiting Bilal's review. The text above and Amendment 1 are kept; where they conflict with this amendment, this amendment applies.
+Status of this amendment: **Accepted** by Bilal on 2026-10-18, after review. The text above and Amendment 1 are kept; where they conflict with this amendment, this amendment applies.
 
 **Context.** After the prompt freeze (version 2, sha256 `c7e061fc…4648`), `extract-eval measure --k 3 4 5` on the Day 4 lecture measured these real `prompt_eval_count` / estimate ratios, each case as its retry call:
 
@@ -120,7 +120,7 @@ That is well above the synthetic-input ratios behind decision 2's factors (0.68 
    - **qwen3.5: 0.84**, its highest frozen-prompt ratio (0.793) plus a margin, as in decision 2. The gate then allows k = 4 (⌈3,746 × 0.84⌉ + 4,096 = 7,243) and refuses k = 5 (3,357 + 5,120 = 8,477). That matches the real counts.
    - **Gemma: 0.761**, its highest measured ratio with **no margin**. Any factor above 0.768 would make the gate refuse k = 5 (3,996 × factor + 5,120 > 8,192), although the real prompt fits (2,932 + 5,120 = 8,052).
 
-   The estimate is now **a first filter only**: it refuses calls that clearly cannot fit, before anything is sent. The "+5% margin" of decision 2 no longer holds for Gemma.
+   The "+5% margin" of decision 2 no longer holds for Gemma. **In the M7 harness the estimate is a warning only (point 4).**
 2. **Two guards against a prompt that does not fit, each tested (synthetic input; see "Tests" below):**
    - **Case A, a prompt longer than `num_ctx`:** every harness call sends `truncate: false` (`extract.truncate`; in each call's options, so in the reply-cache key and in `run.json`). With it, Ollama 0.40.2 refuses the request with HTTP 400 `exceed_context_size_error` and the exact counts ("request (9204 tokens) exceeds the available context size (8192 tokens)"), instead of silently keeping only the end of the prompt.
      - `chat_raw` raises `PromptTooLong` with both counts.
@@ -131,12 +131,25 @@ That is well above the synthetic-input ratios behind decision 2's factors (0.68 
      - Treated like truncated output: never parsed and never scored.
      - Recorded in `calls.jsonl` with both counts (`prompt_overflow`: `prompt_eval_count`, `num_predict`, `num_ctx`) and the unused reply; `run.json` totals count `prompt_overflow_calls`.
      - It applies to every harness call (extraction and translation, fresh or from the reply cache).
-   - **The estimate (point 1)** stays as a first filter in front of both.
+   - **Both guards use exact counts** from Ollama, not the estimate.
 3. **"Valid but empty after retry" as its own category.** A window that is valid only through the retry, and whose retry record has no concepts, is reported per window, separately from ordinary valid windows:
    - `run.json`: `empty_after_retry` per window and `valid_empty_after_retry_windows` in the totals;
    - the scorer (`tools/label_concepts`, `score` and `compare`): `valid_empty_after_retry_windows` in the validity section, plus `valid_empty_after_retry_a` / `_b` in a comparison. The scorer derives it from the record and `attempt_used`, so earlier runs are covered.
 
    Reason: in prompt version 4, windows 15 and 20 counted as valid and recovered by the retry, but the retry returned an empty record, and the window's concept was lost.
+
+4. **The estimate is a warning only in the M7 harness.** The harness calls `chat_raw` with `budget_rule="warn"`.
+   - **What it does:** when the calibrated estimate breaks the budget rule, it logs a warning and the call is sent anyway. Each call records `estimate` (`prompt_tokens`, `over_budget`) in `calls.jsonl`, and `run.json` totals count `estimate_over_budget_calls`.
+   - **It never refuses a call or aborts a run.** A call that is refused (`PromptTooLong`, point 2) or over budget (the post-call check) is an invalid attempt for that window only, followed by the same-unit retry.
+   - **Reason:** case A is refused by Ollama (`truncate: false`) and case B by the post-call check, both from exact counts. The estimate is unreliable across text types: real / estimate ranged from 0.54 (synthetic mixed script) to 0.996 (synthetic English filler).
+   - **Unchanged:** other callers of `chat_raw` keep the default `budget_rule="refuse"`. The measure tool keeps its checks (`gate_allows`, `gate_refuses_real_fit`, `gate_allows_real_overflow`).
+5. **Run-start self-test.** At the start of every harness run, inside the GPU lease and after the resident models are unloaded, the harness sends one synthetic probe for the run's model with the run's settings (`truncate: false`):
+   - **The probe:** about 3,000 tokens of filler (`extract.self_test_probe_lines` 122) at `num_ctx` `extract.self_test_num_ctx` 2048.
+   - **If Ollama refuses it** (`PromptTooLong`), the run continues, and `run.json` records `truncate_self_test` (`refused`, `prompt_tokens`, `num_ctx`, `truncate`).
+   - **If Ollama answers it**, including an answer cut off at the probe's one-token `num_predict`, the run aborts with a `HarnessError` before any real call, and the model is still unloaded.
+   - **Why at least 2048:** below `num_ctx` 2048, Ollama 0.40.2 did not refuse an over-long probe on either model. At requests of 256, 512 and 1024 it processed prompts of 362/359, 722/719 and 1,466/1,463 tokens in full and answered, so smaller requests got more room. That is consistent with a minimum context of more than 1,024 tokens (**the exact value is unverified**). At 2048 and 4096 it refused (2,953/2,950 and 6,028/6,025 tokens).
+   - **Verified against real Ollama on both models:** refused with `truncate: false` (2,953 / 2,950 tokens), and with `truncate: true` the self-test aborts as intended.
+   - **Cost:** one probe per run, about one model load.
 
 **Test: how Ollama reports a prompt that does not fit (18 Oct 2026, synthetic input only, before acceptance).** `docs/measurements/m7/synthetic/scripts/overflow_probe.py`, results in `overflow_probe_qwen3.5.json` and `overflow_probe_gemma4_e4b.json`.
 - **The prompt:** a synthetic document with a first code word at the very start and a last code word at the very end, around numbered English filler lines. The model was asked for both code words.
@@ -176,10 +189,10 @@ What the test shows:
 - a refused prompt being an invalid attempt recorded with both counts;
 - `measure` recording a refused prompt with its real length (`test_extract_harness.py`).
 
-**Not changed, noted for review:** when the estimate refuses a call (`PromptBudgetError`), `run_arm` stops the whole run instead of marking that window invalid. That is existing behaviour from Session 2a. For C1 to C4 it means one over-long window aborts the arm's run.
+**Resolved by point 4:** a refusal by the estimate (`PromptBudgetError`) used to stop the whole run (behaviour from Session 2a). The harness now never raises it. The case A row "refused before sending" above describes harness version 6 and no longer applies.
 
 **Consequences.**
-- `HARNESS_VERSION` is 6 (5: post-call check; 6: `truncate: false`), which changes every reply-cache key. The frozen prompt's runs are made under version 6.
+- `HARNESS_VERSION` is 7 (5: post-call check; 6: `truncate: false`; 7: run-start self-test, the estimate as a warning), which changes every reply-cache key. The frozen prompt's runs are made under version 7.
 - The two scales are now fitted to Day 4 and the frozen prompt. Gemma's has no margin, so a held-out window that tokenises more expensively than Day 4's could pass the gate and then fail the post-call check, which costs a retry. That is the intended behaviour of a first filter.
 - Prompt-iteration reports and the C1 to C4 reports list "valid but empty after retry" windows apart from ordinary valid windows.
 
