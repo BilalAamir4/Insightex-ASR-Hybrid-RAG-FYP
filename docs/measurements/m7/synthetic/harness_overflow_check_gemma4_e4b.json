@@ -1,0 +1,129 @@
+{
+ "model": "gemma4:e4b",
+ "prompt_sha256": "c45d0efec3e3af35375d7b70c3c737951d4e60b917aa1729484725a56ee263d9",
+ "num_ctx": 8192,
+ "num_predict_per_window": 1024,
+ "truncate": false,
+ "keep_alive": 0,
+ "estimate_scale": 0.761,
+ "sizing": {
+  "tokens_per_line": 25.0,
+  "fixed": 837.0
+ },
+ "case_a": {
+  "lines": 334,
+  "raised": "PromptBudgetError: prompt budget exceeded: ~7540 estimated prompt tokens + num_predict 1024 = 8564 > num_ctx 8192"
+ },
+ "case_b": {
+  "lines": 274,
+  "valid": false,
+  "needed_retry": true,
+  "errors": [
+   [
+    "prompt overflow: prompt_eval_count 7687 + num_predict 1024 = 8711 > num_ctx 8192; the reply is not used"
+   ],
+   [
+    "prompt overflow: prompt_eval_count 7761 + num_predict 1024 = 8785 > num_ctx 8192; the reply is not used"
+   ]
+  ],
+  "totals": {
+   "windows": 1,
+   "invalid_windows": 1,
+   "retried_windows": 0,
+   "needed_retry_windows": 1,
+   "valid_empty_after_retry_windows": 0,
+   "prompt_overflow_calls": 2,
+   "prompt_too_long_calls": 0,
+   "dropped_relations": 0,
+   "calls": 2,
+   "cache_hits": 0
+  },
+  "calls": [
+   {
+    "attempt": 1,
+    "error": "prompt overflow: prompt_eval_count 7687 + num_predict 1024 = 8711 > num_ctx 8192; the reply is not used",
+    "metrics": {
+     "prompt_eval_count": 7687,
+     "eval_count": 169,
+     "done_reason": "stop",
+     "prompt_too_long": null
+    },
+    "prompt_overflow": {
+     "prompt_eval_count": 7687,
+     "num_predict": 1024,
+     "num_ctx": 8192
+    }
+   },
+   {
+    "attempt": 2,
+    "error": "prompt overflow: prompt_eval_count 7761 + num_predict 1024 = 8785 > num_ctx 8192; the reply is not used",
+    "metrics": {
+     "prompt_eval_count": 7761,
+     "eval_count": 106,
+     "done_reason": "stop",
+     "prompt_too_long": null
+    },
+    "prompt_overflow": {
+     "prompt_eval_count": 7761,
+     "num_predict": 1024,
+     "num_ctx": 8192
+    }
+   }
+  ]
+ },
+ "case_a_gate_off": {
+  "lines": 334,
+  "valid": false,
+  "needed_retry": true,
+  "errors": [
+   [
+    "prompt too long: request (9187 tokens) exceeds the available context size (8192 tokens), try increasing it"
+   ],
+   [
+    "prompt too long: request (9245 tokens) exceeds the available context size (8192 tokens), try increasing it"
+   ]
+  ],
+  "totals": {
+   "windows": 1,
+   "invalid_windows": 1,
+   "retried_windows": 0,
+   "needed_retry_windows": 1,
+   "valid_empty_after_retry_windows": 0,
+   "prompt_overflow_calls": 0,
+   "prompt_too_long_calls": 2,
+   "dropped_relations": 0,
+   "calls": 2,
+   "cache_hits": 0
+  },
+  "calls": [
+   {
+    "attempt": 1,
+    "error": "prompt too long: request (9187 tokens) exceeds the available context size (8192 tokens), try increasing it",
+    "metrics": {
+     "prompt_eval_count": null,
+     "eval_count": null,
+     "done_reason": null,
+     "prompt_too_long": {
+      "prompt_tokens": 9187,
+      "num_ctx": 8192
+     }
+    },
+    "prompt_overflow": null
+   },
+   {
+    "attempt": 2,
+    "error": "prompt too long: request (9245 tokens) exceeds the available context size (8192 tokens), try increasing it",
+    "metrics": {
+     "prompt_eval_count": null,
+     "eval_count": null,
+     "done_reason": null,
+     "prompt_too_long": {
+      "prompt_tokens": 9245,
+      "num_ctx": 8192
+     }
+    },
+    "prompt_overflow": null
+   }
+  ]
+ }
+}
