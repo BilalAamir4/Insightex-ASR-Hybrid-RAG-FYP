@@ -25,7 +25,7 @@ Each run is scored with `tools/label_concepts` (`score`, string rule) and report
 | 1 | `config/prompts/m7_extraction_v1.txt` | `d2a50e58ac5cb630e69516d59d537d9574de18ec926c187826434bafa696f6a8` | approved as drafted, 18 Oct 2026; run, concept F1 0.340 |
 | 2 | `config/prompts/m7_extraction_v2.txt` | `c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648` | approved 18 Oct 2026 with conditions: version 1 + change (a) and (b) only; run, concept F1 0.408 |
 | 3 | `config/prompts/m7_extraction_v3.txt` | `8857a3283b9ee9f05e7ed96e7e1b3b259fefb6d167f07185af53c54f8e1b0e9c` | approved 18 Oct 2026: version 2 + one leave-out rule (passing contrast or later topic) with a pointer to example 3; run, concept F1 0.408 |
-| 4 | `config/prompts/m7_extraction_v4.txt` | `bff471ab8e7638abfd1a2564983515d23fb072ee69fe4ebd1b84c7ee7e47911e` | approved as drafted 18 Oct 2026: examples 2 and 3 replaced by invented ones (PCA against LDA; precision with recall in passing), pointer and examples intro reworded |
+| 4 | `config/prompts/m7_extraction_v4.txt` | `bff471ab8e7638abfd1a2564983515d23fb072ee69fe4ebd1b84c7ee7e47911e` | approved as drafted 18 Oct 2026: examples 2 and 3 replaced by invented ones (PCA against LDA; precision with recall in passing), pointer and examples intro reworded; run, concept F1 0.378 |
 
 ### Version 1 notes
 
@@ -247,4 +247,43 @@ Invented examples on other topics make Day 4 a closer preview of the held-out le
 - the aliases rule's illustration ("batch" alone is not an alias, because it also means a batch of data).
 
 Both stay unchanged. Neither has caused a named failure, so changing them would break fixed rule 2 (every change must name a failure).
+
+## Version 4 run (18 Oct 2026)
+
+- **Prompt:** `config/prompts/m7_extraction_v4.txt`, sha256 `bff471ab…911e`. It is version 3 with examples 2 and 3 replaced by invented examples (principal component analysis against linear discriminant analysis; precision, with recall named only in passing), the version 3 pointer reworded to the new example 3, and the line introducing the examples corrected.
+- **Gold-overlap check:** the changed text shares no 3-, 4- or 5-word sequence with any gold window.
+- **Run:** same settings. 22 calls (2 retries), wall time 135.0 s, 60.8 tokens/s, largest prompt 2,205 real tokens, VRAM peak 7,704 MiB (baseline 1,313), 100% GPU. Evidence: `prompt_iteration/v4/`.
+
+### Scores (string rule)
+
+| | v1 | v2 | v3 | v4 |
+|---|---|---|---|---|
+| Concepts tp / pred / gold | 8 / 20 / 27 | 10 / 22 / 27 | 10 / 22 / 27 | 7 / 10 / 27 |
+| Concept P | 0.400 | 0.455 | 0.455 | **0.700** |
+| Concept R | 0.296 | 0.370 | 0.370 | **0.259** |
+| Concept **F1** | 0.340 | **0.408** | **0.408** | **0.378** |
+| Relations tp / pred / gold (P/R/F1 all 0.000) | 0 / 4 / 1 | 0 / 5 / 1 | 0 / 6 / 1 | 0 / 3 / 1 |
+
+- **Validity:** all 20 windows valid after the one retry. 2 needed the retry (windows 15 and 20) and both were recovered; 0 still invalid.
+- **Importance:** none predicted, none in the gold.
+
+### Planned checks
+
+- **Carried-over extras (windows 4, 12, 14, 22):** gone in windows 4, 12 and 14. The concepts online learning and incremental learning, and their `contrasts_with` relations, are no longer produced there. Window 22 still labels "online learning" (announced as the next topic) with "batch learning contrasts_with online learning".
+- **Gold concepts matched in version 3 but missed in version 4 (3):** batch learning in windows 7, 15 and 20.
+  - In windows 15 and 20, attempt 1 was invalid: the model repeated the label "batch learning" as its own alias ("repeats a name of the same concept"). The retry returned a valid but empty record, so the concept was lost although the window was "recovered".
+  - Window 7's record is empty.
+- **Window 11:** still labels "retraining", with the relation "batch learning part_of retraining".
+
+### What changed
+
+- **Recall fell, precision rose:** the model returned an empty record for 13 of the 20 windows (versions 2 and 3: 8). Precision rose to 0.700 because the extras fell from 12 to 3 (window 11 "retraining", window 22 "batch learning" and "online learning"). Recall fell to 0.259 because 3 batch-learning matches were lost and nothing new was matched.
+- **A likely reading (not tested):** the new examples teach leaving things out (a passing mention left out in example 3) and give fewer patterns of the lecture's own kind of concept. That makes empty answers more likely.
+
+## Stop rule applied: version 2 frozen (18 Oct 2026)
+
+- **Stop rule met:** version 4's micro concept F1 (0.378) is not above 0.408, so per Bilal's instruction the rounds stop at version 4 of 5. Concept F1 did not improve in two consecutive versions (version 3: 0.408, equal; version 4: 0.378, lower), and every run had every window valid after the one retry.
+- **Choosing the version:** versions 2 and 3 tie on the best micro concept F1 (0.408). Under the tie-break (fixed rule 8), the earlier version is frozen.
+- **Frozen prompt: version 2**, `config/prompts/m7_extraction_v2.txt`, sha256 **`c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648`**. `extract.prompt_file` and `extract.prompt_sha256` in `config/default.yaml` now pin it.
+- **Consequence:** the frozen prompt keeps examples 2 and 3 as glosses of Day 4's reserved windows 3 and 5. The carry-over finding above therefore applies to the frozen prompt: on Day 4, its extras include the carried-over online-learning and incremental-learning concepts (windows 4, 12, 14, 22). The held-out lecture has no such link to the examples.
 

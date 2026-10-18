@@ -1,0 +1,341 @@
+{
+ "schema_version": 1,
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "producer": {
+  "kind": "model",
+  "name": "C1-qwen3.5 (qwen3.5:latest)"
+ },
+ "windows": [
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 1,
+    "start_s": 30.0,
+    "end_s": 60.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 2,
+    "start_s": 60.0,
+    "end_s": 90.0
+   },
+   "concepts": [
+    {
+     "label": "production environment",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 4,
+    "start_s": 120.0,
+    "end_s": 150.0
+   },
+   "concepts": [
+    {
+     "label": "batch learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 6,
+    "start_s": 180.0,
+    "end_s": 210.0
+   },
+   "concepts": [
+    {
+     "label": "batch learning",
+     "aliases": [
+      "batch"
+     ]
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 7,
+    "start_s": 210.0,
+    "end_s": 240.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 8,
+    "start_s": 240.0,
+    "end_s": 270.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 9,
+    "start_s": 270.0,
+    "end_s": 300.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 10,
+    "start_s": 300.0,
+    "end_s": 330.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 11,
+    "start_s": 330.0,
+    "end_s": 360.0
+   },
+   "concepts": [
+    {
+     "label": "batch learning",
+     "aliases": []
+    },
+    {
+     "label": "retraining",
+     "aliases": [
+      "retrain"
+     ]
+    }
+   ],
+   "relations": [
+    {
+     "head": "batch learning",
+     "type": "part_of",
+     "tail": "retraining"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 12,
+    "start_s": 360.0,
+    "end_s": 390.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 13,
+    "start_s": 390.0,
+    "end_s": 420.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 14,
+    "start_s": 420.0,
+    "end_s": 450.0
+   },
+   "concepts": [
+    {
+     "label": "batch learning",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 15,
+    "start_s": 450.0,
+    "end_s": 480.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 16,
+    "start_s": 480.0,
+    "end_s": 510.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 17,
+    "start_s": 510.0,
+    "end_s": 540.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 18,
+    "start_s": 540.0,
+    "end_s": 570.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 19,
+    "start_s": 570.0,
+    "end_s": 600.0
+   },
+   "concepts": [
+    {
+     "label": "batch learning",
+     "aliases": []
+    },
+    {
+     "label": "availability",
+     "aliases": [
+      "third is availability"
+     ]
+    }
+   ],
+   "relations": [
+    {
+     "head": "batch learning",
+     "type": "contrasts_with",
+     "tail": "availability"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 20,
+    "start_s": 600.0,
+    "end_s": 630.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 21,
+    "start_s": 630.0,
+    "end_s": 660.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+    "window_index": 22,
+    "start_s": 660.0,
+    "end_s": 688.03
+   },
+   "concepts": [
+    {
+     "label": "batch learning",
+     "aliases": []
+    },
+    {
+     "label": "online learning",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "batch learning",
+     "type": "contrasts_with",
+     "tail": "online learning"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  }
+ ]
+}
