@@ -24,7 +24,8 @@ Each run is scored with `tools/label_concepts` (`score`, string rule) and report
 |---|---|---|---|
 | 1 | `config/prompts/m7_extraction_v1.txt` | `d2a50e58ac5cb630e69516d59d537d9574de18ec926c187826434bafa696f6a8` | approved as drafted, 18 Oct 2026; run, concept F1 0.340 |
 | 2 | `config/prompts/m7_extraction_v2.txt` | `c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648` | approved 18 Oct 2026 with conditions: version 1 + change (a) and (b) only; run, concept F1 0.408 |
-| 3 | `config/prompts/m7_extraction_v3.txt` | `8857a3283b9ee9f05e7ed96e7e1b3b259fefb6d167f07185af53c54f8e1b0e9c` | approved 18 Oct 2026: version 2 + one leave-out rule (passing contrast or later topic) with a pointer to example 3 |
+| 3 | `config/prompts/m7_extraction_v3.txt` | `8857a3283b9ee9f05e7ed96e7e1b3b259fefb6d167f07185af53c54f8e1b0e9c` | approved 18 Oct 2026: version 2 + one leave-out rule (passing contrast or later topic) with a pointer to example 3; run, concept F1 0.408 |
+| 4 | `config/prompts/m7_extraction_v4.txt` | `bff471ab8e7638abfd1a2564983515d23fb072ee69fe4ebd1b84c7ee7e47911e` | approved as drafted 18 Oct 2026: examples 2 and 3 replaced by invented ones (PCA against LDA; precision with recall in passing), pointer and examples intro reworded |
 
 ### Version 1 notes
 
@@ -241,7 +242,9 @@ The original examples 2 and 3 (versions 1 to 3) were glosses of Day 4's reserved
 
 Invented examples on other topics make Day 4 a closer preview of the held-out lecture, whose windows have no examples taken from the same lecture. Version 4 replaces examples 2 and 3 with invented ones (principal component analysis against linear discriminant analysis; precision, with recall named only in passing).
 
-Two Day 4 references remain in the prompt and are not part of the version 4 change:
+**Known leftovers from Day 4 in the prompt (kept, decision 18 Oct 2026):**
 - example 1, the gloss of reserved window 0, which announces "batch versus online learning" as the day's topic and has an empty record;
-- the aliases rule's illustration ("batch" alone is not an alias).
+- the aliases rule's illustration ("batch" alone is not an alias, because it also means a batch of data).
+
+Both stay unchanged. Neither has caused a named failure, so changing them would break fixed rule 2 (every change must name a failure).
 
