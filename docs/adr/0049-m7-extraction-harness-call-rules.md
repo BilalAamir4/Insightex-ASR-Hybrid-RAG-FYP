@@ -1,7 +1,7 @@
 # ADR-0049: M7 extraction harness call rules (output cap, budget gate, context, retry, C1 tie-break, reload per call)
 
 Status: Accepted
-Accepted: 2026-10-18, by Bilal after review. Amended: 2026-10-18, Amendment 1 (at most 10 concepts and 10 relations per window) at the end
+Accepted: 2026-10-18, by Bilal after review. Amended: 2026-10-18, Amendment 1 (at most 10 concepts and 10 relations per window); Amendment 2 (budget gate recalibrated on the frozen prompt, post-call overflow check, valid-but-empty-after-retry category) **Proposed**, awaiting review; both at the end
 Date decided: 2026-10-18
 Date recorded: 2026-10-18
 Module: M7
@@ -100,4 +100,43 @@ Decided by Bilal on 2026-10-18, before version 1 of the extraction prompt ran. T
 - **Schema version:** it stays 1. The change only tightens the schema, and the existing label files still validate (Day 4 gold has at most 3 concepts per window).
 - **Reason:** a hard bound on one record's size keeps the output-token budget of decision 1 meaningful, and stops a looping reply from growing a list without limit inside its `num_predict`.
 - **Effect:** a window with more than 10 genuine concepts would be cut to 10. No Day 4 gold window comes near that.
+
+## Amendment 2 (2026-10-18, Proposed): budget gate recalibrated on the frozen prompt, post-call overflow check
+
+Status of this amendment: **Proposed**, awaiting Bilal's review. The text above and Amendment 1 are kept; where they conflict with this amendment, this amendment applies.
+
+**Context.** After the prompt freeze (version 2, sha256 `c7e061fc…4648`), `extract-eval measure --k 3 4 5` on the Day 4 lecture measured these real `prompt_eval_count` / estimate ratios, each case as its retry call:
+
+| Model | k = 3 | k = 4 | k = 5 |
+|---|---|---|---|
+| qwen3.5 | 0.793 | 0.785 | 0.778 |
+| Gemma | 0.761 | 0.746 | 0.734 |
+
+That is well above the synthetic-input ratios behind decision 2's factors (0.68 and 0.64). For qwen3.5 at k = 5, the gate estimated 2,718 tokens and would have allowed a call whose real prompt (3,108) plus `num_predict` (5,120) is 8,228, over `num_ctx` 8,192. That is the silent-truncation case the ADR-0002 budget rule exists to prevent; the measure tool flagged it as `gate_allows_real_overflow`. Evidence: `docs/evidence/m7/session2b_prompt_iteration.md` ("Final k with the frozen prompt") and the two `measure` reports in `docs/measurements/m7/sha256-de27cb67c2acbedebd0c2c7416932b8a/`.
+
+**Decision.**
+
+1. **Recalibrate on the frozen prompt.** `extract.token_estimate_scale` becomes:
+   - **qwen3.5: 0.84**, its highest frozen-prompt ratio (0.793) plus a margin, as in decision 2. The gate then allows k = 4 (⌈3,746 × 0.84⌉ + 4,096 = 7,243) and refuses k = 5 (3,357 + 5,120 = 8,477). That matches the real counts.
+   - **Gemma: 0.761**, its highest measured ratio with **no margin**. Any factor above 0.768 would make the gate refuse k = 5 (3,996 × factor + 5,120 > 8,192), although the real prompt fits (2,932 + 5,120 = 8,052).
+
+   The estimate is now **a first filter only**: it refuses calls that clearly cannot fit, before anything is sent. The "+5% margin" of decision 2 no longer holds for Gemma.
+2. **Post-call check: the guarantee.** After every harness call (extraction and translation, fresh or served from the reply cache), if the reply's real `prompt_eval_count` plus `num_predict` exceeds `num_ctx`, the reply is invalid:
+   - **Treated like truncated output:** never parsed and never scored.
+   - **Retry:** the attempt counts as invalid, so the same-unit retry of decision 4 applies.
+   - **Records:** the call is recorded in `calls.jsonl` with both counts (`prompt_overflow`: `prompt_eval_count`, `num_predict`, `num_ctx`) and the unused reply. `run.json` totals count `prompt_overflow_calls`.
+
+   This check, not the estimate, is the guarantee against silent prompt truncation. **Unverified:** how Ollama reports `prompt_eval_count` when it truncates an over-long prompt. If it counted only the kept part and kept it short enough to leave room for `num_predict`, the check would not see the overflow. The prompts measured so far were not truncated.
+3. **"Valid but empty after retry" as its own category.** A window that is valid only through the retry, and whose retry record has no concepts, is reported per window, separately from ordinary valid windows:
+   - `run.json`: `empty_after_retry` per window and `valid_empty_after_retry_windows` in the totals;
+   - the scorer (`tools/label_concepts`, `score` and `compare`): `valid_empty_after_retry_windows` in the validity section, plus `valid_empty_after_retry_a` / `_b` in a comparison. The scorer derives it from the record and `attempt_used`, so earlier runs are covered.
+
+   Reason: in prompt version 4, windows 15 and 20 counted as valid and recovered by the retry, but the retry returned an empty record, and the window's concept was lost.
+
+**Consequences.**
+- `HARNESS_VERSION` is 5, which changes every reply-cache key. The frozen prompt's runs are made under version 5.
+- The two scales are now fitted to Day 4 and the frozen prompt. Gemma's has no margin, so a held-out window that tokenises more expensively than Day 4's could pass the gate and then fail the post-call check, which costs a retry. That is the intended behaviour of a first filter.
+- Prompt-iteration reports and the C1 to C4 reports list "valid but empty after retry" windows apart from ordinary valid windows.
+
+**Gate / revisit.** Before the held-out lecture runs, check the chosen k against its real windows: run `extract-eval measure --k <k>` on the held-out lecture with the frozen prompt, for the C1 winner. If its worst-case retry call does not fit (real `prompt_eval_count` + `num_predict` > `num_ctx`), or the gate refuses it, k is lowered for that lecture under the ADR-0048 rule. That decision is recorded before the held-out run.
 

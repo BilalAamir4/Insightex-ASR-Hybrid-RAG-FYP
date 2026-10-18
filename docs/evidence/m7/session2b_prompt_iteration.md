@@ -319,3 +319,10 @@ Both stay unchanged. Neither has caused a named failure, so changing them would 
 What would satisfy both requirements, for decision:
 - **qwen3.5:** a scale of at least 0.793 (the highest measured ratio). For example, 0.84 (+5%) makes the gate allow k = 4 (est. 3,147 + 4,096 = 7,243) and refuse k = 5 (3,357 + 5,120 = 8,477), which matches the real counts.
 - **Gemma:** a scale of at least 0.761 (the highest measured ratio) and at most 0.768. Above 0.768 the gate would refuse k = 5 (3,996 × scale + 5,120 > 8,192), although the real prompt fits. So the "+5% margin" of ADR-0049 cannot hold for Gemma at k = 5. The margin available is about 1%.
+
+### Follow-up (18 Oct 2026): ADR-0049 Amendment 2 (Proposed)
+
+- **Accepted by Bilal:** the freeze (version 2, `c7e061fc…4648`) and the final k (qwen3.5 4, Gemma 5; C3 uses the C1 winner's k).
+- **Gate implemented as proposed:** `token_estimate_scale` is now qwen3.5 0.84 and Gemma 0.761, and the estimate is a first filter only. A post-call check makes any reply whose real `prompt_eval_count` + `num_predict` exceeds `num_ctx` invalid (harness version 5).
+- **New report category:** "valid but empty after retry" is reported per window. Re-scoring version 4 with the updated scorer lists windows 15 and 20 under it; the committed `score.json` files were not rewritten.
+
