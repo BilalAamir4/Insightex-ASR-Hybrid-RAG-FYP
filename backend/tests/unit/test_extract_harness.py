@@ -696,3 +696,53 @@ def test_valid_but_empty_after_retry_is_its_own_category(setup):
     _, run = h.run_arm(ctx(FakeClient(respond)), arm(), prompts, LECTURE, windows(2), [0, 1])
     assert [w["empty_after_retry"] for w in run["windows"]] == [True, False]
     assert run["totals"]["valid_empty_after_retry_windows"] == 1 and run["totals"]["invalid_windows"] == 0
+
+
+# -- prompts longer than num_ctx: Ollama refuses them with truncate false (ADR-0049 Amendment 2) -----------------------
+
+
+def test_every_harness_call_sends_truncate_false(monkeypatch):
+    seen = []
+
+    def fake_chat_raw(messages, fmt, num_ctx, **kw):
+        seen.append(kw["truncate"])
+        from insightex.llm.ollama_client import ChatMetrics
+        return "{}", ChatMetrics(1, 1, 1.0, 1.0, 1.0, 0.0, "stop", num_ctx)
+
+    monkeypatch.setattr(h.ollama_client, "chat_raw", fake_chat_raw)
+    s = load_settings()
+    assert s.extract.truncate is False
+    h.OllamaModelClient(s).chat("qwen3.5:latest", [{"role": "user", "content": "x"}], {}, 8192, 1024)
+    h.OllamaModelClient(s, estimate_gate=False).chat("gemma4:e4b", [{"role": "user", "content": "x"}], {}, 8192, 1)
+    assert seen == [False, False]
+
+
+def test_prompt_refused_as_too_long_is_an_invalid_attempt_recorded_with_counts(setup):
+    from insightex.llm.ollama_client import PromptTooLong
+
+    _, prompts, ctx = setup
+
+    def respond(user, messages, attempt):
+        return PromptTooLong(9204, 8192, "request (9204 tokens) exceeds the available context size (8192 tokens)")
+
+    c = ctx(FakeClient(respond))
+    doc, run = h.run_arm(c, arm(), prompts, LECTURE, windows(1), [0])
+    w = run["windows"][0]
+    assert not w["valid"] and w["needed_retry"] and doc["windows"] == []
+    assert "prompt too long" in w["errors"][0][0] and len(w["errors"]) == 2  # retried once, refused again
+    assert run["totals"]["prompt_too_long_calls"] == 2 and run["options"]["truncate"] is False
+    assert c.calls_log[0]["metrics"]["prompt_too_long"] == {"prompt_tokens": 9204, "num_ctx": 8192}
+
+
+def test_measure_records_a_refused_prompt_with_its_real_length():
+    from insightex.extract.measure import measure_case
+    from insightex.llm.ollama_client import PromptTooLong
+
+    class TooLong(FakeClient):
+        def chat(self, model, messages, format_schema, num_ctx, num_predict):
+            raise PromptTooLong(9204, 8192, "request (9204 tokens) exceeds the available context size")
+
+    r = measure_case(TooLong(), "m", [{"role": "user", "content": "x"}], {}, 8192, 64,
+                     VramSampler(0.01, read=lambda: 1000), 1.0, 0.01)
+    assert r["prompt_too_long"] == {"prompt_tokens": 9204, "num_ctx": 8192} and r["prompt_eval_count"] == 9204
+    assert not r["fits_real_budget"] and not r["passes"] and r["reason"].startswith("prompt alone longer")

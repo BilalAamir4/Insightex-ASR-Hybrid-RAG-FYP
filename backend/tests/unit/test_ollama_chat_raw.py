@@ -101,3 +101,24 @@ def test_chat_raw_calibrated_estimate_scales_the_budget_rule(http):
     assert e.value.estimated_prompt_tokens == 1009 and fake.posts == []
     oc.chat_raw(msgs, FMT, num_ctx=1100, num_predict=100, estimate_scale=0.5)  # 505 + 100 <= 1100
     assert len(fake.posts) == 1
+
+
+class ErrorResponse(FakeResponse):
+    status_code = 400
+
+
+def test_chat_raw_sends_truncate_and_raises_prompt_too_long_on_a_context_error(http, monkeypatch):
+    fake = http(reply("{}"))
+    oc.chat_raw(MSGS, FMT, num_ctx=2048, num_predict=64, truncate=False)
+    assert fake.posts[0]["truncate"] is False
+    oc.chat_raw(MSGS, FMT, num_ctx=2048, num_predict=64)
+    assert "truncate" not in fake.posts[1]  # other callers send nothing, as before
+    # Ollama 0.40.2's answer to an over-long prompt with truncate false (observed 18 Oct 2026, synthetic input)
+    err = {"error": json.dumps({"error": {"code": 400, "message": "request (9204 tokens) exceeds the available "
+                                          "context size (8192 tokens), try increasing it",
+                                          "type": "exceed_context_size_error", "n_prompt_tokens": 9204,
+                                          "n_ctx": 8192}})}
+    fake.post = lambda url, json=None: ErrorResponse(err)
+    with pytest.raises(oc.PromptTooLong) as e:
+        oc.chat_raw(MSGS, FMT, num_ctx=8192, num_predict=64, truncate=False)
+    assert (e.value.prompt_tokens, e.value.num_ctx) == (9204, 8192) and "9204 tokens" in str(e.value)

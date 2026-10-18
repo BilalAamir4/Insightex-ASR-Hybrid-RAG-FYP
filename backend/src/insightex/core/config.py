@@ -344,6 +344,7 @@ class Extract(_Section):
     token_estimate_scale: dict[str, float]
     translate_num_predict: int
     keep_alive: int | str
+    truncate: bool
     retry_error_chars: int
     evidence_dir: Path
     measure_dir: Path

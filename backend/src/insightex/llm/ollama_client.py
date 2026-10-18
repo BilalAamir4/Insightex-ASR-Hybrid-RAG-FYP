@@ -67,6 +67,31 @@ class OutputTruncated(OllamaError):
         )
 
 
+class PromptTooLong(OllamaError):
+    """Ollama refused the request because the prompt alone does not fit num_ctx (sent with `truncate: false`; without
+    it, Ollama 0.40.2 silently keeps only the end of the prompt, ADR-0049 Amendment 2)."""
+
+    def __init__(self, prompt_tokens: int | None, num_ctx: int | None, message: str):
+        self.prompt_tokens, self.num_ctx = prompt_tokens, num_ctx
+        super().__init__(f"prompt too long: {message}")
+
+
+def _context_error(response: httpx.Response) -> PromptTooLong | None:
+    """Ollama's `exceed_context_size_error` (HTTP 400) as a PromptTooLong, else None. The error field is a JSON string,
+    e.g. {"error": {"type": "exceed_context_size_error", "n_prompt_tokens": 9204, "n_ctx": 8192, "message": ...}}."""
+    if getattr(response, "status_code", 200) != 400:
+        return None
+    try:
+        err = response.json().get("error")
+        inner = json.loads(err) if isinstance(err, str) else err
+        inner = inner.get("error", inner) if isinstance(inner, dict) else {}
+    except (ValueError, AttributeError):
+        return None
+    if not isinstance(inner, dict) or inner.get("type") != "exceed_context_size_error":
+        return None
+    return PromptTooLong(inner.get("n_prompt_tokens"), inner.get("n_ctx"), str(inner.get("message", "")))
+
+
 # Rough, deliberately conservative token estimate (over-estimates). Not calibrated: the real
 # prompt_eval_count is logged after every call so these ratios can be tuned later.
 CHARS_PER_TOKEN_LATIN = 3.5   # English prose measured around 4+ chars/token with this tokenizer family
@@ -144,13 +169,15 @@ def chat_raw(
     timeout: float | None = None,
     model: str | None = None,
     estimate_scale: float = 1.0,
+    truncate: bool | None = None,
 ) -> tuple[str, ChatMetrics]:
     """POST /api/chat with `format_schema` (a JSON Schema dict) as `format`; return (reply content, metrics).
 
     The same contract as chat_json (budget rule before sending, think check, done_reason "length" raises
     OutputTruncated), but the content is returned unparsed, for callers that validate it themselves (M7 extraction).
     `estimate_scale` calibrates the budget rule's prompt estimate for the model (`extract.token_estimate_scale`);
-    the default 1.0 is the uncalibrated estimate every other caller uses.
+    the default 1.0 is the uncalibrated estimate every other caller uses. `truncate=False` asks Ollama to refuse a
+    prompt longer than num_ctx (raises PromptTooLong) instead of silently cutting its start; None sends nothing.
     """
     cfg = _cfg(ollama)
     keep_alive = cfg.keep_alive if keep_alive is None else keep_alive
@@ -173,10 +200,15 @@ def chat_raw(
         "keep_alive": keep_alive,
         "options": options,
     }
+    if truncate is not None:
+        body["truncate"] = truncate
     with httpx.Client(timeout=timeout) as client:
         _ensure_model(client, base, model)
         try:
             r = client.post(f"{base}/api/chat", json=body)
+            too_long = _context_error(r)
+            if too_long is not None:
+                raise too_long
             r.raise_for_status()
         except httpx.HTTPError as e:
             raise OllamaError(f"/api/chat failed: {e}") from e

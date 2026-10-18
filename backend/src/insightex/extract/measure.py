@@ -44,7 +44,12 @@ from insightex.extract.prompts import (
     sha256_text,
 )
 from insightex.extract.vram import VramSampler
-from insightex.llm.ollama_client import OutputTruncated, estimate_prompt_tokens, scaled_estimate
+from insightex.llm.ollama_client import (
+    OutputTruncated,
+    PromptTooLong,
+    estimate_prompt_tokens,
+    scaled_estimate,
+)
 
 MEASURE_VERSION = 3  # 3: the retry call (errors filled to the cap) is the measured prompt; 2: per-window num_predict
 
@@ -113,22 +118,24 @@ def measure_case(client: ModelClient, model: str, messages: list[dict], fmt: dic
     for m in client.resident():
         client.unload(m["name"])
     sampler.start()
-    truncated, metrics = False, {}
+    truncated, metrics, too_long = False, {}, None
     try:
         with PsWatch(client, model, ps_interval_s) as watch:  # read during the call: keep_alive 0 unloads after it
             try:
                 _, metrics = client.chat(model, messages, fmt, num_ctx, num_predict)
             except OutputTruncated as e:
                 truncated, metrics = True, {"eval_count": e.eval_count}
+            except PromptTooLong as e:  # refused by Ollama (truncate false): its count is the real prompt length
+                too_long = {"prompt_tokens": e.prompt_tokens, "num_ctx": e.num_ctx}
         ps = watch.seen
     finally:
         sampler.stop()
         client.unload(model)
-    prompt_n = metrics.get("prompt_eval_count")
-    fits = prompt_n is not None and prompt_n + num_predict <= num_ctx
+    prompt_n = metrics.get("prompt_eval_count") if too_long is None else too_long["prompt_tokens"]
+    fits = too_long is None and prompt_n is not None and prompt_n + num_predict <= num_ctx
     full_gpu = ps is not None and ps["gpu_pct"] == 100.0
     return {
-        **out, "sent": True, "truncated": truncated,
+        **out, "sent": True, "truncated": truncated, "prompt_too_long": too_long,
         "prompt_eval_count": prompt_n,
         "estimate_over_real": (estimated / prompt_n) if prompt_n else None,
         "eval_count": metrics.get("eval_count"),
@@ -142,8 +149,9 @@ def measure_case(client: ModelClient, model: str, messages: list[dict], fmt: dic
         "gate_allows_real_overflow": gate_allows and prompt_n is not None and not fits,
         "full_gpu": full_gpu,
         "passes": fits and full_gpu,
-        "reason": None if fits and full_gpu else ("real prompt tokens + num_predict > num_ctx" if not fits
-                                                  else "ollama ps does not show 100% GPU"),
+        "reason": None if fits and full_gpu else (
+            "prompt alone longer than num_ctx (refused by Ollama)" if too_long is not None
+            else "real prompt tokens + num_predict > num_ctx" if not fits else "ollama ps does not show 100% GPU"),
     }
 
 

@@ -64,11 +64,11 @@ from insightex.extract.prompts import (
 )
 from insightex.extract.vram import VramSampler
 from insightex.llm import ollama_client
-from insightex.llm.ollama_client import OutputTruncated
+from insightex.llm.ollama_client import OutputTruncated, PromptTooLong
 
 log = logging.getLogger(__name__)
 
-HARNESS_VERSION = 5  # 5: post-call overflow check; 4: keep_alive per call; 3: retry with errors; 2: num_predict/window. Bump when request building or reply handling changes in a way that changes output
+HARNESS_VERSION = 6  # 6: truncate false (Ollama refuses over-long prompts); 5: post-call overflow check; 4: keep_alive per call; 3: retry with errors; 2: num_predict/window. Bump when request building or reply handling changes in a way that changes output
 RUN_VERSION = 1  # run.json layout (tools/label_concepts/scoring.py RUN_VERSION)
 RETRIES = 1  # ADR-0048 section 7: "valid after one retry"; a gate rule, not a tunable
 
@@ -167,7 +167,7 @@ class ModelClient(Protocol):
     def digest(self, model: str) -> str: ...
 
     def chat(self, model: str, messages: list[dict], format_schema: dict, num_ctx: int,
-             num_predict: int) -> tuple[str, dict[str, Any]]: ...  # raises OutputTruncated, PromptBudgetError
+             num_predict: int) -> tuple[str, dict[str, Any]]: ...  # raises OutputTruncated, PromptTooLong, PromptBudgetError
 
     def resident(self) -> list[dict[str, Any]]: ...
 
@@ -191,7 +191,8 @@ class OllamaModelClient:
         scale = self.settings.extract.estimate_scale(model) if self.estimate_gate else 0.0
         content, m = ollama_client.chat_raw(messages, format_schema, num_ctx, ollama=self.settings.ollama,
                                             num_predict=num_predict, model=model, estimate_scale=scale,
-                                            keep_alive=self.settings.extract.keep_alive)
+                                            keep_alive=self.settings.extract.keep_alive,
+                                            truncate=self.settings.extract.truncate)
         return content, asdict(m)
 
     def resident(self) -> list[dict[str, Any]]:
@@ -356,7 +357,8 @@ def extraction_num_predict(settings: Settings, n_targets: int) -> int:
 def _options(settings: Settings, num_predict: int) -> dict[str, Any]:
     o = settings.ollama
     return {"num_ctx": settings.extract.num_ctx, "num_predict": num_predict, "temperature": o.temperature,
-            "seed": o.seed, "think": o.think, "keep_alive": settings.extract.keep_alive}
+            "seed": o.seed, "think": o.think, "keep_alive": settings.extract.keep_alive,
+            "truncate": settings.extract.truncate}
 
 
 def prompt_overflow(metrics: dict[str, Any] | None, num_predict: int, num_ctx: int) -> str | None:
@@ -384,6 +386,9 @@ def _cached_call(ctx: RunContext, kind: str, model: str, digest: str, messages: 
                 error = None
             except OutputTruncated as e:
                 content, metrics, error = None, {"eval_count": e.eval_count, "done_reason": "length"}, str(e)
+            except PromptTooLong as e:  # Ollama refused it (truncate false): an invalid attempt, recorded with counts
+                content, error = None, str(e)
+                metrics = {"prompt_too_long": {"prompt_tokens": e.prompt_tokens, "num_ctx": e.num_ctx}}
         entry = {"key": key, "kind": kind, "attempt": attempt, "content": content, "error": error,
                  "metrics": metrics, "wall_s": ctx.clock() - t0, "ps": watch.seen,
                  "created_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")}
@@ -554,6 +559,7 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
             "needed_retry_windows": sum(1 for w in windows if w["needed_retry"]),
             "valid_empty_after_retry_windows": sum(1 for w in windows if w["empty_after_retry"]),
             "prompt_overflow_calls": sum(1 for c in calls if c.get("prompt_overflow")),
+            "prompt_too_long_calls": sum(1 for c in calls if (c.get("metrics") or {}).get("prompt_too_long")),
             "dropped_relations": sum(w["dropped_relations"] for w in windows),
             "calls": len(calls), "cache_hits": len(calls) - len(fresh),
         },
