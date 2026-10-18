@@ -64,11 +64,11 @@ from insightex.extract.prompts import (
 )
 from insightex.extract.vram import VramSampler
 from insightex.llm import ollama_client
-from insightex.llm.ollama_client import OutputTruncated, PromptTooLong
+from insightex.llm.ollama_client import OutputTruncated, PromptTooLong, scaled_estimate
 
 log = logging.getLogger(__name__)
 
-HARNESS_VERSION = 6  # 6: truncate false (Ollama refuses over-long prompts); 5: post-call overflow check; 4: keep_alive per call; 3: retry with errors; 2: num_predict/window. Bump when request building or reply handling changes in a way that changes output
+HARNESS_VERSION = 7  # 7: run-start self-test, estimate warns only; 6: truncate false; 5: post-call overflow check; 4: keep_alive per call; 3: retry with errors; 2: num_predict/window. Bump when request building or reply handling changes in a way that changes output
 RUN_VERSION = 1  # run.json layout (tools/label_concepts/scoring.py RUN_VERSION)
 RETRIES = 1  # ADR-0048 section 7: "valid after one retry"; a gate rule, not a tunable
 
@@ -192,7 +192,7 @@ class OllamaModelClient:
         content, m = ollama_client.chat_raw(messages, format_schema, num_ctx, ollama=self.settings.ollama,
                                             num_predict=num_predict, model=model, estimate_scale=scale,
                                             keep_alive=self.settings.extract.keep_alive,
-                                            truncate=self.settings.extract.truncate)
+                                            truncate=self.settings.extract.truncate, budget_rule="warn")
         return content, asdict(m)
 
     def resident(self) -> list[dict[str, Any]]:
@@ -347,6 +347,7 @@ class RunContext:
     sampler: VramSampler
     clock: Callable[[], float] = time.monotonic
     calls_log: list[dict[str, Any]] = field(default_factory=list)
+    self_test: dict[str, Any] | None = None
 
 
 def extraction_num_predict(settings: Settings, n_targets: int) -> int:
@@ -359,6 +360,31 @@ def _options(settings: Settings, num_predict: int) -> dict[str, Any]:
     return {"num_ctx": settings.extract.num_ctx, "num_predict": num_predict, "temperature": o.temperature,
             "seed": o.seed, "think": o.think, "keep_alive": settings.extract.keep_alive,
             "truncate": settings.extract.truncate}
+
+
+SELF_TEST_FORMAT: dict[str, Any] = {"type": "boolean"}
+SELF_TEST_LINE = "Line {i}: the weather report for this town says it is mild and dry, with a light wind."
+
+
+def truncate_self_test(ctx: RunContext, model: str) -> dict[str, Any]:
+    """Run-start check (ADR-0049 Amendment 2): one small synthetic prompt longer than its num_ctx, sent with the run's
+    settings (truncate false). Ollama must refuse it; if it answers instead, it would silently cut over-long prompts,
+    so the run aborts before any real call. The result goes into run.json."""
+    x = ctx.settings.extract
+    text = "\n".join(SELF_TEST_LINE.format(i=i) for i in range(1, x.self_test_probe_lines + 1))
+    result: dict[str, Any] = {"model": model, "num_ctx": x.self_test_num_ctx, "truncate": x.truncate,
+                              "probe_chars": len(text)}
+    try:
+        _, metrics = ctx.client.chat(model, [{"role": "user", "content": text}], SELF_TEST_FORMAT,
+                                     x.self_test_num_ctx, 1)
+    except PromptTooLong as e:
+        return {**result, "refused": True, "prompt_tokens": e.prompt_tokens, "reported_num_ctx": e.num_ctx}
+    except OutputTruncated:  # answered, and the one-token reply hit num_predict: not refused either
+        metrics = {"prompt_eval_count": None}
+    raise HarnessError(f"run-start self-test failed: Ollama answered a {len(text)}-character prompt at num_ctx "
+                       f"{x.self_test_num_ctx} with truncate={x.truncate} instead of refusing it (prompt_eval_count "
+                       f"{metrics.get('prompt_eval_count')}); it would silently cut over-long prompts, so no real call "
+                       "is made (ADR-0049 Amendment 2)")
 
 
 def prompt_overflow(metrics: dict[str, Any] | None, num_predict: int, num_ctx: int) -> str | None:
@@ -393,6 +419,9 @@ def _cached_call(ctx: RunContext, kind: str, model: str, digest: str, messages: 
                  "metrics": metrics, "wall_s": ctx.clock() - t0, "ps": watch.seen,
                  "created_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")}
         ctx.cache.put(kind, key, entry)
+    # the estimate is a warning only (ADR-0049 Amendment 2): recorded per call, it never refuses a call
+    est = scaled_estimate(messages, ctx.settings.extract.estimate_scale(model))
+    estimate = {"prompt_tokens": est, "over_budget": est + num_predict > ctx.settings.extract.num_ctx}
     # re-applied to cached replies too: a reply over the real budget is never parsed or scored
     overflow = prompt_overflow(entry["metrics"], num_predict, ctx.settings.extract.num_ctx)
     if overflow is not None:
@@ -401,7 +430,7 @@ def _cached_call(ctx: RunContext, kind: str, model: str, digest: str, messages: 
                                      "num_predict": num_predict, "num_ctx": ctx.settings.extract.num_ctx}}
     ctx.calls_log.append({**label, "kind": kind, "attempt": attempt, "cache_hit": hit, "key": key,
                           "content": entry["content"], "error": entry["error"], "metrics": entry["metrics"],
-                          "wall_s": entry["wall_s"], "ps": entry["ps"],
+                          "wall_s": entry["wall_s"], "ps": entry["ps"], "estimate": estimate,
                           **({"prompt_overflow": entry["prompt_overflow"], "unused_content": entry["unused_content"]}
                              if overflow is not None else {})})
     return entry
@@ -450,6 +479,8 @@ def run_arm(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, window
             ctx.client.unload(m["name"])
         ctx.sampler.start()
         try:
+            # aborts the run before any real call if Ollama does not refuse it; inside try so the model is unloaded
+            ctx.self_test = truncate_self_test(ctx, arm.model)
             texts = {i: grid[i].text for i in needed}
             if arm.input == "english":
                 assert prompts.translation is not None
@@ -546,6 +577,9 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
                     "num_predict_rule": "num_predict_per_window x target windows in the call",
                     "token_estimate_scale": ctx.settings.extract.estimate_scale(arm.model)},
         "translate_num_predict": ctx.settings.extract.translate_num_predict if arm.input == "english" else None,
+        "truncate_self_test": ctx.self_test,
+        "budget_rule": "estimate is a warning only; Ollama refuses prompts longer than num_ctx (truncate false) and "
+                       "the post-call check rejects prompt + num_predict > num_ctx (ADR-0049 Amendment 2)",
         "retries": RETRIES,
         "retry_rule": "once, in the same unit as the first attempt, with the frozen retry template and its errors",
         "retry_error_chars": ctx.settings.extract.retry_error_chars,
@@ -560,6 +594,7 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
             "valid_empty_after_retry_windows": sum(1 for w in windows if w["empty_after_retry"]),
             "prompt_overflow_calls": sum(1 for c in calls if c.get("prompt_overflow")),
             "prompt_too_long_calls": sum(1 for c in calls if (c.get("metrics") or {}).get("prompt_too_long")),
+            "estimate_over_budget_calls": sum(1 for c in calls if (c.get("estimate") or {}).get("over_budget")),
             "dropped_relations": sum(w["dropped_relations"] for w in windows),
             "calls": len(calls), "cache_hits": len(calls) - len(fresh),
         },

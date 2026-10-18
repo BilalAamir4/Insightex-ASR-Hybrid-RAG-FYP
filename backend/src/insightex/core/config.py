@@ -345,6 +345,8 @@ class Extract(_Section):
     translate_num_predict: int
     keep_alive: int | str
     truncate: bool
+    self_test_num_ctx: int
+    self_test_probe_lines: int
     retry_error_chars: int
     evidence_dir: Path
     measure_dir: Path

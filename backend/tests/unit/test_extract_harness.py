@@ -42,8 +42,10 @@ def default_respond(user, messages, attempt):
 
 
 class FakeClient:
-    def __init__(self, respond=default_respond):
+    def __init__(self, respond=default_respond, refuse_probe=True):
         self.respond = respond
+        self.refuse_probe = refuse_probe  # like Ollama with truncate false (ADR-0049 Amendment 2)
+        self.probes: list[dict] = []
         self.chats: list[dict] = []
         self.loaded: set[str] = {"some-other-model:latest"}
         self.unloaded: list[str] = []
@@ -52,6 +54,13 @@ class FakeClient:
         return "digest-" + model
 
     def chat(self, model, messages, format_schema, num_ctx, num_predict):
+        if format_schema == h.SELF_TEST_FORMAT:  # the run-start truncate self-test, not a real call
+            from insightex.llm.ollama_client import PromptTooLong
+
+            self.probes.append({"model": model, "num_ctx": num_ctx, "chars": len(messages[0]["content"])})
+            if self.refuse_probe:
+                raise PromptTooLong(410, num_ctx, f"request (410 tokens) exceeds the available context size ({num_ctx})")
+            return "true", {"prompt_eval_count": num_ctx, "eval_count": 1}
         user = json.loads(messages[1]["content"])
         attempt = 2 if len(messages) == 3 else 1  # a retry carries one more user message (the retry template)
         self.chats.append({"model": model, "messages": messages, "format": format_schema, "user": user,
@@ -746,3 +755,67 @@ def test_measure_records_a_refused_prompt_with_its_real_length():
                      VramSampler(0.01, read=lambda: 1000), 1.0, 0.01)
     assert r["prompt_too_long"] == {"prompt_tokens": 9204, "num_ctx": 8192} and r["prompt_eval_count"] == 9204
     assert not r["fits_real_budget"] and not r["passes"] and r["reason"].startswith("prompt alone longer")
+
+
+# -- run-start self-test and the warning-only estimate (ADR-0049 Amendment 2) ------------------------------------------
+
+
+def test_run_starts_with_a_refused_self_test_recorded_in_run_json(setup):
+    _, prompts, ctx = setup
+    client = FakeClient()
+    _, run = h.run_arm(ctx(client), arm(), prompts, LECTURE, windows(1), [0])
+    assert client.probes == [{"model": "qwen3.5:latest", "num_ctx": 2048, "chars": client.probes[0]["chars"]}]
+    assert client.probes[0]["chars"] > 4 * 2048  # the probe is well over its context
+    st = run["truncate_self_test"]
+    assert st["refused"] and st["prompt_tokens"] == 410 and st["num_ctx"] == 2048 and st["truncate"] is False
+
+
+def test_run_aborts_before_any_real_call_when_the_self_test_is_not_refused(setup):
+    _, prompts, ctx = setup
+    client = FakeClient(refuse_probe=False)
+    with pytest.raises(h.HarnessError, match="self-test failed"):
+        h.run_arm(ctx(client), arm(), prompts, LECTURE, windows(2), [0, 1])
+    assert len(client.probes) == 1 and client.chats == []  # no real call was made
+    assert "qwen3.5:latest" in client.unloaded  # the model is still unloaded in the finally block
+
+
+def test_estimate_over_budget_is_a_warning_and_the_call_is_sent(setup):
+    _, prompts, ctx = setup
+    long_window = [h.WindowText(0, 0.0, 30.0, "x" * 30000)]  # estimate about 8,600 tokens: over budget, real 50
+    client = FakeClient()
+    _, run = h.run_arm(ctx(client), arm(), prompts, LECTURE, long_window, [0])
+    assert len(client.chats) == 1 and run["windows"][0]["valid"]  # sent, not refused, run not aborted
+    assert run["totals"]["estimate_over_budget_calls"] == 1
+    c = ctx(client)
+    h.run_arm(c, arm(), prompts, LECTURE, long_window, [0])  # cached; the estimate is still recorded per call
+    assert c.calls_log[0]["estimate"]["over_budget"] and c.calls_log[0]["estimate"]["prompt_tokens"] > 7168
+
+
+def test_harness_client_uses_the_warning_budget_rule(monkeypatch):
+    seen = []
+
+    def fake_chat_raw(messages, fmt, num_ctx, **kw):
+        seen.append(kw["budget_rule"])
+        from insightex.llm.ollama_client import ChatMetrics
+        return "{}", ChatMetrics(1, 1, 1.0, 1.0, 1.0, 0.0, "stop", num_ctx)
+
+    monkeypatch.setattr(h.ollama_client, "chat_raw", fake_chat_raw)
+    h.OllamaModelClient(load_settings()).chat("qwen3.5:latest", [{"role": "user", "content": "x"}], {}, 8192, 1)
+    assert seen == ["warn"]
+
+
+def test_self_test_answer_that_hits_num_predict_also_aborts(setup):
+    """Seen with real Ollama and truncate true: it cuts the probe, answers, and the 1-token reply hits num_predict."""
+    _, prompts, ctx = setup
+
+    class AnswersProbe(FakeClient):
+        def chat(self, model, messages, format_schema, num_ctx, num_predict):
+            if format_schema == h.SELF_TEST_FORMAT:
+                self.probes.append({"num_ctx": num_ctx})
+                raise OutputTruncated(1, num_predict)
+            return super().chat(model, messages, format_schema, num_ctx, num_predict)
+
+    client = AnswersProbe()
+    with pytest.raises(h.HarnessError, match="self-test failed"):
+        h.run_arm(ctx(client), arm(), prompts, LECTURE, windows(1), [0])
+    assert client.chats == []

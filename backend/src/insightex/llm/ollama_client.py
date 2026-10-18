@@ -170,6 +170,7 @@ def chat_raw(
     model: str | None = None,
     estimate_scale: float = 1.0,
     truncate: bool | None = None,
+    budget_rule: str = "refuse",
 ) -> tuple[str, ChatMetrics]:
     """POST /api/chat with `format_schema` (a JSON Schema dict) as `format`; return (reply content, metrics).
 
@@ -178,6 +179,8 @@ def chat_raw(
     `estimate_scale` calibrates the budget rule's prompt estimate for the model (`extract.token_estimate_scale`);
     the default 1.0 is the uncalibrated estimate every other caller uses. `truncate=False` asks Ollama to refuse a
     prompt longer than num_ctx (raises PromptTooLong) instead of silently cutting its start; None sends nothing.
+    `budget_rule="warn"` (the M7 harness, ADR-0049 Amendment 2) only logs a warning when the estimate breaks the
+    budget rule and sends the call anyway; the default "refuse" raises PromptBudgetError, as for every other caller.
     """
     cfg = _cfg(ollama)
     keep_alive = cfg.keep_alive if keep_alive is None else keep_alive
@@ -186,9 +189,14 @@ def chat_raw(
     num_predict = cfg.num_predict if num_predict is None else num_predict
     timeout = cfg.request_timeout_s if timeout is None else timeout
     model = model or cfg.model
+    if budget_rule not in ("refuse", "warn"):
+        raise ValueError(f"budget_rule must be 'refuse' or 'warn', not {budget_rule!r}")
     estimated = scaled_estimate(messages, estimate_scale)
     if estimated + num_predict > num_ctx:
-        raise PromptBudgetError(estimated, num_predict, num_ctx)
+        if budget_rule == "refuse":
+            raise PromptBudgetError(estimated, num_predict, num_ctx)
+        log.warning("budget estimate exceeded (sent anyway, budget_rule=warn): ~%d estimated prompt tokens + "
+                    "num_predict %d > num_ctx %d", estimated, num_predict, num_ctx)
     base = cfg.base_url.rstrip("/")
     options: dict = {"num_ctx": num_ctx, "temperature": temperature, "seed": seed, "num_predict": num_predict}
     body = {

@@ -122,3 +122,13 @@ def test_chat_raw_sends_truncate_and_raises_prompt_too_long_on_a_context_error(h
     with pytest.raises(oc.PromptTooLong) as e:
         oc.chat_raw(MSGS, FMT, num_ctx=8192, num_predict=64, truncate=False)
     assert (e.value.prompt_tokens, e.value.num_ctx) == (9204, 8192) and "9204 tokens" in str(e.value)
+
+
+def test_chat_raw_warn_budget_rule_sends_the_call(http):
+    fake = http(reply("{}"))
+    oc.chat_raw(MSGS, FMT, num_ctx=64, num_predict=64, budget_rule="warn")  # the estimate breaks the rule
+    assert len(fake.posts) == 1
+    with pytest.raises(oc.PromptBudgetError):
+        oc.chat_raw(MSGS, FMT, num_ctx=64, num_predict=64)  # the default still refuses (every other caller)
+    with pytest.raises(ValueError):
+        oc.chat_raw(MSGS, FMT, num_ctx=2048, num_predict=64, budget_rule="ignore")
