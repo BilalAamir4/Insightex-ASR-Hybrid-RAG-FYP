@@ -11,6 +11,7 @@ Lecture `sha256-de27cb67c2acbedebd0c2c7416932b8a` (Day 4). Gold: `tools/label_co
 5. **Settings:** qwen3.5 only, with the C1 settings: single-window calls, original language, no previous-window context. Gemma does not run in this stage.
 6. **Approval:** every version is approved by Bilal before it runs. After each run, the next change is proposed with its named reason and waits for approval.
 7. **Known gold/guide mismatch (added 18 Oct 2026, before version 1 runs).** "The prompt follows the labelling guide, not the gold's labelling habits. The gold labels a problem or disadvantage of batch learning as its own concept in windows 10–16 and 20, while the guide counts 'a problem of it' as explaining that concept. A model labelling 'batch learning' there is a guide-consistent reading. This is recorded as a known gold/guide mismatch and is not a named failure for prompt changes."
+8. **Freeze tie-break (added 18 Oct 2026, before version 4 runs):** "Freeze tie-break: if versions tie on micro concept F1, the earlier version is frozen."
 
 Each run is scored with `tools/label_concepts` (`score`, string rule) and reported as:
 - validity: windows needing the retry, windows still invalid;
@@ -233,3 +234,14 @@ The "concept not in the window's text" category was checked by script: every mod
   - Examples 1, 4 and 5 and all rules stay as they are. Example 1 (reserved window 0) is an empty record and adds no concept.
 - **Constraints:** no batch, online or incremental learning, no deployment or product story, no list of limitations. The new examples are checked for overlap with the gold windows before running. I will show their text for approval before the run.
 - **Expected effect:** fewer extras (up to 4) and invented relations (up to 4) in windows 4, 12, 14 and 22. The batch-learning matches in those windows come from the window text itself and should stay.
+
+## Finding: examples from Day 4's own reserved windows (recorded 18 Oct 2026, before version 4 runs)
+
+The original examples 2 and 3 (versions 1 to 3) were glosses of Day 4's reserved windows 3 and 5. They carried this lecture's concept pairings, "batch learning contrasts_with online learning" and "batch learning contrasts_with incremental learning", into the gold windows. In versions 2 and 3, the model labelled online learning (windows 4 and 22) and incremental learning (windows 12 and 14) with exactly those relations, where the windows name them only in passing (4, 14, 22) or not at all (12). A version 3 rule against passing contrasts did not remove them.
+
+Invented examples on other topics make Day 4 a closer preview of the held-out lecture, whose windows have no examples taken from the same lecture. Version 4 replaces examples 2 and 3 with invented ones (principal component analysis against linear discriminant analysis; precision, with recall named only in passing).
+
+Two Day 4 references remain in the prompt and are not part of the version 4 change:
+- example 1, the gloss of reserved window 0, which announces "batch versus online learning" as the day's topic and has an empty record;
+- the aliases rule's illustration ("batch" alone is not an alias).
+
