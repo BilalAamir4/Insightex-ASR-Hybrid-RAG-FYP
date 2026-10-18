@@ -117,6 +117,12 @@ def arm_validity(arm: ArmRun, gold: dict[str, Any]) -> dict[str, Any]:
         "invalid_windows": invalid,
         "missing_windows": missing,
         "retried_windows": sorted(i for i, st in status.items() if st.get("attempt_used") == 2),
+        # valid only through the retry, with a record that has no concepts: reported apart from ordinary valid
+        # windows (ADR-0049 Amendment 2); derived from the record, so older run.json files are covered too
+        "valid_empty_after_retry_windows": sorted(
+            g["window"]["window_index"] for g in gold["windows"]
+            if (st := status.get(g["window"]["window_index"])) and st.get("valid") and st.get("attempt_used") == 2
+            and (rec := records.get(g["window"]["window_index"])) is not None and not rec["concepts"]),
     }
 
 
@@ -240,6 +246,8 @@ def compare(comparison: str, a: dict[str, Any], b: dict[str, Any]) -> dict[str, 
         "arm_a": a["name"], "arm_b": b["name"],
         "tie_keeps_arm_a_because": TIE_KEEPS[comparison],
         "valid_a": va, "valid_b": vb,
+        "valid_empty_after_retry_a": a["validity"]["valid_empty_after_retry_windows"],
+        "valid_empty_after_retry_b": b["validity"]["valid_empty_after_retry_windows"],
         "wins_a": wins_a, "wins_b": wins_b, "ties": len(per_window) - wins_a - wins_b, "net_wins_b": net,
         "micro_concept_f1_a": float(micro_a), "micro_concept_f1_b": float(micro_b),
         "decision": decision, "reason": reason,

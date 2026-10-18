@@ -195,9 +195,9 @@ extract:                            # M7 extraction evaluation harness (ADR-0048
   translate_prompt_sha256: null     # pinned sha256 of translate_prompt_file
   num_ctx: 8192                     # tokens; context of every harness call, one value for both C1 models (Session 2b decision 4)
   num_predict_per_window: 1024      # tokens; output cap per target window: a call of k windows gets k x this (Session 2b decision 1)
-  token_estimate_scale:             # per-model factor on the budget rule's prompt estimate: max measured real/estimate + 5% (Session 2b)
-    "qwen3.5:latest": 0.68          # measured 0.625-0.647 over 9 synthetic prompts (docs/evidence/m7/session2b_vram_numctx.md)
-    "gemma4:e4b": 0.64              # measured 0.543-0.602 over 18 synthetic prompts; unlisted models use 1.0 (uncalibrated)
+  token_estimate_scale:             # per-model factor on the budget rule's prompt estimate, a first filter only; the post-call check is the guarantee (ADR-0049 Amendment 2)
+    "qwen3.5:latest": 0.84          # frozen prompt: real/estimate 0.778-0.793 (k 3-5) + 5% (ADR-0049 Amendment 2); synthetic was 0.625-0.647
+    "gemma4:e4b": 0.761             # frozen prompt: highest real/estimate 0.761, no margin (a margin would refuse k=5); unlisted models use 1.0
   translate_num_predict: 1024       # tokens; output cap of one translation call
   keep_alive: 0                     # seconds a model stays loaded after each harness call; 0 = reload per call (Gemma's output depended on session state, ADR-0049)
   retry_error_chars: 1500           # characters; cap on the validation errors quoted in a retry message (Session 2b decision 3)

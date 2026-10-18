@@ -68,7 +68,7 @@ from insightex.llm.ollama_client import OutputTruncated
 
 log = logging.getLogger(__name__)
 
-HARNESS_VERSION = 4  # 4: keep_alive per call; 3: retry with errors; 2: per-window num_predict, calibrated estimate. Bump when request building or reply handling changes in a way that changes output
+HARNESS_VERSION = 5  # 5: post-call overflow check; 4: keep_alive per call; 3: retry with errors; 2: num_predict/window. Bump when request building or reply handling changes in a way that changes output
 RUN_VERSION = 1  # run.json layout (tools/label_concepts/scoring.py RUN_VERSION)
 RETRIES = 1  # ADR-0048 section 7: "valid after one retry"; a gate rule, not a tunable
 
@@ -359,6 +359,16 @@ def _options(settings: Settings, num_predict: int) -> dict[str, Any]:
             "seed": o.seed, "think": o.think, "keep_alive": settings.extract.keep_alive}
 
 
+def prompt_overflow(metrics: dict[str, Any] | None, num_predict: int, num_ctx: int) -> str | None:
+    """The post-call budget check (ADR-0049 Amendment 2): a reply whose real prompt_eval_count plus num_predict
+    exceeds num_ctx is invalid, like a truncated one (the prompt may have been cut silently). None when it fits."""
+    prompt_n = (metrics or {}).get("prompt_eval_count")
+    if prompt_n is None or prompt_n + num_predict <= num_ctx:
+        return None
+    return (f"prompt overflow: prompt_eval_count {prompt_n} + num_predict {num_predict} = {prompt_n + num_predict} "
+            f"> num_ctx {num_ctx}; the reply is not used")
+
+
 def _cached_call(ctx: RunContext, kind: str, model: str, digest: str, messages: list[dict], fmt: dict,
                  num_predict: int, attempt: int, label: dict[str, Any]) -> dict[str, Any]:
     request = {"model": model, "model_digest": digest, "messages": messages, "format": fmt,
@@ -378,9 +388,17 @@ def _cached_call(ctx: RunContext, kind: str, model: str, digest: str, messages: 
                  "metrics": metrics, "wall_s": ctx.clock() - t0, "ps": watch.seen,
                  "created_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")}
         ctx.cache.put(kind, key, entry)
+    # re-applied to cached replies too: a reply over the real budget is never parsed or scored
+    overflow = prompt_overflow(entry["metrics"], num_predict, ctx.settings.extract.num_ctx)
+    if overflow is not None:
+        entry = {**entry, "content": None, "error": overflow, "unused_content": entry["content"],
+                 "prompt_overflow": {"prompt_eval_count": entry["metrics"]["prompt_eval_count"],
+                                     "num_predict": num_predict, "num_ctx": ctx.settings.extract.num_ctx}}
     ctx.calls_log.append({**label, "kind": kind, "attempt": attempt, "cache_hit": hit, "key": key,
                           "content": entry["content"], "error": entry["error"], "metrics": entry["metrics"],
-                          "wall_s": entry["wall_s"], "ps": entry["ps"]})
+                          "wall_s": entry["wall_s"], "ps": entry["ps"],
+                          **({"prompt_overflow": entry["prompt_overflow"], "unused_content": entry["unused_content"]}
+                             if overflow is not None else {})})
     return entry
 
 
@@ -500,6 +518,10 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
     # a window invalid on the first attempt has a second attempt's entry in `errors` (one list per attempt)
     windows = [{"window_index": t, "valid": outcomes[t].valid, "attempt_used": attempts_used.get(t),
                 "needed_retry": len(errors[t]) > 1,
+                # valid only through the retry, and the retry's record has no concepts: reported apart from
+                # ordinary valid windows (ADR-0049 Amendment 2)
+                "empty_after_retry": bool(outcomes[t].valid and attempts_used.get(t) == 2
+                                          and not outcomes[t].record["concepts"]),
                 "dropped_relations": outcomes[t].dropped_relations if outcomes[t].valid else 0,
                 "errors": errors[t]} for t in sorted(targets)]
     return {
@@ -530,6 +552,8 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
             "invalid_windows": sum(1 for w in windows if not w["valid"]),
             "retried_windows": sum(1 for w in windows if w["attempt_used"] == 2),  # recovered by the retry
             "needed_retry_windows": sum(1 for w in windows if w["needed_retry"]),
+            "valid_empty_after_retry_windows": sum(1 for w in windows if w["empty_after_retry"]),
+            "prompt_overflow_calls": sum(1 for c in calls if c.get("prompt_overflow")),
             "dropped_relations": sum(w["dropped_relations"] for w in windows),
             "calls": len(calls), "cache_hits": len(calls) - len(fresh),
         },

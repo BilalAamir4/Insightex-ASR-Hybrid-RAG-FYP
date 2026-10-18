@@ -413,7 +413,7 @@ def test_measurement_budget_gpu_share_and_cli(tmp_path, monkeypatch):
     sent = client.chats
     assert len(sent) == 10 and {c["num_predict"] for c in sent if len(c["user"]["windows"]) == 1} == {200}
     assert {c["num_predict"] for c in sent if len(c["user"]["windows"]) == 3} == {600}  # per window x k
-    assert report["num_predict_per_window"] == 200 and report["token_estimate_scale"] == 0.68
+    assert report["num_predict_per_window"] == 200 and report["token_estimate_scale"] == 0.84
     ctx_call = next(c for c in sent if "context" in c["user"])
     assert ctx_call["messages"][0]["content"].endswith("BLOCK PLACEHOLDER\n")
     assert "x" * 30 not in out.read_text()  # window text is never written to the report
@@ -450,7 +450,7 @@ def test_batch_calls_get_num_predict_per_window_times_k(setup):
     assert [len(c["user"]["windows"]) for c in client.chats] == [3, 2]
     assert [c["num_predict"] for c in client.chats] == [3 * per, 2 * per]
     assert run["options"]["num_predict_per_window"] == per and run["options"]["num_predict"] == per
-    assert run["options"]["token_estimate_scale"] == settings.extract.estimate_scale("qwen3.5:latest") == 0.68
+    assert run["options"]["token_estimate_scale"] == settings.extract.estimate_scale("qwen3.5:latest") == 0.84
 
 
 def test_ollama_client_applies_the_model_calibration_and_measure_turns_it_off(monkeypatch):
@@ -468,7 +468,7 @@ def test_ollama_client_applies_the_model_calibration_and_measure_turns_it_off(mo
         h.OllamaModelClient(s).chat(model, [{"role": "user", "content": "x"}], {}, 8192, 1024)
     h.OllamaModelClient(s, estimate_gate=False).chat("qwen3.5:latest", [{"role": "user", "content": "x"}], {}, 8192,
                                                     1024)
-    assert seen == [0.68, 0.64, 1.0, 0.0]
+    assert seen == [0.84, 0.761, 1.0, 0.0]
 
 
 def test_token_estimate_scale_must_be_in_unit_interval():
@@ -627,3 +627,72 @@ def test_ps_watch_keeps_the_entry_seen_during_a_call():
         client.loaded.discard("m")
     assert watch.seen == {"size": 1000, "size_vram": 1000, "gpu_pct": 100.0, "processor": "100% GPU",
                           "context_length": None}
+
+
+# -- post-call budget check and valid-but-empty-after-retry (ADR-0049 Amendment 2) -------------------------------------
+
+
+class RealCountClient(FakeClient):
+    """Reports a chosen real prompt_eval_count per attempt, whatever the estimate says."""
+
+    def __init__(self, prompt_counts, respond=default_respond):
+        super().__init__(respond)
+        self.prompt_counts = prompt_counts
+
+    def chat(self, model, messages, format_schema, num_ctx, num_predict):
+        content, metrics = super().chat(model, messages, format_schema, num_ctx, num_predict)
+        return content, {**metrics, "prompt_eval_count": self.prompt_counts[len(self.chats) - 1]}
+
+
+def test_estimate_allows_a_call_the_real_count_shows_is_over_and_the_reply_is_not_used(setup):
+    from insightex.llm.ollama_client import scaled_estimate
+
+    settings, prompts, ctx = setup
+    x = settings.extract
+    client = RealCountClient([x.num_ctx - x.num_predict_per_window + 1, 900])  # attempt 1 over by one token
+    doc, run = h.run_arm(ctx(client), arm(), prompts, LECTURE, windows(1), [0])
+    first = client.chats[0]
+    gate = scaled_estimate(first["messages"], x.estimate_scale("qwen3.5:latest"))
+    assert gate + first["num_predict"] <= x.num_ctx  # the estimate let the call through
+    w = run["windows"][0]
+    assert w["needed_retry"] and w["attempt_used"] == 2 and w["valid"]
+    assert "prompt overflow: prompt_eval_count 7169 + num_predict 1024 = 8193 > num_ctx 8192" in w["errors"][0][0]
+    assert run["totals"]["prompt_overflow_calls"] == 1
+    assert doc["windows"][0]["concepts"][0]["label"] == "c0"  # from attempt 2, not the over-budget reply
+
+
+def test_over_budget_reply_is_never_parsed_even_from_the_cache(setup, tmp_path):
+    settings, prompts, ctx = setup
+    over = settings.extract.num_ctx  # every attempt over the real budget
+    _, run = h.run_arm(ctx(RealCountClient([over, over])), arm(), prompts, LECTURE, windows(1), [0])
+    assert not run["windows"][0]["valid"] and run["totals"]["invalid_windows"] == 1
+    cached = FakeClient()
+    doc, run = h.run_arm(ctx(cached), arm(), prompts, LECTURE, windows(1), [0])  # same requests: cache hits
+    assert cached.chats == [] and not run["windows"][0]["valid"] and doc["windows"] == []
+    assert run["totals"]["prompt_overflow_calls"] == 2
+
+
+def test_overflow_check_and_its_record(setup):
+    assert h.prompt_overflow({"prompt_eval_count": 7168}, 1024, 8192) is None  # exactly full fits
+    assert h.prompt_overflow({"eval_count": 3}, 1024, 8192) is None  # no count (truncated reply): handled elsewhere
+    assert h.prompt_overflow({"prompt_eval_count": 7169}, 1024, 8192).startswith("prompt overflow")
+    settings, prompts, ctx = setup
+    c = ctx(RealCountClient([settings.extract.num_ctx, 100]))
+    h.run_arm(c, arm(), prompts, LECTURE, windows(1), [0])
+    over = c.calls_log[0]
+    assert over["content"] is None and over["unused_content"] is not None
+    assert over["prompt_overflow"] == {"prompt_eval_count": 8192, "num_predict": 1024, "num_ctx": 8192}
+
+
+def test_valid_but_empty_after_retry_is_its_own_category(setup):
+    _, prompts, ctx = setup
+
+    def respond(user, messages, attempt):
+        w = user["windows"][0]["window_index"]
+        if attempt == 1:
+            return json.dumps({"windows": [item(w, cue="x")]})  # invalid
+        return json.dumps({"windows": [item(w, concepts=[]) if w == 0 else item(w)]})
+
+    _, run = h.run_arm(ctx(FakeClient(respond)), arm(), prompts, LECTURE, windows(2), [0, 1])
+    assert [w["empty_after_retry"] for w in run["windows"]] == [True, False]
+    assert run["totals"]["valid_empty_after_retry_windows"] == 1 and run["totals"]["invalid_windows"] == 0

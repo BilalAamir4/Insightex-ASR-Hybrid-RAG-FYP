@@ -79,6 +79,19 @@ def test_validity_missing_invalid_and_schema_errors(tmp_path):
     assert not s["validity"]["valid"] and s["validity"]["schema_errors"]
 
 
+def test_valid_but_empty_after_retry_is_reported_apart(tmp_path, capsys):
+    """ADR-0049 Amendment 2: a window valid only through the retry whose record is empty is its own category."""
+    gold = gold_doc(LECTURE, [rec(0, concepts=cs("x")), rec(1, concepts=cs("y")), rec(2, concepts=cs("z"))])
+    run = arm(tmp_path, "A", [rec(0, concepts=cs("x")), rec(1), rec(2, concepts=cs("z"))], retried=(1, 2))
+    s = score_arm(run, gold, {})
+    v = s["validity"]
+    assert v["valid"] and v["retried_windows"] == [1, 2] and v["valid_empty_after_retry_windows"] == [1]
+    lc.print_score(s)
+    assert "valid but empty after retry 1 [1]" in capsys.readouterr().out
+    plain = score_arm(arm(tmp_path, "B", [rec(0, concepts=cs("x")), rec(1), rec(2)]), gold, {})
+    assert plain["validity"]["valid_empty_after_retry_windows"] == []  # empty on the first attempt: ordinary
+
+
 # -- comparison ----------------------------------------------------------------------------------------------------
 
 

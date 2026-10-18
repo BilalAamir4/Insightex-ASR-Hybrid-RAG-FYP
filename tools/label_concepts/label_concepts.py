@@ -545,7 +545,9 @@ def score_report(lecture_id: str, arms: list[Any], root: Path | None) -> dict[st
 def print_score(s: dict[str, Any]) -> None:
     v = s["validity"]
     state = "VALID" if v["valid"] else f"INVALID (invalid {v['invalid_windows']}, missing {v['missing_windows']})"
-    print(f"arm {s['name']}: {state}; retried windows {len(v['retried_windows'])}; "
+    empty = v["valid_empty_after_retry_windows"]
+    print(f"arm {s['name']}: {state}; retried windows {len(v['retried_windows'])}; valid but empty after retry "
+          f"{len(empty)}{' ' + str(empty) if empty else ''}; "
           f"dropped relations {s['dropped_relations']}")
     for part, title in (("adjudicated", "adjudicated (primary)"), ("string_rule", "string rule only")):
         c = s[part]["micro"]["concept"]
