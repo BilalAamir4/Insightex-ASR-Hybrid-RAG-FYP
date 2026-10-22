@@ -24,7 +24,7 @@ Lecture `sha256-de27cb67c2acbedebd0c2c7416932b8a` (Day 4). Gold v2 replaces gold
 | Concepts | 27 | 24: 18 kept (3 renamed), 9 removed, 6 added |
 | Relations | 1 (window 16) | 0 |
 | Windows with no concepts | 0 | 0 |
-| Distinct concept names | 13 | 7 |
+| Distinct concept names | 12 (9 ignoring case) | 7 |
 
 The 3 renames all give a concept its one canonical name:
 - "Problem With Batch Learning" → "Problem Of Batch Learning" (window 14);
