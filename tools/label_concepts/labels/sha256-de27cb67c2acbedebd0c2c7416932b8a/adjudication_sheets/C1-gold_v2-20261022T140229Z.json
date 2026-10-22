@@ -1,0 +1,367 @@
+{
+ "sheet_version": 1,
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "comparison": "C1",
+ "seed": 1976949482,
+ "created_at": "2026-10-22T14:02:29Z",
+ "gold_sha256": "19837236e0e56e2368381541ad53d2c11fdc88cde8f224f3d7d439243fa055be",
+ "inputs": [
+  "891b64c9eebb8694afbad523784220e264fd02c569c70a9b5ff32eecfa1eec45",
+  "e36b3bd527197951f4fe5320035a612020c55b48653f0e3f2e4f82e5039d9079"
+ ],
+ "adjudications_entries_before": 0,
+ "entries": [
+  {
+   "window_index": 10,
+   "start_s": 300.0,
+   "end_s": 330.0,
+   "model_label": "recommendation engine",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 1
+  },
+  {
+   "window_index": 15,
+   "start_s": 450.0,
+   "end_s": 480.0,
+   "model_label": "batch learning",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Disadvantages Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 2
+  },
+  {
+   "window_index": 16,
+   "start_s": 480.0,
+   "end_s": 510.0,
+   "model_label": "hardware limitation",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Disadvantages Of Batch Learning",
+     "aliases": []
+    },
+    {
+     "label": "Big Data",
+     "aliases": [
+      "Lots Of Data"
+     ]
+    }
+   ],
+   "entry": 3
+  },
+  {
+   "window_index": 8,
+   "start_s": 240.0,
+   "end_s": 270.0,
+   "model_label": "recommendation engine",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 4
+  },
+  {
+   "window_index": 22,
+   "start_s": 660.0,
+   "end_s": 688.03,
+   "model_label": "online learning",
+   "model_aliases": [
+    "online machine learning"
+   ],
+   "gold_concepts": [
+    {
+     "label": "Availability",
+     "aliases": []
+    }
+   ],
+   "entry": 5
+  },
+  {
+   "window_index": 8,
+   "start_s": 240.0,
+   "end_s": 270.0,
+   "model_label": "machine learning model",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 6
+  },
+  {
+   "window_index": 9,
+   "start_s": 270.0,
+   "end_s": 300.0,
+   "model_label": "model",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    },
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 7
+  },
+  {
+   "window_index": 12,
+   "start_s": 360.0,
+   "end_s": 390.0,
+   "model_label": "incremental learning",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 8
+  },
+  {
+   "window_index": 11,
+   "start_s": 330.0,
+   "end_s": 360.0,
+   "model_label": "batch learning",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 9
+  },
+  {
+   "window_index": 6,
+   "start_s": 180.0,
+   "end_s": 210.0,
+   "model_label": "offline learning",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 10
+  },
+  {
+   "window_index": 22,
+   "start_s": 660.0,
+   "end_s": 688.03,
+   "model_label": "batch learning",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Availability",
+     "aliases": []
+    }
+   ],
+   "entry": 11
+  },
+  {
+   "window_index": 12,
+   "start_s": 360.0,
+   "end_s": 390.0,
+   "model_label": "batch learning",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 12
+  },
+  {
+   "window_index": 14,
+   "start_s": 420.0,
+   "end_s": 450.0,
+   "model_label": "incremental learning",
+   "model_aliases": [
+    "incremental training"
+   ],
+   "gold_concepts": [
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    },
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 13
+  },
+  {
+   "window_index": 10,
+   "start_s": 300.0,
+   "end_s": 330.0,
+   "model_label": "email spam classifier",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 14
+  },
+  {
+   "window_index": 20,
+   "start_s": 600.0,
+   "end_s": 630.0,
+   "model_label": "batch learning",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Availability",
+     "aliases": []
+    }
+   ],
+   "entry": 15
+  },
+  {
+   "window_index": 9,
+   "start_s": 270.0,
+   "end_s": 300.0,
+   "model_label": "recommendation engine",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    },
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 16
+  },
+  {
+   "window_index": 12,
+   "start_s": 360.0,
+   "end_s": 390.0,
+   "model_label": "model",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 17
+  },
+  {
+   "window_index": 9,
+   "start_s": 270.0,
+   "end_s": 300.0,
+   "model_label": "static model",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    },
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 18
+  },
+  {
+   "window_index": 4,
+   "start_s": 120.0,
+   "end_s": 150.0,
+   "model_label": "online learning",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 19
+  },
+  {
+   "window_index": 18,
+   "start_s": 540.0,
+   "end_s": 570.0,
+   "model_label": "model",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Hardware Limitation",
+     "aliases": []
+    }
+   ],
+   "entry": 20
+  },
+  {
+   "window_index": 10,
+   "start_s": 300.0,
+   "end_s": 330.0,
+   "model_label": "machine learning model",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Problem Of Batch Learning",
+     "aliases": []
+    }
+   ],
+   "entry": 21
+  },
+  {
+   "window_index": 19,
+   "start_s": 570.0,
+   "end_s": 600.0,
+   "model_label": "batch learning",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Availability",
+     "aliases": []
+    },
+    {
+     "label": "Hardware Limitation",
+     "aliases": []
+    }
+   ],
+   "entry": 22
+  },
+  {
+   "window_index": 17,
+   "start_s": 510.0,
+   "end_s": 540.0,
+   "model_label": "model",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Hardware Limitation",
+     "aliases": []
+    }
+   ],
+   "entry": 23
+  }
+ ]
+}
