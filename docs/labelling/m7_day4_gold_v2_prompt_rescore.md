@@ -12,7 +12,7 @@ Done on 22 Oct 2026, after gold v2 was frozen (`gold_v2.json` sha256 `19837236e0
 |---|---|---|
 | 1 | `d2a50e58…f6a8` | 0.227 |
 | 2 | `c7e061fc…4648` | 0.304 |
-| 3 | `8857a328…9e9c` | 0.304 |
+| 3 | `8857a328…0e9c` | 0.304 |
 | 4 | `bff471ab…911e` | 0.294 |
 
 All four runs are valid under ADR-0048 section 7.
