@@ -1,0 +1,270 @@
+{
+ "adjudication_version": 1,
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "entries": [
+  {
+   "window_index": 10,
+   "model_label": "recommendation engine",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:07:03Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 15,
+   "model_label": "batch learning",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:07:26Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 8,
+   "model_label": "recommendation engine",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:13:44Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 22,
+   "model_label": "online learning",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:14:15Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 8,
+   "model_label": "machine learning model",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:14:35Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 9,
+   "model_label": "model",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:14:46Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 12,
+   "model_label": "incremental learning",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:15:30Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 11,
+   "model_label": "batch learning",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:16:16Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 6,
+   "model_label": "offline learning",
+   "gold_label": "Batch Learning",
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:20:51Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 22,
+   "model_label": "batch learning",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:21:03Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 12,
+   "model_label": "batch learning",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:24:27Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 14,
+   "model_label": "incremental learning",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:24:50Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 10,
+   "model_label": "email spam classifier",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:24:56Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 20,
+   "model_label": "batch learning",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:25:20Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 9,
+   "model_label": "recommendation engine",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:25:32Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 12,
+   "model_label": "model",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:25:37Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 9,
+   "model_label": "static model",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:25:40Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 4,
+   "model_label": "online learning",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:25:49Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 18,
+   "model_label": "model",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:25:51Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 10,
+   "model_label": "machine learning model",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:25:54Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 19,
+   "model_label": "batch learning",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:25:59Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  },
+  {
+   "window_index": 17,
+   "model_label": "model",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-10-22T14:26:02Z",
+   "sheet_sha256": "c8a451c2ffdc83ad48b57aeb61fe023257b45c8678a19a260fbf8a5f4f3a7007",
+   "carried_from": {
+    "file": "adjudications_v2.json",
+    "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+   }
+  }
+ ]
+}

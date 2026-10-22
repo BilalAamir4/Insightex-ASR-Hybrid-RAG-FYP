@@ -1,0 +1,14 @@
+{
+ "sheet_version": 1,
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "comparison": "C1",
+ "seed": 1531007576,
+ "created_at": "2026-10-22T14:31:30Z",
+ "gold_sha256": "53248bbb4187c84737dc1fd48867d96eec5ef39c55fd887a2fbc0b6310ea7d2c",
+ "inputs": [
+  "891b64c9eebb8694afbad523784220e264fd02c569c70a9b5ff32eecfa1eec45",
+  "e36b3bd527197951f4fe5320035a612020c55b48653f0e3f2e4f82e5039d9079"
+ ],
+ "adjudications_entries_before": 22,
+ "entries": []
+}

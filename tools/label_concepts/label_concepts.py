@@ -23,7 +23,10 @@ Session 2 (scoring model runs written by `insightex extract-eval run`; scoring.p
 
   python label_concepts.py adjudication-sheet --lecture <id> --comparison C1 --arm NAME=RUN_DIR ... [--seed N]
   python label_concepts.py adjudicate         --lecture <id> --sheet FILE [--by bilal]
-  (adjudication-sheet, adjudicate, score and compare take --gold v1|v2; default v1)
+  (adjudication-sheet, adjudicate, score and compare take --gold v1|v2|v2.1; default v1)
+  python label_concepts.py gold-add --lecture <id> --from v2 --to v2.1 --window I --label L [--alias A] --reason R
+                                    --amendment 7
+  python label_concepts.py adjudications-carry --lecture <id> --from v2 --to v2.1 --redecide-window I
   python label_concepts.py score              --lecture <id> --arm NAME=RUN_DIR ... [--out FILE]
   python label_concepts.py compare            --lecture <id> --comparison C1 --a NAME=RUN_DIR --b NAME=RUN_DIR
                                               [--out FILE]
@@ -566,12 +569,70 @@ def cmd_relabel_merge(a: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_gold_add(a: argparse.Namespace) -> int:
+    """A new gold version = a frozen gold version plus one added concept, logged with its reason (ADR-0048 Amendment
+    7). The source gold is not changed; the new file and its change log must not exist yet."""
+    src, dst = gold_path(a.lecture, a.labels_root, a.source), gold_path(a.lecture, a.labels_root, a.target)
+    log = gold_changes_path(a.lecture, a.labels_root, a.target)
+    if a.source == a.target or dst.exists() or log.exists():
+        raise SystemExit(f"{dst.name} or {log.name} exists (or --from equals --to); a gold version is written once")
+    if not a.reason.strip():
+        raise SystemExit("an addition needs a reason")
+    base = json.loads(src.read_text(encoding="utf-8"))
+    if check_document(base) or base["lecture_id"] != a.lecture or base["producer"]["kind"] != "human":
+        raise SystemExit(f"{src} is not a valid human gold file for {a.lecture}")
+    rec = next((r for r in base["windows"] if r["window"]["window_index"] == a.window), None)
+    if rec is None:
+        raise SystemExit(f"window {a.window} is not a gold window")
+    concept = {"label": " ".join(a.label.split()), "aliases": [" ".join(x.split()) for x in a.alias if x.strip()]}
+    new_rec = {**rec, "concepts": [*rec["concepts"], concept]}
+    windows = [new_rec if r is rec else r for r in base["windows"]]
+    name = (f"gold {a.target}: {base['producer']['name'].split(': ', 1)[-1]}; plus one concept added after seeing model "
+            f"output (ADR-0048 Amendment {a.amendment})")
+    gold = {**base, "producer": {"kind": "human", "name": name[:200]}, "windows": windows}
+    errors = check_document(gold)
+    if errors:
+        raise SystemExit("the new gold is invalid:\n  - " + "\n  - ".join(errors))
+    write_json(dst, gold)
+    write_json(log, {"lecture_id": a.lecture, "gold": a.target, "amendment": a.amendment,
+                     "base": {"file": src.name, "sha256": sha256_file(src)},
+                     "entries": [{"at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"), "window_index": a.window,
+                                  "added": concept, "reason": " ".join(a.reason.split()), "by": a.by}],
+                     "gold_sha256": sha256_file(dst)})
+    print(f"wrote {dst} (sha256 {sha256_file(dst)}) and {log.name}; {src.name} unchanged ({sha256_file(src)})")
+    return 0
+
+
+def cmd_adjudications_carry(a: argparse.Namespace) -> int:
+    """Start a gold version's adjudications file from another version's frozen decisions, leaving out every decision
+    in the given windows (judged without a concept the new gold adds there; ADR-0048 Amendment 7). Those windows'
+    unmatched model concepts then appear on the next adjudication-sheet for the new version."""
+    src = adjudications_path(a.lecture, a.labels_root, a.source)
+    dst = adjudications_path(a.lecture, a.labels_root, a.target)
+    if a.source == a.target or dst.exists():
+        raise SystemExit(f"{dst.name} exists (or --from equals --to); decisions are append-only")
+    load_adjudications(src, a.lecture)  # version, lecture and conflict checks
+    doc = json.loads(src.read_text(encoding="utf-8"))
+    redo = set(a.redecide_window)
+    carried = {"file": src.name, "sha256": sha256_file(src)}
+    entries = [{**e, "carried_from": carried} for e in doc["entries"] if int(e["window_index"]) not in redo]
+    write_json(dst, {**doc, "entries": entries})
+    print(f"wrote {dst}: {len(entries)} of {len(doc['entries'])} decisions carried from {src.name}; "
+          f"{len(doc['entries']) - len(entries)} in window(s) {sorted(redo)} left to decide again")
+    return 0
+
+
 # -- Session 2: adjudication, scoring, comparison -------------------------------------------------------------------
 
 
 # Gold versions of a lecture (ADR-0048 Amendment 5). Each has its own adjudications file: a decision matches a model
 # concept to a concept of one gold version, so it is never reused with another.
-GOLD_VERSIONS = {"v1": ("gold.json", "adjudications.json"), "v2": ("gold_v2.json", "adjudications_v2.json")}
+GOLD_VERSIONS = {"v1": ("gold.json", "adjudications.json"), "v2": ("gold_v2.json", "adjudications_v2.json"),
+                 "v2.1": ("gold_v2_1.json", "adjudications_v2_1.json")}
+
+
+def gold_changes_path(lecture_id: str, root: Path | None, gold: str) -> Path:
+    return lecture_dir(lecture_id, root) / GOLD_VERSIONS[gold][0].replace(".json", "_changes.json")
 
 
 def gold_path(lecture_id: str, root: Path | None = None, gold: str = "v1") -> Path:
@@ -722,7 +783,7 @@ def cmd_adjudication_sheet(a: argparse.Namespace) -> int:
     adj = load_adjudications(apath, a.lecture) if apath.is_file() else {}
     sheet = build_sheet(a.lecture, a.comparison, gold, sha256_file(gpath), arms, adj, a.seed)
     stamp = sheet["created_at"].replace("-", "").replace(":", "")
-    version = "" if a.gold == "v1" else f"gold_{a.gold}-"
+    version = "" if a.gold == "v1" else f"gold_{a.gold.replace('.', '_')}-"
     out = lecture_dir(a.lecture, a.labels_root) / "adjudication_sheets" / f"{a.comparison}-{version}{stamp}.json"
     if out.exists():
         raise SystemExit(f"{out} exists")
@@ -824,6 +885,25 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--pass", dest="relabel_pass", default="v2", choices=["v2"])
     s.add_argument("--force", action="store_true", help="overwrite an unfrozen earlier merge")
     s.set_defaults(fn=cmd_relabel_merge)
+    s = sub.add_parser("gold-add", help="new gold version = a frozen gold plus one concept, logged with its reason "
+                       "(ADR-0048 Amendment 7)")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--from", dest="source", required=True, choices=list(GOLD_VERSIONS))
+    s.add_argument("--to", dest="target", required=True, choices=list(GOLD_VERSIONS))
+    s.add_argument("--window", type=int, required=True)
+    s.add_argument("--label", required=True)
+    s.add_argument("--alias", action="append", default=[], help="an alias said in the window; repeatable")
+    s.add_argument("--reason", required=True)
+    s.add_argument("--amendment", type=int, required=True)
+    s.add_argument("--by", default=DEFAULT_LABELLERS[0])
+    s.set_defaults(fn=cmd_gold_add)
+    s = sub.add_parser("adjudications-carry", help="start a gold version's adjudications from another version's, "
+                       "minus the windows to decide again (ADR-0048 Amendment 7)")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--from", dest="source", required=True, choices=list(GOLD_VERSIONS))
+    s.add_argument("--to", dest="target", required=True, choices=list(GOLD_VERSIONS))
+    s.add_argument("--redecide-window", type=int, action="append", default=[], metavar="I")
+    s.set_defaults(fn=cmd_adjudications_carry)
     s = sub.add_parser("adjudication-sheet", help="blind sheet of the model concepts the string rule left unmatched, "
                        "pooled over the arms of one comparison")
     s.add_argument("--lecture", required=True)

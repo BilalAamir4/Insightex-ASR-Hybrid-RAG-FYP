@@ -115,6 +115,8 @@ $LC relabel-status --lecture $DAY4 [--labels]
 $LC relabel-merge --lecture $DAY4
 ```
 
+Gold v2.1 (Amendment 7) is gold v2 plus one concept added after seeing model output: `gold-add --from v2 --to v2.1 --window I --label L [--alias A] --reason R --amendment 7` writes `gold_v2_1.json` and its log `gold_v2_1_changes.json`, and leaves `gold_v2.json` unchanged. `adjudications-carry --from v2 --to v2.1 --redecide-window I` starts `adjudications_v2_1.json` from the frozen v2 decisions, minus that window's, so that window's unmatched concepts appear on the next `adjudication-sheet --gold v2.1`.
+
 Every command checks that `gold.json` still has the sha256 recorded at the start. Scoring against gold v2: add `--gold v2` to `adjudication-sheet`, `adjudicate`, `score` and `compare`. Gold v2 has its own `adjudications_v2.json` and sheets named `<C>-gold_v2-<time>.json`, and its score reports carry no inter-annotator figure until one is decided (Amendment 5, decision 5).
 
 ## Files

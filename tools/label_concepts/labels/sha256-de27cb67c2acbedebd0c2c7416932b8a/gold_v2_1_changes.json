@@ -1,0 +1,22 @@
+{
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "gold": "v2.1",
+ "amendment": 7,
+ "base": {
+  "file": "gold_v2.json",
+  "sha256": "19837236e0e56e2368381541ad53d2c11fdc88cde8f224f3d7d439243fa055be"
+ },
+ "entries": [
+  {
+   "at": "2026-10-22T14:31:23Z",
+   "window_index": 16,
+   "added": {
+    "label": "Hardware Limitation",
+    "aliases": []
+   },
+   "reason": "The teacher explains what it is in this window; it's an obvious miss under the guide (Concepts).",
+   "by": "bilal"
+  }
+ ],
+ "gold_sha256": "53248bbb4187c84737dc1fd48867d96eec5ef39c55fd887a2fbc0b6310ea7d2c"
+}

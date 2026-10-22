@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass); all at the end
+Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); all at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -307,4 +307,32 @@ Decided by Bilal on 2026-10-22, before any concept was added. The text above and
 
 - **Count.** Gold v2 may now have more concepts than gold v1 in a window.
 - **The tilt applies to additions too.** The tilt towards qwen3.5 recorded in Amendment 5's Consequences applies to additions in the same way: an added concept that qwen3.5's reported output already contained raises its score.
+- **Scope.** The amendment applies to the Day 4 gold only.
+
+## Amendment 7 (2026-10-22): gold v2.1, one concept added after seeing model output
+
+Decided by Bilal on 2026-10-22, after the C1 adjudication decisions against gold v2 were frozen (`adjudications_v2.json`, tag `m7-c1-adjudications-v2-frozen`), and before any final C1 score was computed. The text above and Amendments 1 to 6 are kept; where they conflict with this amendment, this amendment applies.
+
+**Context.**
+
+- During the C1 adjudication against gold v2, Bilal found an obvious concept missing from gold v2: window 16, "Hardware Limitation" (no aliases said in the window).
+- His reason: "The teacher explains what it is in this window; it's an obvious miss under the guide (Concepts)."
+- He states he would have caught it without the model. But it was **found after seeing model output** (an adjudication item in that window), so it is recorded as such.
+
+**Decision.**
+
+1. **Gold v2 stays unchanged.** `gold_v2.json`, its tag `m7-day4-gold-v2-frozen` and `adjudications_v2.json` are not changed.
+2. **Gold v2.1 is gold v2 plus that one concept.** It is `gold_v2_1.json`, written by `label_concepts.py gold-add`. The addition and its reason are logged in `gold_v2_1_changes.json`, with the sha256 of gold v2. Nothing else changes. Gold v2.1 is frozen with the tag `m7-day4-gold-v2.1-frozen` before any final score.
+3. **Gold v2.1's decisions start from gold v2's, minus window 16.**
+   - Its decision file is `adjudications_v2_1.json`, started by `adjudications-carry` from the frozen `adjudications_v2.json`.
+   - The window 16 decision is left out, because it was made against window 16's gold concepts without the new one.
+   - Window 16 had one item on the gold v2 sheet. That item's model concept matches "Hardware Limitation" by the string rule, so under gold v2.1 the string rule matches it and it needs no new decision.
+   - A gold v2.1 sheet is made to confirm that nothing is left to decide.
+4. **C1 is scored against both gold v2 and gold v2.1,** with adjudication, under sections 4, 6 and 7.
+   - If the C1 decision is the same under both, it stands.
+   - If it differs, C1 is not decided, and Bilal decides how to proceed.
+
+**Consequences.**
+
+- **The leak is reported, not hidden.** Gold v2.1 contains one concept added after seeing model output. That is the leak of model output into gold that section 4's blind adjudication is meant to prevent. Scoring under both v2 and v2.1 and requiring the same decision limits its effect on C1, and it is listed as a C1 limitation.
 - **Scope.** The amendment applies to the Day 4 gold only.
