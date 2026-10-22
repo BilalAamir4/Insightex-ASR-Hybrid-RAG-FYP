@@ -101,7 +101,7 @@ Two labellers with a consensus (a future lecture): sample with `--labellers bila
 
 ### Gold v2: relabelling pass of a frozen gold (ADR-0048 Amendment 5)
 
-Gold v1 (`gold.json`, tag `m7-day4-gold-frozen`) is never changed. The pass starts from its labels; for every concept of every window the reviewer chooses **keep** (optionally renamed to the one canonical name used for that concept everywhere) or **remove** (the window does not explain it or use it substantively). Nothing is added; aliases, importance and the cue stay as they were. Removing a concept removes its relations, a rename renames them, and an alias that becomes the new label is dropped. A removal or a rename needs a reason, and every change is appended to the log in `relabel_v2.json` with its time and reason.
+Gold v1 (`gold.json`, tag `m7-day4-gold-frozen`) is never changed. The pass starts from its labels; for every concept of every window the reviewer chooses **keep** (optionally renamed to the one canonical name used for that concept everywhere) or **remove** (the window does not explain it or use it substantively). Under Amendment 6 the reviewer may also **add** a concept the window explains or uses substantively, named or unnamed: a canonical label, aliases said in the window, and a reason; it has no relations. The v1 aliases, importance and the cue stay as they were. Removing a concept removes its relations, a rename renames them, and an alias that becomes the new label is dropped. A removal or a rename needs a reason, and every change is appended to the log in `relabel_v2.json` with its time and reason.
 
 ```bash
 # 1. Start: copies the gold v1 concept list into relabel_v2.json (refuses if it exists; records gold.json's sha256)
@@ -131,7 +131,7 @@ All under `labels/<lecture_id>/`, committed:
 | `adjudications.json` | Session 2 onward: frozen match/no-match decisions for unmatched model concepts (ADR-0048), keyed by (window_index, normalised model label). Append-only: each entry records who decided, when, and the sha256 of the sheet it came from. |
 | `adjudication_sheets/<C>-<time>.json` | One blind sheet per adjudication round: seed, gold sha256, the sorted sha256 of the arm files (no arm names), and the shuffled entries (window, model concept with aliases, the window's gold concepts). |
 | `gold.json` | The merged gold set. One labeller: that labeller's finished file, every window. Two: consensus for the shared windows, each labeller's own windows for the rest. |
-| `relabel_v2.json` | Amendment 5: the relabelling pass of `gold.json` (its sha256), each concept's decision, name and reason, the reviewed flag per window, and the append-only change log. |
+| `relabel_v2.json` | Amendments 5 and 6: the relabelling pass of `gold.json` (its sha256), each concept's decision, name and reason, the added concepts per window (id, label, aliases, reason), the reviewed flag per window, and the append-only change log. |
 | `gold_v2.json`, `adjudications_v2.json` | Amendment 5: gold v2, written by `relabel-merge` from `gold.json` and the decisions; its own adjudication decisions. |
 
 ## Modules
@@ -144,7 +144,7 @@ All under `labels/<lecture_id>/`, committed:
 | `matching.py` | ADR-0048 concept and relation matching, adjudication and micro P/R/F1. |
 | `scoring.py` | Session 2: loads arm runs, the validity rule, per-arm scores (adjudicated and string rule), the section 7 comparison. |
 | `adjudication.py` | Session 2: the blind adjudication sheet and the append-only adjudications file. |
-| `relabel.py` | Amendment 5: the relabelling pass (decisions, change log, the derived gold v2). |
+| `relabel.py` | Amendments 5 and 6: the relabelling pass (decisions, additions, change log, the derived gold v2). |
 | `server.py` | The HTTP server (labelling page and relabelling page). |
 | `static/` | The pages (`index.html`/`app.js` labelling, `relabel.html`/`relabel.js` relabelling). |
 

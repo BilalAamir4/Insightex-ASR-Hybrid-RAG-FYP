@@ -529,7 +529,8 @@ def print_relabel_summary(s: dict[str, Any]) -> None:
     print(f"reviewed {s['reviewed']} of {s['windows']} windows"
           f"{'; not reviewed: ' + str(s['not_reviewed']) if s['not_reviewed'] else ''}")
     print(f"gold v1 concepts {s['concepts_v1']}: kept {s['kept']} (renamed {s['renamed']}), removed {s['removed']}, "
-          f"undecided {s['undecided']}; new gold: {s['concepts_v2']} concepts, {s['relations_v2']} relations; "
+          f"undecided {s['undecided']}; added {s['added']}; new gold: {s['concepts_v2']} concepts, "
+          f"{s['relations_v2']} relations; "
           f"{s['log_entries']} logged changes")
     for group in s["possible_variants"]:
         uses = "; ".join(f"{label!r} in {s['labels_in_use'][label]}" for label in group)
@@ -558,7 +559,7 @@ def cmd_relabel_merge(a: argparse.Namespace) -> int:
     state, base = relabel.load(p["state"], p["base"], a.lecture)
     manifest, _ = load_manifest(a.lecture, a.labels_root)
     name = (f"gold {a.relabel_pass}: {manifest['labellers'][0]} (single annotator), relabelling pass of "
-            f"{p['base'].name} (ADR-0048 Amendment 5)")
+            f"{p['base'].name} (ADR-0048 Amendments 5 and 6)")
     write_json(p["out"], relabel.merged(state, base, name))
     print_relabel_summary(relabel.summary(state, base))
     print(f"wrote {p['out']}: sha256 {sha256_file(p['out'])}; {p['base'].name} unchanged ({state['base']['sha256']})")

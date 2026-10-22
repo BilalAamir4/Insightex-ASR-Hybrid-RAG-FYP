@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); all at the end
+Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass); all at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -281,4 +281,30 @@ Decided by Bilal on 2026-10-20, before any gold label was changed. The text abov
   - So the Day 4 re-score of the prompt versions, and C1 against gold v2, may favour the prompt and the model whose output was seen. This adds to the tilt towards qwen3.5 recorded in the Consequences above, and it is recorded in the same way.
   - The held-out lecture, labelled under the frozen guide before any model reads it, remains the unbiased check of the final configuration.
 - **Relation scores.** Day 4 relation scores remain not meaningful.
+- **Scope.** The amendment applies to the Day 4 gold only.
+
+## Amendment 6 (2026-10-22): adding concepts in the Day 4 gold v2 pass
+
+Decided by Bilal on 2026-10-22, before any concept was added. The text above and Amendments 1 to 5 are kept; where they conflict with this amendment, this amendment applies. Amendment 5's record of what had been seen is unchanged.
+
+**Context.** Amendment 5 lets the gold v2 pass keep, remove or rename gold v1 concepts only. Some Day 4 windows explain or use substantively a concept that gold v1 never labelled. Gold v2 should follow the guide in both directions: no concept the guide leaves out, and none it requires missing.
+
+**Decision.**
+
+1. **Adding is allowed.** In the Day 4 gold v2 pass, a concept may be added to a window, under the frozen guide (the guide does not change). A concept is added only if the window explains it or uses it substantively. This includes a concept the window does not name, under the guide's "Unnamed concepts" rule: earlier windows only identify which concept is meant.
+2. **What an addition holds.** An addition has:
+   - a canonical English label, chosen from the labels in use when the concept already has a name elsewhere;
+   - aliases, which are only names said in this window, copied as written;
+   - a reason.
+3. **What an addition does not hold.**
+   - **No importance.** The importance flag and the cue belong to the window, not to a concept (schema v1 and the guide), and Amendment 5 keeps them unchanged, so an addition carries none.
+   - **No relations.** Adding a relation would need a further amendment.
+4. **Logging.** Every addition, every change to one, and every withdrawal before the merge is logged in `relabel_v2.json` with its time and reason, like the other changes.
+5. **Validation.** The validator rules still apply, for example no name used twice in a window after normalisation.
+6. **Decisions already made stay.** The decisions already recorded in `relabel_v2.json` are kept.
+
+**Consequences.**
+
+- **Count.** Gold v2 may now have more concepts than gold v1 in a window.
+- **The tilt applies to additions too.** The tilt towards qwen3.5 recorded in Amendment 5's Consequences applies to additions in the same way: an added concept that qwen3.5's reported output already contained raises its score.
 - **Scope.** The amendment applies to the Day 4 gold only.

@@ -29,6 +29,8 @@
   .concept { background: var(--panel); border: 1px solid var(--line); padding: 8px; margin: 6px 0; display: grid; gap: 6px; }
   .concept.remove { opacity: 0.75; border-color: var(--bad); }
   .concept.rename { border-color: var(--accent); }
+  .concept.added { border-color: var(--ok); }
+  textarea { font: inherit; padding: 4px 6px; width: 100%; min-height: 2.4em; resize: vertical; unicode-bidi: plaintext; }
   .concept .v1 { font-weight: 600; }
   .concept .aliases { color: var(--muted); font-size: 13px; unicode-bidi: plaintext; }
   .concept .choice { display: flex; gap: 14px; flex-wrap: wrap; }
@@ -65,6 +67,11 @@
     <h2>Gold v1 concepts: keep or remove each one</h2>
     <div class="hint">Keep a concept only if this window explains it or uses it substantively (named or unnamed). A kept concept may be renamed to the one canonical name used for that concept in every window. A removal or a rename needs a reason. Aliases and importance do not change here.</div>
     <div id="concepts"></div>
+
+    <h2>Added concepts (Amendment 6)</h2>
+    <div class="hint">Add a concept gold v1 did not label only if this window explains it or uses it substantively, named or unnamed (guide: "Unnamed concepts"; earlier windows only identify which concept is meant). Canonical English label; aliases one per line, only names said in this window, copied as written. An addition needs a reason and has no relations.</div>
+    <div id="added"></div>
+    <button id="addConcept">Add concept</button>
 
     <h2>Result for this window (read only)</h2>
     <div class="readonly" id="result"></div>

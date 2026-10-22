@@ -154,7 +154,7 @@ def test_merge_needs_every_window_reviewed_and_leaves_gold_v1_unchanged(env, cap
     assert run("relabel-merge", "--lecture", LECTURE) == 0
     assert (root / LECTURE / "gold.json").read_bytes() == gold_v1
     v2 = json.loads((root / LECTURE / "gold_v2.json").read_text())
-    assert check_document(v2) == [] and "Amendment 5" in v2["producer"]["name"]
+    assert check_document(v2) == [] and "Amendments 5 and 6" in v2["producer"]["name"]
     even = next(r for r in v2["windows"] if r["window"]["window_index"] % 2 == 0)
     odd = next(r for r in v2["windows"] if r["window"]["window_index"] % 2 == 1)
     assert even["concepts"] == [concept("problem of batch learning"), concept("Lots Of Data", "big data")]

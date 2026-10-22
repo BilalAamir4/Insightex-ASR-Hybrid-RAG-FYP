@@ -4,6 +4,8 @@
 const $ = (id) => document.getElementById(id);
 const REMOVE_REASON = "Named but not explained or used substantively in this window (guide: Concepts)";
 const RENAME_REASON = "One canonical name for this concept across windows (guide: Canonical label)";
+const ADD_REASON = "Explained or used substantively in this window, not labelled in gold v1 (guide: Concepts)";
+const ADD_UNNAMED_REASON = "Explained here without being named; earlier windows identify it (guide: Unnamed concepts)";
 let session = null;       // from GET /api/relabel
 let current = 0;          // position in session.windows
 let timer = null;
@@ -39,6 +41,9 @@ async function save() {
   const body = {
     reviewed: w.reviewed,
     concepts: w.concepts.map((c) => ({ v1_label: c.v1_label, decision: c.decision, label: c.label, reason: c.reason })),
+    added: w.added.map((a) => ({
+      id: a.id, label: a.label, aliases: a.aliasText.split("\n").map((x) => x.trim()).filter((x) => x), reason: a.reason,
+    })),
   };
   const res = await fetch(`/api/relabel/window/${w.window_index}`, {
     method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
@@ -68,7 +73,7 @@ function renderList() {
   session.windows.forEach((w, i) => {
     const removed = w.concepts.filter((c) => c.decision === "remove").length;
     const renamed = w.concepts.filter((c) => c.decision === "keep" && c.label !== c.v1_label).length;
-    const marks = (removed ? ` −${removed}` : "") + (renamed ? ` ✎${renamed}` : "");
+    const marks = (removed ? ` −${removed}` : "") + (renamed ? ` ✎${renamed}` : "") + (w.added.length ? ` +${w.added.length}` : "");
     const b = el("button", { className: i === current ? "current" : "" }, [
       el("span", { textContent: `#${w.window_index}  ${fmt(w.start_s)}` }),
       el("span", { className: "tag" + (w.reviewed ? " done" : ""), textContent: (w.reviewed ? "✓" : "–") + marks }),
@@ -126,6 +131,37 @@ function renderConcepts() {
   $("reviewed").checked = w.reviewed;
 }
 
+function newId() {
+  return `a${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function renderAdded() {
+  const box = $("added");
+  box.replaceChildren();
+  const w = win();
+  w.added.forEach((a, n) => {
+    const name = el("input", { type: "text", value: a.label, placeholder: "canonical English label" });
+    name.setAttribute("list", "labelOptions");
+    name.onfocus = () => { lastName = { input: name, concept: a, paint: () => {} }; };
+    name.oninput = () => { a.label = name.value; changed(); };
+    const aliases = el("textarea", { value: a.aliasText, placeholder: "aliases, one per line (only names said in this window)", dir: "auto" });
+    aliases.oninput = () => { a.aliasText = aliases.value; changed(); };
+    const reason = el("input", { type: "text", value: a.reason, placeholder: "reason (needed)" });
+    reason.oninput = () => { a.reason = reason.value; changed(); };
+    const presets = el("div", { className: "row" }, [ADD_REASON, ADD_UNNAMED_REASON].map((text) => {
+      const b = el("button", { className: "preset", textContent: text });
+      b.onclick = () => { a.reason = text; reason.value = text; changed(0); };
+      return b;
+    }));
+    const withdraw = el("button", { textContent: "Withdraw this addition" });
+    withdraw.onclick = () => { w.added.splice(n, 1); renderAdded(); changed(0); };
+    box.append(el("div", { className: "concept added" }, [
+      el("div", { className: "v1", textContent: "Added (not in gold v1)" }),
+      el("label", { className: "hint", textContent: "Name:" }), name, aliases, reason, presets, withdraw,
+    ]));
+  });
+}
+
 function renderResult() {
   const w = win(), r = w.v2, box = $("result");
   box.replaceChildren(
@@ -139,7 +175,7 @@ function renderSide() {
   const s = session.summary;
   $("summary").replaceChildren(
     el("div", { textContent: `Reviewed ${s.reviewed} of ${s.windows} windows` }),
-    el("div", { textContent: `Gold v1 concepts ${s.concepts_v1}: kept ${s.kept} (renamed ${s.renamed}), removed ${s.removed}, undecided ${s.undecided}` }),
+    el("div", { textContent: `Gold v1 concepts ${s.concepts_v1}: kept ${s.kept} (renamed ${s.renamed}), removed ${s.removed}, undecided ${s.undecided}; added ${s.added}` }),
     el("div", { textContent: `${s.log_entries} logged changes` }),
   );
   $("variants").replaceChildren(...s.possible_variants.map((g) =>
@@ -167,6 +203,7 @@ function go(i) {
   $("span").textContent = `Window #${w.window_index}: ${fmt(w.start_s)} – ${fmt(w.end_s)}`;
   $("text").textContent = w.text;
   renderConcepts();
+  renderAdded();
   renderResult();
   renderList();
   setStatus(w.reviewed ? "Reviewed" : "Not reviewed yet", w.reviewed ? "ok" : "");
@@ -179,6 +216,14 @@ function go(i) {
 async function init() {
   session = await (await fetch("/api/relabel")).json();
   $("who").textContent = `${session.lecture_id} · pass ${session.pass} · ${session.windows.length} windows`;
+  for (const w of session.windows) {
+    w.added = (w.added || []).map((a) => ({ id: a.id, label: a.label, aliasText: a.aliases.join("\n"), reason: a.reason }));
+  }
+  $("addConcept").onclick = () => {
+    win().added.push({ id: newId(), label: "", aliasText: "", reason: "" });
+    renderAdded();
+    renderList();
+  };
   $("reviewed").onchange = () => { win().reviewed = $("reviewed").checked; changed(0); };
   $("prev").onclick = () => go(current - 1);
   $("next").onclick = () => go(current + 1);

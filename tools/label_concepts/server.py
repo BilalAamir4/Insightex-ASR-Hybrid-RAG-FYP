@@ -202,7 +202,8 @@ class RelabelStore:
         recs = relabel.derived(self.state, self.base)
         return {"summary": relabel.summary(self.state, self.base),
                 "windows": {w["window_index"]: {"reviewed": w["reviewed"], "concepts": w["concepts"],
-                                                "v2": recs[w["window_index"]]} for w in self.state["windows"]}}
+                                                "added": w.get("added", []), "v2": recs[w["window_index"]]}
+                            for w in self.state["windows"]}}
 
     def update(self, window_index: int, body: Any) -> list[str]:
         with self.lock:
@@ -214,7 +215,7 @@ class RelabelStore:
 
 def make_relabel_handler(*, session: dict[str, Any], store: RelabelStore, video: Path):
     """GET /, /relabel.js, /api/relabel (windows with text, the frozen v1 record, the decisions and the derived v2
-    record, plus a summary); PUT /api/relabel/window/<i> with {"reviewed", "concepts"}; GET /video.mp4."""
+    record, plus a summary); PUT /api/relabel/window/<i> with {"reviewed", "concepts", "added"}; GET /video.mp4."""
     base = {r["window"]["window_index"]: r for r in store.base["windows"]}
 
     class Handler(JsonHandler):
