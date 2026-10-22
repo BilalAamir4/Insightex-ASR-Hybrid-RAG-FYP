@@ -1,0 +1,1284 @@
+{
+ "relabel_version": 1,
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "pass": "v2",
+ "rule": "ADR-0048 Amendment 5: relabelling pass of the frozen Day 4 gold v1. Per concept: keep (optionally renamed to one canonical name, with a reason) or remove (with a reason; its relations go with it). No concept is added; aliases and importance are unchanged.",
+ "base": {
+  "file": "gold.json",
+  "sha256": "7fcec636170248ed48df8badacf2b40dc1c8edfc96aa073cf8ef90ec58b8a4ff"
+ },
+ "created_at": "2026-10-20T17:25:21Z",
+ "windows": [
+  {
+   "window_index": 2,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Production",
+     "decision": "keep",
+     "label": "Production",
+     "reason": ""
+    }
+   ]
+  },
+  {
+   "window_index": 4,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Batch Learning",
+     "decision": "keep",
+     "label": "Batch Learning",
+     "reason": ""
+    }
+   ]
+  },
+  {
+   "window_index": 8,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Batch Learning",
+     "decision": "keep",
+     "label": "Batch Learning",
+     "reason": ""
+    }
+   ]
+  },
+  {
+   "window_index": 9,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Batch Learning",
+     "decision": "keep",
+     "label": "Batch Learning",
+     "reason": ""
+    }
+   ],
+   "added": [
+    {
+     "id": "amvjkmia27teboq",
+     "label": "Problem Of Batch Learning",
+     "aliases": [],
+     "reason": "Explained or used substantively in this window, not labelled in gold v1 (guide: Concepts)"
+    }
+   ]
+  },
+  {
+   "window_index": 11,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "batch learning",
+     "decision": "remove",
+     "label": "batch learning",
+     "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+    }
+   ],
+   "added": [
+    {
+     "id": "amvjkoxh109ceg9",
+     "label": "Problem Of Batch Learning",
+     "aliases": [],
+     "reason": "Explained here without being named; earlier windows identify it (guide: Unnamed concepts)"
+    }
+   ]
+  },
+  {
+   "window_index": 13,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Problem Of Batch Learning",
+     "decision": "keep",
+     "label": "Problem Of Batch Learning",
+     "reason": ""
+    }
+   ],
+   "added": []
+  },
+  {
+   "window_index": 16,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Disadvantages Of Batch Learning",
+     "decision": "keep",
+     "label": "Disadvantages Of Batch Learning",
+     "reason": ""
+    },
+    {
+     "v1_label": "Lots Of Data",
+     "decision": "remove",
+     "label": "Lots Of Data",
+     "reason": "The lecturer used a different term while speaking for it, but wrote a different term"
+    }
+   ],
+   "added": [
+    {
+     "id": "amvjks7reajx2g7",
+     "label": "Big Data",
+     "aliases": [
+      "Lots Of Data"
+     ],
+     "reason": "Explained or used substantively in this window, not labelled in gold v1 (guide: Concepts)"
+    }
+   ]
+  },
+  {
+   "window_index": 17,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Hardware Limitation",
+     "decision": "keep",
+     "label": "Hardware Limitation",
+     "reason": ""
+    }
+   ],
+   "added": []
+  },
+  {
+   "window_index": 19,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Batch Learning",
+     "decision": "remove",
+     "label": "Batch Learning",
+     "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+    },
+    {
+     "v1_label": "Availability",
+     "decision": "keep",
+     "label": "Availability",
+     "reason": ""
+    },
+    {
+     "v1_label": "Hardware Limitation",
+     "decision": "keep",
+     "label": "Hardware Limitation",
+     "reason": ""
+    }
+   ],
+   "added": []
+  },
+  {
+   "window_index": 21,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Availability",
+     "decision": "keep",
+     "label": "Availability",
+     "reason": ""
+    }
+   ],
+   "added": []
+  },
+  {
+   "window_index": 1,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Production",
+     "decision": "keep",
+     "label": "Production",
+     "reason": ""
+    },
+    {
+     "v1_label": "Types of Machine Learning",
+     "decision": "remove",
+     "label": "Types of Machine Learning",
+     "reason": "Its not a concept, Its kind of a relationship between concepts"
+    }
+   ],
+   "added": []
+  },
+  {
+   "window_index": 6,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Batch Learning",
+     "decision": "keep",
+     "label": "Batch Learning",
+     "reason": ""
+    }
+   ],
+   "added": []
+  },
+  {
+   "window_index": 7,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "batch learning",
+     "decision": "keep",
+     "label": "Batch Learning",
+     "reason": "One canonical name for this concept across windows (guide: Canonical label)"
+    }
+   ],
+   "added": []
+  },
+  {
+   "window_index": 10,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Problem Of Batch Learning",
+     "decision": "keep",
+     "label": "Problem Of Batch Learning",
+     "reason": ""
+    }
+   ],
+   "added": []
+  },
+  {
+   "window_index": 12,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Problem of Batch Learning",
+     "decision": "keep",
+     "label": "Problem Of Batch Learning",
+     "reason": "One canonical name for this concept across windows (guide: Canonical label)"
+    }
+   ],
+   "added": []
+  },
+  {
+   "window_index": 14,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Problem With Batch Learning",
+     "decision": "keep",
+     "label": "Problem Of Batch Learning",
+     "reason": "One canonical name for this concept across windows (guide: Canonical label)"
+    },
+    {
+     "v1_label": "Batch Learning",
+     "decision": "keep",
+     "label": "Batch Learning",
+     "reason": ""
+    }
+   ],
+   "added": []
+  },
+  {
+   "window_index": 15,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "batch learning",
+     "decision": "remove",
+     "label": "batch learning",
+     "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+    },
+    {
+     "v1_label": "problem with Batch Learning",
+     "decision": "remove",
+     "label": "problem with Batch Learning",
+     "reason": "Not named neither explained"
+    }
+   ],
+   "added": [
+    {
+     "id": "amvjlaoznl06x6p",
+     "label": "Disadvantages Of Batch Learning",
+     "aliases": [],
+     "reason": "Explained or used substantively in this window, not labelled in gold v1 (guide: Concepts)"
+    }
+   ]
+  },
+  {
+   "window_index": 18,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Availability",
+     "decision": "remove",
+     "label": "Availability",
+     "reason": "Not named neither explained"
+    }
+   ],
+   "added": [
+    {
+     "id": "amvjlfauo574cfg",
+     "label": "Hardware Limitation",
+     "aliases": [],
+     "reason": "Explained here without being named; earlier windows identify it (guide: Unnamed concepts)"
+    }
+   ]
+  },
+  {
+   "window_index": 20,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "batch learning",
+     "decision": "remove",
+     "label": "batch learning",
+     "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+    },
+    {
+     "v1_label": "Problem With Batch Learning",
+     "decision": "remove",
+     "label": "Problem With Batch Learning",
+     "reason": "Not named neither explained"
+    }
+   ],
+   "added": [
+    {
+     "id": "amvjlhlekcjk39y",
+     "label": "Availability",
+     "aliases": [],
+     "reason": "Explained here without being named; earlier windows identify it (guide: Unnamed concepts)"
+    }
+   ]
+  },
+  {
+   "window_index": 22,
+   "reviewed": true,
+   "concepts": [
+    {
+     "v1_label": "Availability",
+     "decision": "keep",
+     "label": "Availability",
+     "reason": ""
+    }
+   ],
+   "added": []
+  }
+ ],
+ "log": [
+  {
+   "at": "2026-10-22T13:01:38Z",
+   "window_index": 2,
+   "v1_label": "Production",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:02:21Z",
+   "window_index": 2,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:03:29Z",
+   "window_index": 4,
+   "v1_label": "Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:03:40Z",
+   "window_index": 4,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:05:28Z",
+   "window_index": 8,
+   "v1_label": "Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:05:28Z",
+   "window_index": 8,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:06:41Z",
+   "window_index": 9,
+   "v1_label": "Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:06:41Z",
+   "window_index": 9,
+   "v1_label": "Batch Learning",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:06:46Z",
+   "window_index": 9,
+   "v1_label": "Batch Learning",
+   "field": "decision",
+   "before": "remove",
+   "after": "keep",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:06:49Z",
+   "window_index": 9,
+   "v1_label": "Batch Learning",
+   "field": "decision",
+   "before": "keep",
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:07:06Z",
+   "window_index": 9,
+   "v1_label": "Batch Learning",
+   "field": "decision",
+   "before": "remove",
+   "after": "keep",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:23:08Z",
+   "window_index": 9,
+   "v1_label": null,
+   "added_id": "amvjkmia27teboq",
+   "field": "added",
+   "before": null,
+   "after": {
+    "label": "Problem Of Batch Learning",
+    "aliases": []
+   },
+   "reason": "Explained or used substantively in this window, not labelled in gold v1 (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:23:17Z",
+   "window_index": 9,
+   "v1_label": "Batch Learning",
+   "field": "reason",
+   "before": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "after": "",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:23:45Z",
+   "window_index": 9,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:24:21Z",
+   "window_index": 11,
+   "v1_label": "batch learning",
+   "field": "decision",
+   "before": null,
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:24:21Z",
+   "window_index": 11,
+   "v1_label": "batch learning",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:24:47Z",
+   "window_index": 11,
+   "v1_label": null,
+   "added_id": "amvjkoxh109ceg9",
+   "field": "added",
+   "before": null,
+   "after": {
+    "label": "Problem Of Batch Learning",
+    "aliases": []
+   },
+   "reason": "Explained here without being named; earlier windows identify it (guide: Unnamed concepts)"
+  },
+  {
+   "at": "2026-10-22T13:24:51Z",
+   "window_index": 11,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:25:09Z",
+   "window_index": 13,
+   "v1_label": "Problem Of Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:25:18Z",
+   "window_index": 13,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:26:38Z",
+   "window_index": 16,
+   "v1_label": "Lots Of Data",
+   "field": "decision",
+   "before": null,
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:26:38Z",
+   "window_index": 16,
+   "v1_label": "Lots Of Data",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:26:45Z",
+   "window_index": 16,
+   "v1_label": "Lots Of Data",
+   "field": "reason",
+   "before": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "after": "T",
+   "reason": "T"
+  },
+  {
+   "at": "2026-10-22T13:26:49Z",
+   "window_index": 16,
+   "v1_label": "Lots Of Data",
+   "field": "reason",
+   "before": "T",
+   "after": "The lecturer used a different te",
+   "reason": "The lecturer used a different te"
+  },
+  {
+   "at": "2026-10-22T13:26:50Z",
+   "window_index": 16,
+   "v1_label": "Lots Of Data",
+   "field": "reason",
+   "before": "The lecturer used a different te",
+   "after": "The lecturer used a different term",
+   "reason": "The lecturer used a different term"
+  },
+  {
+   "at": "2026-10-22T13:26:55Z",
+   "window_index": 16,
+   "v1_label": "Lots Of Data",
+   "field": "reason",
+   "before": "The lecturer used a different term",
+   "after": "The lecturer used a different term while speaking",
+   "reason": "The lecturer used a different term while speaking"
+  },
+  {
+   "at": "2026-10-22T13:26:58Z",
+   "window_index": 16,
+   "v1_label": "Lots Of Data",
+   "field": "reason",
+   "before": "The lecturer used a different term while speaking",
+   "after": "The lecturer used a different term while speaking for it",
+   "reason": "The lecturer used a different term while speaking for it"
+  },
+  {
+   "at": "2026-10-22T13:27:05Z",
+   "window_index": 16,
+   "v1_label": "Lots Of Data",
+   "field": "reason",
+   "before": "The lecturer used a different term while speaking for it",
+   "after": "The lecturer used a different term while speaking for it, but wrote a different term",
+   "reason": "The lecturer used a different term while speaking for it, but wrote a different term"
+  },
+  {
+   "at": "2026-10-22T13:27:22Z",
+   "window_index": 16,
+   "v1_label": null,
+   "added_id": "amvjks7reajx2g7",
+   "field": "added",
+   "before": null,
+   "after": {
+    "label": "Big Data",
+    "aliases": [
+     "Lots Of Data"
+    ]
+   },
+   "reason": "Explained or used substantively in this window, not labelled in gold v1 (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:27:29Z",
+   "window_index": 16,
+   "v1_label": "Disadvantages Of Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:27:30Z",
+   "window_index": 16,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:27:50Z",
+   "window_index": 17,
+   "v1_label": "Hardware Limitation",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:28:26Z",
+   "window_index": 17,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:28:44Z",
+   "window_index": 19,
+   "v1_label": "Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:28:44Z",
+   "window_index": 19,
+   "v1_label": "Batch Learning",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:28:47Z",
+   "window_index": 19,
+   "v1_label": "Availability",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:28:51Z",
+   "window_index": 19,
+   "v1_label": "Hardware Limitation",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:28:56Z",
+   "window_index": 19,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:29:07Z",
+   "window_index": 21,
+   "v1_label": "Availability",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:29:53Z",
+   "window_index": 21,
+   "v1_label": "Availability",
+   "field": "decision",
+   "before": "keep",
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:29:53Z",
+   "window_index": 21,
+   "v1_label": "Availability",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:30:06Z",
+   "window_index": 21,
+   "v1_label": "Availability",
+   "field": "reason",
+   "before": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "after": "Did not name neither explained",
+   "reason": "Did not name neither explained"
+  },
+  {
+   "at": "2026-10-22T13:32:13Z",
+   "window_index": 21,
+   "v1_label": "Availability",
+   "field": "decision",
+   "before": "remove",
+   "after": "keep",
+   "reason": "Did not name neither explained"
+  },
+  {
+   "at": "2026-10-22T13:32:24Z",
+   "window_index": 21,
+   "v1_label": "Availability",
+   "field": "reason",
+   "before": "Did not name neither explained",
+   "after": "",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:32:26Z",
+   "window_index": 21,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:33:08Z",
+   "window_index": 1,
+   "v1_label": "Types of Machine Learning",
+   "field": "decision",
+   "before": null,
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:33:08Z",
+   "window_index": 1,
+   "v1_label": "Types of Machine Learning",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:34:07Z",
+   "window_index": 1,
+   "v1_label": "Types of Machine Learning",
+   "field": "reason",
+   "before": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "after": "Its not a concept",
+   "reason": "Its not a concept"
+  },
+  {
+   "at": "2026-10-22T13:34:12Z",
+   "window_index": 1,
+   "v1_label": "Types of Machine Learning",
+   "field": "reason",
+   "before": "Its not a concept",
+   "after": "Its not a concept,",
+   "reason": "Its not a concept,"
+  },
+  {
+   "at": "2026-10-22T13:34:17Z",
+   "window_index": 1,
+   "v1_label": "Types of Machine Learning",
+   "field": "reason",
+   "before": "Its not a concept,",
+   "after": "Its not a concept, Its kind of a relationship between concepts",
+   "reason": "Its not a concept, Its kind of a relationship between concepts"
+  },
+  {
+   "at": "2026-10-22T13:34:26Z",
+   "window_index": 1,
+   "v1_label": "Production",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:34:54Z",
+   "window_index": 1,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:35:06Z",
+   "window_index": 6,
+   "v1_label": "Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:35:06Z",
+   "window_index": 6,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:39:12Z",
+   "window_index": 7,
+   "v1_label": "batch learning",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:39:10Z",
+   "window_index": 7,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:39:29Z",
+   "window_index": 10,
+   "v1_label": "Problem Of Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:39:38Z",
+   "window_index": 10,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:39:45Z",
+   "window_index": 12,
+   "v1_label": "Problem of Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:39:46Z",
+   "window_index": 12,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:39:57Z",
+   "window_index": 14,
+   "v1_label": "Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:39:57Z",
+   "window_index": 14,
+   "v1_label": "Batch Learning",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:40:02Z",
+   "window_index": 14,
+   "v1_label": "Problem With Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:40:02Z",
+   "window_index": 14,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:40:02Z",
+   "window_index": 14,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": true,
+   "after": false,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:40:03Z",
+   "window_index": 14,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:40:17Z",
+   "window_index": 14,
+   "v1_label": "Batch Learning",
+   "field": "decision",
+   "before": "remove",
+   "after": "keep",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:40:21Z",
+   "window_index": 14,
+   "v1_label": "Batch Learning",
+   "field": "reason",
+   "before": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "after": "",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:40:51Z",
+   "window_index": 14,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": true,
+   "after": false,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:40:51Z",
+   "window_index": 14,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:41:11Z",
+   "window_index": 15,
+   "v1_label": "problem with Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:41:11Z",
+   "window_index": 15,
+   "v1_label": "problem with Batch Learning",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:41:25Z",
+   "window_index": 15,
+   "v1_label": "problem with Batch Learning",
+   "field": "reason",
+   "before": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "after": "Not named neither explained",
+   "reason": "Not named neither explained"
+  },
+  {
+   "at": "2026-10-22T13:41:28Z",
+   "window_index": 15,
+   "v1_label": "batch learning",
+   "field": "decision",
+   "before": null,
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:41:28Z",
+   "window_index": 15,
+   "v1_label": "batch learning",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:41:37Z",
+   "window_index": 15,
+   "v1_label": null,
+   "added_id": "amvjlaoznl06x6p",
+   "field": "added",
+   "before": null,
+   "after": {
+    "label": "Disadvantages Of Batch Learning",
+    "aliases": []
+   },
+   "reason": "Explained or used substantively in this window, not labelled in gold v1 (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:41:56Z",
+   "window_index": 15,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:42:36Z",
+   "window_index": 18,
+   "v1_label": "Availability",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:42:37Z",
+   "window_index": 18,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:44:54Z",
+   "window_index": 18,
+   "v1_label": "Availability",
+   "field": "decision",
+   "before": "keep",
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:44:54Z",
+   "window_index": 18,
+   "v1_label": "Availability",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:45:03Z",
+   "window_index": 18,
+   "v1_label": "Availability",
+   "field": "reason",
+   "before": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "after": "Not named neither explained",
+   "reason": "Not named neither explained"
+  },
+  {
+   "at": "2026-10-22T13:45:09Z",
+   "window_index": 18,
+   "v1_label": null,
+   "added_id": "amvjlfauo574cfg",
+   "field": "added",
+   "before": null,
+   "after": {
+    "label": "Hardware Limitation",
+    "aliases": []
+   },
+   "reason": "Explained here without being named; earlier windows identify it (guide: Unnamed concepts)"
+  },
+  {
+   "at": "2026-10-22T13:45:14Z",
+   "window_index": 18,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": true,
+   "after": false,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:45:14Z",
+   "window_index": 18,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:45:38Z",
+   "window_index": 20,
+   "v1_label": "batch learning",
+   "field": "decision",
+   "before": null,
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:45:38Z",
+   "window_index": 20,
+   "v1_label": "batch learning",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:46:43Z",
+   "window_index": 20,
+   "v1_label": "Problem With Batch Learning",
+   "field": "decision",
+   "before": null,
+   "after": "remove",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:46:43Z",
+   "window_index": 20,
+   "v1_label": "Problem With Batch Learning",
+   "field": "reason",
+   "before": "",
+   "after": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "reason": "Named but not explained or used substantively in this window (guide: Concepts)"
+  },
+  {
+   "at": "2026-10-22T13:46:50Z",
+   "window_index": 20,
+   "v1_label": "Problem With Batch Learning",
+   "field": "reason",
+   "before": "Named but not explained or used substantively in this window (guide: Concepts)",
+   "after": "Not named neither explained",
+   "reason": "Not named neither explained"
+  },
+  {
+   "at": "2026-10-22T13:46:56Z",
+   "window_index": 20,
+   "v1_label": null,
+   "added_id": "amvjlhlekcjk39y",
+   "field": "added",
+   "before": null,
+   "after": {
+    "label": "Availability",
+    "aliases": []
+   },
+   "reason": "Explained here without being named; earlier windows identify it (guide: Unnamed concepts)"
+  },
+  {
+   "at": "2026-10-22T13:46:58Z",
+   "window_index": 20,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:47:40Z",
+   "window_index": 22,
+   "v1_label": "Availability",
+   "field": "decision",
+   "before": null,
+   "after": "keep",
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:47:45Z",
+   "window_index": 22,
+   "v1_label": null,
+   "field": "reviewed",
+   "before": false,
+   "after": true,
+   "reason": ""
+  },
+  {
+   "at": "2026-10-22T13:52:50Z",
+   "window_index": 14,
+   "v1_label": "Problem With Batch Learning",
+   "field": "label",
+   "before": "Problem With Batch Learning",
+   "after": "Problem Of Batch Learning",
+   "reason": "One canonical name for this concept across windows (guide: Canonical label)"
+  },
+  {
+   "at": "2026-10-22T13:52:50Z",
+   "window_index": 14,
+   "v1_label": "Problem With Batch Learning",
+   "field": "reason",
+   "before": "",
+   "after": "One canonical name for this concept across windows (guide: Canonical label)",
+   "reason": "One canonical name for this concept across windows (guide: Canonical label)"
+  },
+  {
+   "at": "2026-10-22T13:53:06Z",
+   "window_index": 12,
+   "v1_label": "Problem of Batch Learning",
+   "field": "label",
+   "before": "Problem of Batch Learning",
+   "after": "Problem Of Batch Learning",
+   "reason": "One canonical name for this concept across windows (guide: Canonical label)"
+  },
+  {
+   "at": "2026-10-22T13:53:06Z",
+   "window_index": 12,
+   "v1_label": "Problem of Batch Learning",
+   "field": "reason",
+   "before": "",
+   "after": "One canonical name for this concept across windows (guide: Canonical label)",
+   "reason": "One canonical name for this concept across windows (guide: Canonical label)"
+  },
+  {
+   "at": "2026-10-22T13:53:22Z",
+   "window_index": 7,
+   "v1_label": "batch learning",
+   "field": "label",
+   "before": "batch learning",
+   "after": "Batch Learning",
+   "reason": "One canonical name for this concept across windows (guide: Canonical label)"
+  },
+  {
+   "at": "2026-10-22T13:53:22Z",
+   "window_index": 7,
+   "v1_label": "batch learning",
+   "field": "reason",
+   "before": "",
+   "after": "One canonical name for this concept across windows (guide: Canonical label)",
+   "reason": "One canonical name for this concept across windows (guide: Canonical label)"
+  }
+ ]
+}
