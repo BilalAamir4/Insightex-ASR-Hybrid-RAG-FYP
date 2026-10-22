@@ -66,3 +66,5 @@ Commit times are converted from +05:00; the change-log times are UTC from this m
 | Last change (the three renames) | after 13:47:45 |
 
 What had been seen when the pass was decided is recorded in ADR-0048 Amendment 5, along with the tilt towards qwen3.5.
+
+Step 4a, the prompt versions re-scored against gold v2: [m7_day4_gold_v2_prompt_rescore.md](m7_day4_gold_v2_prompt_rescore.md).
