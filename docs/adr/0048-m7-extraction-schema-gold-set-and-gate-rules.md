@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); all at the end
+Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); all at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -234,3 +234,51 @@ Decided by Bilal on 2026-10-18, before any model output on a real lecture. The t
 **Decision.** In any Day 4 gold window, a relation may be deleted when the guide's own definition of its type does not hold for its two concepts, or reversed when the definition holds only in the other direction. Concepts, aliases and the importance flag may not change under this amendment. Each correction is logged with `log-correction` and its reason, as in Amendment 3. The guide does not change. The test is the guide's type definitions, not the second annotator's labels or any model output; no extraction has run on a real lecture.
 
 **Consequence.** Windows 14 and 15 lose their part_of relations. The Day 4 gold then has one relation (window 16), so Day 4 relation P/R is reported but is not meaningful; relation extraction is evaluated on the held-out lecture. The amendment does not apply to the held-out lecture.
+
+## Amendment 5 (2026-10-20): Day 4 gold v2, a relabelling pass under the guide's explanation rule
+
+Decided by Bilal on 2026-10-20, before any gold label was changed. The text above and Amendments 1 to 4 are kept; where they conflict with this amendment, this amendment applies.
+
+**Context.** Day 4 gold v1 (`gold.json`, sha256 `7fcec636170248ed48df8badacf2b40dc1c8edfc96aa073cf8ef90ec58b8a4ff`, tag `m7-day4-gold-frozen`; 20 windows, 27 concepts, 1 relation) breaks the labelling guide in two ways:
+
+1. Concepts were labelled as soon as a window named them, without checking that the window explains them or uses them substantively. The guide applies that test to every concept, named or unnamed ("Label a concept only if this window explains it or uses it substantively").
+2. One concept has different names in different windows, for example "Problem With Batch Learning" and "Problem Of Batch Learning". The guide's canonical label gives a concept one name.
+
+**What had been seen when this was decided.**
+
+- **C1 (run 18 Oct 2026; harness 7, prompt `c7e061fc…4648`).** Both arms ran on the 20 windows. Bilal was shown only validity, wall time, the VRAM peaks, and the adjudication sheet's path and item count. No C1 score, matched count, output or per-window result was computed or shown. Bilal stopped the adjudication before opening the sheet (`adjudication_sheets/C1-20261018T180252Z.json`, 20 entries, made against gold v1). That sheet is void: it is never decided or used.
+- **Prompt iteration (18 Oct 2026, qwen3.5 only).** Bilal does not recall reading the per-window details in the reports he approved each version from (`docs/evidence/m7/session2b_prompt_iteration.md`), but they were shown to him, so this amendment treats them as seen. Those reports contained some qwen3.5 output from versions 1 to 4:
+  - micro scores against gold v1;
+  - the missed gold concepts per window;
+  - the extra model concepts by window, with their labels (for example window 4, "online learning");
+  - the windows where the model returned no concepts;
+  - the relations the model invented.
+- **Gemma.** No Gemma output has been shown.
+- **The earlier mismatch.** The gold/guide mismatch on "problem of batch learning" concepts was already recorded in those reports as fixed rule 7 (18 Oct 2026, before version 1 ran).
+
+**Decision.**
+
+1. **Gold v1 stays unchanged.** `gold.json` and its tag are not changed, and results already reported against gold v1 stay as v1 results.
+2. **Gold v2 comes from one relabelling pass.** Bilal relabels all 20 Day 4 windows once, starting from the gold v1 labels, under the frozen guide (the guide does not change). For each gold v1 concept he either keeps it or removes it:
+   - **Remove:** the window does not explain the concept or use it substantively.
+   - **Keep:** the concept stays, and may be renamed to the one canonical name used for that concept in every window.
+   - **Relations follow:** removing a concept removes its relations, and renaming a concept renames them.
+   - **Nothing else changes:** no concept is added, and aliases, the importance flag and the cue stay as in v1. The one exception is an alias that becomes the same as the new label, which is dropped.
+   - **Reasons:** every removal and every rename needs a reason. Every change is logged with its time and reason in `relabel_v2.json`.
+   - **Tool:** `label_concepts.py relabel-start`, `relabel-serve`, `relabel-status` and `relabel-merge`. The page shows the window's text, its video and the gold v1 labels, and no model output.
+3. **Gold v2's files.** Gold v2 is `gold_v2.json`, frozen with the tag `m7-day4-gold-v2-frozen`. It has its own adjudication file (`adjudications_v2.json`), and no decision made against gold v1 is reused.
+4. **After the freeze, with no new model runs:**
+   - **a. Re-score the prompt versions.** The saved prompt-iteration outputs of versions 1 to 4 are scored against gold v2: micro concept F1, string rule, no adjudication, as in the iteration. Only the F1 of each version is reported. The best version is chosen by the existing rules: the highest F1, and on a tie the earlier version (fixed rule 8).
+   - **b. If version 2 still wins:** the two existing C1 runs are scored against gold v2, without showing the scores, and a new blind adjudication sheet is made against gold v2 under section 4. C1 stays blinded until those decisions are frozen.
+   - **c. If another version wins:** everything stops, and nothing is re-run without Bilal's decision. A different prompt would be a new freeze, and under the prompt freeze rule every comparison already run on the old prompt is re-run.
+5. **The inter-annotator figure is open, to be decided separately.** The v1 figure (0.240, `bilal_pre_review.json` against `fatima.json`) was measured on labels that this pass replaces. Until this is decided, scoring against gold v2 reports no inter-annotator figure.
+
+**Consequences.**
+
+- **Gold v2 is not blind to model behaviour on Day 4.**
+  - The pass is driven by the guide, but the iteration reports Bilal had read list qwen3.5's extra and missed concepts by window.
+  - Removing gold concepts that those reports showed qwen3.5 missing raises qwen3.5's scores, and no Gemma output was shown.
+  - So the Day 4 re-score of the prompt versions, and C1 against gold v2, may favour the prompt and the model whose output was seen. This adds to the tilt towards qwen3.5 recorded in the Consequences above, and it is recorded in the same way.
+  - The held-out lecture, labelled under the frozen guide before any model reads it, remains the unbiased check of the final configuration.
+- **Relation scores.** Day 4 relation scores remain not meaningful.
+- **Scope.** The amendment applies to the Day 4 gold only.

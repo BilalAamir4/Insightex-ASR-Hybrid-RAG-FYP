@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M7 gold relabelling</title>
+<style>
+  :root { --bg: #fafaf8; --fg: #1d1d1b; --muted: #6b6b66; --line: #d9d8d2; --accent: #1f5fa8; --bad: #b3261e; --ok: #2e7d32; --panel: #ffffff; --warn: #8a5a00; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+  header { padding: 10px 16px; border-bottom: 1px solid var(--line); display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0; }
+  header .who { color: var(--muted); }
+  main { display: grid; grid-template-columns: 220px 1fr 280px; min-height: calc(100vh - 45px); }
+  nav { border-right: 1px solid var(--line); overflow-y: auto; max-height: calc(100vh - 45px); }
+  nav button { display: flex; justify-content: space-between; width: 100%; padding: 7px 12px; border: 0; border-bottom: 1px solid var(--line); background: none; text-align: left; font: inherit; cursor: pointer; }
+  nav button.current { background: #e8eef7; }
+  nav .tag { font-size: 12px; color: var(--muted); }
+  nav .done { color: var(--ok); }
+  aside { border-left: 1px solid var(--line); padding: 12px; overflow-y: auto; max-height: calc(100vh - 45px); font-size: 13px; }
+  aside h2 { margin-top: 0; }
+  aside li { margin: 2px 0; }
+  .variants { color: var(--warn); }
+  section { padding: 14px 18px; max-width: 980px; }
+  video { width: 100%; max-height: 300px; background: #000; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
+  .text { background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; font-size: 17px; line-height: 1.8; unicode-bidi: plaintext; white-space: pre-wrap; }
+  h2 { font-size: 15px; margin: 18px 0 6px; }
+  .concept { background: var(--panel); border: 1px solid var(--line); padding: 8px; margin: 6px 0; display: grid; gap: 6px; }
+  .concept.remove { opacity: 0.75; border-color: var(--bad); }
+  .concept.rename { border-color: var(--accent); }
+  .concept .v1 { font-weight: 600; }
+  .concept .aliases { color: var(--muted); font-size: 13px; unicode-bidi: plaintext; }
+  .concept .choice { display: flex; gap: 14px; flex-wrap: wrap; }
+  .preset { font-size: 12px; }
+  input[type=text] { font: inherit; padding: 4px 6px; width: 100%; }
+  button { font: inherit; padding: 4px 10px; cursor: pointer; }
+  .status { min-height: 1.4em; }
+  .status.bad { color: var(--bad); white-space: pre-wrap; }
+  .status.ok { color: var(--ok); }
+  .hint { color: var(--muted); font-size: 13px; }
+  .readonly { background: var(--panel); border: 1px dashed var(--line); padding: 6px 10px; }
+  @media (max-width: 1000px) { main { grid-template-columns: 1fr; } nav, aside { max-height: 200px; border: 0; border-bottom: 1px solid var(--line); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>M7 gold relabelling</h1>
+  <span class="who" id="who"></span>
+  <span class="hint">ADR-0048 Amendment 5. Rules: docs/labelling/m7_concepts.md. Gold v1 stays unchanged; every change is logged with its reason.</span>
+</header>
+<main>
+  <nav id="list"></nav>
+  <section>
+    <video id="video" src="/video.mp4" controls preload="metadata"></video>
+    <div class="row">
+      <button id="play">Play window</button>
+      <strong id="span"></strong>
+      <span style="flex:1"></span>
+      <button id="prev">Previous</button>
+      <button id="next">Next</button>
+    </div>
+    <div class="text" id="text" dir="auto"></div>
+
+    <h2>Gold v1 concepts: keep or remove each one</h2>
+    <div class="hint">Keep a concept only if this window explains it or uses it substantively (named or unnamed). A kept concept may be renamed to the one canonical name used for that concept in every window. A removal or a rename needs a reason. Aliases and importance do not change here.</div>
+    <div id="concepts"></div>
+
+    <h2>Result for this window (read only)</h2>
+    <div class="readonly" id="result"></div>
+
+    <div class="row" style="margin-top:14px">
+      <label><input type="checkbox" id="reviewed"> This window is reviewed (every concept decided)</label>
+    </div>
+    <div class="status" id="status"></div>
+  </section>
+  <aside>
+    <h2>Progress</h2>
+    <div id="summary"></div>
+    <h2>Labels in use</h2>
+    <div class="hint">After this pass, over all windows. Click one to copy it into the focused name box.</div>
+    <div id="variants" class="variants"></div>
+    <ul id="labels"></ul>
+  </aside>
+</main>
+<datalist id="labelOptions"></datalist>
+<script src="/relabel.js"></script>
+</body>
+</html>

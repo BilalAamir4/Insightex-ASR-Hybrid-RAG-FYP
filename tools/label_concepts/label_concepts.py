@@ -12,10 +12,18 @@ Standalone: imports nothing from backend/. Rules for labellers: docs/labelling/m
   python label_concepts.py merge     --lecture <id>
   python label_concepts.py log-correction --lecture <id> --window I --reason TEXT [--labeller bilal] [--amendment 4]
 
+Relabelling pass of a frozen gold (ADR-0048 Amendment 5; relabel.py): gold.json stays unchanged, gold_v2.json is new.
+
+  python label_concepts.py relabel-start  --lecture <id>
+  python label_concepts.py relabel-serve  --lecture <id> [--port 8765]
+  python label_concepts.py relabel-status --lecture <id> [--labels]
+  python label_concepts.py relabel-merge  --lecture <id>
+
 Session 2 (scoring model runs written by `insightex extract-eval run`; scoring.py, adjudication.py):
 
   python label_concepts.py adjudication-sheet --lecture <id> --comparison C1 --arm NAME=RUN_DIR ... [--seed N]
   python label_concepts.py adjudicate         --lecture <id> --sheet FILE [--by bilal]
+  (adjudication-sheet, adjudicate, score and compare take --gold v1|v2; default v1)
   python label_concepts.py score              --lecture <id> --arm NAME=RUN_DIR ... [--out FILE]
   python label_concepts.py compare            --lecture <id> --comparison C1 --a NAME=RUN_DIR --b NAME=RUN_DIR
                                               [--out FILE]
@@ -23,7 +31,8 @@ Session 2 (scoring model runs written by `insightex extract-eval run`; scoring.p
 Files live in tools/label_concepts/labels/<lecture_id>/: sample.json (the manifest), <labeller>.json (labels, one
 extraction document per labeller; <labeller>_repeat.json for the blind repeat of the shared windows),
 agreement_<a>_<b>.json, <labeller>_pre_review.json and corrections_<labeller>.json (Amendment 3 review), gold.json,
-adjudications.json (append-only), adjudication_sheets/<comparison>-<time>.json.
+adjudications.json (append-only), adjudication_sheets/<comparison>-<time>.json; for gold v2 (Amendment 5)
+relabel_v2.json, gold_v2.json, adjudications_v2.json and adjudication_sheets/<comparison>-gold_v2-<time>.json.
 """
 
 from __future__ import annotations
@@ -267,11 +276,9 @@ def cmd_log_correction(a: argparse.Namespace) -> int:
 # -- serve --------------------------------------------------------------------------------------------------------
 
 
-def cmd_serve(a: argparse.Namespace) -> int:
-    from server import LabelStore, serve
-
-    manifest, msha = load_manifest(a.lecture, a.labels_root)
-    rows = windows_for(manifest, a.labeller)
+def window_texts(a: argparse.Namespace, manifest: dict[str, Any],
+                 rows: list[dict[str, Any]]) -> tuple[Workspace, list[dict[str, Any]]]:
+    """The lecture's workspace and the text of each manifest row, checked against the sample manifest."""
     ws = Workspace(data_dir(a.data_dir), a.lecture)
     grid, info = lecture_grid(ws)
     if info["asr_key"] != manifest["transcript"]["asr_key"]:
@@ -283,6 +290,15 @@ def cmd_serve(a: argparse.Namespace) -> int:
         if w is None or w.text_sha256 != r["text_sha256"] or (w.start_s, w.end_s) != (r["start_s"], r["end_s"]):
             raise SystemExit(f"window {r['window_index']} no longer matches the sample manifest")
         windows.append({**{k: r[k] for k in ("window_index", "start_s", "end_s", "shared")}, "text": w.text})
+    return ws, windows
+
+
+def cmd_serve(a: argparse.Namespace) -> int:
+    from server import LabelStore, serve
+
+    manifest, msha = load_manifest(a.lecture, a.labels_root)
+    rows = windows_for(manifest, a.labeller)
+    ws, windows = window_texts(a, manifest, rows)
     store = LabelStore(lecture_dir(a.lecture, a.labels_root) / f"{a.labeller}.json", a.lecture, a.labeller, msha, rows,
                        frozenset(accepted_manifest_sha256(manifest, msha)))
     serve(port=a.port, session={"lecture_id": a.lecture, "labeller": a.labeller, "windows": windows}, rows=rows,
@@ -464,15 +480,105 @@ def cmd_merge(a: argparse.Namespace) -> int:
     return 0
 
 
+# -- relabelling pass of a frozen gold (ADR-0048 Amendment 5; relabel.py) -------------------------------------------
+
+
+def relabel_paths(a: argparse.Namespace) -> dict[str, Path]:
+    import relabel
+
+    return relabel.paths(lecture_dir(a.lecture, a.labels_root), a.relabel_pass)
+
+
+def cmd_relabel_start(a: argparse.Namespace) -> int:
+    import relabel
+
+    p = relabel_paths(a)
+    if p["state"].exists():
+        raise SystemExit(f"{p['state']} exists; the pass has started (its log is append-only)")
+    if p["out"].exists():
+        raise SystemExit(f"{p['out']} exists")
+    if not p["base"].is_file():
+        raise SystemExit(f"no {p['base'].name}")
+    base = json.loads(p["base"].read_text(encoding="utf-8"))
+    errors = check_document(base)
+    if errors or base["lecture_id"] != a.lecture or base["producer"]["kind"] != "human":
+        raise SystemExit(f"{p['base']} is not a valid human gold file for {a.lecture}")
+    state = relabel.new_state(base, p["base"].name, sha256_file(p["base"]), a.relabel_pass)
+    relabel.write_atomic(p["state"], state)
+    n = sum(len(w["concepts"]) for w in state["windows"])
+    print(f"wrote {p['state']}: {len(state['windows'])} windows, {n} concepts to decide, from {p['base'].name} "
+          f"(sha256 {state['base']['sha256']}, never changed)")
+    print(f"review them with: label_concepts.py relabel-serve --lecture {a.lecture}")
+    return 0
+
+
+def cmd_relabel_serve(a: argparse.Namespace) -> int:
+    from server import RelabelStore, serve_relabel
+
+    p = relabel_paths(a)
+    store = RelabelStore(p["state"], p["base"], a.lecture)
+    manifest, _ = load_manifest(a.lecture, a.labels_root)
+    in_gold = {r["window"]["window_index"] for r in store.base["windows"]}
+    ws, windows = window_texts(a, manifest, [r for r in manifest["windows"] if r["window_index"] in in_gold])
+    serve_relabel(port=a.port, session={"lecture_id": a.lecture, "pass": a.relabel_pass, "windows": windows},
+                  store=store, video=ws.video())
+    return 0
+
+
+def print_relabel_summary(s: dict[str, Any]) -> None:
+    print(f"reviewed {s['reviewed']} of {s['windows']} windows"
+          f"{'; not reviewed: ' + str(s['not_reviewed']) if s['not_reviewed'] else ''}")
+    print(f"gold v1 concepts {s['concepts_v1']}: kept {s['kept']} (renamed {s['renamed']}), removed {s['removed']}, "
+          f"undecided {s['undecided']}; new gold: {s['concepts_v2']} concepts, {s['relations_v2']} relations; "
+          f"{s['log_entries']} logged changes")
+    for group in s["possible_variants"]:
+        uses = "; ".join(f"{label!r} in {s['labels_in_use'][label]}" for label in group)
+        print(f"  check: one concept or several? {uses}")
+
+
+def cmd_relabel_status(a: argparse.Namespace) -> int:
+    import relabel
+
+    p = relabel_paths(a)
+    state, base = relabel.load(p["state"], p["base"], a.lecture)
+    s = relabel.summary(state, base)
+    print_relabel_summary(s)
+    if a.labels:
+        for label, windows in s["labels_in_use"].items():
+            print(f"  {label}: windows {windows}")
+    return 0
+
+
+def cmd_relabel_merge(a: argparse.Namespace) -> int:
+    import relabel
+
+    p = relabel_paths(a)
+    if p["out"].exists() and not a.force:
+        raise SystemExit(f"{p['out']} exists; pass --force only if it has not been frozen")
+    state, base = relabel.load(p["state"], p["base"], a.lecture)
+    manifest, _ = load_manifest(a.lecture, a.labels_root)
+    name = (f"gold {a.relabel_pass}: {manifest['labellers'][0]} (single annotator), relabelling pass of "
+            f"{p['base'].name} (ADR-0048 Amendment 5)")
+    write_json(p["out"], relabel.merged(state, base, name))
+    print_relabel_summary(relabel.summary(state, base))
+    print(f"wrote {p['out']}: sha256 {sha256_file(p['out'])}; {p['base'].name} unchanged ({state['base']['sha256']})")
+    return 0
+
+
 # -- Session 2: adjudication, scoring, comparison -------------------------------------------------------------------
 
 
-def gold_path(lecture_id: str, root: Path | None = None) -> Path:
-    return lecture_dir(lecture_id, root) / "gold.json"
+# Gold versions of a lecture (ADR-0048 Amendment 5). Each has its own adjudications file: a decision matches a model
+# concept to a concept of one gold version, so it is never reused with another.
+GOLD_VERSIONS = {"v1": ("gold.json", "adjudications.json"), "v2": ("gold_v2.json", "adjudications_v2.json")}
 
 
-def adjudications_path(lecture_id: str, root: Path | None = None) -> Path:
-    return lecture_dir(lecture_id, root) / "adjudications.json"
+def gold_path(lecture_id: str, root: Path | None = None, gold: str = "v1") -> Path:
+    return lecture_dir(lecture_id, root) / GOLD_VERSIONS[gold][0]
+
+
+def adjudications_path(lecture_id: str, root: Path | None = None, gold: str = "v1") -> Path:
+    return lecture_dir(lecture_id, root) / GOLD_VERSIONS[gold][1]
 
 
 def load_arms(specs: list[str]) -> list[Any]:
@@ -514,15 +620,19 @@ def annotator_agreement(lecture_id: str, root: Path | None = None) -> dict[str, 
     }
 
 
-def score_report(lecture_id: str, arms: list[Any], root: Path | None) -> dict[str, Any]:
+def score_report(lecture_id: str, arms: list[Any], root: Path | None, gold_version: str = "v1") -> dict[str, Any]:
     from matching import load_adjudications
     from scoring import adjudications_summary, load_gold, micro_string_f1_on, score_arm
 
-    gpath, apath = gold_path(lecture_id, root), adjudications_path(lecture_id, root)
+    gpath, apath = gold_path(lecture_id, root, gold_version), adjudications_path(lecture_id, root, gold_version)
     gold = load_gold(gpath, lecture_id)
     adj = load_adjudications(apath, lecture_id) if apath.is_file() else {}
     scores = [score_arm(arm, gold, adj) for arm in arms]
-    agree = annotator_agreement(lecture_id, root)
+    if gold_version == "v1":
+        agree = annotator_agreement(lecture_id, root)
+    else:  # Amendment 5: the v1 figure was measured on labels gold v2 replaces; no figure for v2 is decided yet
+        agree = {"available": False, "reason": f"no inter-annotator figure is decided for gold {gold_version} "
+                                                "(ADR-0048 Amendment 5)"}
     shared = set(agree.get("windows", []))
     headline = {  # ADR-0048 section 6: the agreement figure sits only next to string-rule-only model F1
         "note": "string rule only on both sides; the adjudicated F1 is never compared with this figure. Gold is "
@@ -535,7 +645,8 @@ def score_report(lecture_id: str, arms: list[Any], root: Path | None) -> dict[st
     }
     return {
         "lecture_id": lecture_id,
-        "gold": {"path": str(gpath), "sha256": sha256_file(gpath), "windows": len(gold["windows"])},
+        "gold": {"version": gold_version, "path": str(gpath), "sha256": sha256_file(gpath),
+                 "windows": len(gold["windows"])},
         "adjudications": adjudications_summary(apath),
         "headline_string_rule": headline,
         "arms": scores,
@@ -565,7 +676,7 @@ def default_report_path(arms: list[Any], name: str) -> Path:
 
 def cmd_score(a: argparse.Namespace) -> int:
     arms = load_arms(a.arm)
-    report = score_report(a.lecture, arms, a.labels_root)
+    report = score_report(a.lecture, arms, a.labels_root, a.gold)
     for s in report["arms"]:
         print_score(s)
     h = report["headline_string_rule"]
@@ -585,7 +696,7 @@ def cmd_compare(a: argparse.Namespace) -> int:
     from scoring import compare
 
     arms = load_arms([a.a, a.b])
-    report = score_report(a.lecture, arms, a.labels_root)
+    report = score_report(a.lecture, arms, a.labels_root, a.gold)
     result = compare(a.comparison, report["arms"][0], report["arms"][1])
     for s in report["arms"]:
         print_score(s)
@@ -605,18 +716,19 @@ def cmd_adjudication_sheet(a: argparse.Namespace) -> int:
     from scoring import load_gold
 
     arms = load_arms(a.arm)
-    gpath, apath = gold_path(a.lecture, a.labels_root), adjudications_path(a.lecture, a.labels_root)
+    gpath, apath = gold_path(a.lecture, a.labels_root, a.gold), adjudications_path(a.lecture, a.labels_root, a.gold)
     gold = load_gold(gpath, a.lecture)
     adj = load_adjudications(apath, a.lecture) if apath.is_file() else {}
     sheet = build_sheet(a.lecture, a.comparison, gold, sha256_file(gpath), arms, adj, a.seed)
     stamp = sheet["created_at"].replace("-", "").replace(":", "")
-    out = lecture_dir(a.lecture, a.labels_root) / "adjudication_sheets" / f"{a.comparison}-{stamp}.json"
+    version = "" if a.gold == "v1" else f"gold_{a.gold}-"
+    out = lecture_dir(a.lecture, a.labels_root) / "adjudication_sheets" / f"{a.comparison}-{version}{stamp}.json"
     if out.exists():
         raise SystemExit(f"{out} exists")
     write_json(out, sheet)
     print(f"wrote {out}: {len(sheet['entries'])} entries to decide (seed {sheet['seed']}); "
           f"{len(adj)} earlier decisions reused")
-    print(f"decide them with: label_concepts.py adjudicate --lecture {a.lecture} --sheet {out}")
+    print(f"decide them with: label_concepts.py adjudicate --lecture {a.lecture} --gold {a.gold} --sheet {out}")
     return 0
 
 
@@ -624,9 +736,9 @@ def cmd_adjudicate(a: argparse.Namespace) -> int:
     from adjudication import check_sheet, load_sheet, record_decisions
 
     sheet, ssha = load_sheet(Path(a.sheet))
-    gpath = gold_path(a.lecture, a.labels_root)
+    gpath = gold_path(a.lecture, a.labels_root, a.gold)
     check_sheet(sheet, a.lecture, sha256_file(gpath))
-    counts = record_decisions(sheet, ssha, adjudications_path(a.lecture, a.labels_root), a.by)
+    counts = record_decisions(sheet, ssha, adjudications_path(a.lecture, a.labels_root, a.gold), a.by)
     print(f"\nrecorded {counts['match']} match, {counts['no_match']} no-match; skipped {counts['skipped']}; "
           f"{counts['remaining']} still undecided")
     return 0
@@ -692,25 +804,48 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("merge", help="write gold.json (one labeller: their file alone; else consensus + own windows)")
     s.add_argument("--lecture", required=True)
     s.set_defaults(fn=cmd_merge)
+    s = sub.add_parser("relabel-start", help="start a relabelling pass of the frozen gold (ADR-0048 Amendment 5)")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--pass", dest="relabel_pass", default="v2", choices=["v2"])
+    s.set_defaults(fn=cmd_relabel_start)
+    s = sub.add_parser("relabel-serve", help="keep, remove or rename each gold concept in the browser")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--pass", dest="relabel_pass", default="v2", choices=["v2"])
+    s.add_argument("--port", type=int, default=8765)
+    s.set_defaults(fn=cmd_relabel_serve)
+    s = sub.add_parser("relabel-status", help="progress of the relabelling pass, and labels that may need one name")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--pass", dest="relabel_pass", default="v2", choices=["v2"])
+    s.add_argument("--labels", action="store_true", help="also list every label in use with its windows")
+    s.set_defaults(fn=cmd_relabel_status)
+    s = sub.add_parser("relabel-merge", help="write the new gold from the frozen gold and the decisions")
+    s.add_argument("--lecture", required=True)
+    s.add_argument("--pass", dest="relabel_pass", default="v2", choices=["v2"])
+    s.add_argument("--force", action="store_true", help="overwrite an unfrozen earlier merge")
+    s.set_defaults(fn=cmd_relabel_merge)
     s = sub.add_parser("adjudication-sheet", help="blind sheet of the model concepts the string rule left unmatched, "
                        "pooled over the arms of one comparison")
     s.add_argument("--lecture", required=True)
+    s.add_argument("--gold", choices=list(GOLD_VERSIONS), default="v1", help="gold version (Amendment 5)")
     s.add_argument("--comparison", required=True, help="C1, C2, C3 or C4")
     s.add_argument("--arm", action="append", required=True, metavar="NAME=RUN_DIR", help="repeat for every arm")
     s.add_argument("--seed", type=int, help="shuffle seed (default: random; always recorded in the sheet)")
     s.set_defaults(fn=cmd_adjudication_sheet)
     s = sub.add_parser("adjudicate", help="decide the sheet's entries in the terminal (appended to adjudications.json)")
     s.add_argument("--lecture", required=True)
+    s.add_argument("--gold", choices=list(GOLD_VERSIONS), default="v1", help="gold version (Amendment 5)")
     s.add_argument("--sheet", required=True)
     s.add_argument("--by", default=DEFAULT_LABELLERS[0], help="who decides (recorded per entry)")
     s.set_defaults(fn=cmd_adjudicate)
     s = sub.add_parser("score", help="score model runs against gold.json (validity, P/R/F1, inter-annotator figure)")
     s.add_argument("--lecture", required=True)
+    s.add_argument("--gold", choices=list(GOLD_VERSIONS), default="v1", help="gold version (Amendment 5)")
     s.add_argument("--arm", action="append", required=True, metavar="NAME=RUN_DIR")
     s.add_argument("--out", help="report file (default: score.json next to the first run directory)")
     s.set_defaults(fn=cmd_score)
     s = sub.add_parser("compare", help="ADR-0048 section 7 decision between arm A (kept on a tie) and arm B")
     s.add_argument("--lecture", required=True)
+    s.add_argument("--gold", choices=list(GOLD_VERSIONS), default="v1", help="gold version (Amendment 5)")
     s.add_argument("--comparison", required=True, choices=["C1", "C2", "C3", "C4"])
     s.add_argument("--a", required=True, metavar="NAME=RUN_DIR", help="arm A, kept on a tie")
     s.add_argument("--b", required=True, metavar="NAME=RUN_DIR")

@@ -99,6 +99,24 @@ Two labellers with a consensus (a future lecture): sample with `--labellers bila
 - `serve` accepts a name from the manifest (including a shared-windows-only annotator such as `fatima`), `<name>_repeat` (Amendment 1's repeat, now dropped), or `consensus`. It serves only that labeller's own file, so the labelling is blind.
 - `agreement` takes `--adjudications <file>`. The default uses the string rule only, which is how the inter-annotator figure is reported. With a shared-windows-only annotator as `--b`, `--a` is read from `<a>_pre_review.json` (made on the first run).
 
+### Gold v2: relabelling pass of a frozen gold (ADR-0048 Amendment 5)
+
+Gold v1 (`gold.json`, tag `m7-day4-gold-frozen`) is never changed. The pass starts from its labels; for every concept of every window the reviewer chooses **keep** (optionally renamed to the one canonical name used for that concept everywhere) or **remove** (the window does not explain it or use it substantively). Nothing is added; aliases, importance and the cue stay as they were. Removing a concept removes its relations, a rename renames them, and an alias that becomes the new label is dropped. A removal or a rename needs a reason, and every change is appended to the log in `relabel_v2.json` with its time and reason.
+
+```bash
+# 1. Start: copies the gold v1 concept list into relabel_v2.json (refuses if it exists; records gold.json's sha256)
+$LC relabel-start --lecture $DAY4
+# 2. Decide in the browser: window text, video and the gold v1 labels only (no model output). Tick "reviewed" per
+#    window once every concept is decided. The side panel lists the labels in use and flags possible variants.
+$LC relabel-serve --lecture $DAY4
+# 3. Progress, and labels that differ only in case, small words or a plural s (one concept or several?)
+$LC relabel-status --lecture $DAY4 [--labels]
+# 4. When all 20 windows are reviewed: write gold_v2.json from gold.json and the decisions alone; then commit and tag
+$LC relabel-merge --lecture $DAY4
+```
+
+Every command checks that `gold.json` still has the sha256 recorded at the start. Scoring against gold v2: add `--gold v2` to `adjudication-sheet`, `adjudicate`, `score` and `compare`. Gold v2 has its own `adjudications_v2.json` and sheets named `<C>-gold_v2-<time>.json`, and its score reports carry no inter-annotator figure until one is decided (Amendment 5, decision 5).
+
 ## Files
 
 All under `labels/<lecture_id>/`, committed:
@@ -113,6 +131,8 @@ All under `labels/<lecture_id>/`, committed:
 | `adjudications.json` | Session 2 onward: frozen match/no-match decisions for unmatched model concepts (ADR-0048), keyed by (window_index, normalised model label). Append-only: each entry records who decided, when, and the sha256 of the sheet it came from. |
 | `adjudication_sheets/<C>-<time>.json` | One blind sheet per adjudication round: seed, gold sha256, the sorted sha256 of the arm files (no arm names), and the shuffled entries (window, model concept with aliases, the window's gold concepts). |
 | `gold.json` | The merged gold set. One labeller: that labeller's finished file, every window. Two: consensus for the shared windows, each labeller's own windows for the rest. |
+| `relabel_v2.json` | Amendment 5: the relabelling pass of `gold.json` (its sha256), each concept's decision, name and reason, the reviewed flag per window, and the append-only change log. |
+| `gold_v2.json`, `adjudications_v2.json` | Amendment 5: gold v2, written by `relabel-merge` from `gold.json` and the decisions; its own adjudication decisions. |
 
 ## Modules
 
@@ -124,8 +144,9 @@ All under `labels/<lecture_id>/`, committed:
 | `matching.py` | ADR-0048 concept and relation matching, adjudication and micro P/R/F1. |
 | `scoring.py` | Session 2: loads arm runs, the validity rule, per-arm scores (adjudicated and string rule), the section 7 comparison. |
 | `adjudication.py` | Session 2: the blind adjudication sheet and the append-only adjudications file. |
-| `server.py` | The HTTP server. |
-| `static/` | The page. |
+| `relabel.py` | Amendment 5: the relabelling pass (decisions, change log, the derived gold v2). |
+| `server.py` | The HTTP server (labelling page and relabelling page). |
+| `static/` | The pages (`index.html`/`app.js` labelling, `relabel.html`/`relabel.js` relabelling). |
 
 ## Tests
 
