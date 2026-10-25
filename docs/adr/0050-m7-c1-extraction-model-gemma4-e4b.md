@@ -68,6 +68,7 @@ Later comparisons use this winner: C2 and C3 take Gemma, and C3 uses Gemma's k (
 - **Comparison reports** (`label_concepts.py compare --gold v2|v2.1`): `docs/evidence/m7/sha256-de27cb67c2acbedebd0c2c7416932b8a/C1/compare_C1_gold_v2.json` and `compare_C1_gold_v2_1.json`.
 - **Gold:** `gold_v2.json` `19837236…55be` (tag `m7-day4-gold-v2-frozen`) and `gold_v2_1.json` `53248bbb…7d2c` (tag `m7-day4-gold-v2.1-frozen`).
 - **Decisions:** `adjudications_v2.json` `7caa4a72…f0e6` (tag `m7-c1-adjudications-v2-frozen`) and `adjudications_v2_1.json`.
+- **Gemma read-through** (the prompt re-check required after Gemma won; 25 Oct 2026, no prompt change): [`docs/evidence/m7/c1_gemma_readthrough.md`](../evidence/m7/c1_gemma_readthrough.md).
 
 **Scores** (micro concept; adjudicated, which here equals string rule only):
 
