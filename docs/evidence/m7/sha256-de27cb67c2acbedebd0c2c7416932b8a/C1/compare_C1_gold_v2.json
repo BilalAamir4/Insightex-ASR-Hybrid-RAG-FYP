@@ -1,0 +1,1962 @@
+{
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "gold": {
+  "version": "v2",
+  "path": "/home/bilal_aamir/insightex/tools/label_concepts/labels/sha256-de27cb67c2acbedebd0c2c7416932b8a/gold_v2.json",
+  "sha256": "19837236e0e56e2368381541ad53d2c11fdc88cde8f224f3d7d439243fa055be",
+  "windows": 20
+ },
+ "adjudications": {
+  "path": "/home/bilal_aamir/insightex/tools/label_concepts/labels/sha256-de27cb67c2acbedebd0c2c7416932b8a/adjudications_v2.json",
+  "exists": true,
+  "entries": 23,
+  "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
+ },
+ "headline_string_rule": {
+  "note": "string rule only on both sides; the adjudicated F1 is never compared with this figure. Gold is made by one annotator (Bilal); a second annotator labelled the shared windows for agreement and review (ADR-0048 Amendment 3).",
+  "inter_annotator_agreement": {
+   "available": false,
+   "reason": "no inter-annotator figure is decided for gold v2 (ADR-0048 Amendment 5)"
+  },
+  "model_string_rule_concept_f1": {
+   "C1-gemma4-e4b": 0.2857142857142857,
+   "C1-qwen3.5": 0.30434782608695654
+  },
+  "model_string_rule_concept_f1_on_agreement_windows": null
+ },
+ "arms": [
+  {
+   "name": "C1-gemma4-e4b",
+   "run_dir": "docs/evidence/m7/sha256-de27cb67c2acbedebd0c2c7416932b8a/C1/C1-gemma4-e4b",
+   "extraction_sha256": "e36b3bd527197951f4fe5320035a612020c55b48653f0e3f2e4f82e5039d9079",
+   "run_sha256": "14bac7eac1feede18fa9971e23af87444d15abcf41836c9e66c34cd2850b8f9e",
+   "arm": {
+    "name": "C1-gemma4-e4b",
+    "comparison": "C1",
+    "model": "gemma4:e4b",
+    "input": "original",
+    "batch_k": 1,
+    "context": "none"
+   },
+   "prompt_sha256": "c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648",
+   "validity": {
+    "valid": true,
+    "schema_errors": [],
+    "problems": [],
+    "invalid_windows": [],
+    "missing_windows": [],
+    "retried_windows": [],
+    "valid_empty_after_retry_windows": []
+   },
+   "dropped_relations": 1,
+   "adjudicated": {
+    "micro": {
+     "windows": 20,
+     "concept": {
+      "tp": 7,
+      "pred": 25,
+      "ref": 24,
+      "precision": 0.28,
+      "recall": 0.2916666666666667,
+      "f1": 0.2857142857142857
+     },
+     "relation": {
+      "tp": 0,
+      "pred": 5,
+      "ref": 0,
+      "precision": 0.0,
+      "recall": null,
+      "f1": 0.0
+     },
+     "important": {
+      "tp": 0,
+      "pred": 0,
+      "ref": 0,
+      "precision": null,
+      "recall": null,
+      "agreement": 1.0
+     }
+    },
+    "pending": 0,
+    "pending_concepts": [],
+    "per_window": [
+     {
+      "window_index": 2,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "production environment",
+        "gold": "Production",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 4,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 8,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "machine learning model",
+       "recommendation engine"
+      ],
+      "unmatched_gold": [
+       "Batch Learning"
+      ]
+     },
+     {
+      "window_index": 9,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 2,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "model"
+      ],
+      "unmatched_gold": [
+       "Batch Learning",
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 11,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 13,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 16,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "big data",
+        "gold": "Big Data",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "hardware limitation"
+      ],
+      "unmatched_gold": [
+       "Disadvantages Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 17,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "model"
+      ],
+      "unmatched_gold": [
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 19,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 2,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Availability",
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 21,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     },
+     {
+      "window_index": 1,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "production",
+        "gold": "Production",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 6,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.6666666666666666,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "offline learning"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 7,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 10,
+      "concept_tp": 0,
+      "concept_pred": 3,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "recommendation engine",
+       "machine learning model",
+       "email spam classifier"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 12,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "model"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 14,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "incremental learning"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 15,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Disadvantages Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 18,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "model"
+      ],
+      "unmatched_gold": [
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 20,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     },
+     {
+      "window_index": 22,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning",
+       "online learning"
+      ],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     }
+    ]
+   },
+   "string_rule": {
+    "micro": {
+     "windows": 20,
+     "concept": {
+      "tp": 7,
+      "pred": 25,
+      "ref": 24,
+      "precision": 0.28,
+      "recall": 0.2916666666666667,
+      "f1": 0.2857142857142857
+     },
+     "relation": {
+      "tp": 0,
+      "pred": 5,
+      "ref": 0,
+      "precision": 0.0,
+      "recall": null,
+      "f1": 0.0
+     },
+     "important": {
+      "tp": 0,
+      "pred": 0,
+      "ref": 0,
+      "precision": null,
+      "recall": null,
+      "agreement": 1.0
+     }
+    },
+    "per_window": [
+     {
+      "window_index": 2,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "production environment",
+        "gold": "Production",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 4,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 8,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "machine learning model",
+       "recommendation engine"
+      ],
+      "unmatched_gold": [
+       "Batch Learning"
+      ]
+     },
+     {
+      "window_index": 9,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 2,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "model"
+      ],
+      "unmatched_gold": [
+       "Batch Learning",
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 11,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 13,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 16,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "big data",
+        "gold": "Big Data",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "hardware limitation"
+      ],
+      "unmatched_gold": [
+       "Disadvantages Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 17,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "model"
+      ],
+      "unmatched_gold": [
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 19,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 2,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Availability",
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 21,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     },
+     {
+      "window_index": 1,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "production",
+        "gold": "Production",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 6,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.6666666666666666,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "offline learning"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 7,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 10,
+      "concept_tp": 0,
+      "concept_pred": 3,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "recommendation engine",
+       "machine learning model",
+       "email spam classifier"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 12,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "model"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 14,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "incremental learning"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 15,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Disadvantages Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 18,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "model"
+      ],
+      "unmatched_gold": [
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 20,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     },
+     {
+      "window_index": 22,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning",
+       "online learning"
+      ],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "C1-qwen3.5",
+   "run_dir": "docs/evidence/m7/sha256-de27cb67c2acbedebd0c2c7416932b8a/C1/C1-qwen3.5",
+   "extraction_sha256": "891b64c9eebb8694afbad523784220e264fd02c569c70a9b5ff32eecfa1eec45",
+   "run_sha256": "f2c2e1e19ae2a41b8e3115c2017338ad0e2ff2c6fd5fede85a8ec9fff6f86907",
+   "arm": {
+    "name": "C1-qwen3.5",
+    "comparison": "C1",
+    "model": "qwen3.5:latest",
+    "input": "original",
+    "batch_k": 1,
+    "context": "none"
+   },
+   "prompt_sha256": "c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648",
+   "validity": {
+    "valid": true,
+    "schema_errors": [],
+    "problems": [],
+    "invalid_windows": [],
+    "missing_windows": [],
+    "retried_windows": [],
+    "valid_empty_after_retry_windows": []
+   },
+   "dropped_relations": 0,
+   "adjudicated": {
+    "micro": {
+     "windows": 20,
+     "concept": {
+      "tp": 7,
+      "pred": 22,
+      "ref": 24,
+      "precision": 0.3181818181818182,
+      "recall": 0.2916666666666667,
+      "f1": 0.30434782608695654
+     },
+     "relation": {
+      "tp": 0,
+      "pred": 5,
+      "ref": 0,
+      "precision": 0.0,
+      "recall": null,
+      "f1": 0.0
+     },
+     "important": {
+      "tp": 0,
+      "pred": 0,
+      "ref": 0,
+      "precision": null,
+      "recall": null,
+      "agreement": 1.0
+     }
+    },
+    "pending": 0,
+    "pending_concepts": [],
+    "per_window": [
+     {
+      "window_index": 2,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "production environment",
+        "gold": "Production",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 4,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.6666666666666666,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "online learning"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 8,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Batch Learning"
+      ]
+     },
+     {
+      "window_index": 9,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "static model",
+       "recommendation engine"
+      ],
+      "unmatched_gold": [
+       "Batch Learning",
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 11,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 13,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 16,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "big data",
+        "gold": "Big Data",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "hardware limitation"
+      ],
+      "unmatched_gold": [
+       "Disadvantages Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 17,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 19,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "availability",
+        "gold": "Availability",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 21,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     },
+     {
+      "window_index": 1,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Production"
+      ]
+     },
+     {
+      "window_index": 6,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 7,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 10,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "recommendation engine",
+       "machine learning model"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 12,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "incremental learning",
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 14,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "incremental learning"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 15,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Disadvantages Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 18,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 20,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     },
+     {
+      "window_index": 22,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning",
+       "online learning"
+      ],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     }
+    ]
+   },
+   "string_rule": {
+    "micro": {
+     "windows": 20,
+     "concept": {
+      "tp": 7,
+      "pred": 22,
+      "ref": 24,
+      "precision": 0.3181818181818182,
+      "recall": 0.2916666666666667,
+      "f1": 0.30434782608695654
+     },
+     "relation": {
+      "tp": 0,
+      "pred": 5,
+      "ref": 0,
+      "precision": 0.0,
+      "recall": null,
+      "f1": 0.0
+     },
+     "important": {
+      "tp": 0,
+      "pred": 0,
+      "ref": 0,
+      "precision": null,
+      "recall": null,
+      "agreement": 1.0
+     }
+    },
+    "per_window": [
+     {
+      "window_index": 2,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "production environment",
+        "gold": "Production",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 4,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.6666666666666666,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "online learning"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 8,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Batch Learning"
+      ]
+     },
+     {
+      "window_index": 9,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "static model",
+       "recommendation engine"
+      ],
+      "unmatched_gold": [
+       "Batch Learning",
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 11,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 13,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 16,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "big data",
+        "gold": "Big Data",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "hardware limitation"
+      ],
+      "unmatched_gold": [
+       "Disadvantages Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 17,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 19,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "availability",
+        "gold": "Availability",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 21,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     },
+     {
+      "window_index": 1,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Production"
+      ]
+     },
+     {
+      "window_index": 6,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 7,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 10,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "recommendation engine",
+       "machine learning model"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 12,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "incremental learning",
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 14,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 2,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "batch learning",
+        "gold": "Batch Learning",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "incremental learning"
+      ],
+      "unmatched_gold": [
+       "Problem Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 15,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Disadvantages Of Batch Learning"
+      ]
+     },
+     {
+      "window_index": 18,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Hardware Limitation"
+      ]
+     },
+     {
+      "window_index": 20,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning"
+      ],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     },
+     {
+      "window_index": 22,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "batch learning",
+       "online learning"
+      ],
+      "unmatched_gold": [
+       "Availability"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "comparison": {
+  "comparison": "C1",
+  "rule": "ADR-0048 section 7: per-window adjudicated concept F1; net wins >= 3 and micro F1 not lower adopts B; validity rule first",
+  "arm_a": "C1-gemma4-e4b",
+  "arm_b": "C1-qwen3.5",
+  "tie_keeps_arm_a_because": "the model with the smaller measured VRAM peak at the worst-case prompt",
+  "valid_a": true,
+  "valid_b": true,
+  "valid_empty_after_retry_a": [],
+  "valid_empty_after_retry_b": [],
+  "wins_a": 2,
+  "wins_b": 2,
+  "ties": 16,
+  "net_wins_b": 0,
+  "micro_concept_f1_a": 0.2857142857142857,
+  "micro_concept_f1_b": 0.30434782608695654,
+  "decision": "keep_a",
+  "reason": "net wins for B = 0 (< 3): a tie keeps arm A",
+  "per_window": [
+   {
+    "window_index": 2,
+    "f1_a": 1.0,
+    "f1_b": 1.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 4,
+    "f1_a": 1.0,
+    "f1_b": 0.6666666666666666,
+    "winner": "a"
+   },
+   {
+    "window_index": 8,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 9,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 11,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 13,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 16,
+    "f1_a": 0.5,
+    "f1_b": 0.5,
+    "winner": "tie"
+   },
+   {
+    "window_index": 17,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 19,
+    "f1_a": 0.0,
+    "f1_b": 0.5,
+    "winner": "b"
+   },
+   {
+    "window_index": 21,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 1,
+    "f1_a": 1.0,
+    "f1_b": 0.0,
+    "winner": "a"
+   },
+   {
+    "window_index": 6,
+    "f1_a": 0.6666666666666666,
+    "f1_b": 1.0,
+    "winner": "b"
+   },
+   {
+    "window_index": 7,
+    "f1_a": 1.0,
+    "f1_b": 1.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 10,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 12,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 14,
+    "f1_a": 0.5,
+    "f1_b": 0.5,
+    "winner": "tie"
+   },
+   {
+    "window_index": 15,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 18,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 20,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   },
+   {
+    "window_index": 22,
+    "f1_a": 0.0,
+    "f1_b": 0.0,
+    "winner": "tie"
+   }
+  ]
+ }
+}

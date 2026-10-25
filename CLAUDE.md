@@ -105,7 +105,8 @@ Each decision has an ADR in `docs/adr/` (index: `docs/adr/README.md`, the decisi
 - **Infrastructure:** no Celery, Redis, Docker Compose or Neo4j until the core pipeline is validated. Use SQLite jobs with one worker.
 - Read `docs/reports/Embedding_Report.md` and `docs/reports/OCR_report.md` before changing anything they cover.
 - **Whisper:** large-v3 (ADR-0039). The language is chosen per lecture from a two-tier list; Hindi -> `ur` is the only tested entry, every other language is untested, there is no default and no auto-detect (ADR-0040). Everything users read is English (ADR-0041). Stage design and failure codes: ADR-0042. A language moves to tested only through the WER gate in ADR-0040.
-- **Still open:** LLM choice (qwen3.5 vs Gemma 4 E4B, M7), textbook (M0b), reranker, Test B and Test C.
+- **M7 extraction model:** Gemma 4 E4B (ADR-0050, C1 tie on Day 4 gold v2 and v2.1, smaller VRAM peak kept).
+- **Still open:** textbook (M0b), reranker, Test B and Test C.
 
 ## Working norms
 
