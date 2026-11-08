@@ -191,8 +191,8 @@ extract:                            # M7 extraction evaluation harness (ADR-0048
   prompt_sha256: c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648  # pinned sha256 of prompt_file; any other hash refuses the run (ADR-0048 prompt freeze)
   context_block_file: null          # C4 arm B: fixed "previous window, reference only" block appended to the prompt
   context_block_sha256: null        # pinned sha256 of context_block_file
-  translate_prompt_file: null       # C2 arm B: fixed per-window English translation prompt (ADR-0041)
-  translate_prompt_sha256: null     # pinned sha256 of translate_prompt_file
+  translate_prompt_file: config/prompts/m7_translate_v2.txt  # FROZEN C2 arm B per-window English translation prompt (system prompt + <<<RETRY>>> template): draft v2, frozen 9 Nov 2026 (ADR-0041, ADR-0048 Amendment 8)
+  translate_prompt_sha256: dfc9aa5cd90405ac7307bdd6943b84f7a8f019be44bd27c84d4cef82158749a8  # pinned sha256 of translate_prompt_file; any other hash refuses an english arm
   num_ctx: 8192                     # tokens; context of every harness call, one value for both C1 models (Session 2b decision 4)
   num_predict_per_window: 1024      # tokens; output cap per target window: a call of k windows gets k x this (Session 2b decision 1)
   token_estimate_scale:             # per-model factor on the budget rule's prompt estimate, a first filter only; the post-call check is the guarantee (ADR-0049 Amendment 2)

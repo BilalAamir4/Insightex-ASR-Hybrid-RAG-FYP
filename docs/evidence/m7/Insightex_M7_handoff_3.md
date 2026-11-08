@@ -70,6 +70,11 @@ For a fresh session. Read this first, then `CLAUDE.md`, ADR-0048 (with Amendment
    - empty windows 13 and 21;
    - all 5 predicted relations wrong.
    No prompt change was made.
+9. **C2 arm B translation errors** (frozen translation prompt v2, `dfc9aa5c…49a8`; recorded 9 Nov 2026 in `docs/evidence/m7/<lecture>/C2/translation_prompt_freeze.md`). On the reserved windows, Gemma's translation:
+   - adds a count in window 0 ("three types", which the speaker never says; four are listed);
+   - gives window 5's mid-sentence opening fragment the wrong meaning (machine learning becomes the tool).
+
+   Two prompt versions (v1 and v2, v2 adding a rule against exactly these) did not change Gemma's output at temperature 0. The errors are kept as a known limit of arm B.
 
 ## 3. What C2 needs before it runs
 

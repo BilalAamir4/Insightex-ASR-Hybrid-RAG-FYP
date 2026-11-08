@@ -328,3 +328,10 @@ def test_cli_run_fresh_flag(tmp_path, monkeypatch):
     rc = cli.main(["run", "--arm", "C1-gemma4-e4b", "--lecture", LECTURE, "--targets", str(tfile), "--windows",
                    str(wfile), "--out", str(tmp_path / "out"), "--fresh"], client=FakeClient())
     assert rc == 1 and seen["fresh"] is True
+
+
+def test_shipped_translation_prompt_has_its_pinned_sha256():
+    shipped = load_settings().extract
+    if shipped.translate_prompt_file is not None:
+        p = h.load_prompts(load_settings(), arm(**EN)).translation
+        assert p is not None and p.sha256 == shipped.translate_prompt_sha256
