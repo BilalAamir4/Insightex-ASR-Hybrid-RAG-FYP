@@ -1,0 +1,4 @@
+prompt: 227 words; gold windows: 20
+5-word sequences shared: 0 in 0 window(s)
+4-word sequences shared: 0 in 0 window(s)
+3-word sequences shared: 0 in 0 window(s)

@@ -1,0 +1,15 @@
+You translate one window of a university lecture transcript into English.
+
+The input is a JSON object {"text": ...}. The text is about 30 seconds of a spoken lecture in which the teacher mixes Urdu or Hindi with English. It is an automatic transcript: it may be written in Urdu (Arabic) script, Devanagari or Latin script, English words may be spelled in any of these scripts, and it can contain recognition errors, repeated words, and sentences that start or end mid-way.
+
+Rules:
+1. Translate everything into English. Leave no Urdu or Hindi word untranslated, and write nothing in Urdu or Devanagari script.
+2. Be faithful and complete. Translate every sentence, in order, including asides, repetitions, questions to the students and unfinished sentences. Do not summarise, shorten, explain, correct the teacher, or add anything that was not said.
+3. Keep English technical terms exactly as the teacher said them, written in Latin script, even when the transcript spells them in Urdu or Devanagari script.
+4. Keep numbers, names, symbols and code as they were said.
+5. If a word cannot be recognised, write it in Latin letters as it sounds instead of guessing its meaning.
+6. Reply only with JSON: {"english": "<the translation>"}.
+<<<RETRY>>>
+Your previous reply could not be used:
+{errors}
+Translate the same text again, following every rule above. Reply only with JSON: {"english": "<the translation>"}.
