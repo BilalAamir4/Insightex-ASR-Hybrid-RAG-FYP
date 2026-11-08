@@ -15,9 +15,9 @@ arms:
   - {name: C1-qwen3.5, comparison: C1, model: "qwen3.5:latest", input: original, batch_k: 1, context: none}
   # gemma4:e4b pulled 18 Oct 2026, digest dc35e8d9c606...; measured in docs/evidence/m7/session2b_vram_numctx.md
   - {name: C1-gemma4-e4b, comparison: C1, model: "gemma4:e4b", input: original, batch_k: 1, context: none}
-  - {name: C2-original, comparison: C2, model: null, input: original, batch_k: 1, context: none}
-  - {name: C2-english, comparison: C2, model: null, input: english, batch_k: 1, context: none}
-  - {name: C3-single, comparison: C3, model: null, input: null, batch_k: 1, context: none}
-  - {name: C3-batch, comparison: C3, model: null, input: null, batch_k: null, context: none}
-  - {name: C4-window, comparison: C4, model: null, input: null, batch_k: null, context: none}
-  - {name: C4-previous, comparison: C4, model: null, input: null, batch_k: null, context: previous}
+  - {name: C2-original, comparison: C2, model: "gemma4:e4b", input: original, batch_k: 1, context: none}
+  - {name: C2-english, comparison: C2, model: "gemma4:e4b", input: english, batch_k: 1, context: none}
+  - {name: C3-single, comparison: C3, model: "gemma4:e4b", input: null, batch_k: 1, context: none}
+  - {name: C3-batch, comparison: C3, model: "gemma4:e4b", input: null, batch_k: null, context: none}
+  - {name: C4-window, comparison: C4, model: "gemma4:e4b", input: null, batch_k: null, context: none}
+  - {name: C4-previous, comparison: C4, model: "gemma4:e4b", input: null, batch_k: null, context: previous}
