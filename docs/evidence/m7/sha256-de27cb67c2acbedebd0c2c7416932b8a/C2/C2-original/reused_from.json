@@ -1,0 +1,15 @@
+{
+ "reused_from": "docs/evidence/m7/sha256-de27cb67c2acbedebd0c2c7416932b8a/C1/C1-gemma4-e4b",
+ "source_commit": "67b4686201a2481f23d15fda278c806322e27716",
+ "files_sha256": {
+  "run.json": "14bac7eac1feede18fa9971e23af87444d15abcf41836c9e66c34cd2850b8f9e",
+  "extraction.json": "e36b3bd527197951f4fe5320035a612020c55b48653f0e3f2e4f82e5039d9079",
+  "calls.jsonl": "332e5159f77c3a43748068c80ee5464420c218fd966e4140a2099c8632f4c475"
+ },
+ "arm_in_files": "C1-gemma4-e4b (run.json arm.name and comparison say C1; the run is used as C2 arm A C2-original)",
+ "rule": "ADR-0048 Amendment 8, decision 2: everything that affects original-language extraction is identical",
+ "check": "docs/evidence/m7/sha256-de27cb67c2acbedebd0c2c7416932b8a/C2/arm_a_reuse_check.json",
+ "check_sha256": "7f1728f381e6b94e26b8977bd3bab35e08b39b51387d54fc4ad3f937a65af7e6",
+ "cost_note": "arm A's cost is the C1 measurement of 18 Oct 2026 (not re-run): wall 181.1 s for 20 calls, VRAM peak 6,348 MiB",
+ "copied_at": "2026-11-09"
+}
