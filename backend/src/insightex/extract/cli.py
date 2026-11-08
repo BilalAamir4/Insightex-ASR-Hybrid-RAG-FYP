@@ -1,7 +1,9 @@
 """`insightex extract-eval`: the M7 evaluation harness (ADR-0048).
 
     insightex extract-eval arms                                  the configured arms and which fields are still unset
-    insightex extract-eval run --arm NAME --lecture ID --targets FILE [--windows FILE] [--out DIR] [--force]
+    insightex extract-eval run --arm NAME --lecture ID --targets FILE [--windows FILE] [--out DIR] [--force] [--fresh]
+    insightex extract-eval translate-check --lecture ID --model TAG --windows-idx 0 3 5 [--prompt-file FILE]
+                                   [--sample FILE] [--windows FILE] [--out FILE]
     insightex extract-eval measure --lecture ID --model TAG [--prompt-file FILE] [--context-block-file FILE]
                                    [--k 1 3 4 5] [--context both|none|previous] [--num-ctx 4096 8192 ...]
                                    [--windows FILE] [--out FILE]
@@ -10,6 +12,13 @@
 writes extraction.json, run.json and calls.jsonl to the run directory, which the scorer in tools/label_concepts reads.
 It refuses to run until the extraction prompt is frozen (`extract.prompt_file` and `extract.prompt_sha256`).
 Windows come from the lecture's index stage (windows.json) unless `--windows` names a file of the same shape.
+
+`--fresh` reads neither the reply cache nor the translation stage, so every call is made and the run's cost is
+measured (`cost.measured` true); replies and translations are still written.
+
+`translate-check` translates a few non-gold windows (the reserved guide windows) with a draft translation prompt
+before it is frozen, under the same call rules, and writes source text and English to a report (ADR-0048 Amendment
+8). It refuses any window in the lecture's gold sample and does not touch the translation stage.
 
 `measure` makes real calls (one per case and num_ctx) under the exclusive GPU lease with the worst-case prompt for
 each batch size k, with and without previous-window context, and reports VRAM, tokens/s, the real prompt tokens and
@@ -28,6 +37,7 @@ from insightex.core.config import ConfigError, Settings, load_settings
 from insightex.extract import harness as h
 from insightex.extract.arms import ArmConfigError, load_arms
 from insightex.extract.prompts import PromptNotFrozen
+from insightex.extract.translation import TranslationCache
 from insightex.extract.vram import VramSampler
 from insightex.jobs.gpu_lease import GpuBusy, GpuUnavailable
 from insightex.llm.ollama_client import OllamaError
@@ -54,10 +64,12 @@ def lease_factory(settings: Settings):
     return lambda purpose: lease.exclusive(purpose, settings.extract.lease_timeout_s)
 
 
-def make_context(settings: Settings, client: h.ModelClient | None = None) -> h.RunContext:
+def make_context(settings: Settings, client: h.ModelClient | None = None, fresh: bool = False) -> h.RunContext:
     return h.RunContext(settings=settings, client=client or h.OllamaModelClient(settings),
-                        cache=h.ReplyCache(settings.extract.cache_dir), lease=lease_factory(settings),
-                        sampler=VramSampler(settings.extract.vram_poll_interval_s))
+                        cache=h.ReplyCache(settings.extract.cache_dir),
+                        translations=TranslationCache(settings.extract.translation_cache_path()),
+                        lease=lease_factory(settings), sampler=VramSampler(settings.extract.vram_poll_interval_s),
+                        fresh=fresh)
 
 
 def _arms(settings: Settings, _args: argparse.Namespace) -> int:
@@ -80,7 +92,7 @@ def _run(settings: Settings, args: argparse.Namespace, client: h.ModelClient | N
     out = Path(args.out) if args.out else h.default_out_dir(settings, args.lecture, arm)
     if (out / "run.json").exists() and not args.force:
         raise h.HarnessError(f"{out} already holds a run; pass --force to replace it (the cache keeps the replies)")
-    ctx = make_context(settings, client)
+    ctx = make_context(settings, client, fresh=args.fresh)
     doc, run = h.run_arm(ctx, arm, prompts, args.lecture, windows, targets)
     h.write_evidence(out, doc, run, ctx.calls_log)
     t = run["totals"]
@@ -88,7 +100,42 @@ def _run(settings: Settings, args: argparse.Namespace, client: h.ModelClient | N
           f"the retry ({t['retried_windows']} recovered by it, {t['valid_empty_after_retry_windows']} of them empty), "
           f"{t['prompt_overflow_calls']} replies over the real budget, "
           f"{t['dropped_relations']} dangling relations dropped; {t['calls']} calls ({t['cache_hits']} from cache)")
+    if arm.input == "english":
+        print(f"translation: {t['translation_calls']} calls, {t['translation_cache_hits']} windows from the stage, "
+              f"{t['translation_retried_windows']} needed the retry, {t['translation_failed_windows']} failed")
+    print(f"cost measured: {run['cost']['measured']}")
     print(f"wrote {out}")
+    return 0
+
+
+def _translate_check(settings: Settings, args: argparse.Namespace, client: h.ModelClient | None = None) -> int:
+    import datetime as dt
+    import json
+
+    from insightex.extract.prompts import draft_text, load_frozen
+
+    x = settings.extract
+    if args.prompt_file:
+        prompt, frozen = draft_text(Path(args.prompt_file)), False
+    else:
+        prompt, frozen = load_frozen(x.translate_prompt_file, x.translate_prompt_sha256, "translation prompt"), True
+    sample = Path(args.sample) if args.sample else (h.repo_labels_dir() / args.lecture / "sample.json")
+    if not sample.is_file():
+        raise h.HarnessError(f"no gold sample at {sample}; pass --sample (the gold windows are refused)")
+    gold = {int(r["window_index"]) for r in json.loads(sample.read_text(encoding="utf-8"))["windows"]}
+    windows = lecture_windows(settings, args.lecture, args.windows)
+    ctx = make_context(settings, client, fresh=True)
+    report = h.translation_check(ctx, args.model, prompt, frozen, args.lecture, windows, args.windows_idx, gold)
+    report["gold_sample"] = str(sample)
+    stamp = dt.datetime.now(dt.UTC).strftime("%Y%m%dT%H%M%SZ")
+    out = (Path(args.out) if args.out
+           else x.evidence_dir / args.lecture / "C2" / "translate_check" / f"{prompt.sha256[:12]}_{stamp}.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    for w in report["windows"]:
+        print(f"window {w['window_index']}: {'ok' if w['english'] is not None else 'FAILED'} "
+              f"(attempt {w['attempt_used']})")
+    print(f"prompt {prompt.sha256[:12]} ({'frozen' if frozen else 'DRAFT, not frozen'}); wrote {out}")
     return 0
 
 
@@ -153,6 +200,16 @@ def main(argv: list[str], client: h.ModelClient | None = None) -> int:
     p.add_argument("--windows", help="windows.json-shaped file to use instead of the lecture's index stage")
     p.add_argument("--out", help="run directory (default: <extract.evidence_dir>/<lecture>/<comparison>/<arm>)")
     p.add_argument("--force", action="store_true", help="replace an existing run directory's files")
+    p.add_argument("--fresh", action="store_true",
+                   help="read no cached reply or stored translation, so the cost is measured (still writes them)")
+    p = sub.add_parser("translate-check", help="translate non-gold windows with a draft translation prompt")
+    p.add_argument("--lecture", required=True, help="workspace id")
+    p.add_argument("--model", required=True, help="exact Ollama tag")
+    p.add_argument("--windows-idx", type=int, nargs="+", required=True, help="window indices (not gold windows)")
+    p.add_argument("--prompt-file", help="draft translation prompt (default: the frozen one from the config)")
+    p.add_argument("--sample", help="the lecture's gold sample.json (default: tools/label_concepts/labels/<lecture>/)")
+    p.add_argument("--windows", help="windows.json-shaped file to use instead of the lecture's index stage")
+    p.add_argument("--out", help="report file (default: <evidence_dir>/<lecture>/C2/translate_check/<sha>_<time>.json)")
     p = sub.add_parser("measure", help="VRAM / num_ctx at the worst-case prompt (real Ollama calls)")
     p.add_argument("--lecture", required=True, help="workspace id")
     p.add_argument("--model", required=True, help="exact Ollama tag")
@@ -174,6 +231,8 @@ def main(argv: list[str], client: h.ModelClient | None = None) -> int:
             return _arms(settings, args)
         if args.action == "measure":
             return _measure(settings, args, client)
+        if args.action == "translate-check":
+            return _translate_check(settings, args, client)
         return _run(settings, args, client)
     except (ConfigError, ArmConfigError, PromptNotFrozen, h.HarnessError, OllamaError, OSError, ValueError,
             GpuBusy, GpuUnavailable) as exc:

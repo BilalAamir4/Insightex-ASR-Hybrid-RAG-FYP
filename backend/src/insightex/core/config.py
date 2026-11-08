@@ -343,6 +343,7 @@ class Extract(_Section):
     num_predict_per_window: int
     token_estimate_scale: dict[str, float]
     translate_num_predict: int
+    translate_max_non_latin_fraction: float
     keep_alive: int | str
     truncate: bool
     self_test_num_ctx: int
@@ -351,6 +352,7 @@ class Extract(_Section):
     evidence_dir: Path
     measure_dir: Path
     cache_dir: Path
+    translation_cache_dir: Path | None
     lease_timeout_s: float
     vram_poll_interval_s: float
 
@@ -360,10 +362,21 @@ class Extract(_Section):
     def _under_repo(cls, v: Path | None) -> Path | None:
         return _repo_relative(v)
 
-    @field_validator("cache_dir", mode="after")
+    @field_validator("cache_dir", "translation_cache_dir", mode="after")
     @classmethod
-    def _local_absolute(cls, v: Path) -> Path:
-        return _local_path(v)
+    def _local_absolute(cls, v: Path | None) -> Path | None:
+        return None if v is None else _local_path(v)
+
+    @field_validator("translate_max_non_latin_fraction", mode="after")
+    @classmethod
+    def _fraction(cls, v: float) -> float:
+        if not 0 <= v < 1:
+            raise ValueError(f"translate_max_non_latin_fraction must be in [0, 1): {v}")
+        return v
+
+    def translation_cache_path(self) -> Path:
+        """The C2 translation stage's directory: `translation_cache_dir`, else `<cache_dir>/translations`."""
+        return self.translation_cache_dir or self.cache_dir / "translations"
 
     @field_validator("token_estimate_scale", mode="after")
     @classmethod

@@ -18,6 +18,7 @@ from insightex.core.config import load_settings
 from insightex.extract import harness as h
 from insightex.extract.arms import Arm, ArmConfigError, load_arms
 from insightex.extract.prompts import PromptNotFrozen, draft_text, extraction_format, load_frozen
+from insightex.extract.translation import TranslationCache
 from insightex.extract.vram import VramSampler
 from insightex.llm.ollama_client import OutputTruncated
 
@@ -91,6 +92,7 @@ class FakeLease:
 
 
 RETRY = "<<<RETRY>>>\nPLACEHOLDER RETRY. Errors:\n{errors}\nReply with valid JSON only.\n"
+TRETRY = "<<<RETRY>>>\nPLACEHOLDER TRANSLATION RETRY. Errors:\n{errors}\n"
 
 
 def frozen(tmp_path: Path, name: str, text: str):
@@ -104,11 +106,12 @@ def setup(tmp_path):
     settings = load_settings()
     prompts = h.Prompts(frozen(tmp_path, "prompt.txt", "PLACEHOLDER EXTRACTION PROMPT\n" + RETRY),
                         frozen(tmp_path, "context.txt", "PLACEHOLDER CONTEXT BLOCK\n"),
-                        frozen(tmp_path, "translate.txt", "PLACEHOLDER TRANSLATION PROMPT\n"))
+                        frozen(tmp_path, "translate.txt", "PLACEHOLDER TRANSLATION PROMPT\n" + TRETRY))
 
-    def ctx(client=None, lease=None, s=settings):
+    def ctx(client=None, lease=None, s=settings, fresh=False):
         return h.RunContext(settings=s, client=client or FakeClient(), cache=h.ReplyCache(tmp_path / "cache"),
-                            lease=lease or FakeLease(), sampler=VramSampler(0.01, read=lambda: 1000))
+                            translations=TranslationCache(tmp_path / "translations"), lease=lease or FakeLease(),
+                            sampler=VramSampler(0.01, read=lambda: 1000), fresh=fresh)
 
     return settings, prompts, ctx
 

@@ -12,6 +12,9 @@ This module only arranges data around them:
   The template is the part of the extraction prompt file after a line that is exactly `<<<RETRY>>>`, so it is frozen
   and hashed with the prompt; a prompt file without exactly one such line, or whose template does not contain
   `{errors}` exactly once, is refused (Session 2b decision 3);
+- C2 translation (arm B): the translation prompt's instructions as the system message and `{"text": <window text>}`
+  as the user message; reply `{"english": ...}`. The translation prompt file has its own `<<<RETRY>>>` section, used
+  the same way for its one retry (an identical re-send would be a replay);
 - user message: one JSON object, `{"windows": [{"window_index", "text"}, ...]}`, plus
   `"context": [{"window_index", "precedes_window_index", "text"}, ...]` when the call has context;
 - `format`: the subset of extraction schema v1 the model fills, always `{"windows": [record, ...]}` with exactly one
@@ -64,19 +67,27 @@ RETRY_MARKER = "<<<RETRY>>>"
 ERRORS_SLOT = "{errors}"
 
 
-def split_extraction_prompt(prompt: FrozenText) -> tuple[str, str]:
-    """(instructions, retry template) of an extraction prompt file; raises PromptNotFrozen if the retry section is
-    missing or malformed."""
+def split_prompt(prompt: FrozenText, what: str) -> tuple[str, str]:
+    """(instructions, retry template) of a prompt file with a retry section (the extraction prompt and the C2
+    translation prompt); raises PromptNotFrozen if the retry section is missing or malformed."""
     lines = prompt.text.split("\n")
     marks = [i for i, line in enumerate(lines) if line.strip() == RETRY_MARKER]
     if len(marks) != 1:
-        raise PromptNotFrozen(f"the extraction prompt at {prompt.path} needs exactly one line `{RETRY_MARKER}` "
+        raise PromptNotFrozen(f"the {what} at {prompt.path} needs exactly one line `{RETRY_MARKER}` "
                               f"followed by the retry template (found {len(marks)})")
     instructions = "\n".join(lines[:marks[0]]).rstrip("\n") + "\n"
     template = "\n".join(lines[marks[0] + 1:]).strip("\n")
     if template.count(ERRORS_SLOT) != 1:
         raise PromptNotFrozen(f"the retry template in {prompt.path} must contain {ERRORS_SLOT} exactly once")
     return instructions, template
+
+
+def split_extraction_prompt(prompt: FrozenText) -> tuple[str, str]:
+    return split_prompt(prompt, "extraction prompt")
+
+
+def split_translation_prompt(prompt: FrozenText) -> tuple[str, str]:
+    return split_prompt(prompt, "translation prompt")
 
 
 def errors_text(errors: list[str], max_chars: int) -> str:
@@ -93,9 +104,9 @@ def errors_text(errors: list[str], max_chars: int) -> str:
 
 
 def retry_messages(messages: list[dict[str, str]], prompt: FrozenText, errors: list[str],
-                   max_chars: int) -> list[dict[str, str]]:
-    """The first attempt's messages plus the retry template carrying its validation errors."""
-    _, template = split_extraction_prompt(prompt)
+                   max_chars: int, what: str = "extraction prompt") -> list[dict[str, str]]:
+    """The first attempt's messages plus the retry template (of `prompt`) carrying its validation errors."""
+    _, template = split_prompt(prompt, what)
     return [*messages, {"role": "user", "content": template.replace(ERRORS_SLOT, errors_text(errors, max_chars))}]
 
 
@@ -160,7 +171,9 @@ def extraction_format(target_indices: list[int]) -> dict[str, Any]:
 
 
 def translation_messages(prompt: FrozenText, text: str) -> list[dict[str, str]]:
-    return [{"role": "system", "content": prompt.text},
+    """System message: the translation prompt's instructions (the part before `<<<RETRY>>>`); user: the window text."""
+    instructions, _ = split_translation_prompt(prompt)
+    return [{"role": "system", "content": instructions},
             {"role": "user", "content": json.dumps({"text": text}, ensure_ascii=False)}]
 
 

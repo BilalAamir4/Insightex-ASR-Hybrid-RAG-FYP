@@ -9,8 +9,11 @@ One run:
    the previous grid window (`window_index - 1`) of its first window, and of any later window whose predecessor is
    not the window before it in the call (Amendment 2). The first window of the lecture has no context.
 3. Under the exclusive GPU lease (ADR-0033), after unloading every resident Ollama model so the VRAM baseline is
-   clean: English input is translated first (one call per window, by the arm's model, cached per window); then one
-   extraction call per planned call (ADR-0002 contract through `ollama_client.chat_raw`, JSON Schema `format`).
+   clean: English input is translated first (one call per window, by the arm's model, through the translation stage
+   in `translation.py`: a stored translation is reused, otherwise the model is called, the reply is checked, and a
+   failed check gets one retry with the translation prompt's frozen retry template); then one extraction call per
+   planned call (ADR-0002 contract through `ollama_client.chat_raw`, JSON Schema `format`). The VRAM sampler records
+   a peak per phase (self_test, translation, extraction) as well as the run's peak.
 4. Per target window: relations whose head or tail is not a concept label of the window are dropped and counted;
    the result is a full schema v1 record, checked by `check_window_record`. If any window of a call is invalid, the
    call is retried once in the same unit (a single window stays single, a batch stays a batch, with the same
@@ -23,10 +26,13 @@ One run:
    has the same output allowance in every arm (ADR-0048 decision 8; Session 2b decision 1).
 5. The model is unloaded in a `finally` block.
 
-Cache. Every model reply is cached under `extract.cache_dir`, keyed by the sha256 of the full request (model tag and
-digest, messages, `format`, options), the harness version and the attempt number, so any change that can change
-output (prompt, context block, translation, window text, batch, model, num_ctx, num_predict, temperature, seed)
-changes the key. Validation is re-applied to cached replies on every run.
+Cache. Every extraction reply is cached under `extract.cache_dir`, keyed by the sha256 of the full request (model
+tag and digest, messages, `format`, options), the harness version and the attempt number, so any change that can
+change output (prompt, context block, translation, window text, batch, model, num_ctx, num_predict, temperature,
+seed) changes the key. Validation is re-applied to cached replies on every run. Translations are not in this cache:
+they are their own stage (`translation.py`), keyed by window text sha256, model digest and translation prompt sha256
+only (ADR-0048 section 8). `RunContext.fresh` (`extract-eval run --fresh`) reads neither cache, so every call is made
+and the run's cost is measured; replies and translations are still written.
 
 Evidence, in the run directory (default `<extract.evidence_dir>/<lecture_id>/<comparison>/<arm>/`):
 `extraction.json` (schema v1, producer.kind = model, valid windows only), `run.json` (per-window status, per-call
@@ -60,15 +66,17 @@ from insightex.extract.prompts import (
     retry_messages,
     sha256_text,
     split_extraction_prompt,
+    split_translation_prompt,
     translation_messages,
 )
+from insightex.extract.translation import TranslationCache, check_translation, translation_key
 from insightex.extract.vram import VramSampler
 from insightex.llm import ollama_client
 from insightex.llm.ollama_client import OutputTruncated, PromptTooLong, scaled_estimate
 
 log = logging.getLogger(__name__)
 
-HARNESS_VERSION = 7  # 7: run-start self-test, estimate warns only; 6: truncate false; 5: post-call overflow check; 4: keep_alive per call; 3: retry with errors; 2: num_predict/window. Bump when request building or reply handling changes in a way that changes output
+HARNESS_VERSION = 8  # 8: translation stage keyed by text/model/prompt only, translation retry with errors, English check, --fresh; 7: run-start self-test, estimate warns only; 6: truncate false; 5: post-call overflow check; 4: keep_alive per call; 3: retry with errors; 2: num_predict/window. Bump when request building or reply handling changes in a way that changes output
 RUN_VERSION = 1  # run.json layout (tools/label_concepts/scoring.py RUN_VERSION)
 RETRIES = 1  # ADR-0048 section 7: "valid after one retry"; a gate rule, not a tunable
 
@@ -130,9 +138,15 @@ def load_prompts(settings: Settings, arm: Arm) -> Prompts:
         extraction=extraction,
         context_block=(load_frozen(x.context_block_file, x.context_block_sha256, "context block")
                        if arm.context == "previous" else None),
-        translation=(load_frozen(x.translate_prompt_file, x.translate_prompt_sha256, "translation prompt")
+        translation=(_translation_prompt(load_frozen(x.translate_prompt_file, x.translate_prompt_sha256,
+                                                     "translation prompt"))
                      if arm.input == "english" else None),
     )
+
+
+def _translation_prompt(prompt: FrozenText) -> FrozenText:
+    split_translation_prompt(prompt)  # its retry template is part of the freeze; refuse a prompt without it
+    return prompt
 
 
 # -- planning ------------------------------------------------------------------------------------------------------
@@ -343,11 +357,13 @@ class RunContext:
     settings: Settings
     client: ModelClient
     cache: ReplyCache
+    translations: TranslationCache
     lease: Callable[[str], AbstractContextManager[Any]]
     sampler: VramSampler
     clock: Callable[[], float] = time.monotonic
     calls_log: list[dict[str, Any]] = field(default_factory=list)
     self_test: dict[str, Any] | None = None
+    fresh: bool = False  # read no cache (reply or translation): every call is made, so the cost is measured
 
 
 def extraction_num_predict(settings: Settings, n_targets: int) -> int:
@@ -397,38 +413,39 @@ def prompt_overflow(metrics: dict[str, Any] | None, num_predict: int, num_ctx: i
             f"> num_ctx {num_ctx}; the reply is not used")
 
 
-def _cached_call(ctx: RunContext, kind: str, model: str, digest: str, messages: list[dict], fmt: dict,
-                 num_predict: int, attempt: int, label: dict[str, Any]) -> dict[str, Any]:
-    request = {"model": model, "model_digest": digest, "messages": messages, "format": fmt,
-               "options": _options(ctx.settings, num_predict)}
-    key = ctx.cache.key(kind, request, attempt)
-    entry = ctx.cache.get(kind, key)
-    hit = entry is not None
-    if entry is None:
-        t0 = ctx.clock()
-        with PsWatch(ctx.client, model, ctx.settings.extract.vram_poll_interval_s) as watch:
-            try:
-                content, metrics = ctx.client.chat(model, messages, fmt, ctx.settings.extract.num_ctx, num_predict)
-                error = None
-            except OutputTruncated as e:
-                content, metrics, error = None, {"eval_count": e.eval_count, "done_reason": "length"}, str(e)
-            except PromptTooLong as e:  # Ollama refused it (truncate false): an invalid attempt, recorded with counts
-                content, error = None, str(e)
-                metrics = {"prompt_too_long": {"prompt_tokens": e.prompt_tokens, "num_ctx": e.num_ctx}}
-        entry = {"key": key, "kind": kind, "attempt": attempt, "content": content, "error": error,
-                 "metrics": metrics, "wall_s": ctx.clock() - t0, "ps": watch.seen,
-                 "created_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")}
-        ctx.cache.put(kind, key, entry)
+def _model_call(ctx: RunContext, kind: str, model: str, messages: list[dict], fmt: dict, num_predict: int,
+                attempt: int, key: str | None) -> dict[str, Any]:
+    """One real call under the ADR-0002 contract and ADR-0049 rules (truncate false, keep_alive from the config),
+    with `ollama ps` read during it. Truncation and a refused over-long prompt are invalid attempts, not errors."""
+    t0 = ctx.clock()
+    with PsWatch(ctx.client, model, ctx.settings.extract.vram_poll_interval_s) as watch:
+        try:
+            content, metrics = ctx.client.chat(model, messages, fmt, ctx.settings.extract.num_ctx, num_predict)
+            error = None
+        except OutputTruncated as e:
+            content, metrics, error = None, {"eval_count": e.eval_count, "done_reason": "length"}, str(e)
+        except PromptTooLong as e:  # Ollama refused it (truncate false): an invalid attempt, recorded with counts
+            content, error = None, str(e)
+            metrics = {"prompt_too_long": {"prompt_tokens": e.prompt_tokens, "num_ctx": e.num_ctx}}
+    return {"key": key, "kind": kind, "attempt": attempt, "content": content, "error": error,
+            "metrics": metrics, "wall_s": ctx.clock() - t0, "ps": watch.seen, "harness_version": HARNESS_VERSION,
+            "created_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")}
+
+
+def _checked(ctx: RunContext, entry: dict[str, Any], kind: str, messages: list[dict], num_predict: int,
+             attempt: int, hit: bool, label: dict[str, Any]) -> dict[str, Any]:
+    """The estimate warning and the post-call overflow check (re-applied to cached replies too), then the call log."""
     # the estimate is a warning only (ADR-0049 Amendment 2): recorded per call, it never refuses a call
-    est = scaled_estimate(messages, ctx.settings.extract.estimate_scale(model))
+    est = scaled_estimate(messages, ctx.settings.extract.estimate_scale(label["model"]))
     estimate = {"prompt_tokens": est, "over_budget": est + num_predict > ctx.settings.extract.num_ctx}
-    # re-applied to cached replies too: a reply over the real budget is never parsed or scored
+    # a reply over the real budget is never parsed or scored
     overflow = prompt_overflow(entry["metrics"], num_predict, ctx.settings.extract.num_ctx)
     if overflow is not None:
         entry = {**entry, "content": None, "error": overflow, "unused_content": entry["content"],
                  "prompt_overflow": {"prompt_eval_count": entry["metrics"]["prompt_eval_count"],
                                      "num_predict": num_predict, "num_ctx": ctx.settings.extract.num_ctx}}
-    ctx.calls_log.append({**label, "kind": kind, "attempt": attempt, "cache_hit": hit, "key": key,
+    log_label = {k: v for k, v in label.items() if k != "model"}
+    ctx.calls_log.append({**log_label, "kind": kind, "attempt": attempt, "cache_hit": hit, "key": entry["key"],
                           "content": entry["content"], "error": entry["error"], "metrics": entry["metrics"],
                           "wall_s": entry["wall_s"], "ps": entry["ps"], "estimate": estimate,
                           **({"prompt_overflow": entry["prompt_overflow"], "unused_content": entry["unused_content"]}
@@ -436,24 +453,67 @@ def _cached_call(ctx: RunContext, kind: str, model: str, digest: str, messages: 
     return entry
 
 
+def _cached_call(ctx: RunContext, kind: str, model: str, digest: str, messages: list[dict], fmt: dict,
+                 num_predict: int, attempt: int, label: dict[str, Any]) -> dict[str, Any]:
+    request = {"model": model, "model_digest": digest, "messages": messages, "format": fmt,
+               "options": _options(ctx.settings, num_predict)}
+    key = ctx.cache.key(kind, request, attempt)
+    entry = None if ctx.fresh else ctx.cache.get(kind, key)
+    hit = entry is not None
+    if entry is None:
+        entry = _model_call(ctx, kind, model, messages, fmt, num_predict, attempt, key)
+        ctx.cache.put(kind, key, entry)
+    return _checked(ctx, entry, kind, messages, num_predict, attempt, hit, {**label, "model": model})
+
+
 def translate_windows(ctx: RunContext, arm: Arm, digest: str, prompt: FrozenText, indices: list[int],
-                      grid: dict[int, WindowText]) -> dict[int, str | None]:
-    """Per-window English (C2 arm B), made by the arm's model; one retry; None when both attempts fail."""
+                      grid: dict[int, WindowText], store: bool = True
+                      ) -> tuple[dict[int, str | None], list[dict[str, Any]]]:
+    """Per-window English (C2 arm B), made by the arm's model through the translation stage (ADR-0048 section 8,
+    Amendment 8). A stored translation (same window text, model digest and prompt) is reused unless `ctx.fresh`.
+    Otherwise: one call; a reply that fails `check_translation` gets one retry carrying its errors in the prompt's
+    frozen retry template; a window failing twice is None (arm B fails closed on it) and is not stored.
+    `store=False` (the draft-prompt check) neither reads nor writes the stage.
+    Returns (english per window, one status record per window for run.json)."""
+    x = ctx.settings.extract
     out: dict[int, str | None] = {}
+    status: list[dict[str, Any]] = []
     for i in indices:
-        messages = translation_messages(prompt, grid[i].text)
+        text_sha = sha256_text(grid[i].text)
+        key = translation_key(text_sha, digest, prompt.sha256)
+        stored = None if (ctx.fresh or not store) else ctx.translations.get(key)
+        if stored is not None:
+            out[i] = stored["english"]
+            ctx.calls_log.append({"window_index": i, "kind": "translate", "attempt": stored["attempt_used"],
+                                  "cache_hit": True, "translation_stage": True, "key": key, "content": None,
+                                  "error": None, "metrics": stored["call"]["metrics"], "wall_s": 0.0, "ps": None,
+                                  "estimate": None})
+            status.append({"window_index": i, "text_sha256": text_sha, "key": key, "from_cache": True,
+                           "valid": True, "attempt_used": stored["attempt_used"], "errors": []})
+            continue
         out[i] = None
+        first = translation_messages(prompt, grid[i].text)
+        sent = first
+        errors: list[list[str]] = []
+        attempt_used = None
         for attempt in range(1, RETRIES + 2):
-            entry = _cached_call(ctx, "translate", arm.model, digest, messages, TRANSLATION_FORMAT,
-                                 ctx.settings.extract.translate_num_predict, attempt, {"window_index": i})
-            try:
-                english = json.loads(entry["content"])["english"] if entry["content"] is not None else None
-            except (ValueError, KeyError, TypeError):
-                english = None
-            if isinstance(english, str) and english.strip():
-                out[i] = english
+            entry = _model_call(ctx, "translate", arm.model, sent, TRANSLATION_FORMAT, x.translate_num_predict,
+                                attempt, key)
+            entry = _checked(ctx, entry, "translate", sent, x.translate_num_predict, attempt, False,
+                             {"window_index": i, "model": arm.model})
+            english, errs = check_translation(entry["content"], entry["error"], x.translate_max_non_latin_fraction)
+            errors.append(errs)
+            if english is not None:
+                out[i], attempt_used = english, attempt
+                if store:
+                    ctx.translations.put(window_text_sha256=text_sha, model=arm.model, model_digest=digest,
+                                         prompt_sha256=prompt.sha256, english=english, attempt_used=attempt,
+                                         call=entry)
                 break
-    return out
+            sent = retry_messages(first, prompt, errs, x.retry_error_chars, "translation prompt")
+        status.append({"window_index": i, "text_sha256": text_sha, "key": key, "from_cache": False,
+                       "valid": out[i] is not None, "attempt_used": attempt_used, "errors": errors})
+    return out, status
 
 
 def run_arm(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, windows: list[WindowText],
@@ -474,20 +534,24 @@ def run_arm(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, window
     systems: set[str] = set()
     t_start = ctx.clock()
     translation_wall = 0.0
+    translations: list[dict[str, Any]] = []
     with ctx.lease(f"m7-eval:{arm.name}"):
         for m in ctx.client.resident():  # clean VRAM baseline: the lease unloads only the configured model
             ctx.client.unload(m["name"])
         ctx.sampler.start()
         try:
             # aborts the run before any real call if Ollama does not refuse it; inside try so the model is unloaded
+            ctx.sampler.phase("self_test")
             ctx.self_test = truncate_self_test(ctx, arm.model)
             texts = {i: grid[i].text for i in needed}
             if arm.input == "english":
                 assert prompts.translation is not None
+                ctx.sampler.phase("translation")
                 t0 = ctx.clock()
-                english = translate_windows(ctx, arm, digest, prompts.translation, needed, grid)
+                english, translations = translate_windows(ctx, arm, digest, prompts.translation, needed, grid)
                 translation_wall = ctx.clock() - t0
                 texts = english  # type: ignore[assignment]
+            ctx.sampler.phase("extraction")
             for plan in plans:
                 lost = [i for i in (*plan.targets, *(c for c, _ in plan.context)) if texts.get(i) is None]
                 if lost:
@@ -536,14 +600,14 @@ def run_arm(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, window
     if doc_errors:  # every record was validated on its own; a document error is a harness bug
         raise HarnessError("extraction document is invalid: " + "; ".join(doc_errors[:5]))
     run = _run_record(ctx, arm, prompts, lecture_id, targets, plans, digest, outcomes, attempts_used, errors,
-                      sorted(systems), wall, translation_wall)
+                      sorted(systems), wall, translation_wall, translations)
     return doc, run
 
 
 def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, targets: list[int],
                 plans: list[CallPlan], digest: str, outcomes: dict[int, WindowOutcome],
                 attempts_used: dict[int, int | None], errors: dict[int, list[list[str]]], systems: list[str],
-                wall: float, translation_wall: float) -> dict[str, Any]:
+                wall: float, translation_wall: float, translations: list[dict[str, Any]]) -> dict[str, Any]:
     calls = ctx.calls_log
     fresh = [c for c in calls if not c["cache_hit"]]
     extract_calls = [c for c in calls if c["kind"] == "extract"]
@@ -577,6 +641,9 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
                     "num_predict_rule": "num_predict_per_window x target windows in the call",
                     "token_estimate_scale": ctx.settings.extract.estimate_scale(arm.model)},
         "translate_num_predict": ctx.settings.extract.translate_num_predict if arm.input == "english" else None,
+        "translate_max_non_latin_fraction": (ctx.settings.extract.translate_max_non_latin_fraction
+                                             if arm.input == "english" else None),
+        "fresh": ctx.fresh,
         "truncate_self_test": ctx.self_test,
         "budget_rule": "estimate is a warning only; Ollama refuses prompts longer than num_ctx (truncate false) and "
                        "the post-call check rejects prompt + num_predict > num_ctx (ADR-0049 Amendment 2)",
@@ -586,6 +653,7 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
         "targets": sorted(targets),
         "plan": [{"targets": list(p.targets), "context": [list(c) for c in p.context]} for p in plans],
         "windows": windows,
+        "translations": translations,
         "totals": {
             "windows": len(targets),
             "invalid_windows": sum(1 for w in windows if not w["valid"]),
@@ -597,6 +665,10 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
             "estimate_over_budget_calls": sum(1 for c in calls if (c.get("estimate") or {}).get("over_budget")),
             "dropped_relations": sum(w["dropped_relations"] for w in windows),
             "calls": len(calls), "cache_hits": len(calls) - len(fresh),
+            "translation_calls": sum(1 for c in calls if c["kind"] == "translate" and not c["cache_hit"]),
+            "translation_cache_hits": sum(1 for t in translations if t["from_cache"]),
+            "translation_failed_windows": sum(1 for t in translations if not t["valid"]),
+            "translation_retried_windows": sum(1 for t in translations if t["attempt_used"] == 2),
         },
         "cost": {
             "measured": not (len(calls) - len(fresh)),  # a run served from the cache did not load the model
@@ -608,7 +680,59 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
             "vram": ctx.sampler.report(),
         },
         "calls": [{k: c[k] for k in ("kind", "attempt", "cache_hit", "key", "error", "metrics", "wall_s", "ps")}
+                  | {k: c[k] for k in ("translation_stage",) if k in c}
                   | {k: c[k] for k in ("targets", "context", "window_index") if k in c} for c in calls],
+    }
+
+
+def translation_check(ctx: RunContext, model: str, prompt: FrozenText, prompt_frozen: bool, lecture_id: str,
+                      windows: list[WindowText], indices: list[int], gold: set[int]) -> dict[str, Any]:
+    """Translate a few windows that are NOT in the gold sample (the reserved guide windows) with a draft or frozen
+    translation prompt, so its English can be checked before the freeze (ADR-0048 Amendment 8). Same call rules as a
+    run (lease, resident models unloaded, self-test, truncate false, keep_alive, post-call check, English check and
+    one retry); the translation stage is neither read nor written. Refuses any gold window."""
+    grid = {w.window_index: w for w in windows}
+    bad = sorted(set(indices) & gold)
+    if bad:
+        raise HarnessError(f"window(s) {bad} are gold windows; translations of gold windows are not shown before the "
+                           "C2 adjudication decisions are frozen (ADR-0048 Amendment 8)")
+    missing = [i for i in indices if i not in grid]
+    if missing:
+        raise HarnessError(f"windows not in the grid: {missing}")
+    split_translation_prompt(prompt)
+    arm = Arm(name="translate-check", comparison="C2", model=model, input="english", batch_k=1, context="none")
+    digest = ctx.client.digest(model)
+    t0 = ctx.clock()
+    with ctx.lease("m7-eval:translate-check"):
+        for m in ctx.client.resident():
+            ctx.client.unload(m["name"])
+        ctx.sampler.start()
+        try:
+            ctx.sampler.phase("self_test")
+            ctx.self_test = truncate_self_test(ctx, model)
+            ctx.sampler.phase("translation")
+            english, status = translate_windows(ctx, arm, digest, prompt, sorted(indices), grid, store=False)
+        finally:
+            ctx.sampler.stop()
+            try:
+                ctx.client.unload(model)
+            except Exception as e:  # noqa: BLE001
+                log.warning("unload of %s failed: %s", model, e)
+    by_index = {st["window_index"]: st for st in status}
+    return {
+        "lecture_id": lecture_id, "model": model, "model_digest": digest, "harness_version": HARNESS_VERSION,
+        "created_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "prompt_file": str(prompt.path), "prompt_sha256": prompt.sha256, "prompt_frozen": prompt_frozen,
+        "options": _options(ctx.settings, ctx.settings.extract.translate_num_predict),
+        "translate_max_non_latin_fraction": ctx.settings.extract.translate_max_non_latin_fraction,
+        "truncate_self_test": ctx.self_test,
+        "windows": [{"window_index": i, "start_s": grid[i].start_s, "end_s": grid[i].end_s,
+                     "source_text": grid[i].text, "english": english[i],
+                     "attempt_used": by_index[i]["attempt_used"], "errors": by_index[i]["errors"]}
+                    for i in sorted(indices)],
+        "cost": {"wall_s": ctx.clock() - t0, "vram": ctx.sampler.report()},
+        "calls": [{k: c.get(k) for k in ("window_index", "attempt", "error", "metrics", "wall_s", "ps")}
+                  for c in ctx.calls_log],
     }
 
 
@@ -619,6 +743,13 @@ def write_evidence(out_dir: Path, doc: dict[str, Any], run: dict[str, Any], call
     with (out_dir / "calls.jsonl").open("w", encoding="utf-8") as f:
         for c in calls:
             f.write(json.dumps(c, ensure_ascii=False) + "\n")
+
+
+def repo_labels_dir() -> Path:
+    """tools/label_concepts/labels in the repo checkout (where each lecture's gold sample.json lives)."""
+    from insightex.core.config import repo_root
+
+    return repo_root() / "tools" / "label_concepts" / "labels"
 
 
 def default_out_dir(settings: Settings, lecture_id: str, arm: Arm) -> Path:
