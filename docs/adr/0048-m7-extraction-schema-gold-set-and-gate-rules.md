@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); all at the end
+Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); 2026-11-09, Amendment 8 (C2: gold v2.1 only, reuse of arm A, translations shown for prompt approval, the English check); all at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -336,3 +336,30 @@ Decided by Bilal on 2026-10-22, after the C1 adjudication decisions against gold
 
 - **The leak is reported, not hidden.** Gold v2.1 contains one concept added after seeing model output. That is the leak of model output into gold that section 4's blind adjudication is meant to prevent. Scoring under both v2 and v2.1 and requiring the same decision limits its effect on C1, and it is listed as a C1 limitation.
 - **Scope.** The amendment applies to the Day 4 gold only.
+
+## Amendment 8 (2026-11-09): comparison C2, gold v2.1 only, reuse of arm A, and the translations shown for prompt approval
+
+Decided by Bilal on 2026-11-09, before any C2 run, and before any translation of a gold window existed. The text above and Amendments 1 to 7 are kept; where they conflict with this amendment, this amendment applies.
+
+**Context.** C2 (section 8) compares Gemma 4 E4B (ADR-0050) on the original transcript (arm A, kept on a tie) with Gemma on a per-window English translation (arm B). Neither the text above nor Amendment 7 says which gold version scores C2. Arm A has exactly the configuration of the C1 Gemma run (`C1/C1-gemma4-e4b/`, measured 18 Oct 2026), so it may not need to run again. The translation prompt needs a check that its English is faithful before it is frozen, and ADR-0041 says translations are never shown to users.
+
+**Decision.**
+
+1. **C2 is scored against gold v2.1 only** (`gold_v2_1.json`, sha256 `53248bbb4187c84737dc1fd48867d96eec5ef39c55fd887a2fbc0b6310ea7d2c`, tag `m7-day4-gold-v2.1-frozen`), with the decisions in `adjudications_v2_1.json`, extended by the C2 sheet. Gold v2 is not used for C2, and no C2 sheet is made against it.
+   - **Why the C1 rule is not repeated.** C1 was scored against both versions because the window 16 concept was found during C1's own adjudication. That concept is now part of the frozen gold, and C1 gave the same decision with and without it.
+   - **Limitation, recorded.** Gold v2.1 has one concept (window 16, "Hardware Limitation") added after seeing C1 model output (Amendment 7). Arm A is the C1 Gemma run, so that addition was made after seeing output of one of C1's arms (the sheet did not show which arm). C2 inherits this limitation.
+2. **Arm A is the C1 Gemma run if everything that affects original-language extraction is identical.** That means:
+   - the model digest and the Ollama version;
+   - the extraction prompt's sha256 and the system message's sha256;
+   - the options (`num_ctx`, `num_predict`, temperature, seed, think, `keep_alive`, `truncate`) and the JSON Schema `format`;
+   - the text of each target window;
+   - the code that builds the extraction request and parses and validates the reply.
+
+   A `HARNESS_VERSION` change does not count as a difference by itself. The check is recorded in `docs/evidence/m7/<lecture>/C2/arm_a_reuse_check.md`, and it includes rebuilding every target's extraction request with the current code and matching its key against C1's `calls.jsonl`. If it matches, the C1 run files are copied byte for byte into `C2/C2-original/`, with `reused_from.json` (source path, commit, sha256 of each file), and arm A's cost is the C1 measurement. If anything differs, arm A is re-run with no cached replies.
+3. **Translations of the reserved windows 0, 3 and 5 are shown to Bilal** to check, before the translation prompt is frozen, that its English is faithful and complete. Those windows are not in the gold set. This is a development check only; ADR-0041 is unchanged, and no translation is shown to users. No translation of a gold window is shown before the C2 adjudication decisions are frozen.
+4. **The English check is part of a translation's validity.** A translation reply is invalid, and goes to the one retry, if it is blank, unparsable, or if more than `extract.translate_max_non_latin_fraction` (0.1) of its letters are Arabic-script or Devanagari. A window whose translation fails twice is invalid for arm B (fail closed).
+
+**Consequences.**
+
+- C2's adopt/tie decision rests on one gold version, so it has no cross-version check like C1's.
+- Arm A's cost and outputs are from 18 Oct 2026, not re-run, and are labelled as such in the C2 report.
