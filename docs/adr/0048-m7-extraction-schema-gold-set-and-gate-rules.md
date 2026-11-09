@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); 2026-11-09, Amendment 8 (C2: gold v2.1 only, reuse of arm A, translations shown for prompt approval, the English check) and Amendment 9 (C3: gold v2.1 only, reuse of arm A, the unchanged prompt, the k check); all at the end
+Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); 2026-11-09, Amendment 8 (C2: gold v2.1 only, reuse of arm A, translations shown for prompt approval, the English check) Amendment 9 (C3: gold v2.1 only, reuse of arm A, the unchanged prompt, the k check) and Amendment 10 (C4: gold v2.1 only, reuse of arm A, the context block and its freeze, the budget check, blinding of shell output); all at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -395,3 +395,36 @@ Decided by Bilal on 2026-11-09, before any C3 run. The text above and Amendments
 - C3's decision rests on one gold version, as C2's does.
 - Arm A's cost and outputs are from 18 Oct 2026, not re-run.
 - A batch retry repeats the whole batch (ADR-0049 decision 4). An invalid window can therefore cost arm B a call of k windows.
+
+## Amendment 10 (2026-11-09): comparison C4, gold v2.1 only, reuse of arm A, the context block and its freeze, the budget check, and blinding of shell output
+
+Decided by Bilal on 2026-11-09, before any C4 run. The text above and Amendments 1 to 9 are kept; where they conflict with this amendment, this amendment applies.
+
+**Context.** C4 (Amendment 2) compares window-only input (arm A, kept on a tie) with the window plus the previous grid window as read-only context (arm B), on the C1 to C3 winners: Gemma 4 E4B (ADR-0050), original-language input (ADR-0051), one window per call (ADR-0052). Arm A has exactly the configuration of the C1 Gemma run. During C3, raw arm B output for some windows was seen on screen before the decisions were made (ADR-0052, limitation 4).
+
+**Decision.**
+
+1. **C4 is scored against gold v2.1 only,** with the decisions in `adjudications_v2_1.json` (frozen at tag `m7-c3-adjudications-v2.1-frozen`), extended by a blind sheet pooled over both C4 arms (section 4). The reasons and the limitation are those of Amendment 8, decision 1.
+2. **Arm A is the C1 Gemma run** if the identity rule of Amendment 8, decision 2 holds. The check is in `docs/evidence/m7/<lecture>/C4/arm_a_reuse_check.md`, and the copy goes to `C4/C4-window/` with `reused_from.json`. Otherwise arm A is re-run with no cached replies.
+3. **Arm B's prompt is the frozen extraction prompt plus one fixed context block** (Amendment 2), `config/prompts/m7_context_block_v1.txt`.
+   - **Freeze:** the block is frozen (`extract.context_block_file` and `context_block_sha256`, tag `m7-c4-context-block-frozen`) before any C4 run.
+   - **Hashes recorded:** the sha256 of arm B's full system message (prompt instructions, a blank line, then the block) is recorded in the C4 evidence and in arm B's `run.json`.
+   - **Section 2 and C1–C3:** the extraction prompt file and its hash (`c7e061fc…4648`) do not change, and every call without context keeps its system message (`f2d8742f…`). Section 2's re-run rule applies to a change of the frozen prompt, so C1 to C3 are not re-run.
+   - **The block is its own freeze:** no change after seeing C4 output. A change would be a new freeze, and only C4 would be re-run.
+   - **If C4 adopts context,** the final configuration's prompt is prompt plus block, and the held-out lecture runs with it.
+4. **The block deliberately overrides one sentence of the frozen prompt for context calls:** an unnamed concept may be identified from the context, not only from the window's own text. This mirrors the labelling guide's "Unnamed concepts" rule, which is what C4 tests (Amendment 2). Every other rule still applies to the target window alone. A concept taken from the context counts as a false positive like any other.
+5. **No reply test before the freeze.** The block is checked only for gold-text overlap (no shared 3-, 4- or 5-word sequence with the 20 gold windows) and by the budget check. No model output for any window is produced before the run.
+6. **Budget check:** `extract-eval measure --model gemma4:e4b --k 1 --context both`, with the block, at `num_ctx` 8192. The worst case is the longest window with the longest previous window, sent as a retry call with errors at the cap.
+   - **To pass:** its real `prompt_eval_count` plus 1,024 fits in 8,192; `ollama ps` shows 100% GPU; its VRAM above baseline is consistent with Gemma's earlier runs (ADR-0049 decision 6); and the estimate gate does not refuse it.
+   - **If it fails,** C4 is not run, is reported as not run, and window-only input stays (Amendment 2).
+7. **Blinding of shell output.** Until the C4 decisions are frozen:
+   - run results are read only through a script that prints a fixed list of count, cost and metric fields (`docs/evidence/m7/scripts/validity_cost.py`), never `content`, `extraction.json` or `calls.jsonl`;
+   - the sheet is reported by its item counts only;
+   - the run folders are not opened.
+8. **Carry-over is reported, not decided on.** The C4 report counts the arm B concepts that string-match a gold concept of the previous window but no gold concept of the target window (Amendment 2, "watch for carry-over"). It is a secondary figure.
+
+**Consequences.**
+
+- C4's decision rests on one gold version, as C2's and C3's do.
+- Arm A's cost and outputs are from 18 Oct 2026, not re-run.
+- Windows 1, 4 and 6 have the reserved windows 0, 3 and 5 as context. The frozen prompt's worked examples are English glosses of those reserved windows. So for these three targets, the model sees both a gloss of the context window (in the examples) and its original text (as context). This is recorded, not changed.

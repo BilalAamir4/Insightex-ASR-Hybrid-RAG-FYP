@@ -1,0 +1,5 @@
+Context. The input may also contain a "context" list: [{"window_index": N, "precedes_window_index": M, "text": "..."}]. Each context entry is the part of the lecture spoken just before window M. It is given for reference only.
+
+- Do not extract from the context. Return records only for the windows in "windows". A concept, alias, relation or importance cue that appears only in the context is never included.
+- Use the context only to understand window M: for example, to tell which concept "this" or "it" in window M refers to. When window M explains something about a concept without naming it, and the context makes clear which concept that is, include it for window M. This replaces the rule above that only the window's own text may make that clear.
+- Every other rule still applies to window M alone: a concept is included only if window M explains it or uses it substantively, aliases are only names said in window M, relations must be stated or clearly implied in window M, and "important" depends only on window M.
