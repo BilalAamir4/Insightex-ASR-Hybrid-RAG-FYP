@@ -321,8 +321,13 @@ def test_targets_from_sample_manifest_are_checked_against_the_grid(tmp_path):
 def test_shipped_arms_file_loads(tmp_path):
     arms = load_arms(load_settings().extract.arms_file)
     assert {a.comparison for a in arms.values()} == {"C1", "C2", "C3", "C4"}
-    assert not arms["C1-qwen3.5"].missing() and arms["C3-batch"].missing()
-    assert arms["C4-previous"].context == "previous"
+    # every field is set once C1-C3 are decided (ADR-0050 to ADR-0052); C4 runs on their winners
+    assert all(not a.missing() for a in arms.values())
+    assert arms["C3-batch"].batch_k == 5 and arms["C4-previous"].context == "previous"
+    assert {(a.model, a.input, a.batch_k) for a in arms.values() if a.comparison == "C4"} == {("gemma4:e4b", "original", 1)}
+    unset = tmp_path / "unset.yaml"
+    unset.write_text("arms:\n  - {name: x, comparison: C3, model: m, input: original, batch_k: null, context: none}\n")
+    assert load_arms(unset)["x"].missing() == ["batch_k"]
     bad = tmp_path / "arms.yaml"
     bad.write_text("arms:\n  - {name: ../x, comparison: C1, model: m, input: original, batch_k: 1, context: none}\n")
     with pytest.raises(ArmConfigError):
