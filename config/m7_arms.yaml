@@ -17,7 +17,7 @@ arms:
   - {name: C1-gemma4-e4b, comparison: C1, model: "gemma4:e4b", input: original, batch_k: 1, context: none}
   - {name: C2-original, comparison: C2, model: "gemma4:e4b", input: original, batch_k: 1, context: none}
   - {name: C2-english, comparison: C2, model: "gemma4:e4b", input: english, batch_k: 1, context: none}
-  - {name: C3-single, comparison: C3, model: "gemma4:e4b", input: null, batch_k: 1, context: none}
-  - {name: C3-batch, comparison: C3, model: "gemma4:e4b", input: null, batch_k: null, context: none}
-  - {name: C4-window, comparison: C4, model: "gemma4:e4b", input: null, batch_k: null, context: none}
-  - {name: C4-previous, comparison: C4, model: "gemma4:e4b", input: null, batch_k: null, context: previous}
+  - {name: C3-single, comparison: C3, model: "gemma4:e4b", input: original, batch_k: 1, context: none}
+  - {name: C3-batch, comparison: C3, model: "gemma4:e4b", input: original, batch_k: null, context: none}
+  - {name: C4-window, comparison: C4, model: "gemma4:e4b", input: original, batch_k: null, context: none}
+  - {name: C4-previous, comparison: C4, model: "gemma4:e4b", input: original, batch_k: null, context: previous}

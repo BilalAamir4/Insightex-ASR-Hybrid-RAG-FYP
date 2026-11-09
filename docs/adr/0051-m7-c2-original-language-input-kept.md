@@ -1,7 +1,7 @@
 # ADR-0051: M7 comparison C2: original-language input kept for extraction (tie under the noise rule)
 
-Status: Proposed
-Date decided: not decided (drafted 2026-11-09, for Bilal's review)
+Status: Accepted
+Date decided: 2026-11-09 (accepted by Bilal after review; drafted 2026-11-09)
 Date recorded: 2026-11-09
 Module: M7
 
@@ -44,7 +44,7 @@ C2 compares two ways of feeding the extraction model on the Day 4 dev lecture (`
 
 Both arms are valid on every window. The English arm also has the lower micro F1, so it would not be adopted even with enough net wins. The one decided window is window 16 (per-window F1: original 0.80, English 0.50).
 
-Later comparisons use this winner. C3 (single window against batches of k = 5) and C4 (previous-window context, with the context in the original language) run on Gemma with original-language input. The `input` fields of the C3 and C4 arms in `config/m7_arms.yaml` are set to `original` after this ADR is accepted.
+Later comparisons use this winner. C3 (single window against batches of k = 5) and C4 (previous-window context, with the context in the original language) run on Gemma with original-language input. The `input` fields of the C3 and C4 arms in `config/m7_arms.yaml` are set to `original` (done at acceptance).
 
 ## Alternatives considered
 
@@ -71,7 +71,7 @@ Later comparisons use this winner. C3 (single window against batches of k = 5) a
 
 - **Adjudication changed no score.** The new decision was a no-match, and the adjudicated and string-rule-only figures are equal for both arms.
 - **The translation stage stays** in the harness for evaluation (harness version 8). The production extraction stage (Session 3) needs no translation step.
-- **What changes in the code.** In `config/m7_arms.yaml`, the `input` fields of the C3 and C4 arms are set to `original`, after this ADR is accepted.
+- **What changes in the code.** In `config/m7_arms.yaml`, the `input` fields of the C3 and C4 arms are set to `original` (done at acceptance, 2026-11-09).
 
 ## Evidence
 
@@ -116,6 +116,6 @@ Later comparisons use this winner. C3 (single window against batches of k = 5) a
 
 ## Gate / revisit when
 
-- **Acceptance.** This ADR is Proposed and awaits Bilal's review.
+- **Accepted.** Bilal reviewed and accepted this ADR on 2026-11-09, with no changes.
 - **The held-out lecture.** Revisit if the held-out run shows original-language extraction far below the Day 4 figures. That run is reported once and does not reopen C2 by itself (ADR-0048).
 - **The translation model.** Revisit if a later model or Ollama version changes Gemma's translation, since the known errors are part of arm B.
