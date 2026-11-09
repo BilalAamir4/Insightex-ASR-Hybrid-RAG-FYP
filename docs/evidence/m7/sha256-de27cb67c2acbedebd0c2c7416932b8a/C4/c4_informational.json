@@ -1,0 +1,36 @@
+{
+ "window_wins_without_1_4_6": {
+  "a": 2,
+  "b": 0,
+  "tied": 15,
+  "net_b": -2
+ },
+ "outcomes_in_1_4_6": {
+  "1": "a",
+  "4": "tie",
+  "6": "a"
+ },
+ "best_case_net_b_if_1_4_6_all_b": 1,
+ "carry_over": {
+  "C4-window": {
+   "countable_windows": 17,
+   "carry_over_concepts": 1,
+   "items": [
+    {
+     "window": 15,
+     "label": "batch learning"
+    }
+   ]
+  },
+  "C4-previous": {
+   "countable_windows": 17,
+   "carry_over_concepts": 1,
+   "items": [
+    {
+     "window": 15,
+     "label": "batch learning"
+    }
+   ]
+  }
+ }
+}
