@@ -95,7 +95,7 @@ Each is a separate decision with its own evidence and its own ADR.
 
 ## 4. Open items
 
-- **Ollama logon trigger.** The `Insightex Ollama` Task Scheduler task has only a one-time trigger (8 Oct 2026) and no "At log on" trigger. Ollama stopped twice in this session and was restarted by hand with `E:\FYP\start_ollama.ps1`. CLAUDE.md and `docs/ENVIRONMENT.md` say it starts at logon, which is not true now. Adding the trigger is Bilal's call.
+- **Ollama launcher (corrected 9 Nov 2026).** The earlier note here ("only a one-time trigger, no At log on trigger") was wrong: the task has one "At log on" trigger and ran at logon on 9 Nov (16:10, result 0), but its server had exited (task Ready), and the server running was the tray app's, which had staged an update to 0.40.15. Fix (Bilal's decision): the task is the only launcher (the Startup shortcut is removed and the tray app is not opened); the tray app's auto-update is off and its staged installer is deleted; `start_ollama.ps1` now logs to `E:\FYP\logs\ollama_serve.log` and exits with `ollama serve`'s exit code (re-copied to `E:\FYP`); `docs/evidence/m7/scripts/check_ollama_frozen.py` checks Ollama 0.40.2 and the `gemma4:e4b` digest (step 6). **Windows-side steps not yet confirmed** (at the last check on 9 Nov the tray app was still running, the shortcut was present, and the new script was not yet re-copied); confirm with the process check in `docs/ENVIRONMENT.md` section 5 before step 6. Why the task's server stopped is still unknown; the log should show it next time.
 - **yt-dlp test crash.** In one full `pytest` run (9 Nov 2026), `test_ytdlp_download.py::test_byte_cap_enforced_by_hook_without_content_length` crashed the interpreter ("no Python frame"). It passed alone on the working tree and on clean HEAD. Cause not investigated.
 - **The untracked void v1 sheet.** `tools/label_concepts/labels/<Day 4>/adjudication_sheets/C1-20261018T180252Z.json` was never opened or used, and is kept untracked and undeleted. Bilal decides whether to delete it.
 - **Inter-annotator figure for gold v2** (Amendment 5, decision 5). The earlier recommendation: Fatima rechecks her 10 shared windows under the explanation rule without seeing Bilal's labels, and any new figure is reported as not blind on Bilal's side. The clean ceiling comes from the held-out lecture if a second annotator is used there (see step 3 below).
@@ -134,8 +134,12 @@ This should also settle the open inter-annotator question for the thesis. Commit
 **4. Sample 40 windows:**
 
 ```
-python label_concepts.py sample --lecture <id> --n 40 --shared 10 --seed <recorded> --labellers bilal [fatima]
+python label_concepts.py sample --lecture <id> --n 40 --shared 10 --seed <recorded> --labellers bilal
+# only if Amendment 11 adds a second annotator: shared windows only, never gold
+python label_concepts.py add-annotator ...   # as for Day 4 (Amendment 3)
 ```
+
+- **Not `--labellers bilal fatima`** (corrected 9 Nov 2026): that alternates the 30 non-shared windows between the labellers, so the second annotator would label 15 gold windows, against Amendment 1 (gold = Bilal's labels). `add-annotator` adds them to the shared windows only.
 
 - **How it samples:** stratified across the timeline, seed recorded, 10 shared windows.
 - **What it checks:** that its grid matches the index stage's `windows.json`.
@@ -160,13 +164,14 @@ Then:
   ```
 
   `C4-window` is exactly the final configuration. A dedicated arm name (e.g. `final`, with a new comparison value) would need a code change, which is optional.
-- **Before running:** check `ollama ps`, the GPU lease and that nothing else is using the GPU.
+- **Before running:** `python3 docs/evidence/m7/scripts/check_ollama_frozen.py` must print OK (Ollama 0.40.2 and the frozen `gemma4:e4b` digest); **on STOP, do not run, and tell Bilal.** Also check `ollama ps`, the GPU lease and that nothing else is using the GPU. Run it again just before `run`, after the k check.
+- **Run directory:** `--out` is required here, or the run goes to the C4 default `<evidence>/<id>/C4/C4-window`. `run.json` will still say comparison `C4` and arm `C4-window`; the held-out README records that this is the final configuration (checked by reading `cli.py`, 9 Nov 2026).
 - **Report:** validity and cost only, through `validity_cost.py`.
 - **If a window is invalid:** report it. There is no comparison here to reject, and no re-run with changes.
 
 **7. Adjudication:**
 - `adjudication-sheet --lecture <id> --gold v1 --comparison <label> --arm final=<run dir>`. The held-out lecture's gold is its own `gold.json` and `adjudications.json`, so `--gold v1` is the right selector there.
-- Check that the sheet builder accepts a comparison label other than C1–C4; `compare` restricts it, `adjudication-sheet` may not.
+- The sheet builder accepts any comparison label (checked by reading `label_concepts.py`, 9 Nov 2026, not run): `--comparison heldout` writes `adjudication_sheets/heldout-<time>.json`. Only `compare` is restricted to C1–C4, and the held-out lecture does not use it.
 - Commit and push the sheet before Bilal opens it. Bilal decides with `adjudicate`; then freeze and tag the decisions.
 
 **8. The final report for M7's exit** (BUILD_ORDER: precision and recall on both lectures, plus an LLM choice; no pass bar, the numbers feed M17):

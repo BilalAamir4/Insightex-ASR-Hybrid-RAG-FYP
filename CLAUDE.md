@@ -73,7 +73,7 @@ Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash
   - To add a model: download it with `HF_HUB_OFFLINE=0 HF_HOME=$INSIGHTEX_MODEL_CACHE_MASTER/huggingface`, `cp -ru` it into `~/cache/huggingface/hub/`, then verify with `tools/audit_env/run_F7_check.py`.
 - Ollama runs on Windows at `127.0.0.1:11434`. WSL reaches it as `localhost` through mirrored networking.
   - **Never set `OLLAMA_HOST=0.0.0.0`.**
-  - It starts automatically at Windows logon (Task Scheduler task `Insightex Ollama` runs `E:\FYP\start_ollama.ps1`; loopback only). If it is down, start that script by hand.
+  - It starts at Windows logon through the Task Scheduler task `Insightex Ollama` ("At log on" trigger; runs `E:\FYP\start_ollama.ps1`, loopback only, logs to `E:\FYP\logs\ollama_serve.log`). This task is the only launcher: the tray app's Startup shortcut is removed, the tray app is never opened (it auto-updates), and Ollama stays at 0.40.2, the frozen M7 version (`docs/evidence/m7/scripts/check_ollama_frozen.py` checks it). If Ollama is down, run `Start-ScheduledTask -TaskName 'Insightex Ollama'`, then read the log for the cause.
 - Do not search, modify or delete `E:\FYP\cache`, `E:\FYP\LLMs`, `E:\FYP\wsl` or `E:\FYP\docker`. The original pre-migration files on `E:\FYP` are the backup.
 - Nothing project-related should grow on C:.
 
