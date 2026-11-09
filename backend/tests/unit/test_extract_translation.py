@@ -335,3 +335,10 @@ def test_shipped_translation_prompt_has_its_pinned_sha256():
     if shipped.translate_prompt_file is not None:
         p = h.load_prompts(load_settings(), arm(**EN)).translation
         assert p is not None and p.sha256 == shipped.translate_prompt_sha256
+
+
+def test_shipped_context_block_has_its_pinned_sha256():
+    shipped = load_settings().extract
+    if shipped.context_block_file is not None:
+        p = h.load_prompts(load_settings(), arm(context="previous")).context_block
+        assert p is not None and p.sha256 == shipped.context_block_sha256
