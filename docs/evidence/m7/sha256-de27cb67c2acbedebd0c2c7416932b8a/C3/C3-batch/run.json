@@ -1,0 +1,520 @@
+{
+ "run_version": 1,
+ "harness_version": 8,
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "created_at": "2026-11-09T14:01:59Z",
+ "comparison": "C3",
+ "arm": {
+  "name": "C3-batch",
+  "comparison": "C3",
+  "model": "gemma4:e4b",
+  "input": "original",
+  "batch_k": 5,
+  "context": "none"
+ },
+ "model_digest": "dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c",
+ "prompt_sha256": "c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648",
+ "context_block_sha256": null,
+ "translation_prompt_sha256": null,
+ "system_message_sha256": [
+  "f2d8742f5155f1d1afef4ebc0324cfb0108a05de97185ff2167e4d30bac1a35f"
+ ],
+ "options": {
+  "num_ctx": 8192,
+  "num_predict": 1024,
+  "temperature": 0.0,
+  "seed": 42,
+  "think": false,
+  "keep_alive": 0,
+  "truncate": false,
+  "num_predict_per_window": 1024,
+  "num_predict_rule": "num_predict_per_window x target windows in the call",
+  "token_estimate_scale": 0.761
+ },
+ "translate_num_predict": null,
+ "translate_max_non_latin_fraction": null,
+ "fresh": true,
+ "truncate_self_test": {
+  "model": "gemma4:e4b",
+  "num_ctx": 2048,
+  "truncate": false,
+  "probe_chars": 10505,
+  "refused": true,
+  "prompt_tokens": 2950,
+  "reported_num_ctx": 2048
+ },
+ "budget_rule": "estimate is a warning only; Ollama refuses prompts longer than num_ctx (truncate false) and the post-call check rejects prompt + num_predict > num_ctx (ADR-0049 Amendment 2)",
+ "retries": 1,
+ "retry_rule": "once, in the same unit as the first attempt, with the frozen retry template and its errors",
+ "retry_error_chars": 1500,
+ "targets": [
+  1,
+  2,
+  4,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20,
+  21,
+  22
+ ],
+ "plan": [
+  {
+   "targets": [
+    1,
+    2,
+    4,
+    6,
+    7
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    13,
+    14,
+    15,
+    16,
+    17
+   ],
+   "context": []
+  },
+  {
+   "targets": [
+    18,
+    19,
+    20,
+    21,
+    22
+   ],
+   "context": []
+  }
+ ],
+ "windows": [
+  {
+   "window_index": 1,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 2,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 4,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 1,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 6,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 7,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 8,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 9,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 1,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 10,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 1,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 11,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 12,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 13,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 14,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 15,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 16,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 1,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 17,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 18,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 19,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 20,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 21,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  },
+  {
+   "window_index": 22,
+   "valid": true,
+   "attempt_used": 1,
+   "needed_retry": false,
+   "empty_after_retry": false,
+   "dropped_relations": 0,
+   "errors": [
+    []
+   ]
+  }
+ ],
+ "translations": [],
+ "totals": {
+  "windows": 20,
+  "invalid_windows": 0,
+  "retried_windows": 0,
+  "needed_retry_windows": 0,
+  "valid_empty_after_retry_windows": 0,
+  "prompt_overflow_calls": 0,
+  "prompt_too_long_calls": 0,
+  "estimate_over_budget_calls": 0,
+  "dropped_relations": 4,
+  "calls": 4,
+  "cache_hits": 0,
+  "translation_calls": 0,
+  "translation_cache_hits": 0,
+  "translation_failed_windows": 0,
+  "translation_retried_windows": 0
+ },
+ "cost": {
+  "measured": true,
+  "wall_s": 51.226854138000135,
+  "translation_wall_s": 0.0,
+  "tokens_per_sec": 156.5491179480794,
+  "max_prompt_eval_count": 2474,
+  "ollama_ps_at_largest_prompt": {
+   "size": 261347081,
+   "size_vram": 261347081,
+   "gpu_pct": 100.0,
+   "processor": "100% GPU",
+   "context_length": 8192
+  },
+  "vram": {
+   "baseline_mib": 2334,
+   "peak_mib": 7163,
+   "peak_above_baseline_mib": 4829,
+   "phases": {
+    "self_test": {
+     "peak_mib": 6969,
+     "peak_above_baseline_mib": 4635
+    },
+    "extraction": {
+     "peak_mib": 7163,
+     "peak_above_baseline_mib": 4829
+    }
+   },
+   "samples": 175,
+   "interval_s": 0.2,
+   "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+  }
+ },
+ "calls": [
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "a77a437831dd2115d85594bcb464b0e8a7e8c035f26dfffef8cc03a5353afd73",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2363,
+    "eval_count": 318,
+    "eval_duration_s": 1.954897,
+    "tokens_per_sec": 162.668416801499,
+    "total_duration_s": 10.3465398,
+    "load_duration_s": 7.4067261,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 11.12149483799999,
+   "ps": {
+    "size": 261347081,
+    "size_vram": 261347081,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    1,
+    2,
+    4,
+    6,
+    7
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "74ffd0942c1b1a4f967e1ade6245271a97625f5c5e51ac7b08bc79aace55b558",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2457,
+    "eval_count": 390,
+    "eval_duration_s": 2.508471,
+    "tokens_per_sec": 155.47319462732477,
+    "total_duration_s": 10.6023765,
+    "load_duration_s": 7.0841517,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 11.394419750999987,
+   "ps": {
+    "size": 261347081,
+    "size_vram": 261347081,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "d8776807957cd2d04a5f24ee8e1cb14ec689612286e2011d15b8ed7fa1931941",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2423,
+    "eval_count": 290,
+    "eval_duration_s": 1.864152,
+    "tokens_per_sec": 155.5667134439681,
+    "total_duration_s": 9.6871573,
+    "load_duration_s": 6.8234103,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 10.419638137999982,
+   "ps": {
+    "size": 261347081,
+    "size_vram": 261347081,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    13,
+    14,
+    15,
+    16,
+    17
+   ],
+   "context": []
+  },
+  {
+   "kind": "extract",
+   "attempt": 1,
+   "cache_hit": false,
+   "key": "4961568717e5dac2ae21035f83eb86ef2773ac22d7a6de0239f35c247e0a5b61",
+   "error": null,
+   "metrics": {
+    "prompt_eval_count": 2474,
+    "eval_count": 302,
+    "eval_duration_s": 1.976583,
+    "tokens_per_sec": 152.78892917727208,
+    "total_duration_s": 9.5766514,
+    "load_duration_s": 6.6073069,
+    "done_reason": "stop",
+    "num_ctx": 8192
+   },
+   "wall_s": 10.257428299999901,
+   "ps": {
+    "size": 261347081,
+    "size_vram": 261347081,
+    "gpu_pct": 100.0,
+    "processor": "100% GPU",
+    "context_length": 8192
+   },
+   "targets": [
+    18,
+    19,
+    20,
+    21,
+    22
+   ],
+   "context": []
+  }
+ ]
+}
