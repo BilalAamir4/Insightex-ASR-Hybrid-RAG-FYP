@@ -273,6 +273,86 @@
    "decided_by": "bilal",
    "decided_at": "2026-11-09T13:45:26Z",
    "sheet_sha256": "9b78735f2dc9ec329fc1709ec645e201aeac544be9184da13571248996a7dc90"
+  },
+  {
+   "window_index": 6,
+   "model_label": "offline",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-11-09T14:12:14Z",
+   "sheet_sha256": "830811e4b67fe7c72bcad120c6988759086884288501bb4ee00c721cef4a4bf9"
+  },
+  {
+   "window_index": 12,
+   "model_label": "data",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-11-09T14:12:18Z",
+   "sheet_sha256": "830811e4b67fe7c72bcad120c6988759086884288501bb4ee00c721cef4a4bf9"
+  },
+  {
+   "window_index": 18,
+   "model_label": "internet connectivity",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-11-09T14:12:23Z",
+   "sheet_sha256": "830811e4b67fe7c72bcad120c6988759086884288501bb4ee00c721cef4a4bf9"
+  },
+  {
+   "window_index": 13,
+   "model_label": "process",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-11-09T14:12:26Z",
+   "sheet_sha256": "830811e4b67fe7c72bcad120c6988759086884288501bb4ee00c721cef4a4bf9"
+  },
+  {
+   "window_index": 9,
+   "model_label": "machine learning model",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-11-09T14:12:29Z",
+   "sheet_sha256": "830811e4b67fe7c72bcad120c6988759086884288501bb4ee00c721cef4a4bf9"
+  },
+  {
+   "window_index": 21,
+   "model_label": "batch learning",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-11-09T14:12:32Z",
+   "sheet_sha256": "830811e4b67fe7c72bcad120c6988759086884288501bb4ee00c721cef4a4bf9"
+  },
+  {
+   "window_index": 8,
+   "model_label": "prediction",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-11-09T14:12:35Z",
+   "sheet_sha256": "830811e4b67fe7c72bcad120c6988759086884288501bb4ee00c721cef4a4bf9"
+  },
+  {
+   "window_index": 6,
+   "model_label": "production environment",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-11-09T14:12:37Z",
+   "sheet_sha256": "830811e4b67fe7c72bcad120c6988759086884288501bb4ee00c721cef4a4bf9"
+  },
+  {
+   "window_index": 11,
+   "model_label": "model",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-11-09T14:12:40Z",
+   "sheet_sha256": "830811e4b67fe7c72bcad120c6988759086884288501bb4ee00c721cef4a4bf9"
+  },
+  {
+   "window_index": 8,
+   "model_label": "server",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-11-09T14:12:42Z",
+   "sheet_sha256": "830811e4b67fe7c72bcad120c6988759086884288501bb4ee00c721cef4a4bf9"
   }
  ]
 }
