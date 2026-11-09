@@ -1,0 +1,155 @@
+{
+ "measure_version": 3,
+ "created_at": "2026-11-09T14:22:39Z",
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "windows_in_lecture": 23,
+ "model": "gemma4:e4b",
+ "model_digest": "dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c",
+ "prompt": {
+  "path": "/home/bilal_aamir/insightex/config/prompts/m7_extraction_v2.txt",
+  "sha256": "c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648",
+  "frozen": true
+ },
+ "context_block_sha256": "3132e2f93793cb338e27aff1de23ae6e4de4c12bfc90119bab5bef553c47912e",
+ "ollama_options": {
+  "temperature": 0.0,
+  "seed": 42,
+  "think": false,
+  "keep_alive": 0
+ },
+ "num_predict_per_window": 1024,
+ "measured_prompt": "the retry call: first attempt + retry template with errors at retry_error_chars",
+ "retry_error_chars": 1500,
+ "token_estimate_scale": 0.761,
+ "rule": "passes = real prompt_eval_count + num_predict <= num_ctx and ollama ps 100% GPU (ADR-0048 s8, Amendment 2; ADR-0002 budget rule); num_predict = num_predict_per_window x k",
+ "cases": [
+  {
+   "k": 1,
+   "context": false,
+   "targets": [
+    18
+   ],
+   "context_windows": [],
+   "note": "largest window",
+   "window_tokens_estimated": {
+    "18": 271
+   },
+   "system_message_sha256": "f2d8742f5155f1d1afef4ebc0324cfb0108a05de97185ff2167e4d30bac1a35f",
+   "runs": [
+    {
+     "num_ctx": 8192,
+     "num_predict": 1024,
+     "estimated_prompt_tokens": 2962,
+     "token_estimate_scale": 0.761,
+     "gate_estimated_prompt_tokens": 2255,
+     "gate_allows": true,
+     "sent": true,
+     "truncated": false,
+     "prompt_too_long": null,
+     "prompt_eval_count": 2360,
+     "estimate_over_real": 1.255084745762712,
+     "eval_count": 50,
+     "tokens_per_sec": 115.77852956636309,
+     "load_duration_s": 6.7844825,
+     "prompt_near_ctx_limit": false,
+     "ollama_ps": {
+      "size": 261347081,
+      "size_vram": 261347081,
+      "gpu_pct": 100.0,
+      "processor": "100% GPU",
+      "context_length": 8192
+     },
+     "vram": {
+      "baseline_mib": 2703,
+      "peak_mib": 7462,
+      "peak_above_baseline_mib": 4759,
+      "phases": {},
+      "samples": 29,
+      "interval_s": 0.2,
+      "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+     },
+     "fits_real_budget": true,
+     "gate_refuses_real_fit": false,
+     "gate_allows_real_overflow": false,
+     "full_gpu": true,
+     "passes": true,
+     "reason": null
+    }
+   ]
+  },
+  {
+   "k": 1,
+   "context": true,
+   "targets": [
+    21
+   ],
+   "context_windows": [
+    [
+     20,
+     21
+    ]
+   ],
+   "note": "largest window with its previous window",
+   "window_tokens_estimated": {
+    "21": 259
+   },
+   "system_message_sha256": "57536dad3a45b66ea5e9aa956c84c0f8f8dfb211cc40f072eca300b8b84ad68e",
+   "runs": [
+    {
+     "num_ctx": 8192,
+     "num_predict": 1024,
+     "estimated_prompt_tokens": 3521,
+     "token_estimate_scale": 0.761,
+     "gate_estimated_prompt_tokens": 2680,
+     "gate_allows": true,
+     "sent": true,
+     "truncated": false,
+     "prompt_too_long": null,
+     "prompt_eval_count": 2760,
+     "estimate_over_real": 1.2757246376811595,
+     "eval_count": 51,
+     "tokens_per_sec": 133.30336185851024,
+     "load_duration_s": 6.7922991,
+     "prompt_near_ctx_limit": false,
+     "ollama_ps": {
+      "size": 261347081,
+      "size_vram": 261347081,
+      "gpu_pct": 100.0,
+      "processor": "100% GPU",
+      "context_length": 8192
+     },
+     "vram": {
+      "baseline_mib": 2697,
+      "peak_mib": 7462,
+      "peak_above_baseline_mib": 4765,
+      "phases": {},
+      "samples": 31,
+      "interval_s": 0.2,
+      "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+     },
+     "fits_real_budget": true,
+     "gate_refuses_real_fit": false,
+     "gate_allows_real_overflow": false,
+     "full_gpu": true,
+     "passes": true,
+     "reason": null
+    }
+   ]
+  }
+ ],
+ "summary_by_num_ctx": {
+  "8192": {
+   "passing": [
+    {
+     "k": 1,
+     "context": false
+    },
+    {
+     "k": 1,
+     "context": true
+    }
+   ],
+   "gate_refuses_real_fit": []
+  }
+ }
+}
