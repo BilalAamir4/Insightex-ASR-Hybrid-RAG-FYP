@@ -20,5 +20,5 @@ arms:
   - {name: C3-single, comparison: C3, model: "gemma4:e4b", input: original, batch_k: 1, context: none}
   # C3 batch_k 5: measured 9 Nov 2026, worst-case retry 2,932 + 5,120 = 8,052 of 8,192 (margin 140), 100% GPU (ADR-0048 Amendment 9)
   - {name: C3-batch, comparison: C3, model: "gemma4:e4b", input: original, batch_k: 5, context: none}
-  - {name: C4-window, comparison: C4, model: "gemma4:e4b", input: original, batch_k: null, context: none}
-  - {name: C4-previous, comparison: C4, model: "gemma4:e4b", input: original, batch_k: null, context: previous}
+  - {name: C4-window, comparison: C4, model: "gemma4:e4b", input: original, batch_k: 1, context: none}
+  - {name: C4-previous, comparison: C4, model: "gemma4:e4b", input: original, batch_k: 1, context: previous}

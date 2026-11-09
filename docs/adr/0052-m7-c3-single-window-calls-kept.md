@@ -1,7 +1,7 @@
 # ADR-0052: M7 comparison C3: single-window extraction calls kept (tie under the noise rule)
 
-Status: Proposed
-Date decided: not decided (drafted 2026-11-09, for Bilal's review)
+Status: Accepted
+Date decided: 2026-11-09 (accepted by Bilal after review; drafted 2026-11-09)
 Date recorded: 2026-11-09
 Module: M7
 
@@ -47,7 +47,7 @@ Both arms are valid on every window. Batches also have the lower micro F1, so th
 - Even if all four were batch wins, the net would be +2, still under 3.
 - Windows 20, 21 and 22 are tied, and window 19 is a batch win. So the exposure could not have moved the decision towards the arm kept.
 
-C4 (previous-window context) runs on single-window calls. In `config/m7_arms.yaml`, the `batch_k` of `C4-window` and `C4-previous` is set to 1 after this ADR is accepted.
+C4 (previous-window context) runs on single-window calls. In `config/m7_arms.yaml`, the `batch_k` of `C4-window` and `C4-previous` is set to 1 (done at acceptance).
 
 ## Alternatives considered
 
@@ -76,6 +76,7 @@ C4 (previous-window context) runs on single-window calls. In `config/m7_arms.yam
 - **Adjudication changed no score.** All 10 new decisions were no-match, and the adjudicated and string-rule-only figures are equal for both arms.
 - **The M7 configuration for C4 and the held-out run:** Gemma 4 E4B, original-language input, one window per call. C4 decides previous-window context.
 - **Production (Session 3)** may still batch for speed. That would be a separate decision with its own evidence, because C3 measured only that batching does not improve quality on Day 4.
+  - Most of batching's speed-up came from fewer model reloads under `keep_alive` 0 (4 loads instead of 20, about 6–7 s each). So Session 3 should first consider keeping the model loaded between single-window calls, as a separate decision with its own evidence (ADR-0049's reproducibility finding applies).
 
 ## Evidence
 
@@ -124,6 +125,6 @@ Residency: arm B's VRAM above baseline equals arm A's, its decode speed is highe
 
 ## Gate / revisit when
 
-- **Acceptance.** This ADR is Proposed and awaits Bilal's review.
+- **Accepted.** Bilal reviewed and accepted this ADR on 2026-11-09, adding the production note on model reloads.
 - **The held-out lecture.** Revisit if the held-out run shows single-window extraction far below the Day 4 figures. That run is reported once and does not reopen C3 by itself (ADR-0048).
 - **Production speed.** If Session 3 needs batching for throughput, that is a new decision with its own evidence.
