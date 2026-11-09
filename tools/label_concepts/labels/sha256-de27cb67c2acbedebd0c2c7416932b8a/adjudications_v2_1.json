@@ -265,6 +265,14 @@
     "file": "adjudications_v2.json",
     "sha256": "7caa4a7222e75a672c8bc501d44f4c6d34b7ce16b2247ac9b85476ce8806f0e6"
    }
+  },
+  {
+   "window_index": 18,
+   "model_label": "limitation",
+   "gold_label": null,
+   "decided_by": "bilal",
+   "decided_at": "2026-11-09T13:45:26Z",
+   "sheet_sha256": "9b78735f2dc9ec329fc1709ec645e201aeac544be9184da13571248996a7dc90"
   }
  ]
 }
