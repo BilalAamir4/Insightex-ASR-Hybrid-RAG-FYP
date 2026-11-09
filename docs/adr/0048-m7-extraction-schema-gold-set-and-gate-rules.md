@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); 2026-11-09, Amendment 8 (C2: gold v2.1 only, reuse of arm A, translations shown for prompt approval, the English check); all at the end
+Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); 2026-11-09, Amendment 8 (C2: gold v2.1 only, reuse of arm A, translations shown for prompt approval, the English check) and Amendment 9 (C3: gold v2.1 only, reuse of arm A, the unchanged prompt, the k check); all at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -364,3 +364,34 @@ Decided by Bilal on 2026-11-09, before any C2 run, and before any translation of
 
 - C2's adopt/tie decision rests on one gold version, so it has no cross-version check like C1's.
 - Arm A's cost and outputs are from 18 Oct 2026, not re-run, and are labelled as such in the C2 report.
+
+## Amendment 9 (2026-11-09): comparison C3, gold v2.1 only, reuse of arm A, the unchanged prompt, and the k check
+
+Decided by Bilal on 2026-11-09, before any C3 run. The text above and Amendments 1 to 8 are kept; where they conflict with this amendment, this amendment applies.
+
+**Context.** C3 (section 8) compares single-window calls (arm A, kept on a tie) with batches of k windows (arm B), on the C1 and C2 winners: Gemma 4 E4B (ADR-0050) on original-language input (ADR-0051), with no context. Arm A has exactly the configuration of the C1 Gemma run, which C2 already reused as its arm A.
+
+**Decision.**
+
+1. **C3 is scored against gold v2.1 only,** with the decisions in `adjudications_v2_1.json` (frozen at tag `m7-c2-adjudications-v2.1-frozen`), extended by a blind sheet pooled over both C3 arms, as in section 4. The reasons and the limitation are those of Amendment 8, decision 1.
+2. **Arm A is the C1 Gemma run if everything that affects original-language, single-window extraction is identical,** under the identity rule of Amendment 8, decision 2. The check is recorded in `docs/evidence/m7/<lecture>/C3/arm_a_reuse_check.md`. If it matches, the run files are copied byte for byte into `C3/C3-single/` with `reused_from.json`, and arm A's cost is the C1 measurement. If anything differs, arm A is re-run with no cached replies.
+3. **Arm B uses the frozen extraction prompt unchanged** (`c7e061fce838…4648`). The prompt already describes batched input: a list of windows, "exactly one record for each window index given". Its retry template asks for one record per window. The JSON Schema `format` requires exactly k records. The system message of a batch call without context is byte-identical to a single-window call's. A batch-specific prompt would be a new freeze, and section 2 would then require C1 and C2 to be re-run. The system message sha256 of every arm B call is recorded in its `run.json`.
+4. **k is confirmed by a new measurement before the run,** under section 8 and ADR-0049:
+   - `extract-eval measure --model gemma4:e4b --k 5 4 3` with the frozen prompt, at `num_ctx` 8192;
+   - each case is measured as its retry call, with errors at the `retry_error_chars` cap.
+
+   A k passes when all of these hold:
+   - its real `prompt_eval_count` plus k × 1,024 fits in 8,192;
+   - `ollama ps` shows 100% GPU;
+   - its VRAM peak is consistent with Gemma's reference peak (ADR-0049 decision 6), because `ollama ps` alone cannot show Gemma's residency;
+   - the estimate gate does not refuse it.
+
+   k is the largest passing value in 5 to 3. If no value passes, C3 is not run.
+   - **If k = 5 passes with less than about 100 tokens of margin,** Bilal decides between 5 and 4 before `batch_k` is set.
+   - The chosen k and its margin are recorded in the C3 evidence.
+
+**Consequences.**
+
+- C3's decision rests on one gold version, as C2's does.
+- Arm A's cost and outputs are from 18 Oct 2026, not re-run.
+- A batch retry repeats the whole batch (ADR-0049 decision 4). An invalid window can therefore cost arm B a call of k windows.
