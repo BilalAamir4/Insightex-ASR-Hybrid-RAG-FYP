@@ -1,7 +1,7 @@
 # ADR-0053: M7 comparison C4: window-only input kept (previous-window context rejected on validity)
 
-Status: Proposed
-Date decided: not decided (drafted 2026-11-09, for Bilal's review)
+Status: Accepted
+Date decided: 2026-11-09 (accepted by Bilal after review; drafted 2026-11-09)
 Date recorded: 2026-11-09
 Module: M7
 
@@ -138,6 +138,6 @@ Residency: arm B's VRAM above baseline is within 53 MiB of arm A's, and its relo
 
 ## Gate / revisit when
 
-- **Acceptance.** This ADR is Proposed and awaits Bilal's review.
+- **Accepted.** Bilal reviewed and accepted this ADR on 2026-11-09, with no changes.
 - **Session 3.** Revisit the self-relation handling and, separately, context-aware extraction, each with its own evidence.
 - **The held-out lecture.** It runs once with the final configuration above, and does not reopen C4 by itself (ADR-0048).
