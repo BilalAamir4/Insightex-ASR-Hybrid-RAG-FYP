@@ -34,7 +34,7 @@
 
 Sampling 40 of 48 windows leaves 8 out (`selection.md`, near-census).
 
-## ASR shape (numbers only, compared with Day 4; carried over to M4 only as a comparison, no WER measured)
+## ASR shape (numbers only, compared with Day 4; no WER measured)
 
 | | Held-out `yt-5vqk6HnITko` | Day 4 `sha256-de27…` |
 |---|---|---|
