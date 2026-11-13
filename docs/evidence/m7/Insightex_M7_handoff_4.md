@@ -95,11 +95,12 @@ Each is a separate decision with its own evidence and its own ADR.
 
 ## 4. Open items
 
-- **Ollama version: 0.40.15 installed by the app's auto-update (open decision, found 13 Nov 2026).** The final configuration records Ollama 0.40.2. The Ollama app installed 0.40.15 by itself on 9 Nov 2026 at 20:34–20:36 (`upgrade.log`), after every C1–C4 run (the last, `C4-previous`, at 14:29Z the same day), so no Day 4 evidence is affected. `check_ollama_frozen.py` prints STOP (`gemma4:e4b` digest unchanged). A staged 0.40.16 installer was deleted on 13 Nov, before it was installed. The app's `auto_update_enabled` was still 1 on 13 Nov. **Decide before step 6:**
-  - (a) reinstall 0.40.2 (a download; ask first), keeping the frozen configuration as recorded; or
-  - (b) keep the newer version, record it in an ADR-0049 amendment, and first show on Day 4 that the final configuration's output is identical (or report the differences).
-
-  Until then the check stays at 0.40.2, so step 6 cannot start. The harness does not record the Ollama version in `run.json`; consider adding it.
+- **Ollama version (resolved 13 Nov 2026).**
+  - **The update:** the Ollama app installed 0.40.15 by itself on 9 Nov 2026 at 20:34–20:36 (`upgrade.log`). That was after every C1–C4 run (the last, `C4-previous`, at 14:29Z the same day), so no Day 4 evidence is affected.
+  - **Caveat:** `run.json` files before 13 Nov do not record the Ollama version, so 0.40.2 for C1–C4 rests on this handoff.
+  - **Bilal chose to reinstall 0.40.2 (option a).** The app's `auto_update_enabled` was set to 0, with `db.sqlite` backed up first. The official 0.40.2 installer was verified against the release's `sha256sum.txt` (`e78ea4ff…cd5a9e`, Authenticode Valid) and installed over 0.40.15 without uninstalling. A staged 0.40.16 installer was deleted before it was installed.
+  - **Result:** `check_ollama_frozen.py` OK (0.40.2, `gemma4:e4b` digest unchanged, nothing staged); the flag is still 0 after the app was reopened. Details: `docs/ENVIRONMENT.md` section 5.
+  - **From 13 Nov:** `run.json`, the measure report and the translate-check report record `ollama_version`, and `validity_cost.py` prints it.
 - **Ollama workflow (corrected 13 Nov 2026).** Bilal starts Ollama by hand through the app, only while working on the FYP, and cancels the logon task on purpose. The 9 Nov note here, which read the cancelled task as Ollama "stopping by itself", was wrong, and so was the 9 Nov plan that made the task the only launcher (never applied). The `start_ollama.ps1` logging change stays in the repo as optional. See `docs/ENVIRONMENT.md` section 5.
 - **yt-dlp test crash.** In one full `pytest` run (9 Nov 2026), `test_ytdlp_download.py::test_byte_cap_enforced_by_hook_without_content_length` crashed the interpreter ("no Python frame"). It passed alone on the working tree and on clean HEAD. Cause not investigated.
 - **The untracked void v1 sheet.** `tools/label_concepts/labels/<Day 4>/adjudication_sheets/C1-20261018T180252Z.json` was never opened or used, and is kept untracked and undeleted. Bilal decides whether to delete it.

@@ -74,7 +74,7 @@ Run commands from a WSL shell. Do not nest them through PowerShell (`wsl -- bash
 - Ollama runs on Windows at `127.0.0.1:11434`. WSL reaches it as `localhost` through mirrored networking.
   - **Never set `OLLAMA_HOST=0.0.0.0`.**
   - Bilal starts it by hand, through the Ollama app, only while working on the FYP (the logon task `Insightex Ollama` exists but he cancels it on purpose). If it is not running, ask him to start it.
-  - **The app's auto-update must stay off**: the app installed 0.40.15 by itself on 9 Nov 2026, breaking the frozen M7 version 0.40.2 (open decision, handoff 4 section 4). Before any measured run, `python3 docs/evidence/m7/scripts/check_ollama_frozen.py` must print OK; on STOP, do not run and tell Bilal.
+  - **The app's auto-update must stay off** (`auto_update_enabled = 0` since 13 Nov 2026): the app installed 0.40.15 by itself on 9 Nov 2026, and 0.40.2, the frozen M7 version, was reinstalled on 13 Nov (`docs/ENVIRONMENT.md` section 5). Before any measured run, `python3 docs/evidence/m7/scripts/check_ollama_frozen.py` must print OK (version, `gemma4:e4b` digest, no staged installer); on STOP, do not run and tell Bilal.
 - Do not search, modify or delete `E:\FYP\cache`, `E:\FYP\LLMs`, `E:\FYP\wsl` or `E:\FYP\docker`. The original pre-migration files on `E:\FYP` are the backup.
 - Nothing project-related should grow on C:.
 
