@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); 2026-11-09, Amendment 8 (C2: gold v2.1 only, reuse of arm A, translations shown for prompt approval, the English check) Amendment 9 (C3: gold v2.1 only, reuse of arm A, the unchanged prompt, the k check) and Amendment 10 (C4: gold v2.1 only, reuse of arm A, the context block and its freeze, the budget check, blinding of shell output); all at the end
+Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); 2026-11-09, Amendment 8 (C2: gold v2.1 only, reuse of arm A, translations shown for prompt approval, the English check) Amendment 9 (C3: gold v2.1 only, reuse of arm A, the unchanged prompt, the k check) and Amendment 10 (C4: gold v2.1 only, reuse of arm A, the context block and its freeze, the budget check, blinding of shell output); 2026-11-13, Amendment 11 (a second annotator on the held-out lecture's shared windows); all at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -428,3 +428,46 @@ Decided by Bilal on 2026-11-09, before any C4 run. The text above and Amendments
 - C4's decision rests on one gold version, as C2's and C3's do.
 - Arm A's cost and outputs are from 18 Oct 2026, not re-run.
 - Windows 1, 4 and 6 have the reserved windows 0, 3 and 5 as context. The frozen prompt's worked examples are English glosses of those reserved windows. So for these three targets, the model sees both a gloss of the context window (in the examples) and its original text (as context). This is recorded, not changed.
+
+## Amendment 11 (2026-11-13): a second annotator on the held-out lecture's shared windows
+
+Decided by Bilal on 2026-11-13, after the held-out lecture was ingested (`normalise`, `asr` and `index` only) and before it is sampled. No model output exists for it. The text above and Amendments 1 to 10 are kept; where they conflict with this amendment, this amendment applies.
+
+**Context.** Amendment 3's last point leaves this decision to a new amendment made before sampling. The held-out lecture is `5vqk6HnITko` (Krish Naik Hindi, performance metrics; `docs/evidence/m7/heldout/selection.md`). The inter-annotator question is also open: the only figure so far (0.240, Day 4) was measured on gold v1 labels that gold v2 replaced (Amendment 5, decision 5), and gold v2 and v2.1 have none (handoff 4, limitations 1 and 2). Fatima has agreed to label the held-out lecture's 10 shared windows.
+
+**Decision.**
+
+1. **Fatima labels the 10 shared windows of the held-out lecture** as a second annotator, labeller name `fatima`.
+   - **Tools:** the sample is drawn with `sample --labellers bilal`, then `add-annotator --labeller fatima` records her as a shared-windows-only annotator (an entry under `amendments` with the previous manifest's sha256).
+   - **Scope:** she is assigned no other window. All 40 gold windows are Bilal's (Amendment 1).
+2. **Blind, both ways.**
+   - Fatima does not see Bilal's labels, before or during her labelling; the tool serves only her own file.
+   - Bilal does not see hers until his own labels on the shared windows are finished and frozen as `bilal_pre_review.json`.
+   - Neither discusses specific windows of this lecture with the other before both files are frozen.
+   - Nobody sees model output for the lecture; none exists until step 6.
+3. **The frozen guide, unchanged.**
+   - Both label under `docs/labelling/m7_concepts.md` as frozen (Amendment 2), with no rule update.
+   - Before starting, Fatima re-reads the whole guide, especially the explanation rule and canonical names that gold v2 enforced (Amendment 5). Her Day 4 labels predate that pass. She gets no other instruction or examples.
+   - She labels full records (concepts, aliases, relations, importance), like Bilal.
+4. **Her labels never enter the gold set.** There is no consensus step. Gold is Bilal's labels.
+5. **The human ceiling.**
+   - Agreement between `bilal` and `fatima` on the 10 shared windows (`agreement --a bilal --b fatima`), string rule only, concept F1, computed on `bilal_pre_review.json`.
+   - Section 6's fairness rule holds: it is shown only next to the model's string-rule-only concept F1 on the same lecture, never next to the adjudicated F1.
+   - The model's string-rule-only concept F1 is reported both on all 40 windows and on the same 10 shared windows; the like-for-like comparison with the ceiling is on the 10.
+   - Relation and importance agreement from the same report are secondaries and are never called the ceiling.
+6. **Order and freezes.** Fatima's file, `bilal_pre_review.json` and the agreement report are committed (and tagged) before `merge`, and the gold is merged, committed and tagged before any model reads the lecture (step 6).
+7. **Review of the shared windows (as in Amendment 3).** After the agreement is computed, Bilal may correct clear errors in his own labels on the shared windows.
+   - **Judged by the guide.** A correction is made only where his label breaks the frozen guide. Fatima's label is not by itself a reason.
+   - **Logged.** Each correction is logged with `log-correction` (its default, the Amendment 3 rule) with its reason, and `validate` enforces the log.
+   - **Before any model reads the lecture.** Every correction is made before step 6. None is made after any model output for the lecture exists.
+   - **Shared windows only.** No non-shared window changes after the review starts; `validate` refuses such a change.
+   - Gold is the reviewed `bilal.json`. The ceiling is computed on `bilal_pre_review.json`, before any correction, so corrections cannot raise it.
+8. **The thesis inter-annotator figure.**
+   - This figure is the inter-annotator figure the thesis reports, and it closes Amendment 5, decision 5.
+   - Day 4 gold v2 and v2.1 get no new figure and are reported as single-annotator. The v1 figure (0.240) is reported only as measured on labels that gold v2 replaced.
+   - Reports describe the held-out gold as made by one annotator (Bilal), with a second annotator's labels on 10 shared windows used for agreement and for reviewing his labels.
+
+**Consequence.**
+- The ceiling rests on two people and 10 windows: one window is 10% of the set, so it is noisy.
+- Fatima labelled Day 4 under the same guide before gold v2, so her reading of the guide may differ from the reading gold v2 enforced. Re-reading the guide narrows that but does not remove it.
+- Corrections can move the gold towards Fatima's reading on the shared windows; the log makes each one auditable.
