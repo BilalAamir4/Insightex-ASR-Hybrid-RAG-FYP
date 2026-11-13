@@ -180,6 +180,8 @@ def plan_calls(targets: list[int], grid: dict[int, WindowText], batch_k: int, us
 class ModelClient(Protocol):
     def digest(self, model: str) -> str: ...
 
+    def version(self) -> str: ...  # Ollama server version (/api/version)
+
     def chat(self, model: str, messages: list[dict], format_schema: dict, num_ctx: int,
              num_predict: int) -> tuple[str, dict[str, Any]]: ...  # raises OutputTruncated, PromptTooLong, PromptBudgetError
 
@@ -199,6 +201,9 @@ class OllamaModelClient:
 
     def digest(self, model: str) -> str:
         return ollama_client.model_digest(model, self.settings.ollama)
+
+    def version(self) -> str:
+        return ollama_client.server_version(self.settings.ollama)
 
     def chat(self, model: str, messages: list[dict], format_schema: dict, num_ctx: int,
              num_predict: int) -> tuple[str, dict[str, Any]]:
@@ -528,6 +533,7 @@ def run_arm(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, window
     plans = plan_calls(targets, grid, arm.batch_k, arm.context == "previous")
     needed = sorted({t for p in plans for t in p.targets} | {c for p in plans for c, _ in p.context})
     digest = ctx.client.digest(arm.model)
+    ollama_version = ctx.client.version()  # recorded from 13 Nov 2026; earlier run.json files lack it
     outcomes: dict[int, WindowOutcome] = {}
     attempts_used: dict[int, int | None] = {}
     errors: dict[int, list[list[str]]] = {t: [] for t in targets}
@@ -599,13 +605,13 @@ def run_arm(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, window
     doc_errors = check_document(doc)
     if doc_errors:  # every record was validated on its own; a document error is a harness bug
         raise HarnessError("extraction document is invalid: " + "; ".join(doc_errors[:5]))
-    run = _run_record(ctx, arm, prompts, lecture_id, targets, plans, digest, outcomes, attempts_used, errors,
+    run = _run_record(ctx, arm, prompts, lecture_id, targets, plans, digest, ollama_version, outcomes, attempts_used, errors,
                       sorted(systems), wall, translation_wall, translations)
     return doc, run
 
 
 def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, targets: list[int],
-                plans: list[CallPlan], digest: str, outcomes: dict[int, WindowOutcome],
+                plans: list[CallPlan], digest: str, ollama_version: str, outcomes: dict[int, WindowOutcome],
                 attempts_used: dict[int, int | None], errors: dict[int, list[list[str]]], systems: list[str],
                 wall: float, translation_wall: float, translations: list[dict[str, Any]]) -> dict[str, Any]:
     calls = ctx.calls_log
@@ -632,6 +638,7 @@ def _run_record(ctx: RunContext, arm: Arm, prompts: Prompts, lecture_id: str, ta
         "comparison": arm.comparison,
         "arm": arm.model_dump(),
         "model_digest": digest,
+        "ollama_version": ollama_version,
         "prompt_sha256": prompts.extraction.sha256,
         "context_block_sha256": prompts.context_block.sha256 if prompts.context_block else None,
         "translation_prompt_sha256": prompts.translation.sha256 if prompts.translation else None,
@@ -702,6 +709,7 @@ def translation_check(ctx: RunContext, model: str, prompt: FrozenText, prompt_fr
     split_translation_prompt(prompt)
     arm = Arm(name="translate-check", comparison="C2", model=model, input="english", batch_k=1, context="none")
     digest = ctx.client.digest(model)
+    ollama_version = ctx.client.version()
     t0 = ctx.clock()
     with ctx.lease("m7-eval:translate-check"):
         for m in ctx.client.resident():
@@ -720,7 +728,8 @@ def translation_check(ctx: RunContext, model: str, prompt: FrozenText, prompt_fr
                 log.warning("unload of %s failed: %s", model, e)
     by_index = {st["window_index"]: st for st in status}
     return {
-        "lecture_id": lecture_id, "model": model, "model_digest": digest, "harness_version": HARNESS_VERSION,
+        "lecture_id": lecture_id, "model": model, "model_digest": digest, "ollama_version": ollama_version,
+        "harness_version": HARNESS_VERSION,
         "created_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "prompt_file": str(prompt.path), "prompt_sha256": prompt.sha256, "prompt_frozen": prompt_frozen,
         "options": _options(ctx.settings, ctx.settings.extract.translate_num_predict),

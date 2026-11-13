@@ -164,6 +164,7 @@ def run_measurement(settings: Settings, client: ModelClient, lease: Callable[[st
     if any(contexts) and context_block is None:
         raise ValueError("context cases need the context block (--context-block-file or the frozen one)")
     digest = client.digest(model)
+    ollama_version = client.version()
     cases = []
     with lease(f"m7-measure:{model}"):
         for k in ks:
@@ -187,7 +188,7 @@ def run_measurement(settings: Settings, client: ModelClient, lease: Callable[[st
         "measure_version": MEASURE_VERSION,
         "created_at": dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "lecture_id": lecture_id, "windows_in_lecture": len(windows),
-        "model": model, "model_digest": digest,
+        "model": model, "model_digest": digest, "ollama_version": ollama_version,
         "prompt": {"path": str(prompt.path), "sha256": prompt.sha256, "frozen": prompt_frozen},
         "context_block_sha256": context_block.sha256 if context_block else None,
         "ollama_options": {"temperature": settings.ollama.temperature, "seed": settings.ollama.seed,

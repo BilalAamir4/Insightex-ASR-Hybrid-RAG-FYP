@@ -25,7 +25,7 @@ def main(dirs: list[str]) -> int:
         r = json.loads((Path(d) / "run.json").read_text(encoding="utf-8"))
         c, v, opts = r["cost"], r["cost"]["vram"], r["options"]
         print(f"== {r['arm']['name']} ({r['comparison']}), harness {r['harness_version']}, created {r['created_at']}")
-        print(f"  model digest {r['model_digest'][:12]}  prompt {r['prompt_sha256'][:12]}  context block "
+        print(f"  ollama {r.get('ollama_version') or 'not recorded'}  model digest {r['model_digest'][:12]}  prompt {r['prompt_sha256'][:12]}  context block "
               f"{(r.get('context_block_sha256') or '-')[:12]}  system message(s) "
               f"{[s[:12] for s in r['system_message_sha256']]}  fresh {r.get('fresh')}  "
               f"self-test refused {(r.get('truncate_self_test') or {}).get('refused')}")

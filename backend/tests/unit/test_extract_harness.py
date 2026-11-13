@@ -54,6 +54,9 @@ class FakeClient:
     def digest(self, model):
         return "digest-" + model
 
+    def version(self):
+        return "0.0.0-fake"
+
     def chat(self, model, messages, format_schema, num_ctx, num_predict):
         if format_schema == h.SELF_TEST_FORMAT:  # the run-start truncate self-test, not a real call
             from insightex.llm.ollama_client import PromptTooLong
@@ -774,6 +777,7 @@ def test_run_starts_with_a_refused_self_test_recorded_in_run_json(setup):
     _, run = h.run_arm(ctx(client), arm(), prompts, LECTURE, windows(1), [0])
     assert client.probes == [{"model": "qwen3.5:latest", "num_ctx": 2048, "chars": client.probes[0]["chars"]}]
     assert client.probes[0]["chars"] > 4 * 2048  # the probe is well over its context
+    assert run["ollama_version"] == "0.0.0-fake"  # the server version is recorded with every run
     st = run["truncate_self_test"]
     assert st["refused"] and st["prompt_tokens"] == 410 and st["num_ctx"] == 2048 and st["truncate"] is False
 
@@ -827,3 +831,18 @@ def test_self_test_answer_that_hits_num_predict_also_aborts(setup):
     with pytest.raises(h.HarnessError, match="self-test failed"):
         h.run_arm(ctx(client), arm(), prompts, LECTURE, windows(1), [0])
     assert client.chats == []
+
+
+def test_server_version_reads_api_version(monkeypatch):
+    import httpx
+
+    from insightex.llm import ollama_client
+
+    seen = []
+
+    def fake_get(url, timeout):
+        seen.append(url)
+        return httpx.Response(200, json={"version": "0.40.2"}, request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(ollama_client.httpx, "get", fake_get)
+    assert ollama_client.server_version() == "0.40.2" and seen[0].endswith("/api/version")

@@ -282,6 +282,17 @@ def model_digest(model: str, ollama: OllamaSettings | None = None) -> str:
     raise ModelMissingError(f"Model {model!r} not found in Ollama at {cfg.base_url}")
 
 
+def server_version(ollama: OllamaSettings | None = None) -> str:
+    """The Ollama server version from /api/version (recorded with M7 runs; the app can update it). Raises OllamaError."""
+    cfg = _cfg(ollama)
+    try:
+        r = httpx.get(f"{cfg.base_url.rstrip('/')}/api/version", timeout=cfg.ps_timeout_s)
+        r.raise_for_status()
+    except httpx.HTTPError as e:
+        raise OllamaError(f"Cannot reach Ollama at {cfg.base_url}: {e}") from e
+    return str(r.json().get("version", ""))
+
+
 def post_chat(body: dict, *, timeout: float, ollama: OllamaSettings | None = None) -> dict:
     """POST a prebuilt /api/chat body and return the parsed response.
 
