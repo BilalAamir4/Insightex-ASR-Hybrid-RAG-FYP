@@ -1,0 +1,176 @@
+{
+ "schema_version": 1,
+ "lecture_id": "yt-5vqk6HnITko",
+ "producer": {
+  "kind": "human",
+  "name": "fatima"
+ },
+ "sample_manifest_sha256": "807cb794c525b20ef2f48978e880d06dfb10b41ddeda7f26adfc4cfc2635bafb",
+ "windows": [
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 2,
+    "start_s": 60.0,
+    "end_s": 90.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 5,
+    "start_s": 150.0,
+    "end_s": 180.0
+   },
+   "concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 10,
+    "start_s": 300.0,
+    "end_s": 330.0
+   },
+   "concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 14,
+    "start_s": 420.0,
+    "end_s": 450.0
+   },
+   "concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 19,
+    "start_s": 570.0,
+    "end_s": 600.0
+   },
+   "concepts": [
+    {
+     "label": "Formula Of Precision",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 26,
+    "start_s": 780.0,
+    "end_s": 810.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 31,
+    "start_s": 930.0,
+    "end_s": 960.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 36,
+    "start_s": 1080.0,
+    "end_s": 1110.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on False Negative",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 38,
+    "start_s": 1140.0,
+    "end_s": 1170.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 43,
+    "start_s": 1290.0,
+    "end_s": 1320.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  }
+ ]
+}
