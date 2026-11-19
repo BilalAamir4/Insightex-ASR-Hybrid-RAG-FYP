@@ -1,0 +1,1236 @@
+{
+ "sheet_version": 1,
+ "lecture_id": "yt-5vqk6HnITko",
+ "comparison": "heldout",
+ "seed": 574108888,
+ "created_at": "2026-11-19T18:17:42Z",
+ "gold_sha256": "8c92dd27706ec4d7e19514f7d2653515ff0a683342df8d34deed03ff11fe23f7",
+ "inputs": [
+  "888cc2092ceba37c1572a2c36a190b605a8107953e082b0b7ec9674ce371d875"
+ ],
+ "adjudications_entries_before": 0,
+ "entries": [
+  {
+   "window_index": 24,
+   "start_s": 720.0,
+   "end_s": 750.0,
+   "model_label": "false positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 1
+  },
+  {
+   "window_index": 37,
+   "start_s": 1110.0,
+   "end_s": 1140.0,
+   "model_label": "recall",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 2
+  },
+  {
+   "window_index": 32,
+   "start_s": 960.0,
+   "end_s": 990.0,
+   "model_label": "model",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 3
+  },
+  {
+   "window_index": 12,
+   "start_s": 360.0,
+   "end_s": 390.0,
+   "model_label": "true negative",
+   "model_aliases": [
+    "TN"
+   ],
+   "gold_concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "entry": 4
+  },
+  {
+   "window_index": 15,
+   "start_s": 450.0,
+   "end_s": 480.0,
+   "model_label": "imbalance data set",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Imbalanced Dataset",
+     "aliases": []
+    }
+   ],
+   "entry": 5
+  },
+  {
+   "window_index": 2,
+   "start_s": 60.0,
+   "end_s": 90.0,
+   "model_label": "feature",
+   "model_aliases": [
+    "x1",
+    "x2"
+   ],
+   "gold_concepts": [],
+   "entry": 6
+  },
+  {
+   "window_index": 20,
+   "start_s": 600.0,
+   "end_s": 630.0,
+   "model_label": "true positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "entry": 7
+  },
+  {
+   "window_index": 36,
+   "start_s": 1080.0,
+   "end_s": 1110.0,
+   "model_label": "ff",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 8
+  },
+  {
+   "window_index": 23,
+   "start_s": 690.0,
+   "end_s": 720.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Recall",
+     "aliases": []
+    }
+   ],
+   "entry": 9
+  },
+  {
+   "window_index": 5,
+   "start_s": 150.0,
+   "end_s": 180.0,
+   "model_label": "correct prediction",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "entry": 10
+  },
+  {
+   "window_index": 14,
+   "start_s": 420.0,
+   "end_s": 450.0,
+   "model_label": "recall",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "entry": 11
+  },
+  {
+   "window_index": 2,
+   "start_s": 60.0,
+   "end_s": 90.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 12
+  },
+  {
+   "window_index": 44,
+   "start_s": 1320.0,
+   "end_s": 1350.0,
+   "model_label": "harmonic mean",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "entry": 13
+  },
+  {
+   "window_index": 36,
+   "start_s": 1080.0,
+   "end_s": 1110.0,
+   "model_label": "recall",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 14
+  },
+  {
+   "window_index": 31,
+   "start_s": 930.0,
+   "end_s": 960.0,
+   "model_label": "blunder",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 15
+  },
+  {
+   "window_index": 18,
+   "start_s": 540.0,
+   "end_s": 570.0,
+   "model_label": "recall",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 16
+  },
+  {
+   "window_index": 45,
+   "start_s": 1350.0,
+   "end_s": 1380.0,
+   "model_label": "false positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "entry": 17
+  },
+  {
+   "window_index": 23,
+   "start_s": 690.0,
+   "end_s": 720.0,
+   "model_label": "true positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Recall",
+     "aliases": []
+    }
+   ],
+   "entry": 18
+  },
+  {
+   "window_index": 23,
+   "start_s": 690.0,
+   "end_s": 720.0,
+   "model_label": "domain expertise",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Recall",
+     "aliases": []
+    }
+   ],
+   "entry": 19
+  },
+  {
+   "window_index": 21,
+   "start_s": 630.0,
+   "end_s": 660.0,
+   "model_label": "false positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "entry": 20
+  },
+  {
+   "window_index": 18,
+   "start_s": 540.0,
+   "end_s": 570.0,
+   "model_label": "confusion matrix",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 21
+  },
+  {
+   "window_index": 45,
+   "start_s": 1350.0,
+   "end_s": 1380.0,
+   "model_label": "false negative",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "entry": 22
+  },
+  {
+   "window_index": 35,
+   "start_s": 1050.0,
+   "end_s": 1080.0,
+   "model_label": "false negative",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 23
+  },
+  {
+   "window_index": 19,
+   "start_s": 570.0,
+   "end_s": 600.0,
+   "model_label": "true positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "entry": 24
+  },
+  {
+   "window_index": 2,
+   "start_s": 60.0,
+   "end_s": 90.0,
+   "model_label": "predicted feature",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 25
+  },
+  {
+   "window_index": 44,
+   "start_s": 1320.0,
+   "end_s": 1350.0,
+   "model_label": "false negative",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "entry": 26
+  },
+  {
+   "window_index": 19,
+   "start_s": 570.0,
+   "end_s": 600.0,
+   "model_label": "false negative",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "entry": 27
+  },
+  {
+   "window_index": 2,
+   "start_s": 60.0,
+   "end_s": 90.0,
+   "model_label": "y",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 28
+  },
+  {
+   "window_index": 39,
+   "start_s": 1170.0,
+   "end_s": 1200.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "entry": 29
+  },
+  {
+   "window_index": 24,
+   "start_s": 720.0,
+   "end_s": 750.0,
+   "model_label": "false negative",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 30
+  },
+  {
+   "window_index": 12,
+   "start_s": 360.0,
+   "end_s": 390.0,
+   "model_label": "true positive",
+   "model_aliases": [
+    "TP"
+   ],
+   "gold_concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "entry": 31
+  },
+  {
+   "window_index": 23,
+   "start_s": 690.0,
+   "end_s": 720.0,
+   "model_label": "spam classification",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Recall",
+     "aliases": []
+    }
+   ],
+   "entry": 32
+  },
+  {
+   "window_index": 18,
+   "start_s": 540.0,
+   "end_s": 570.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 33
+  },
+  {
+   "window_index": 29,
+   "start_s": 870.0,
+   "end_s": 900.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 34
+  },
+  {
+   "window_index": 21,
+   "start_s": 630.0,
+   "end_s": 660.0,
+   "model_label": "true negative",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "entry": 35
+  },
+  {
+   "window_index": 39,
+   "start_s": 1170.0,
+   "end_s": 1200.0,
+   "model_label": "recall",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "entry": 36
+  },
+  {
+   "window_index": 38,
+   "start_s": 1140.0,
+   "end_s": 1170.0,
+   "model_label": "false positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 37
+  },
+  {
+   "window_index": 29,
+   "start_s": 870.0,
+   "end_s": 900.0,
+   "model_label": "false positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 38
+  },
+  {
+   "window_index": 40,
+   "start_s": 1200.0,
+   "end_s": 1230.0,
+   "model_label": "recall",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "entry": 39
+  },
+  {
+   "window_index": 26,
+   "start_s": 780.0,
+   "end_s": 810.0,
+   "model_label": "spam",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 40
+  },
+  {
+   "window_index": 36,
+   "start_s": 1080.0,
+   "end_s": 1110.0,
+   "model_label": "tp",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 41
+  },
+  {
+   "window_index": 36,
+   "start_s": 1080.0,
+   "end_s": 1110.0,
+   "model_label": "false negative",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 42
+  },
+  {
+   "window_index": 23,
+   "start_s": 690.0,
+   "end_s": 720.0,
+   "model_label": "false negative",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Recall",
+     "aliases": []
+    }
+   ],
+   "entry": 43
+  },
+  {
+   "window_index": 37,
+   "start_s": 1110.0,
+   "end_s": 1140.0,
+   "model_label": "true positive",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 44
+  },
+  {
+   "window_index": 12,
+   "start_s": 360.0,
+   "end_s": 390.0,
+   "model_label": "false positive",
+   "model_aliases": [
+    "FP"
+   ],
+   "gold_concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "entry": 45
+  },
+  {
+   "window_index": 21,
+   "start_s": 630.0,
+   "end_s": 660.0,
+   "model_label": "confusion matrix",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "entry": 46
+  },
+  {
+   "window_index": 5,
+   "start_s": 150.0,
+   "end_s": 180.0,
+   "model_label": "wrong prediction",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "entry": 47
+  },
+  {
+   "window_index": 43,
+   "start_s": 1290.0,
+   "end_s": 1320.0,
+   "model_label": "performance matrix",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "entry": 48
+  },
+  {
+   "window_index": 29,
+   "start_s": 870.0,
+   "end_s": 900.0,
+   "model_label": "hyperparameter tuning",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 49
+  },
+  {
+   "window_index": 44,
+   "start_s": 1320.0,
+   "end_s": 1350.0,
+   "model_label": "beta",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "entry": 50
+  },
+  {
+   "window_index": 1,
+   "start_s": 30.0,
+   "end_s": 60.0,
+   "model_label": "accuracy",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Performance Metrics",
+     "aliases": []
+    }
+   ],
+   "entry": 51
+  },
+  {
+   "window_index": 37,
+   "start_s": 1110.0,
+   "end_s": 1140.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 52
+  },
+  {
+   "window_index": 19,
+   "start_s": 570.0,
+   "end_s": 600.0,
+   "model_label": "false positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "entry": 53
+  },
+  {
+   "window_index": 43,
+   "start_s": 1290.0,
+   "end_s": 1320.0,
+   "model_label": "beta",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "entry": 54
+  },
+  {
+   "window_index": 44,
+   "start_s": 1320.0,
+   "end_s": 1350.0,
+   "model_label": "false positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "entry": 55
+  },
+  {
+   "window_index": 10,
+   "start_s": 300.0,
+   "end_s": 330.0,
+   "model_label": "false positive",
+   "model_aliases": [
+    "اس کو ہم لوگ بولتے ہیں false positive"
+   ],
+   "gold_concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "entry": 56
+  },
+  {
+   "window_index": 24,
+   "start_s": 720.0,
+   "end_s": 750.0,
+   "model_label": "recall",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 57
+  },
+  {
+   "window_index": 13,
+   "start_s": 390.0,
+   "end_s": 420.0,
+   "model_label": "confusion matrix",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "entry": 58
+  },
+  {
+   "window_index": 38,
+   "start_s": 1140.0,
+   "end_s": 1170.0,
+   "model_label": "recall",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 59
+  },
+  {
+   "window_index": 43,
+   "start_s": 1290.0,
+   "end_s": 1320.0,
+   "model_label": "false positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "entry": 60
+  },
+  {
+   "window_index": 38,
+   "start_s": 1140.0,
+   "end_s": 1170.0,
+   "model_label": "performance matrix",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 61
+  },
+  {
+   "window_index": 14,
+   "start_s": 420.0,
+   "end_s": 450.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "entry": 62
+  },
+  {
+   "window_index": 40,
+   "start_s": 1200.0,
+   "end_s": 1230.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "entry": 63
+  },
+  {
+   "window_index": 30,
+   "start_s": 900.0,
+   "end_s": 930.0,
+   "model_label": "recall",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 64
+  },
+  {
+   "window_index": 25,
+   "start_s": 750.0,
+   "end_s": 780.0,
+   "model_label": "spam",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 65
+  },
+  {
+   "window_index": 9,
+   "start_s": 270.0,
+   "end_s": 300.0,
+   "model_label": "confusion matrix",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Terminologies Of Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "entry": 66
+  },
+  {
+   "window_index": 2,
+   "start_s": 60.0,
+   "end_s": 90.0,
+   "model_label": "recall",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 67
+  },
+  {
+   "window_index": 1,
+   "start_s": 30.0,
+   "end_s": 60.0,
+   "model_label": "confusion matrix",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Performance Metrics",
+     "aliases": []
+    }
+   ],
+   "entry": 68
+  },
+  {
+   "window_index": 43,
+   "start_s": 1290.0,
+   "end_s": 1320.0,
+   "model_label": "false negative",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "entry": 69
+  },
+  {
+   "window_index": 2,
+   "start_s": 60.0,
+   "end_s": 90.0,
+   "model_label": "f beta score",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 70
+  },
+  {
+   "window_index": 42,
+   "start_s": 1260.0,
+   "end_s": 1290.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "entry": 71
+  },
+  {
+   "window_index": 38,
+   "start_s": 1140.0,
+   "end_s": 1170.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 72
+  },
+  {
+   "window_index": 0,
+   "start_s": 0.0,
+   "end_s": 30.0,
+   "model_label": "binary classification problem statement",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 73
+  },
+  {
+   "window_index": 10,
+   "start_s": 300.0,
+   "end_s": 330.0,
+   "model_label": "true positive",
+   "model_aliases": [
+    "اس cell کو ہم لوگ بولتے ہیں true positive"
+   ],
+   "gold_concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "entry": 74
+  },
+  {
+   "window_index": 14,
+   "start_s": 420.0,
+   "end_s": 450.0,
+   "model_label": "f beta score",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "entry": 75
+  },
+  {
+   "window_index": 10,
+   "start_s": 300.0,
+   "end_s": 330.0,
+   "model_label": "false negative",
+   "model_aliases": [
+    "اس کو ہم لوگ بولتے ہیں false negative"
+   ],
+   "gold_concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "entry": 76
+  },
+  {
+   "window_index": 12,
+   "start_s": 360.0,
+   "end_s": 390.0,
+   "model_label": "false negative",
+   "model_aliases": [
+    "FN"
+   ],
+   "gold_concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "entry": 77
+  },
+  {
+   "window_index": 24,
+   "start_s": 720.0,
+   "end_s": 750.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 78
+  },
+  {
+   "window_index": 0,
+   "start_s": 0.0,
+   "end_s": 30.0,
+   "model_label": "logistic regression",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 79
+  },
+  {
+   "window_index": 17,
+   "start_s": 510.0,
+   "end_s": 540.0,
+   "model_label": "precision",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 80
+  },
+  {
+   "window_index": 10,
+   "start_s": 300.0,
+   "end_s": 330.0,
+   "model_label": "true negative",
+   "model_aliases": [
+    "اس کو ہم لوگ بولیں گے true negative"
+   ],
+   "gold_concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "entry": 81
+  },
+  {
+   "window_index": 27,
+   "start_s": 810.0,
+   "end_s": 840.0,
+   "model_label": "spam",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 82
+  },
+  {
+   "window_index": 1,
+   "start_s": 30.0,
+   "end_s": 60.0,
+   "model_label": "performance metric",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Performance Metrics",
+     "aliases": []
+    }
+   ],
+   "entry": 83
+  },
+  {
+   "window_index": 18,
+   "start_s": 540.0,
+   "end_s": 570.0,
+   "model_label": "true positive",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 84
+  },
+  {
+   "window_index": 38,
+   "start_s": 1140.0,
+   "end_s": 1170.0,
+   "model_label": "false negative",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "entry": 85
+  },
+  {
+   "window_index": 20,
+   "start_s": 600.0,
+   "end_s": 630.0,
+   "model_label": "false positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "entry": 86
+  },
+  {
+   "window_index": 5,
+   "start_s": 150.0,
+   "end_s": 180.0,
+   "model_label": "actual",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "entry": 87
+  },
+  {
+   "window_index": 5,
+   "start_s": 150.0,
+   "end_s": 180.0,
+   "model_label": "predicted",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "entry": 88
+  },
+  {
+   "window_index": 42,
+   "start_s": 1260.0,
+   "end_s": 1290.0,
+   "model_label": "recall",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "entry": 89
+  },
+  {
+   "window_index": 40,
+   "start_s": 1200.0,
+   "end_s": 1230.0,
+   "model_label": "beta",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "entry": 90
+  },
+  {
+   "window_index": 21,
+   "start_s": 630.0,
+   "end_s": 660.0,
+   "model_label": "true positive",
+   "model_aliases": [],
+   "gold_concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "entry": 91
+  },
+  {
+   "window_index": 2,
+   "start_s": 60.0,
+   "end_s": 90.0,
+   "model_label": "output feature",
+   "model_aliases": [],
+   "gold_concepts": [],
+   "entry": 92
+  }
+ ]
+}
