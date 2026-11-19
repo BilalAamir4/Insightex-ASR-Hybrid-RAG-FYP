@@ -1,0 +1,1826 @@
+{
+ "lecture_id": "yt-5vqk6HnITko",
+ "gold": {
+  "version": "v1",
+  "path": "/home/bilal_aamir/insightex/tools/label_concepts/labels/yt-5vqk6HnITko/gold.json",
+  "sha256": "8c92dd27706ec4d7e19514f7d2653515ff0a683342df8d34deed03ff11fe23f7",
+  "windows": 40
+ },
+ "adjudications": {
+  "path": "/home/bilal_aamir/insightex/tools/label_concepts/labels/yt-5vqk6HnITko/adjudications.json",
+  "exists": true,
+  "entries": 92,
+  "sha256": "94ab8735a5c970bf0cabb34b811daa4b85663438f838d15aef5099908f9a5258"
+ },
+ "headline_string_rule": {
+  "note": "string rule only on both sides; the adjudicated F1 is never compared with this figure. Gold is made by one annotator (Bilal); a second annotator labelled the shared windows for agreement and review (ADR-0048 Amendment 3).",
+  "inter_annotator_agreement": {
+   "available": true,
+   "kind": "inter-annotator agreement (bilal pre-review vs fatima, shared windows, string rule only)",
+   "windows": [
+    2,
+    5,
+    10,
+    14,
+    19,
+    26,
+    31,
+    36,
+    38,
+    43
+   ],
+   "concept_f1": 0.19047619047619047,
+   "inputs": {
+    "bilal": {
+     "file": "bilal_pre_review.json",
+     "sha256": "e5eaaf77fd2034eeddd4d9c670c8b9bbd24a0d7a4082e981217b4b581d012dcb"
+    },
+    "fatima": {
+     "file": "fatima.json",
+     "sha256": "7a249162a2c06970ca5f20f4f4ff05ab9efa5b4557101ba02584afe181cf5d2d"
+    }
+   }
+  },
+  "model_string_rule_concept_f1": {
+   "final": 0.16058394160583941
+  },
+  "model_string_rule_concept_f1_on_agreement_windows": {
+   "final": 0.0851063829787234
+  }
+ },
+ "arms": [
+  {
+   "name": "final",
+   "run_dir": "docs/evidence/m7/yt-5vqk6HnITko/heldout/final",
+   "extraction_sha256": "888cc2092ceba37c1572a2c36a190b605a8107953e082b0b7ec9674ce371d875",
+   "run_sha256": "ead8445ff72dbc714b4c691f4a0c66270dfb4a674b3184da01b8d5ec8cbccc21",
+   "arm": {
+    "name": "C4-window",
+    "comparison": "C4",
+    "model": "gemma4:e4b",
+    "input": "original",
+    "batch_k": 1,
+    "context": "none"
+   },
+   "prompt_sha256": "c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648",
+   "validity": {
+    "valid": true,
+    "schema_errors": [],
+    "problems": [],
+    "invalid_windows": [],
+    "missing_windows": [],
+    "retried_windows": [],
+    "valid_empty_after_retry_windows": []
+   },
+   "dropped_relations": 1,
+   "adjudicated": {
+    "micro": {
+     "windows": 40,
+     "concept": {
+      "tp": 14,
+      "pred": 103,
+      "ref": 34,
+      "precision": 0.13592233009708737,
+      "recall": 0.4117647058823529,
+      "f1": 0.20437956204379562
+     },
+     "relation": {
+      "tp": 0,
+      "pred": 24,
+      "ref": 0,
+      "precision": 0.0,
+      "recall": null,
+      "f1": 0.0
+     },
+     "important": {
+      "tp": 1,
+      "pred": 9,
+      "ref": 1,
+      "precision": 0.1111111111111111,
+      "recall": 1.0,
+      "agreement": 0.8
+     }
+    },
+    "pending": 0,
+    "pending_concepts": [],
+    "per_window": [
+     {
+      "window_index": 2,
+      "concept_tp": 0,
+      "concept_pred": 7,
+      "concept_ref": 0,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "f beta score",
+       "feature",
+       "output feature",
+       "predicted feature",
+       "y"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 5,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "predicted",
+       "actual",
+       "correct prediction",
+       "wrong prediction"
+      ],
+      "unmatched_gold": [
+       "Confusion Matrix"
+      ]
+     },
+     {
+      "window_index": 10,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "true positive",
+       "true negative",
+       "false negative",
+       "false positive"
+      ],
+      "unmatched_gold": [
+       "Confusion Matrix"
+      ]
+     },
+     {
+      "window_index": 14,
+      "concept_tp": 1,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.4,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": true,
+      "pairs": [
+       {
+        "model": "accuracy",
+        "gold": "Accuracy",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "f beta score"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 19,
+      "concept_tp": 1,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.4,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "precision",
+        "gold": "Precision",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "false positive",
+       "false negative",
+       "true positive"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 26,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "spam"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 31,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "blunder"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 36,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 2,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "false negative",
+       "recall",
+       "tp",
+       "ff"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 38,
+      "concept_tp": 0,
+      "concept_pred": 5,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "false positive",
+       "false negative",
+       "performance matrix"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 43,
+      "concept_tp": 1,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.4,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "beta",
+        "gold": "F Beta Score",
+        "by": "adjudicated"
+       }
+      ],
+      "unmatched_model": [
+       "false positive",
+       "false negative",
+       "performance matrix"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 0,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 0,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "logistic regression",
+       "binary classification problem statement"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 1,
+      "concept_tp": 1,
+      "concept_pred": 3,
+      "concept_ref": 1,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 2,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "performance metric",
+        "gold": "Performance Metrics",
+        "by": "adjudicated"
+       }
+      ],
+      "unmatched_model": [
+       "confusion matrix",
+       "accuracy"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 3,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "confusion matrix",
+        "gold": "Confusion Matrix",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 6,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Confusion Matrix"
+      ]
+     },
+     {
+      "window_index": 7,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Confusion Matrix"
+      ]
+     },
+     {
+      "window_index": 8,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "confusion matrix",
+        "gold": "Confusion Matrix",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 9,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "confusion matrix"
+      ],
+      "unmatched_gold": [
+       "Terminologies Of Confusion Matrix"
+      ]
+     },
+     {
+      "window_index": 12,
+      "concept_tp": 1,
+      "concept_pred": 5,
+      "concept_ref": 1,
+      "concept_f1": 0.3333333333333333,
+      "relation_tp": 0,
+      "relation_pred": 4,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "accuracy",
+        "gold": "Accuracy",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "true positive",
+       "true negative",
+       "false positive",
+       "false negative"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 13,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.6666666666666666,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "accuracy",
+        "gold": "Accuracy",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "confusion matrix"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 15,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "imbalance data set",
+        "gold": "Imbalanced Dataset",
+        "by": "adjudicated"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 17,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 0,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 18,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 0,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "confusion matrix",
+       "true positive"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 20,
+      "concept_tp": 1,
+      "concept_pred": 3,
+      "concept_ref": 1,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 2,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "precision",
+        "gold": "Precision",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "false positive",
+       "true positive"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 21,
+      "concept_tp": 1,
+      "concept_pred": 5,
+      "concept_ref": 1,
+      "concept_f1": 0.3333333333333333,
+      "relation_tp": 0,
+      "relation_pred": 3,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "precision",
+        "gold": "Precision",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "true positive",
+       "false positive",
+       "confusion matrix",
+       "true negative"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 23,
+      "concept_tp": 1,
+      "concept_pred": 6,
+      "concept_ref": 1,
+      "concept_f1": 0.2857142857142857,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "recall",
+        "gold": "Recall",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "false negative",
+       "true positive",
+       "precision",
+       "domain expertise",
+       "spam classification"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 24,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "false positive",
+       "false negative"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 25,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "spam"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 27,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "spam"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 29,
+      "concept_tp": 0,
+      "concept_pred": 3,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "false positive",
+       "precision",
+       "hyperparameter tuning"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 30,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "recall"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 32,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "model"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 33,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 35,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "false negative"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 37,
+      "concept_tp": 0,
+      "concept_pred": 3,
+      "concept_ref": 0,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "true positive"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 39,
+      "concept_tp": 1,
+      "concept_pred": 3,
+      "concept_ref": 1,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 2,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "f beta score",
+        "gold": "F Beta Score",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "precision",
+       "recall"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 40,
+      "concept_tp": 1,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.4,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "f beta score",
+        "gold": "F Beta Score",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "beta"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 42,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall"
+      ],
+      "unmatched_gold": [
+       "F Beta Score"
+      ]
+     },
+     {
+      "window_index": 44,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "false positive",
+       "false negative",
+       "harmonic mean",
+       "beta"
+      ],
+      "unmatched_gold": [
+       "Focus on False Positive or False Negative"
+      ]
+     },
+     {
+      "window_index": 45,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "false negative",
+       "false positive"
+      ],
+      "unmatched_gold": [
+       "Focus on False Positive or False Negative"
+      ]
+     },
+     {
+      "window_index": 47,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 0,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     }
+    ]
+   },
+   "string_rule": {
+    "micro": {
+     "windows": 40,
+     "concept": {
+      "tp": 11,
+      "pred": 103,
+      "ref": 34,
+      "precision": 0.10679611650485436,
+      "recall": 0.3235294117647059,
+      "f1": 0.16058394160583941
+     },
+     "relation": {
+      "tp": 0,
+      "pred": 24,
+      "ref": 0,
+      "precision": 0.0,
+      "recall": null,
+      "f1": 0.0
+     },
+     "important": {
+      "tp": 1,
+      "pred": 9,
+      "ref": 1,
+      "precision": 0.1111111111111111,
+      "recall": 1.0,
+      "agreement": 0.8
+     }
+    },
+    "per_window": [
+     {
+      "window_index": 2,
+      "concept_tp": 0,
+      "concept_pred": 7,
+      "concept_ref": 0,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "f beta score",
+       "feature",
+       "output feature",
+       "predicted feature",
+       "y"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 5,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "predicted",
+       "actual",
+       "correct prediction",
+       "wrong prediction"
+      ],
+      "unmatched_gold": [
+       "Confusion Matrix"
+      ]
+     },
+     {
+      "window_index": 10,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "true positive",
+       "true negative",
+       "false negative",
+       "false positive"
+      ],
+      "unmatched_gold": [
+       "Confusion Matrix"
+      ]
+     },
+     {
+      "window_index": 14,
+      "concept_tp": 1,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.4,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": true,
+      "pairs": [
+       {
+        "model": "accuracy",
+        "gold": "Accuracy",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "f beta score"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 19,
+      "concept_tp": 1,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.4,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "precision",
+        "gold": "Precision",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "false positive",
+       "false negative",
+       "true positive"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 26,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "spam"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 31,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "blunder"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 36,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 2,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "false negative",
+       "recall",
+       "tp",
+       "ff"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 38,
+      "concept_tp": 0,
+      "concept_pred": 5,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "false positive",
+       "false negative",
+       "performance matrix"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 43,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "false positive",
+       "false negative",
+       "performance matrix",
+       "beta"
+      ],
+      "unmatched_gold": [
+       "F Beta Score"
+      ]
+     },
+     {
+      "window_index": 0,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 0,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "logistic regression",
+       "binary classification problem statement"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 1,
+      "concept_tp": 0,
+      "concept_pred": 3,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 2,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "performance metric",
+       "confusion matrix",
+       "accuracy"
+      ],
+      "unmatched_gold": [
+       "Performance Metrics"
+      ]
+     },
+     {
+      "window_index": 3,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "confusion matrix",
+        "gold": "Confusion Matrix",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 6,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Confusion Matrix"
+      ]
+     },
+     {
+      "window_index": 7,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Confusion Matrix"
+      ]
+     },
+     {
+      "window_index": 8,
+      "concept_tp": 1,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "confusion matrix",
+        "gold": "Confusion Matrix",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 9,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "confusion matrix"
+      ],
+      "unmatched_gold": [
+       "Terminologies Of Confusion Matrix"
+      ]
+     },
+     {
+      "window_index": 12,
+      "concept_tp": 1,
+      "concept_pred": 5,
+      "concept_ref": 1,
+      "concept_f1": 0.3333333333333333,
+      "relation_tp": 0,
+      "relation_pred": 4,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "accuracy",
+        "gold": "Accuracy",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "true positive",
+       "true negative",
+       "false positive",
+       "false negative"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 13,
+      "concept_tp": 1,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.6666666666666666,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "accuracy",
+        "gold": "Accuracy",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "confusion matrix"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 15,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "imbalance data set"
+      ],
+      "unmatched_gold": [
+       "Imbalanced Dataset"
+      ]
+     },
+     {
+      "window_index": 17,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 0,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 18,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 0,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "confusion matrix",
+       "true positive"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 20,
+      "concept_tp": 1,
+      "concept_pred": 3,
+      "concept_ref": 1,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 2,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "precision",
+        "gold": "Precision",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "false positive",
+       "true positive"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 21,
+      "concept_tp": 1,
+      "concept_pred": 5,
+      "concept_ref": 1,
+      "concept_f1": 0.3333333333333333,
+      "relation_tp": 0,
+      "relation_pred": 3,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "precision",
+        "gold": "Precision",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "true positive",
+       "false positive",
+       "confusion matrix",
+       "true negative"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 23,
+      "concept_tp": 1,
+      "concept_pred": 6,
+      "concept_ref": 1,
+      "concept_f1": 0.2857142857142857,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "recall",
+        "gold": "Recall",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "false negative",
+       "true positive",
+       "precision",
+       "domain expertise",
+       "spam classification"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 24,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "false positive",
+       "false negative"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 25,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "spam"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 27,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "spam"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 29,
+      "concept_tp": 0,
+      "concept_pred": 3,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "false positive",
+       "precision",
+       "hyperparameter tuning"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 30,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "recall"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 32,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "model"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 33,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 35,
+      "concept_tp": 0,
+      "concept_pred": 1,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "false negative"
+      ],
+      "unmatched_gold": [
+       "Focus on precision or recall"
+      ]
+     },
+     {
+      "window_index": 37,
+      "concept_tp": 0,
+      "concept_pred": 3,
+      "concept_ref": 0,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "true positive"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 39,
+      "concept_tp": 1,
+      "concept_pred": 3,
+      "concept_ref": 1,
+      "concept_f1": 0.5,
+      "relation_tp": 0,
+      "relation_pred": 2,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "f beta score",
+        "gold": "F Beta Score",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "precision",
+       "recall"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 40,
+      "concept_tp": 1,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.4,
+      "relation_tp": 0,
+      "relation_pred": 1,
+      "relation_ref": 0,
+      "important_pred": true,
+      "important_ref": false,
+      "pairs": [
+       {
+        "model": "f beta score",
+        "gold": "F Beta Score",
+        "by": "string"
+       }
+      ],
+      "unmatched_model": [
+       "precision",
+       "recall",
+       "beta"
+      ],
+      "unmatched_gold": []
+     },
+     {
+      "window_index": 42,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "precision",
+       "recall"
+      ],
+      "unmatched_gold": [
+       "F Beta Score"
+      ]
+     },
+     {
+      "window_index": 44,
+      "concept_tp": 0,
+      "concept_pred": 4,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "false positive",
+       "false negative",
+       "harmonic mean",
+       "beta"
+      ],
+      "unmatched_gold": [
+       "Focus on False Positive or False Negative"
+      ]
+     },
+     {
+      "window_index": 45,
+      "concept_tp": 0,
+      "concept_pred": 2,
+      "concept_ref": 1,
+      "concept_f1": 0.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [
+       "false negative",
+       "false positive"
+      ],
+      "unmatched_gold": [
+       "Focus on False Positive or False Negative"
+      ]
+     },
+     {
+      "window_index": 47,
+      "concept_tp": 0,
+      "concept_pred": 0,
+      "concept_ref": 0,
+      "concept_f1": 1.0,
+      "relation_tp": 0,
+      "relation_pred": 0,
+      "relation_ref": 0,
+      "important_pred": false,
+      "important_ref": false,
+      "pairs": [],
+      "unmatched_model": [],
+      "unmatched_gold": []
+     }
+    ]
+   }
+  }
+ ]
+}
