@@ -136,14 +136,17 @@ About 9 s per window on both lectures with an RTX 3070 (8 GB). Of this, 6.3–7.
 19. **Small sets and ties:** most Day 4 windows tied in every comparison (16, 19, 17, 16 of 20), and every quality comparison was a tie. The final configuration is the simplest tested, not a demonstrated best.
 
 **Model and environment**
-20. **Gemma read-through findings, with no prompt change** (`c1_gemma_readthrough.md`): generic "model" labels, example-setting concepts, passing mentions with invented `contrasts_with`, no aliases, empty windows, all 5 Day 4 relations wrong. The held-out output was not read through.
+20. **Gemma read-through findings, with no prompt change.** Day 4 (`c1_gemma_readthrough.md`): generic "model" labels, example-setting concepts, passing mentions with invented `contrasts_with`, no aliases, empty windows, all 5 relations wrong. Held-out (`docs/evidence/m7/heldout/readthrough.md`, read after all held-out scores were frozen): confusion-matrix cells as concepts (33 of 103), passing mentions and topic previews, generic words and the example's setting (spam, blunder, model), surface forms as labels and sentence-long aliases, reversed or category-error relations, and importance flagged on emphasis words (9 windows against 1), with some cues copied from the transcript. The Day 4 patterns recur.
 21. **Gemma's residency on the GPU** is checked by VRAM above baseline (about 4.8 GB), not by `ollama ps`, which under-reports its size (ADR-0049 decision 6).
 22. **Ollama version:** the app auto-updated to 0.40.15 on 9 Nov 2026, after all C1–C4 runs; 0.40.2 was reinstalled on 13 Nov with auto-update off. Day 4 `run.json` files do not record the version; the held-out run does (0.40.2).
 23. **Reload per call** (`keep_alive` 0) makes about 70% of the per-window time model loading; production speed will differ if the model is kept loaded (Session 3, needs its own determinism evidence).
 
+**Use of the held-out lecture**
+24. **The held-out lecture has now been used once** (ADR-0048 section 2), and its output has been read (`readthrough.md`). Any change made after seeing its output, such as a stop list, a prompt change or filtering, must not be evaluated on it: that would be tuning on the test set. Such a change needs new evidence on a fresh lecture, and the held-out figures in this report stay those of the frozen configuration.
+
 ## 8. Open items for Session 3 (production extraction stage)
 
-Carried from handoff 4 section 3; each needs its own evidence and ADR: keep the model loaded between calls; drop self-pointing relations instead of failing the window; context-aware extraction only with new evidence; batching only after the first item; a stop list for generic labels; canonicalisation and the NetworkX graph; production writes v1 records through `insightex.extract.extraction_schema`. The held-out over-extraction (2.6 concepts per window against 0.85 in gold) is a further input for the stop list and canonicalisation.
+Carried from handoff 4 section 3; each needs its own evidence and ADR: keep the model loaded between calls; drop self-pointing relations instead of failing the window; context-aware extraction only with new evidence; batching only after the first item; a stop list for generic labels; canonicalisation and the NetworkX graph; production writes v1 records through `insightex.extract.extraction_schema`. The held-out over-extraction (2.6 concepts per window against 0.85 in gold) and the read-through patterns (`docs/evidence/m7/heldout/readthrough.md`) are further inputs for the stop list and canonicalisation. **Any such change must not be evaluated on the held-out lecture** (limitation 24); it needs a fresh lecture.
 
 ## 9. Evidence
 
@@ -151,7 +154,7 @@ Carried from handoff 4 section 3; each needs its own evidence and ADR: keep the 
 |---|---|
 | Rules | `docs/adr/0048-…`, `0049-…`, `0050-…` to `0053-…` |
 | Day 4 runs, comparisons | `docs/evidence/m7/sha256-de27cb67c2acbedebd0c2c7416932b8a/C1` to `C4` |
-| Held-out selection, ingest, labelling, agreement | `docs/evidence/m7/heldout/` |
+| Held-out selection, ingest, labelling, agreement, read-through | `docs/evidence/m7/heldout/` (`readthrough.md` for the output read-through) |
 | Held-out run, k check, scores | `docs/evidence/m7/yt-5vqk6HnITko/heldout/` (`final/`, `measure_k1.json`, `score.json`) |
 | Gold, adjudications, sheets | `tools/label_concepts/labels/<lecture>/` |
 | Tags | `m7-day4-gold-v2.1-frozen`, `m7-c4-adjudications-v2.1-frozen`, `m7-heldout-labels-frozen`, `m7-heldout-agreement`, `m7-heldout-gold-frozen`, `m7-heldout-adjudications-frozen` |
