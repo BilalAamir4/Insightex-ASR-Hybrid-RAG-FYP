@@ -9,7 +9,7 @@ Lecture `yt-5vqk6HnITko`. Sample `sample.json` sha256 `807cb794c525b20ef2f48978e
 | Bilal (gold labeller) | all 40 sampled windows | `bilal.json` | `e5eaaf77fd2034eeddd4d9c670c8b9bbd24a0d7a4082e981217b4b581d012dcb` |
 | Fatima (second annotator, never gold) | the 10 shared windows 2, 5, 10, 14, 19, 26, 31, 36, 38, 43 | `fatima.json` | `7a249162a2c06970ca5f20f4f4ff05ab9efa5b4557101ba02584afe181cf5d2d` |
 
-Both labelled separately in the labelling tool and did not discuss any window (Bilal, 15 Nov 2026). Both files passed `validate` (schema v1 validator; an important window must have a cue) before the freeze. Counts only: Bilal 37 concepts, 0 relations, 1 important window, 6 windows with no concept; Fatima 9 concepts, 0 relations, 0 important windows, 1 window with no concept.
+Both labelled separately in the labelling tool and did not discuss any window (Bilal, 15 Nov 2026). Fatima labelled her 10 windows in the labelling page, without seeing `bilal.json`. Both files passed `validate` (schema v1 validator; an important window must have a cue) before the freeze. Counts only: Bilal 37 concepts, 0 relations, 1 important window, 6 windows with no concept; Fatima 9 concepts, 0 relations, 0 important windows, 1 window with no concept.
 
 **No relations.** Neither labeller recorded a relation, so the held-out relation scores have an empty gold and are not meaningful, as on Day 4 (one relation). The selection record expected relations on this lecture; that expectation was not met.
 
