@@ -1,0 +1,260 @@
+{
+ "lecture_id": "yt-5vqk6HnITko",
+ "a": "bilal",
+ "b": "fatima",
+ "sample_manifest_sha256": "807cb794c525b20ef2f48978e880d06dfb10b41ddeda7f26adfc4cfc2635bafb",
+ "inputs": {
+  "bilal": {
+   "path": "labels/yt-5vqk6HnITko/bilal_pre_review.json",
+   "sha256": "e5eaaf77fd2034eeddd4d9c670c8b9bbd24a0d7a4082e981217b4b581d012dcb"
+  },
+  "fatima": {
+   "path": "labels/yt-5vqk6HnITko/fatima.json",
+   "sha256": "7a249162a2c06970ca5f20f4f4ff05ab9efa5b4557101ba02584afe181cf5d2d"
+  }
+ },
+ "adjudications": null,
+ "rule": "ADR-0048 concept and relation matching",
+ "per_window": [
+  {
+   "window_index": 2,
+   "start_s": 60.0,
+   "concepts_a": 0,
+   "concepts_b": 0,
+   "concepts_matched": 0,
+   "concept_f1": 1.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [],
+   "only_b": []
+  },
+  {
+   "window_index": 5,
+   "start_s": 150.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 1,
+   "concept_f1": 1.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [
+    {
+     "b": "Confusion Matrix",
+     "a": "Confusion Matrix",
+     "by": "string"
+    }
+   ],
+   "only_a": [],
+   "only_b": []
+  },
+  {
+   "window_index": 10,
+   "start_s": 300.0,
+   "concepts_a": 4,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "True Positive",
+    "True Negative",
+    "False Positive",
+    "False Negative"
+   ],
+   "only_b": [
+    "Confusion Matrix"
+   ]
+  },
+  {
+   "window_index": 14,
+   "start_s": 420.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 1,
+   "concept_f1": 1.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": true,
+   "important_b": false,
+   "matched_pairs": [
+    {
+     "b": "Accuracy",
+     "a": "Accuracy",
+     "by": "string"
+    }
+   ],
+   "only_a": [],
+   "only_b": []
+  },
+  {
+   "window_index": 19,
+   "start_s": 570.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Precision"
+   ],
+   "only_b": [
+    "Formula Of Precision"
+   ]
+  },
+  {
+   "window_index": 26,
+   "start_s": 780.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Focus on precision or recall"
+   ],
+   "only_b": [
+    "Focus on False Positive or False Negative"
+   ]
+  },
+  {
+   "window_index": 31,
+   "start_s": 930.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Focus on precision or recall"
+   ],
+   "only_b": [
+    "Focus on False Positive or False Negative"
+   ]
+  },
+  {
+   "window_index": 36,
+   "start_s": 1080.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Focus on precision or recall"
+   ],
+   "only_b": [
+    "Focus on False Negative"
+   ]
+  },
+  {
+   "window_index": 38,
+   "start_s": 1140.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Focus on precision or recall"
+   ],
+   "only_b": [
+    "Focus on False Positive or False Negative"
+   ]
+  },
+  {
+   "window_index": 43,
+   "start_s": 1290.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "F Beta Score"
+   ],
+   "only_b": [
+    "Focus on False Positive or False Negative"
+   ]
+  }
+ ],
+ "micro": {
+  "windows": 10,
+  "concept": {
+   "tp": 2,
+   "pred": 9,
+   "ref": 12,
+   "precision": 0.2222222222222222,
+   "recall": 0.16666666666666666,
+   "f1": 0.19047619047619047
+  },
+  "relation": {
+   "tp": 0,
+   "pred": 0,
+   "ref": 0,
+   "precision": null,
+   "recall": null,
+   "f1": 1.0
+  },
+  "important": {
+   "tp": 0,
+   "pred": 0,
+   "ref": 1,
+   "precision": null,
+   "recall": 0.0,
+   "agreement": 0.9
+  }
+ }
+}
