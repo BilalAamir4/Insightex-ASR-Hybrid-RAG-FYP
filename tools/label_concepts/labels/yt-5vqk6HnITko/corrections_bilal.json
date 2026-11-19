@@ -1,0 +1,60 @@
+{
+ "lecture_id": "yt-5vqk6HnITko",
+ "labeller": "bilal",
+ "pre_review_sha256": "e5eaaf77fd2034eeddd4d9c670c8b9bbd24a0d7a4082e981217b4b581d012dcb",
+ "rule": "ADR-0048 Amendment 3: corrections of clear errors on shared windows after the inter-annotator review; Amendment 4: deleting or reversing invalid relations in any Day 4 gold window (entry `amendment`; entries without it are Amendment 3)",
+ "entries": [
+  {
+   "window_index": 10,
+   "amendment": 3,
+   "reason": "ADR-0048 Amendment 11 (correction on a shared window, judged by the guide): the main concept being explained from before that window was Confusion Matrix.",
+   "at": "2026-11-19T18:02:21Z",
+   "before": {
+    "window": {
+     "lecture_id": "yt-5vqk6HnITko",
+     "window_index": 10,
+     "start_s": 300.0,
+     "end_s": 330.0
+    },
+    "concepts": [
+     {
+      "label": "True Positive",
+      "aliases": []
+     },
+     {
+      "label": "True Negative",
+      "aliases": []
+     },
+     {
+      "label": "False Positive",
+      "aliases": []
+     },
+     {
+      "label": "False Negative",
+      "aliases": []
+     }
+    ],
+    "relations": [],
+    "important": false,
+    "cue": null
+   },
+   "after": {
+    "window": {
+     "lecture_id": "yt-5vqk6HnITko",
+     "window_index": 10,
+     "start_s": 300.0,
+     "end_s": 330.0
+    },
+    "concepts": [
+     {
+      "label": "Confusion Matrix",
+      "aliases": []
+     }
+    ],
+    "relations": [],
+    "important": false,
+    "cue": null
+   }
+  }
+ ]
+}

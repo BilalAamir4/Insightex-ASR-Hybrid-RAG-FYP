@@ -1,0 +1,661 @@
+{
+ "schema_version": 1,
+ "lecture_id": "yt-5vqk6HnITko",
+ "producer": {
+  "kind": "human",
+  "name": "gold: bilal (single annotator)"
+ },
+ "sample_manifest_sha256": "807cb794c525b20ef2f48978e880d06dfb10b41ddeda7f26adfc4cfc2635bafb",
+ "windows": [
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 2,
+    "start_s": 60.0,
+    "end_s": 90.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 5,
+    "start_s": 150.0,
+    "end_s": 180.0
+   },
+   "concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 10,
+    "start_s": 300.0,
+    "end_s": 330.0
+   },
+   "concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 14,
+    "start_s": 420.0,
+    "end_s": 450.0
+   },
+   "concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": true,
+   "cue": "Upcoming thing is important"
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 19,
+    "start_s": 570.0,
+    "end_s": 600.0
+   },
+   "concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 26,
+    "start_s": 780.0,
+    "end_s": 810.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 31,
+    "start_s": 930.0,
+    "end_s": 960.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 36,
+    "start_s": 1080.0,
+    "end_s": 1110.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 38,
+    "start_s": 1140.0,
+    "end_s": 1170.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 43,
+    "start_s": 1290.0,
+    "end_s": 1320.0
+   },
+   "concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 0,
+    "start_s": 0.0,
+    "end_s": 30.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 1,
+    "start_s": 30.0,
+    "end_s": 60.0
+   },
+   "concepts": [
+    {
+     "label": "Performance Metrics",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 3,
+    "start_s": 90.0,
+    "end_s": 120.0
+   },
+   "concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 6,
+    "start_s": 180.0,
+    "end_s": 210.0
+   },
+   "concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 7,
+    "start_s": 210.0,
+    "end_s": 240.0
+   },
+   "concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 8,
+    "start_s": 240.0,
+    "end_s": 270.0
+   },
+   "concepts": [
+    {
+     "label": "Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 9,
+    "start_s": 270.0,
+    "end_s": 300.0
+   },
+   "concepts": [
+    {
+     "label": "Terminologies Of Confusion Matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 12,
+    "start_s": 360.0,
+    "end_s": 390.0
+   },
+   "concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 13,
+    "start_s": 390.0,
+    "end_s": 420.0
+   },
+   "concepts": [
+    {
+     "label": "Accuracy",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 15,
+    "start_s": 450.0,
+    "end_s": 480.0
+   },
+   "concepts": [
+    {
+     "label": "Imbalanced Dataset",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 17,
+    "start_s": 510.0,
+    "end_s": 540.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 18,
+    "start_s": 540.0,
+    "end_s": 570.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 20,
+    "start_s": 600.0,
+    "end_s": 630.0
+   },
+   "concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 21,
+    "start_s": 630.0,
+    "end_s": 660.0
+   },
+   "concepts": [
+    {
+     "label": "Precision",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 23,
+    "start_s": 690.0,
+    "end_s": 720.0
+   },
+   "concepts": [
+    {
+     "label": "Recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 24,
+    "start_s": 720.0,
+    "end_s": 750.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 25,
+    "start_s": 750.0,
+    "end_s": 780.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 27,
+    "start_s": 810.0,
+    "end_s": 840.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 29,
+    "start_s": 870.0,
+    "end_s": 900.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 30,
+    "start_s": 900.0,
+    "end_s": 930.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 32,
+    "start_s": 960.0,
+    "end_s": 990.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 33,
+    "start_s": 990.0,
+    "end_s": 1020.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 35,
+    "start_s": 1050.0,
+    "end_s": 1080.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on precision or recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 37,
+    "start_s": 1110.0,
+    "end_s": 1140.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 39,
+    "start_s": 1170.0,
+    "end_s": 1200.0
+   },
+   "concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 40,
+    "start_s": 1200.0,
+    "end_s": 1230.0
+   },
+   "concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 42,
+    "start_s": 1260.0,
+    "end_s": 1290.0
+   },
+   "concepts": [
+    {
+     "label": "F Beta Score",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 44,
+    "start_s": 1320.0,
+    "end_s": 1350.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 45,
+    "start_s": 1350.0,
+    "end_s": 1380.0
+   },
+   "concepts": [
+    {
+     "label": "Focus on False Positive or False Negative",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 47,
+    "start_s": 1410.0,
+    "end_s": 1414.838
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  }
+ ]
+}

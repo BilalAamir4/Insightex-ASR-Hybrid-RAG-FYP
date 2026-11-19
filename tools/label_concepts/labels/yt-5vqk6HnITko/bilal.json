@@ -45,19 +45,7 @@
    },
    "concepts": [
     {
-     "label": "True Positive",
-     "aliases": []
-    },
-    {
-     "label": "True Negative",
-     "aliases": []
-    },
-    {
-     "label": "False Positive",
-     "aliases": []
-    },
-    {
-     "label": "False Negative",
+     "label": "Confusion Matrix",
      "aliases": []
     }
    ],
