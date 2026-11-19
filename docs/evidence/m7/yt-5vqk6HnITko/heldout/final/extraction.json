@@ -1,0 +1,1132 @@
+{
+ "schema_version": 1,
+ "lecture_id": "yt-5vqk6HnITko",
+ "producer": {
+  "kind": "model",
+  "name": "C4-window (gemma4:e4b)"
+ },
+ "windows": [
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 0,
+    "start_s": 0.0,
+    "end_s": 30.0
+   },
+   "concepts": [
+    {
+     "label": "logistic regression",
+     "aliases": []
+    },
+    {
+     "label": "binary classification problem statement",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "logistic regression",
+     "type": "example_of",
+     "tail": "binary classification problem statement"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 1,
+    "start_s": 30.0,
+    "end_s": 60.0
+   },
+   "concepts": [
+    {
+     "label": "performance metric",
+     "aliases": []
+    },
+    {
+     "label": "confusion matrix",
+     "aliases": []
+    },
+    {
+     "label": "accuracy",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "confusion matrix",
+     "type": "example_of",
+     "tail": "performance metric"
+    },
+    {
+     "head": "accuracy",
+     "type": "example_of",
+     "tail": "performance metric"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 2,
+    "start_s": 60.0,
+    "end_s": 90.0
+   },
+   "concepts": [
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "recall",
+     "aliases": []
+    },
+    {
+     "label": "f beta score",
+     "aliases": []
+    },
+    {
+     "label": "feature",
+     "aliases": [
+      "x1",
+      "x2"
+     ]
+    },
+    {
+     "label": "output feature",
+     "aliases": []
+    },
+    {
+     "label": "predicted feature",
+     "aliases": []
+    },
+    {
+     "label": "y",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 3,
+    "start_s": 90.0,
+    "end_s": 120.0
+   },
+   "concepts": [
+    {
+     "label": "confusion matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 5,
+    "start_s": 150.0,
+    "end_s": 180.0
+   },
+   "concepts": [
+    {
+     "label": "predicted",
+     "aliases": []
+    },
+    {
+     "label": "actual",
+     "aliases": []
+    },
+    {
+     "label": "correct prediction",
+     "aliases": []
+    },
+    {
+     "label": "wrong prediction",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "predicted",
+     "type": "contrasts_with",
+     "tail": "actual"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 6,
+    "start_s": 180.0,
+    "end_s": 210.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 7,
+    "start_s": 210.0,
+    "end_s": 240.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 8,
+    "start_s": 240.0,
+    "end_s": 270.0
+   },
+   "concepts": [
+    {
+     "label": "confusion matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 9,
+    "start_s": 270.0,
+    "end_s": 300.0
+   },
+   "concepts": [
+    {
+     "label": "confusion matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": true,
+   "cue": "बहुत ही important چیز है",
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 10,
+    "start_s": 300.0,
+    "end_s": 330.0
+   },
+   "concepts": [
+    {
+     "label": "true positive",
+     "aliases": [
+      "اس cell کو ہم لوگ بولتے ہیں true positive"
+     ]
+    },
+    {
+     "label": "true negative",
+     "aliases": [
+      "اس کو ہم لوگ بولیں گے true negative"
+     ]
+    },
+    {
+     "label": "false negative",
+     "aliases": [
+      "اس کو ہم لوگ بولتے ہیں false negative"
+     ]
+    },
+    {
+     "label": "false positive",
+     "aliases": [
+      "اس کو ہم لوگ بولتے ہیں false positive"
+     ]
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 12,
+    "start_s": 360.0,
+    "end_s": 390.0
+   },
+   "concepts": [
+    {
+     "label": "accuracy",
+     "aliases": []
+    },
+    {
+     "label": "true positive",
+     "aliases": [
+      "TP"
+     ]
+    },
+    {
+     "label": "true negative",
+     "aliases": [
+      "TN"
+     ]
+    },
+    {
+     "label": "false positive",
+     "aliases": [
+      "FP"
+     ]
+    },
+    {
+     "label": "false negative",
+     "aliases": [
+      "FN"
+     ]
+    }
+   ],
+   "relations": [
+    {
+     "head": "true positive",
+     "type": "part_of",
+     "tail": "accuracy"
+    },
+    {
+     "head": "true negative",
+     "type": "part_of",
+     "tail": "accuracy"
+    },
+    {
+     "head": "false positive",
+     "type": "part_of",
+     "tail": "accuracy"
+    },
+    {
+     "head": "false negative",
+     "type": "part_of",
+     "tail": "accuracy"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 13,
+    "start_s": 390.0,
+    "end_s": 420.0
+   },
+   "concepts": [
+    {
+     "label": "accuracy",
+     "aliases": []
+    },
+    {
+     "label": "confusion matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 14,
+    "start_s": 420.0,
+    "end_s": 450.0
+   },
+   "concepts": [
+    {
+     "label": "accuracy",
+     "aliases": []
+    },
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "recall",
+     "aliases": []
+    },
+    {
+     "label": "f beta score",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": true,
+   "cue": "important چیز ہم لوگ نے یہ دو topic cover کر لیا اب ہم لوگ cover کریں گے precision recall F beta score",
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 15,
+    "start_s": 450.0,
+    "end_s": 480.0
+   },
+   "concepts": [
+    {
+     "label": "imbalance data set",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": true,
+   "cue": "Always remember that in imbalance data set we cannot directly apply accuracy because if my model only outputs zero with respect to this data set.",
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 17,
+    "start_s": 510.0,
+    "end_s": 540.0
+   },
+   "concepts": [
+    {
+     "label": "precision",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": true,
+   "cue": "Says this is important because of imbalance data set.",
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 18,
+    "start_s": 540.0,
+    "end_s": 570.0
+   },
+   "concepts": [
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "recall",
+     "aliases": []
+    },
+    {
+     "label": "confusion matrix",
+     "aliases": []
+    },
+    {
+     "label": "true positive",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "true positive",
+     "type": "part_of",
+     "tail": "confusion matrix"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 19,
+    "start_s": 570.0,
+    "end_s": 600.0
+   },
+   "concepts": [
+    {
+     "label": "false positive",
+     "aliases": []
+    },
+    {
+     "label": "false negative",
+     "aliases": []
+    },
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "true positive",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "true positive",
+     "type": "part_of",
+     "tail": "precision"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 20,
+    "start_s": 600.0,
+    "end_s": 630.0
+   },
+   "concepts": [
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "false positive",
+     "aliases": []
+    },
+    {
+     "label": "true positive",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "true positive",
+     "type": "part_of",
+     "tail": "precision"
+    },
+    {
+     "head": "false positive",
+     "type": "part_of",
+     "tail": "precision"
+    }
+   ],
+   "important": true,
+   "cue": "Always remember false positive here.",
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 21,
+    "start_s": 630.0,
+    "end_s": 660.0
+   },
+   "concepts": [
+    {
+     "label": "true positive",
+     "aliases": []
+    },
+    {
+     "label": "false positive",
+     "aliases": []
+    },
+    {
+     "label": "confusion matrix",
+     "aliases": []
+    },
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "true negative",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "true positive",
+     "type": "part_of",
+     "tail": "confusion matrix"
+    },
+    {
+     "head": "false positive",
+     "type": "part_of",
+     "tail": "confusion matrix"
+    },
+    {
+     "head": "true negative",
+     "type": "part_of",
+     "tail": "confusion matrix"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 23,
+    "start_s": 690.0,
+    "end_s": 720.0
+   },
+   "concepts": [
+    {
+     "label": "false negative",
+     "aliases": []
+    },
+    {
+     "label": "true positive",
+     "aliases": []
+    },
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "recall",
+     "aliases": []
+    },
+    {
+     "label": "domain expertise",
+     "aliases": []
+    },
+    {
+     "label": "spam classification",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "false negative",
+     "type": "contrasts_with",
+     "tail": "true positive"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 24,
+    "start_s": 720.0,
+    "end_s": 750.0
+   },
+   "concepts": [
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "recall",
+     "aliases": []
+    },
+    {
+     "label": "false positive",
+     "aliases": []
+    },
+    {
+     "label": "false negative",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 25,
+    "start_s": 750.0,
+    "end_s": 780.0
+   },
+   "concepts": [
+    {
+     "label": "spam",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": true,
+   "cue": "Says this situation is a blunder because you can miss a lot of important mail.",
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 26,
+    "start_s": 780.0,
+    "end_s": 810.0
+   },
+   "concepts": [
+    {
+     "label": "spam",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 27,
+    "start_s": 810.0,
+    "end_s": 840.0
+   },
+   "concepts": [
+    {
+     "label": "spam",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 29,
+    "start_s": 870.0,
+    "end_s": 900.0
+   },
+   "concepts": [
+    {
+     "label": "false positive",
+     "aliases": []
+    },
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "hyperparameter tuning",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "false positive",
+     "type": "contrasts_with",
+     "tail": "precision"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 30,
+    "start_s": 900.0,
+    "end_s": 930.0
+   },
+   "concepts": [
+    {
+     "label": "recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 31,
+    "start_s": 930.0,
+    "end_s": 960.0
+   },
+   "concepts": [
+    {
+     "label": "blunder",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 32,
+    "start_s": 960.0,
+    "end_s": 990.0
+   },
+   "concepts": [
+    {
+     "label": "model",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": true,
+   "cue": "Says third scenario is a fairly important scenario.",
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 33,
+    "start_s": 990.0,
+    "end_s": 1020.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 35,
+    "start_s": 1050.0,
+    "end_s": 1080.0
+   },
+   "concepts": [
+    {
+     "label": "false negative",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 36,
+    "start_s": 1080.0,
+    "end_s": 1110.0
+   },
+   "concepts": [
+    {
+     "label": "false negative",
+     "aliases": []
+    },
+    {
+     "label": "recall",
+     "aliases": []
+    },
+    {
+     "label": "tp",
+     "aliases": []
+    },
+    {
+     "label": "ff",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "recall",
+     "type": "part_of",
+     "tail": "tp"
+    },
+    {
+     "head": "recall",
+     "type": "part_of",
+     "tail": "ff"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 37,
+    "start_s": 1110.0,
+    "end_s": 1140.0
+   },
+   "concepts": [
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "recall",
+     "aliases": []
+    },
+    {
+     "label": "true positive",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 38,
+    "start_s": 1140.0,
+    "end_s": 1170.0
+   },
+   "concepts": [
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "recall",
+     "aliases": []
+    },
+    {
+     "label": "false positive",
+     "aliases": []
+    },
+    {
+     "label": "false negative",
+     "aliases": []
+    },
+    {
+     "label": "performance matrix",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "false positive",
+     "type": "contrasts_with",
+     "tail": "false negative"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 39,
+    "start_s": 1170.0,
+    "end_s": 1200.0
+   },
+   "concepts": [
+    {
+     "label": "f beta score",
+     "aliases": []
+    },
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "recall",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "f beta score",
+     "type": "part_of",
+     "tail": "precision"
+    },
+    {
+     "head": "f beta score",
+     "type": "part_of",
+     "tail": "recall"
+    }
+   ],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 40,
+    "start_s": 1200.0,
+    "end_s": 1230.0
+   },
+   "concepts": [
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "recall",
+     "aliases": []
+    },
+    {
+     "label": "beta",
+     "aliases": []
+    },
+    {
+     "label": "f beta score",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "beta",
+     "type": "part_of",
+     "tail": "f beta score"
+    }
+   ],
+   "important": true,
+   "cue": "always remember if first condition if false positive and false negative are both important both important",
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 42,
+    "start_s": 1260.0,
+    "end_s": 1290.0
+   },
+   "concepts": [
+    {
+     "label": "precision",
+     "aliases": []
+    },
+    {
+     "label": "recall",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 43,
+    "start_s": 1290.0,
+    "end_s": 1320.0
+   },
+   "concepts": [
+    {
+     "label": "false positive",
+     "aliases": []
+    },
+    {
+     "label": "false negative",
+     "aliases": []
+    },
+    {
+     "label": "performance matrix",
+     "aliases": []
+    },
+    {
+     "label": "beta",
+     "aliases": []
+    }
+   ],
+   "relations": [
+    {
+     "head": "false negative",
+     "type": "contrasts_with",
+     "tail": "false positive"
+    }
+   ],
+   "important": true,
+   "cue": "false positive important ہے false negative important ہے",
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 44,
+    "start_s": 1320.0,
+    "end_s": 1350.0
+   },
+   "concepts": [
+    {
+     "label": "false positive",
+     "aliases": []
+    },
+    {
+     "label": "false negative",
+     "aliases": []
+    },
+    {
+     "label": "harmonic mean",
+     "aliases": []
+    },
+    {
+     "label": "beta",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 45,
+    "start_s": 1350.0,
+    "end_s": 1380.0
+   },
+   "concepts": [
+    {
+     "label": "false negative",
+     "aliases": []
+    },
+    {
+     "label": "false positive",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  },
+  {
+   "window": {
+    "lecture_id": "yt-5vqk6HnITko",
+    "window_index": 47,
+    "start_s": 1410.0,
+    "end_s": 1414.838
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null,
+   "is_recap": false
+  }
+ ]
+}

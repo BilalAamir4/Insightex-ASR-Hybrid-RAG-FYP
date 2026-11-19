@@ -1,0 +1,93 @@
+{
+ "measure_version": 3,
+ "created_at": "2026-11-19T18:10:24Z",
+ "lecture_id": "yt-5vqk6HnITko",
+ "windows_in_lecture": 48,
+ "model": "gemma4:e4b",
+ "model_digest": "dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c",
+ "ollama_version": "0.40.2",
+ "prompt": {
+  "path": "/home/bilal_aamir/insightex/config/prompts/m7_extraction_v2.txt",
+  "sha256": "c7e061fce838d935c7335b01746fbec8c708f2d1f3845720c8e5728ac7154648",
+  "frozen": true
+ },
+ "context_block_sha256": null,
+ "ollama_options": {
+  "temperature": 0.0,
+  "seed": 42,
+  "think": false,
+  "keep_alive": 0
+ },
+ "num_predict_per_window": 1024,
+ "measured_prompt": "the retry call: first attempt + retry template with errors at retry_error_chars",
+ "retry_error_chars": 1500,
+ "token_estimate_scale": 0.761,
+ "rule": "passes = real prompt_eval_count + num_predict <= num_ctx and ollama ps 100% GPU (ADR-0048 s8, Amendment 2; ADR-0002 budget rule); num_predict = num_predict_per_window x k",
+ "cases": [
+  {
+   "k": 1,
+   "context": false,
+   "targets": [
+    46
+   ],
+   "context_windows": [],
+   "note": "largest window",
+   "window_tokens_estimated": {
+    "46": 274
+   },
+   "system_message_sha256": "f2d8742f5155f1d1afef4ebc0324cfb0108a05de97185ff2167e4d30bac1a35f",
+   "runs": [
+    {
+     "num_ctx": 8192,
+     "num_predict": 1024,
+     "estimated_prompt_tokens": 2964,
+     "token_estimate_scale": 0.761,
+     "gate_estimated_prompt_tokens": 2256,
+     "gate_allows": true,
+     "sent": true,
+     "truncated": false,
+     "prompt_too_long": null,
+     "prompt_eval_count": 2373,
+     "estimate_over_real": 1.2490518331226297,
+     "eval_count": 51,
+     "tokens_per_sec": 120.73720718268014,
+     "load_duration_s": 22.7485116,
+     "prompt_near_ctx_limit": false,
+     "ollama_ps": {
+      "size": 261347081,
+      "size_vram": 261347081,
+      "gpu_pct": 100.0,
+      "processor": "100% GPU",
+      "context_length": 8192
+     },
+     "vram": {
+      "baseline_mib": 2176,
+      "peak_mib": 6929,
+      "peak_above_baseline_mib": 4753,
+      "phases": {},
+      "samples": 108,
+      "interval_s": 0.2,
+      "note": "nvidia-smi memory.used of the whole GPU (includes the Windows desktop)"
+     },
+     "fits_real_budget": true,
+     "gate_refuses_real_fit": false,
+     "gate_allows_real_overflow": false,
+     "full_gpu": true,
+     "passes": true,
+     "reason": null
+    }
+   ]
+  }
+ ],
+ "summary_by_num_ctx": {
+  "8192": {
+   "passing": [
+    {
+     "k": 1,
+     "context": false
+    }
+   ],
+   "gate_refuses_real_fit": []
+  }
+ }
+}
