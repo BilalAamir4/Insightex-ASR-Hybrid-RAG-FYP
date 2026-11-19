@@ -13,7 +13,7 @@ M7's exit criterion (`docs/BUILD_ORDER.md`): precision and recall of LLM concept
 | **Concept P / R / F1, adjudicated (primary)** | **0.320 / 0.320 / 0.320** | **0.136 / 0.412 / 0.204** |
 | Concept P / R / F1, string rule only | 0.320 / 0.320 / 0.320 | 0.107 / 0.324 / 0.161 |
 | Relations | n/a (gold has none; the model predicted 5) | n/a (gold has none; the model predicted 24) |
-| Importance P / R | n/a (gold has no important window; the model flagged none) | 0.111 / 1.000, on 1 gold important window (see 4.3) |
+| Importance P / R | n/a (gold has no important window; the model flagged none) | 0.111 / 1.000, on 1 gold important window (see 4.2) |
 | Dropped relations | 1 | 1 |
 | Validity | 20 of 20 valid, 0 retried | 40 of 40 valid, 0 retried |
 | Wall time | 181.1 s (9.1 s per window) | 359.8 s (9.0 s per window) |
