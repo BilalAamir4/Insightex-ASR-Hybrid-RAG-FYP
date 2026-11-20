@@ -1,6 +1,6 @@
 # M7 extraction report: concept extraction with a local LLM
 
-**Status: DRAFT for Bilal's review (19 Nov 2026).** Not yet approved; M7 is not closed.
+**Status: approved by Bilal (20 Nov 2026).** M7 is closed. The production extraction stage (Session 3) starts from `docs/evidence/m7/Insightex_M7_handoff_5.md`.
 
 M7's exit criterion (`docs/BUILD_ORDER.md`): precision and recall of LLM concept extraction on the dev lecture (Day 4) and on one held-out lecture, plus a model choice. There is no pass bar; the numbers feed M17. Rules: ADR-0048 (schema, gold set, gate rules, Amendments 1–11) and ADR-0049 (harness call rules, Amendments 1–2).
 
@@ -119,6 +119,8 @@ About 9 s per window on both lectures with an RTX 3070 (8 GB). Of this, 6.3–7.
 6. **Adjudication by the gold labeller** on both lectures (blind sheets, but one person). On the held-out sheet, 4 of 92 entries were judged matches.
 7. **Relations are not evaluated on either lecture:** Day 4 gold has none (v1 had one); the held-out gold has none, against the selection record's expectation. All model relations (5 on Day 4, 24 held-out) are therefore unmatched by definition.
 8. **Importance is barely evaluated:** no gold important window on Day 4 and one on the held-out lecture.
+
+25\. **How the held-out gold names and sizes concepts lowers the held-out score.** 12 of the 34 held-out gold concepts (35%) use the descriptive label "Focus on precision or recall", which is not a textbook term, and no model concept matched it, by string rule or in adjudication. The granularity also differs: 33 of the model's 103 concepts (32%) are individual confusion-matrix cells (true/false positive/negative), where the gold uses "Confusion Matrix" (6 windows) and never labels a cell. So part of the low held-out score reflects how the gold names and sizes concepts, not only model error. No score is changed for this. (Numbered 25 because it was added at approval; it belongs with the gold limitations.)
 
 **Data**
 9. **Two lectures, two speakers, one language (Hindi/English).** 20 + 40 windows. The held-out lecture is under the preferred 25 minutes (23:35), so its 40-window sample is a near-census of one lecture; it says little about sampling across lectures.
