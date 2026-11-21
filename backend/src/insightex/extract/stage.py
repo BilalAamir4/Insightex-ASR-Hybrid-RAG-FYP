@@ -282,7 +282,8 @@ class _Run:
         overflow = prompt_overflow(attempt["metrics"], num_predict, self.settings.extract.num_ctx) if content else None
         if overflow is not None:
             content, error, category = None, overflow, "prompt_overflow"
-        outcome = parse_reply(content, error, CallPlan((window_index,), ()), self.ctx.workspace_id, self.grid)[window_index]
+        outcome = parse_reply(content, error, CallPlan((window_index,), ()), self.ctx.workspace_id, self.grid,
+                              drop_self=True)[window_index]
         if not outcome.valid and outcome.category is None:
             outcome.category = category
         return outcome
@@ -315,10 +316,11 @@ class _Run:
             if last.valid:
                 status = "ok" if a["attempt"] == 1 else "ok_after_retry"
                 return {"status": status, "record": last.record, "dropped_relations": last.dropped_relations,
-                        "attempt_used": a["attempt"], "errors": errors,
+                        "dropped_self_relations": last.dropped_self_relations, "attempt_used": a["attempt"], "errors": errors,
                         "empty_after_retry": status == "ok_after_retry" and not last.record.get("concepts")}
         assert last is not None
-        return {"status": "failed", "record": None, "dropped_relations": 0, "attempt_used": None, "errors": errors,
+        return {"status": "failed", "record": None, "dropped_relations": 0, "dropped_self_relations": 0,
+                "attempt_used": None, "errors": errors,
                 "error_category": last.category, "empty_after_retry": False}
 
 
@@ -327,12 +329,12 @@ class _Run:
 
 def _empty_totals() -> dict[str, int]:
     return {"windows": 0, "ok": 0, "ok_after_retry": 0, "failed": 0, "empty_after_retry": 0, "dropped_relations": 0,
-            "calls": 0, "reused_from_store": 0}
+            "dropped_self_relations": 0, "calls": 0, "reused_from_store": 0}
 
 
 class ExtractStage(Stage):
     name = "extract"
-    version = "1"
+    version = "2"  # 2: self-pointing relations are dropped and counted, not a window error (ADR-0055)
     needs_gpu = True
     outputs = (EXTRACTION_JSON, EXTRACT_JSON)
 
@@ -453,6 +455,7 @@ class ExtractStage(Stage):
         t.update(windows=len(results), calls=len(run.calls),
                  reused_from_store=sum(r["reused"] for r in results),
                  dropped_relations=sum(r["dropped_relations"] for r in results),
+                 dropped_self_relations=sum(r["dropped_self_relations"] for r in results),
                  empty_after_retry=sum(r["empty_after_retry"] for r in results))
         for r in results:
             t[r["status"]] += 1
@@ -489,6 +492,7 @@ class ExtractStage(Stage):
     def _status_entry(r: dict[str, Any]) -> dict[str, Any]:
         entry = {"window_index": r["window"].window_index, "status": r["status"], "attempt_used": r["attempt_used"],
                  "attempts": len(r["errors"]), "dropped_relations": r["dropped_relations"],
+                 "dropped_self_relations": r["dropped_self_relations"],
                  "reused_from_store": r["reused"]}
         if r["empty_after_retry"]:
             entry["empty_after_retry"] = True
@@ -513,7 +517,8 @@ class ExtractStage(Stage):
         t = meta["totals"]
         warnings = ([{"code": WARNING_CODE, "failed": t["failed"], "windows": t["windows"]}] if t["failed"] else [])
         return {"windows": t["windows"], "failed": t["failed"], "ok_after_retry": t["ok_after_retry"],
-                "dropped_relations": t["dropped_relations"], "config_id": meta["config_id"], "warnings": warnings}
+                "dropped_relations": t["dropped_relations"],
+                "dropped_self_relations": t["dropped_self_relations"], "config_id": meta["config_id"], "warnings": warnings}
 
     def after_stage(self, ctx: KeyContext, upstream: dict[str, Path]) -> None:
         """Delete the resume store once the stage is published (or found cached): every key's folder."""

@@ -157,6 +157,7 @@ class WindowOutcome:
     record: dict[str, Any] | None
     errors: list[str]
     dropped_relations: int = 0
+    dropped_self_relations: int = 0  # production stage only (ADR-0055); always 0 in the harness
     # why a reply gave no valid record (ADR-0054 decision 4): not_json, missing_record or schema_invalid; None when
     # the record is valid or the attempt had no reply (the caller knows why: truncated, prompt_too_long, ...)
     category: str | None = None
@@ -178,8 +179,23 @@ def drop_dangling(item: dict[str, Any]) -> int:
     return len(relations) - len(kept)
 
 
+def drop_self_relations(item: dict[str, Any]) -> int:
+    """Remove relations whose head equals their tail, exact string comparison as in `check_labels` (ADR-0055). In
+    place. Run after `drop_dangling`, so each removed relation's ends are concept labels of the window and a
+    self-pointing relation on a non-label was already counted as dangling."""
+    relations = item.get("relations")
+    if not isinstance(relations, list):
+        return 0
+    kept = [r for r in relations if not (isinstance(r, dict) and isinstance(r.get("head"), str)
+                                         and r.get("head") == r.get("tail"))]
+    item["relations"] = kept
+    return len(relations) - len(kept)
+
+
 def parse_reply(content: str | None, error: str | None, plan: CallPlan, lecture_id: str,
-                grid: dict[int, WindowText]) -> dict[int, WindowOutcome]:
+                grid: dict[int, WindowText], drop_self: bool = False) -> dict[int, WindowOutcome]:
+    """Window records from one reply. `drop_self` (the production stage only, ADR-0055) also drops self-pointing
+    relations after the dangling ones; the harness keeps the M7 rule (a self-relation is a window error)."""
     if content is None:
         return {t: WindowOutcome(None, [error or "no reply"]) for t in plan.targets}
     try:
@@ -201,8 +217,9 @@ def parse_reply(content: str | None, error: str | None, plan: CallPlan, lecture_
             continue
         item = {k: v for k, v in found[0].items() if k != "window_index"}
         dropped = drop_dangling(item)
+        dropped_self = drop_self_relations(item) if drop_self else 0
         w = grid[t]
         rec = {"window": {"lecture_id": lecture_id, "window_index": t, "start_s": w.start_s, "end_s": w.end_s}, **item}
         errors = check_window_record(rec, f"window {t}")
-        out[t] = WindowOutcome(rec, errors, dropped, category="schema_invalid" if errors else None)
+        out[t] = WindowOutcome(rec, errors, dropped, dropped_self, category="schema_invalid" if errors else None)
     return out

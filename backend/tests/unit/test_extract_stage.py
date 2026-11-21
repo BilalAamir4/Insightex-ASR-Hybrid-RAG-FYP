@@ -141,10 +141,11 @@ def test_every_window_is_extracted_and_the_outputs_are_valid(env, fake_extract):
     assert job.status == "succeeded", job.error
     doc, meta = outputs(env)
     assert [r["window"]["window_index"] for r in doc["windows"]] == [0, 1, 2, 3]
-    assert doc["producer"] == {"kind": "model", "name": "extract stage v1 (gemma4:e4b)"}
+    assert doc["producer"] == {"kind": "model", "name": "extract stage v2 (gemma4:e4b)"}
     assert doc["windows"][1]["window"] == {"lecture_id": WS, "window_index": 1, "start_s": 30.0, "end_s": 60.0}
     assert meta["totals"] == {"windows": 4, "ok": 4, "ok_after_retry": 0, "failed": 0, "empty_after_retry": 0,
-                              "dropped_relations": 0, "calls": 4, "reused_from_store": 0}
+                              "dropped_relations": 0, "dropped_self_relations": 0, "calls": 4,
+                              "reused_from_store": 0}
     assert meta["model"] == {"tag": "gemma4:e4b", "digest_served": FROZEN_DIGEST}
     assert meta["ollama_version_served"] == "0.40.2" and meta["allow_other_ollama_version_used"] is False
     assert meta["self_test"]["refused"] is True and meta["language"] == {"id": "hindi", "tier_at_processing": "tested"}
@@ -308,7 +309,7 @@ def test_zero_windows_succeeds_with_an_empty_document_and_no_call(env, fake_extr
     doc, meta = outputs(env)
     assert doc["windows"] == [] and meta["totals"] == {
         "windows": 0, "ok": 0, "ok_after_retry": 0, "failed": 0, "empty_after_retry": 0, "dropped_relations": 0,
-        "calls": 0, "reused_from_store": 0}
+        "dropped_self_relations": 0, "calls": 0, "reused_from_store": 0}
     assert fake_extract.order == [] and manifest_entry(env)["warnings"] == []
     assert extraction_summary(env[1], env[2], env[0], WS)["state"] == "done"
 
@@ -504,7 +505,7 @@ def test_stored_replies_from_another_version_or_digest_are_not_reused(env, fake_
     if field == "served_digest":  # a new frozen digest is a new key; reuse the old key's store by copying it
         old = next((env[2].path(WS) / ".resume").iterdir())
         upstream = env[2].read_manifest(WS)["stages"]["index"]["key"]
-        new_key = stage_key("extract", "1", extract_stage.extract_fingerprint(settings), upstream)
+        new_key = stage_key("extract", ExtractStage.version, extract_stage.extract_fingerprint(settings), upstream)
         old.rename(old.with_name(f"extract-{new_key}"))
     job = resume(env, settings=settings)
     assert job.status == "succeeded", job.error
@@ -727,3 +728,77 @@ def test_a_pinned_workspace_stays_pinned_after_its_hold_is_released(env):
     _index_workspace(conn, ws_id, "2026-01-01", pinned=1)
     assert cache.evict(conn, workspaces, max_bytes=0) == []
     assert conn.execute("SELECT pinned FROM workspaces WHERE id = ?", (ws_id,)).fetchone()["pinned"] == 1
+
+
+# -- self-pointing relations (ADR-0055) ----------------------------------------------------------------------------
+
+
+TWO = [{"label": "gradient descent", "aliases": ["GD"]}, {"label": "loss", "aliases": ["cost", "error"]}]
+
+
+def _relations_reply(relations, concepts=TWO, **kw):
+    return lambda i, a, m: (reply(record(i, concepts=concepts, relations=relations, **kw)), metrics())
+
+
+@pytest.mark.parametrize("rtype", ["prerequisite_of", "part_of", "example_of", "contrasts_with"])
+def test_a_self_relation_on_one_label_is_dropped_and_counted_with_no_retry(env, fake_extract, rtype):
+    fake_extract.respond = _relations_reply([{"head": "loss", "type": rtype, "tail": "loss"},
+                                             {"head": "gradient descent", "type": "part_of", "tail": "loss"}])
+    job = run(env)
+    assert job.status == "succeeded", job.error
+    doc, meta = outputs(env)
+    assert all(r["relations"] == [{"head": "gradient descent", "type": "part_of", "tail": "loss"}]
+               for r in doc["windows"])
+    assert all(w["status"] == "ok" and w["attempts"] == 1 and w["dropped_self_relations"] == 1
+               and w["dropped_relations"] == 0 for w in meta["windows"])
+    assert meta["totals"]["dropped_self_relations"] == 4 and meta["totals"]["calls"] == 4
+    assert manifest_entry(env)["dropped_self_relations"] == 4 and manifest_entry(env)["warnings"] == []
+
+
+@pytest.mark.parametrize("head,tail", [("loss", "cost"), ("cost", "loss"), ("cost", "error"), ("GD", "GD")])
+def test_alias_ends_are_dropped_as_dangling_not_as_self_relations(env, fake_extract, head, tail):
+    """label vs alias and alias vs alias of one concept: an alias is not a concept label, so drop_dangling removes
+    the relation first and it is counted once, as dangling (ADR-0055 order rule)."""
+    fake_extract.respond = _relations_reply([{"head": head, "type": "contrasts_with", "tail": tail}])
+    run(env)
+    meta = outputs(env)[1]
+    assert all(w["status"] == "ok" and w["dropped_relations"] == 1 and w["dropped_self_relations"] == 0
+               for w in meta["windows"])
+
+
+def test_a_self_relation_on_a_non_label_counts_as_dangling_only(env, fake_extract):
+    fake_extract.respond = _relations_reply([{"head": "ghost", "type": "part_of", "tail": "ghost"}])
+    run(env)
+    meta = outputs(env)[1]
+    assert meta["totals"]["dropped_relations"] == 4 and meta["totals"]["dropped_self_relations"] == 0
+
+
+def test_a_self_relation_with_another_error_is_still_retried_and_can_fail(env, fake_extract):
+    fake_extract.respond = _relations_reply([{"head": "loss", "type": "part_of", "tail": "loss"}], important="yes")
+    job = run(env)
+    assert job.status == "failed" and "EXTRACT_ALL_WINDOWS_FAILED" in job.error
+    assert [c["attempt"] for c in fake_extract.chats if c["window_index"] == 0] == [1, 2]
+
+
+def test_the_harness_still_rejects_self_relations():
+    from insightex.extract import harness as h
+    from insightex.extract.calls import CallPlan, WindowText, parse_reply
+
+    assert h.HARNESS_VERSION == 8
+    grid = {0: WindowText(0, 0.0, 30.0, "x")}
+    content = reply(record(0, concepts=TWO, relations=[{"head": "loss", "type": "contrasts_with", "tail": "loss"}]))
+    harness_view = parse_reply(content, None, CallPlan((0,), ()), WS, grid)[0]
+    assert not harness_view.valid and any("head and tail are the same concept" in e for e in harness_view.errors)
+    stage_view = parse_reply(content, None, CallPlan((0,), ()), WS, grid, drop_self=True)[0]
+    assert stage_view.valid and stage_view.dropped_self_relations == 1 and stage_view.record["relations"] == []
+
+
+def test_the_version_bump_changes_the_key_and_a_readd_re_extracts(env, fake_extract, monkeypatch):
+    monkeypatch.setattr(ExtractStage, "version", "1")
+    run(env)
+    v1_key = manifest_entry(env)["key"]
+    monkeypatch.setattr(ExtractStage, "version", "2")
+    assert not pipeline_is_current(KIND, {}, WS, env[0], env[2])
+    job = run(env)
+    assert [s.status for s in job.stages] == ["cached", "cached", "succeeded"]
+    assert manifest_entry(env)["key"] != v1_key and len(fake_extract.chats) == 8
