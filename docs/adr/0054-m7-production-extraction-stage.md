@@ -1,7 +1,7 @@
 # ADR-0054: M7 Session 3: the production extraction stage, built on the frozen final configuration
 
-Status: Proposed
-Date decided: not yet (drafted 2026-11-21 for Bilal's review)
+Status: Accepted
+Date decided: 2026-11-21
 Date recorded: 2026-11-21
 Module: M7 (Session 3)
 
