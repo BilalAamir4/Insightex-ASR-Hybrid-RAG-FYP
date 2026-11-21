@@ -1,7 +1,7 @@
 # ADR-0055: M7 Session 3: the production extract stage drops self-pointing relations instead of failing the window
 
-Status: Proposed
-Date decided: not decided (draft for review, 2026-11-21)
+Status: Accepted
+Date decided: 2026-11-21
 Date recorded: 2026-11-21
 Module: M7
 
@@ -24,6 +24,7 @@ Today the stage uses the M7 rule unchanged (ADR-0048 section 7, ADR-0054 decisio
    - "Same concept" is defined by the check this rule replaces: exact equality of two strings that are both concept labels of the window. It is not a new normalisation (see Context: after `drop_dangling` it is the only way head and tail can be the same concept).
    - The direction of `contrasts_with` (symmetric, `relation_key`) does not matter: a self-relation reads the same both ways, and it is dropped for every relation type.
    - The validator (`extraction_schema.py`, both byte-identical copies) is **not changed**. It still rejects self-relations, so gold files and harness runs are judged by the M7 rule. The stage never sends a self-relation to it.
+   - **Order and counting.** `drop_dangling` runs first, then the self-relation drop. A relation is counted once, under the first rule that drops it: a self-pointing relation whose head (and so tail) is not a concept label of the window is dangling, and counts in `dropped_relations` only, not in `dropped_self_relations` (review, 2026-11-21).
    - Implementation: a stage-only option on the shared reply parser (for example `parse_reply(..., drop_self=True)`, default false), used only by `extract/stage.py`.
 2. **The harness keeps the M7 rule.** `extract-eval` does not pass the option, its records and errors are unchanged, and `HARNESS_VERSION` stays **8**. Every committed M7 run stays reproducible and its reply-cache keys stay valid.
 3. **Stage version 1 → 2.** `ExtractStage.version` becomes `"2"`, so every extract key changes and every extracted lecture is re-extracted on its next job (a re-add is no longer a no-op). The producer name in `extraction.json` becomes `extract stage v2 (gemma4:e4b)` (the document header changes; window records are compared without it). The fingerprint fields are unchanged; the version alone changes the key through `stage_key`.
@@ -57,13 +58,14 @@ Today the stage uses the M7 rule unchanged (ADR-0048 section 7, ADR-0054 decisio
   - `docs/contracts/api.md`: one line, if the manifest extra is mentioned there.
   - Harness and validator untouched.
 - **Re-extraction.**
-  - Day 4 (`sha256-de27cb67c2acbedebd0c2c7416932b8a`) is re-extracted on its next job. On the normal path, the runner removes the superseded v1 key directory (`stages/extract/ca8f42ef0c179994/`) when it publishes v2 (`jobs/workspace.py`, superseded key). That is the system's own clean-up, not a manual delete. The step 2 evidence is kept in `docs/evidence/m7/session3/m7_verify_20261121T145444Z.json` (counts only). Whether to copy the v1 `extract.json`/`extraction.json` into the evidence folder first is a review point.
+  - Day 4 (`sha256-de27cb67c2acbedebd0c2c7416932b8a`) is re-extracted on its next job. On the normal path, the runner removes the superseded v1 key directory (`stages/extract/ca8f42ef0c179994/`) when it publishes v2 (`jobs/workspace.py`, superseded key). That is the system's own clean-up, not a manual delete. Its two files are copied into the evidence folder first (Evidence).
   - The held-out lecture is held, so its jobs skip `extract`; it is not touched.
 - **Tests (fake client, synthetic records):**
   - a self-relation on the same label is dropped and counted, and the window is `ok` with no retry;
   - a relation from a label to an alias of the same concept is dropped as dangling (counted in `dropped_relations`, not in `dropped_self_relations`), and the window is `ok`;
   - the same for alias to alias;
   - `contrasts_with` self-relations are dropped, as are those of the three directed types;
+  - a self-pointing relation on a name that is not a concept label is counted as dangling only (the order rule);
   - a record with a self-relation and another error is retried and can fail;
   - the harness still rejects a self-relation (unchanged harness test, `HARNESS_VERSION` 8);
   - the version bump changes the key and a re-add re-extracts;
@@ -87,19 +89,22 @@ All decided before any run or count.
 - **Written by** a script under `docs/evidence/m7/session3/scripts/`.
 - **Results** in `docs/evidence/m7/session3/self_relations_day4.json`.
 
+**Copy of the v1 Day 4 outputs (before any rerun).** `stages/extract/ca8f42ef0c179994/extract.json` and `extraction.json` of the Day 4 workspace are copied, unchanged, into `docs/evidence/m7/session3/day4_stage_v1/`. A `README.md` there gives the source path, the stage key, the stage version (1), the copy date and each file's sha256. This is committed before the rerun, because the runner removes the superseded v1 key directory when v2 is published.
+
 (c) **A Day 4 rerun of the stage at version 2**, after the code and tests, with Ollama checked by `check_ollama_frozen.py` first.
-- **Expected outcome, stated in advance:**
-  - A C1 window changes only if C1's first attempt for it was rejected only because of self-relations (found in (b)). In that case v2 keeps the first attempt minus its self-relations, where C1 used the second attempt or failed the window.
-  - The records for the 20 C1 target windows stay byte-identical to `C1/C1-gemma4-e4b/extraction.json` otherwise. No valid C1 record contains a self-relation, because the validator would have rejected it.
-  - Windows 0, 3 and 5 (not C1 targets) are reported in the same way against the step 2 v1 run, whose counts-only record is in the m7_verify results file.
+- **Two comparisons** (widened to all 23 windows, review 2026-11-21):
+  1. all 23 v2 window records against `docs/evidence/m7/session3/day4_stage_v1/extraction.json`;
+  2. separately, the 20 C1 target windows against `C1/C1-gemma4-e4b/extraction.json`.
+- **Expected outcome, stated in advance, the same rule for both:** a window changes only if its v1 first attempt was rejected only because of self-relations. In that case v2 keeps the first attempt minus its self-relations, where v1 (or C1) used the second attempt or failed the window. Every other record stays byte-identical. No valid v1 or C1 record contains a self-relation, because the validator would have rejected it. Any other change stops the step.
 - **Reported:** every window that changes, with its reason (attempt used before and after, count of dropped self-relations). Any change without such a reason is a failure of this expectation and stops the step for review.
 - **Counts only**, like m7_verify; no labels or relation text.
 - **Who runs it:** Bilal, or me only when he says so.
 
-## Review points (for Bilal, before acceptance)
+## Review (2026-11-21)
 
-1. **Normalisation wording.** The review instruction asks for "the validator's own name normalisation over labels and aliases". The check this rule replaces uses exact string equality on labels, and an alias at a relation end is removed earlier as dangling (Context). This draft therefore defines the rule by exact equality and records the alias cases as dangling drops, so the rule "matches exactly the check it replaces". Accept this, or ask for normalised comparison. That would be a broader rule: it would also catch label-vs-alias pairs before `drop_dangling`, and they would count as self-relations rather than dangling.
-2. **The v1 Day 4 outputs.** The runner will remove the superseded v1 extract directory when v2 is published. Copy `extract.json` (counts) and, if wanted, `extraction.json` into `docs/evidence/m7/session3/` before the rerun, or rely on the m7_verify results file?
+1. **"Same concept":** accepted as drafted: exact `head == tail` after `drop_dangling`, matching the check it replaces. The order rule (dangling first, each relation counted once) was added, with its unit test.
+2. **The v1 Day 4 outputs:** copied into `docs/evidence/m7/session3/day4_stage_v1/` before any rerun (Evidence).
+3. **Evidence (c)** widened to all 23 Day 4 windows against the v1 copy, plus the 20 C1 windows against C1, with one expected-outcome rule.
 
 ## Gate / revisit when
 
