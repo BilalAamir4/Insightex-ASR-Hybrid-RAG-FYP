@@ -1,0 +1,155 @@
+# ADR-0054: M7 Session 3: the production extraction stage, built on the frozen final configuration
+
+Status: Proposed
+Date decided: not yet (drafted 2026-11-21 for Bilal's review)
+Date recorded: 2026-11-21
+Module: M7 (Session 3)
+
+Applies ADR-0048 (schema v1, its Consequences: production writes v1 records through `insightex.extract.extraction_schema`), ADR-0049 (harness call rules) and ADR-0050 to ADR-0053 (the final configuration). For the production stage only, it overrides ADR-0002's `keep_alive: "10m"` (decision 2). It also settles, as stage design, three questions from handoff 5 section 4: the scope of canonical names (open decision 4, scope only), invalid windows in production, and untested languages. Open decisions 1 (keep the model loaded) and 2 (self-pointing relations) get their own ADRs after this stage exists; 3 (stop list) and 5 (relations and importance) wait for a fresh lecture (decision 10).
+
+## Context
+
+M7 chose a configuration and measured it, but only through the evaluation harness (`insightex extract-eval`, harness version 8). No ingest job extracts anything, so later modules (M8 graph, F4 importance, F20 recaps) have no input. Session 3 adds the stage. The plan approved on 2026-11-21 builds it first with the frozen configuration unchanged (a walking skeleton), then changes one thing at a time, each with its own evidence.
+
+Facts from the existing code that shape the design:
+- **Stages publish all-or-nothing** (`jobs/stages.py`): outputs go to an empty staging directory, and a crash reruns the stage from the start. At about 9 s per window (report section 5), a 48-window lecture is about 7 minutes, so a crash near the end would repeat almost all of it.
+- **Ollama is already its own process** (on Windows). The stage is an HTTP client and runs no CUDA itself. The GPU contract is met as the harness meets it: the exclusive lease, every resident model unloaded at the start, the model unloaded in `finally` (polling `/api/ps`).
+- **The exclusive lease unloads only `ollama.model`** (qwen3.5, `jobs/gpu_lease.py`). Gemma is not that model, so the stage must unload whatever else is resident itself, as `run_arm` does.
+- **Questions keep working during extraction.** The question rewrite takes a shared lease with `timeout_s` 0 (`retrieval/rewrite.py`); while the stage holds the exclusive lease it falls back to the original question only, and search runs on the CPU. `index` is published before `extract` starts, so the lecture is already searchable.
+- **The transcript records the language tier** at processing time (`language.tier_at_processing`), and the API reads the current tier from `config/languages.yaml`.
+- **ADR-0049 kept ADR-0002's `keep_alive: "10m"` for every non-evaluation caller**, the future production stage included. Using `keep_alive` 0 in production is therefore an override that must be recorded here.
+
+## Decision
+
+### 1. The stage
+
+- **Name `extract`, version 1, `needs_gpu`.** It is the fifth stage of `ingest_link` and `ingest_file`, after `index`.
+- **Input:** every window of the `index` stage's `windows.json` (fixed 30 s grid, ADR-0045), its native-script text unchanged (ADR-0051). Not only the M7 sample: all windows.
+- **One window per call, no context** (ADR-0052, ADR-0053). No translation step (ADR-0051).
+- **Model:** `gemma4:e4b` (ADR-0050), its tag in `extract.stage.model`.
+- **Prompt:** the frozen extraction prompt v2 (`extract.prompt_file`, `extract.prompt_sha256` `c7e061fc…4648`); any other hash refuses the stage, as it refuses the harness.
+- **Call rules: ADR-0049 unchanged.** `num_ctx` 8192; `num_predict` 1024; temperature 0, seed 42, `think` false; `truncate` false; the run-start truncation self-test (inside the lease, after the unloads, before any real call); the post-call overflow check; the estimate a warning only; one retry in the same unit with the frozen `<<<RETRY>>>` template; dangling relations dropped and counted; at most 10 concepts and 10 relations (the `format` the harness sends).
+- **Same requests as the harness.** Request building and reply handling (call options, `extraction_messages`, `extraction_format`, `parse_reply`, `drop_dangling`, the self-test, the overflow check) move into one module that both the harness and the stage call. A test asserts that the stage's request body for a window is byte-identical to the harness's request for the same window under arm `C4-window` (model, digest, messages, `format`, options). `HARNESS_VERSION` stays 8, because no harness request changes.
+- **Shared and stage-only settings.** The stage reads the frozen keys it shares with the harness from `extract:` (prompt file and hash, `num_ctx`, `num_predict_per_window`, `truncate`, `retry_error_chars`, the self-test keys, `token_estimate_scale`). Settings that only the stage has go in a new `extract.stage:` block, each with a one-line comment and unit: `model`, `keep_alive`, `frozen_ollama_version`, `frozen_model_digest`, `allow_other_ollama_version`, `min_free_vram_mib`, `lease_timeout_s`. A later production change (ADR for decision (a)) then changes `extract.stage.keep_alive` without touching the harness.
+- **VRAM pre-flight:** after the unloads, free VRAM must be at least `extract.stage.min_free_vram_mib`, or the stage fails with `INSUFFICIENT_VRAM` (as `index` does). The run's VRAM peak and baseline are recorded. As in ADR-0049 decision 6, residency is not checked in a way that can fail the stage, because `ollama ps` cannot verify Gemma; the recorded VRAM above baseline is the reference (about 4.8 GB in M7).
+- **Progress:** `ctx.progress` between calls and as a heartbeat while a call is running (so cancel and shutdown are noticed within a few seconds), with the message "Finding concepts: window i of n", plus ", k failed" once a window has failed.
+
+### 2. Reload per call in production, for now (overrides ADR-0002's `keep_alive` for this stage)
+
+`extract.stage.keep_alive` is 0: every call starts from a freshly loaded model, as in every M7 run. Reason: it is the only setting under which Gemma's output was shown to be reproducible (ADR-0049 decision 6), and the walking skeleton must equal the evaluated configuration. Cost: about 6.3–7.1 s of every ~9 s window (report section 5). Keeping the model loaded is decision (a), a separate ADR with its own determinism evidence on Day 4.
+
+### 3. Outputs
+
+In `stages/extract/<key>/`:
+
+- **`extraction.json`**: a schema v1 document (`producer` `{kind: model, name: "extract stage v1 (gemma4:e4b)"}`), with the records of **valid windows only**, checked with `check_document` before publishing. The scorer in `tools/label_concepts` can read it like a harness `extraction.json`.
+- **`extract.json`**: the stage's metadata:
+  - `stage_version`, the fingerprint and its short `config_id`;
+  - the model tag and the digest actually served, the Ollama version actually served, and whether `allow_other_ollama_version` was used;
+  - the self-test result;
+  - `language`: `{id, tier_at_processing}`, copied from the transcript (decision 6);
+  - one status entry per window (decision 4);
+  - totals: windows, `ok`, `ok_after_retry`, `failed`, `valid_empty_after_retry`, dropped dangling relations, calls made, replies reused from the resume store;
+  - cost: wall time, tokens per second (decode), VRAM baseline and peak, largest prompt.
+- **Manifest extra:** `windows`, `failed`, `retried`, `dropped_relations`, `config_id`, and `warnings` (decision 4).
+
+Raw replies are not kept in the published stage directory (they are model output, internal; ADR-0041). They live only in the resume store (decision 5) until the stage is published.
+
+### 4. Invalid windows in production
+
+In evaluation an invalid window rejected the arm (ADR-0048 section 7). In production, one window that is still invalid after its retry must not fail the lecture.
+
+- **Window statuses:** `ok` (valid on the first attempt), `ok_after_retry`, `failed`. A window valid only through the retry with no concepts also gets `empty_after_retry: true` (ADR-0049 Amendment 2's category).
+- **A failed window is not written as an empty record.** An empty v1 record means "this window has no concept"; M8 and the scorer could not tell it from a failure. The failed window is left out of `extraction.json` and recorded in `extract.json`: `{window_index, status: failed, error_category, errors (capped at extract.retry_error_chars per attempt), attempts}`.
+- **Error categories (closed list, model-output failures only):** `not_json`, `missing_record` (the reply has no single record for the window), `schema_invalid` (a validator rule), `truncated` (`done_reason` length), `prompt_too_long` (refused by Ollama under `truncate` false), `prompt_overflow` (the post-call check). When the two attempts fail differently, the category is the last attempt's; every attempt's errors are kept.
+- **Infrastructure failures fail the stage,** because they are not about the window: Ollama unreachable or timing out, the model missing, the self-test failing, the version or digest check (decision 7), the VRAM pre-flight, the lease. The job fails at this stage with a coded error and an English message. A retry of the job resumes (decision 5).
+- **The job succeeds** whenever at least one window is valid. If any window failed, the stage adds a warning to its manifest entry, shown through the existing warnings path (`frontend/warnings.js`): "Concepts could not be found in k of n parts of this lecture." **The stage fails only if every window failed** (`EXTRACT_ALL_WINDOWS_FAILED`): that points to a system problem, not a window. Decided by Bilal on 2026-11-21; no percentage threshold, because M7 saw 0 invalid windows in 60 and any other number would be a guess.
+
+### 5. Resume within the stage
+
+- **The resume store:** each window's reply (both attempts, with metrics) is written as soon as it arrives, under the workspace in a folder named by the stage key, outside the staging directory. It is deleted after the stage is published, and an evicted workspace takes it with it.
+- **A rerun of the stage** (crash, worker restart, job retry) reuses a stored reply instead of calling the model, then re-applies the post-call overflow check and validation. The key is the stage key, which chains every upstream key, so a stored reply is reused only for exactly the same window text and settings.
+- **Why this is sound now:** under reload per call, a repeated request returns a byte-identical reply (ADR-0049 decision 6), so a stored reply is what a new call would return. The ADR for decision (a) must re-check this if the model is kept loaded.
+- `extract.json` records how many replies came from the store; the cost figures are those of the calls actually made.
+
+### 6. Untested languages (ADR-0040)
+
+- **The stage extracts every lecture,** whatever its language tier. Extraction output is internal (ADR-0041), and without it an untested-language lecture would have no concepts and later no graph.
+- **The flag is carried:** `extract.json` records `language.id` and `language.tier_at_processing` from the transcript. The tier is not in the fingerprint, so promoting a language reprocesses nothing (as in `asr`, ADR-0042). Readers that show something to users take the current tier from config, as the API already does.
+- **Evaluation:** untested lectures stay out of every extraction figure (ADR-0040). Extraction quality has been measured on Hindi only (two lectures), so "tested" for extraction means a tested ASR language plus M7's Hindi figures, nothing more.
+
+### 7. Ollama version and model digest
+
+- **At the start of the stage,** inside the lease, it reads `/api/version` and the served digest of `extract.stage.model`.
+- **A digest different from `extract.stage.frozen_model_digest` (`dc35e8d9…0c9c`) always fails the stage** (`EXTRACT_MODEL_MISMATCH`): another model is not the evaluated configuration.
+- **A version different from `extract.stage.frozen_ollama_version` (0.40.2) fails the stage by default** (`EXTRACT_OLLAMA_VERSION`). Reason: `truncate: false` is undocumented behaviour verified on 0.40.2 only (ADR-0049 Amendment 2), and the self-test checks only one way it could change.
+- **`extract.stage.allow_other_ollama_version`** (default false) lets the stage run on another version and records the version served and the switch in `extract.json`. Turning it on needs its own ADR, because ADR-0049's revisit rule applies (re-measure the calibration, `num_ctx`, the VRAM reference and Gemma's layer check). The intended path after a deliberate upgrade is to update `frozen_ollama_version` in config, which changes the stage key.
+- **The staged-installer check of `check_ollama_frozen.py` is not in the stage:** it uses a path specific to one Windows machine. `tools/m7_verify` runs that script first and stops on STOP.
+- The failed job leaves the lecture searchable. Its message says what differs and that Bilal must decide.
+
+### 8. Ingesting a lecture without extraction (an extraction hold)
+
+So that a fresh lecture can be ingested and labelled later without the model reading it (gold before model output, ADR-0048 section 3):
+
+- **How it is asked for:** `insightex ingest <url> --hold-extract` and `insightex ingest-file <path> --hold-extract` put `hold_extract: true` in the job payload. Not in the HTTP API or the UI: only a developer needs it.
+- **What the stage does:** it calls no model, takes no GPU lease and publishes no stage directory. The runner marks the job's stage `skipped` and records in the workspace manifest an `extract_hold`: `{set_at, job_id}`. The job succeeds.
+- **The hold is sticky:** while the manifest has an unreleased `extract_hold`, every later job on that workspace skips `extract` the same way, with or without the flag. A re-add from the UI therefore cannot extract a held lecture by accident.
+- **Releasing it:** `insightex extract-hold release <lecture_id>` records `released_at` (the hold record is kept). The next ingest job on the workspace (a re-add) then runs `extract` and finds every other stage cached. `insightex extract-hold list` shows held workspaces.
+- **The harness is unaffected:** `extract-eval run` reads `windows.json` directly. Running the evaluation on a held lecture after its gold is frozen is the intended path.
+- **Re-add and `pipeline_is_current`:** a held workspace counts as current when every other stage is cached, so a re-add is a no-op while the hold stands.
+- **The lecture document** shows `extraction: {state: held}`; other states are `done`, `failed`, `none` (ingested before this stage existed).
+
+### 9. Canonical names (open decision 4, scope only)
+
+The stage writes the model's labels and aliases exactly as the reply gives them, in schema v1. It does not merge, rename, map to textbook terms or filter. All of that is M8 (canonicalisation, ADR-0019; exit: duplicate-node rate on 2 lectures). Read-through findings such as surface-form labels ("performance matrix"), unclear tokens ("tp") and sentence-long aliases are inputs to M8, not stage rules.
+
+### 10. What this ADR does not decide
+
+- **(a) keeping the model loaded**: next ADR, after self-pointing relations; decision rule fixed before any run; Day 4 determinism evidence.
+- **(b) self-pointing relations**: its own ADR, production only, tests and counts on Day 4 run files; the harness keeps the M7 rule.
+- **(c) stop list, (e) relations and importance**: need a fresh Hindi lecture with gold, ingested with the extraction hold, rules registered before its one run. Relations and importance are stored as schema v1 requires until then; importance is decided with M14 (F12 produces the F4 labels), relations at the start of M8.
+- **Context-aware extraction and batching:** unchanged (ADR-0052, ADR-0053); each would need its own evidence.
+
+## Alternatives considered
+
+- **A Python child process for the stage, like `asr` and `index`.** Not needed: the stage loads no CUDA library; the VRAM belongs to Ollama, which is released by the unload in `finally`. A child would add a process boundary and nothing else.
+- **Reuse the harness's `run_arm` directly.** Rejected: it raises on a document error, treats an invalid window as an arm failure, writes evidence files and has a reply cache outside the workspace. The shared module keeps one request builder without importing evaluation behaviour into production.
+- **Store a failed window as an empty record with a flag.** Rejected: schema v1 has no failure field (adding one is a schema change), and an empty record reads as "no concepts" to every consumer.
+- **Fail the job above a share of failed windows.** Rejected by Bilal (2026-11-21): no evidence for any threshold.
+- **Skip extraction for untested languages.** Rejected: those lectures would have no concepts and no graph, and the flag already keeps them out of evaluation.
+- **Only warn on an Ollama version change.** Rejected: the overflow guard rests on undocumented behaviour of one version.
+- **A global config switch to turn extraction off.** Rejected for the hold: easy to leave on or off by mistake, and not recorded per lecture. The per-ingest flag with a sticky manifest hold is recorded where the lecture is.
+- **A non-sticky flag (payload only).** Rejected: a later re-add without the flag, for example from the UI, would extract a lecture whose gold is not yet frozen.
+- **Keep the model loaded from the start.** Rejected for the skeleton: no evidence yet that Gemma is reproducible that way (ADR-0049); it is decision (a).
+
+## Consequences
+
+- **Speed:** about 9 s per window on the RTX 3070 until decision (a); a 48-window lecture adds about 7 minutes to ingest. During that time questions use the original wording only (no rewrite).
+- **Code:** a shared request module used by the harness and the stage; the stage; `extract.stage:` config keys; error codes `EXTRACT_MODEL_MISMATCH`, `EXTRACT_OLLAMA_VERSION`, `EXTRACT_SELF_TEST_FAILED`, `EXTRACT_ALL_WINDOWS_FAILED` plus the existing `INSUFFICIENT_VRAM`, `GPU_NOT_AVAILABLE` and an Ollama-unreachable code; runner support for a skipped stage; the `--hold-extract` flag and `extract-hold` commands; the stage label "Find concepts" in the player page; an `extraction` summary (counts and state only) on the lecture document. No concepts are shown to users yet.
+- **Lectures ingested before this stage** have no extraction (`state: none`); a re-add runs only `extract`.
+- **Tests (step 2), fake client and synthetic input only:**
+  - the byte-identical request against the harness;
+  - each error category, the infrastructure failures, all windows failed, and a job that succeeds with failed windows (and its warning);
+  - resume after a kill partway through, with no repeated model calls;
+  - the version and digest checks and the allow switch;
+  - the untested-language flag;
+  - the unloads at the start and in `finally`;
+  - cache-key changes for each fingerprint field;
+  - the hold: flag recorded, no model call and no lease, sticky across a later job without the flag, release then re-add runs `extract`, `pipeline_is_current` with a hold.
+- **`tools/m7_verify` (step 2):** standalone, over HTTP, after `check_ollama_frozen.py` prints OK; Day 4 only. Its checks include that the records for the 20 C1 target windows are byte-identical to `docs/evidence/m7/sha256-de27cb67c2acbedebd0c2c7416932b8a/C1/C1-gemma4-e4b/extraction.json`, which shows the stage equals the evaluated configuration (an equality check, not a quality figure), and a hold round trip on a synthetic fixture. It prints counts and equality results only. The held-out lecture is not used.
+- **Manual check:** the stage label and the failed-window warning in the browser.
+
+## Evidence
+
+- The final configuration and its cost: `docs/reports/M7_extraction_report.md` sections 2 and 5; `docs/evidence/m7/Insightex_M7_handoff_5.md`.
+- Reproducibility under reload per call: ADR-0049 decision 6 and `docs/evidence/m7/session2b_vram_numctx.md`.
+- The overflow guards and their version dependence: ADR-0049 Amendment 2.
+- Code read for this design (2026-11-21): `jobs/stages.py`, `jobs/runner.py`, `jobs/gpu_lease.py`, `index/stage.py`, `asr/stage.py`, `extract/harness.py`, `retrieval/rewrite.py`.
+
+## Gate / revisit when
+
+- **Acceptance:** Bilal reviews this draft; step 2 (the build) starts only after it is Accepted.
+- **Step 2 exit:** tests pass, `tools/m7_verify` passes on Day 4 including the byte-identical check, the manual check is signed.
+- **Decision (a):** if the model is kept loaded, decision 2 and the soundness argument of decision 5 are revisited in that ADR.
+- **An Ollama or model change:** decision 7 and ADR-0049's revisit rule.
+- **A fresh lecture:** decisions (c) and (e), with rules registered before its run.
