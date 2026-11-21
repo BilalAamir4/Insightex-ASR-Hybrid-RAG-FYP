@@ -1,25 +1,83 @@
 # m7_verify
 
-Step 2 verification of the production `extract` stage (ADR-0054, Amendment 1) on the **Day 4 dev lecture only**
-(`sha256-de27cb67c2acbedebd0c2c7416932b8a`). The held-out lecture is never used. Standalone: HTTP to the API, the
-`insightex` CLI as a subprocess, and reads of published files; it imports nothing from `backend/`, never deletes stage
-outputs or workspace files (the 90 s cut lecture is removed through `DELETE /api/lectures/{id}`), and prints counts,
-equality results and costs only. Results go to `docs/evidence/m7/session3/m7_verify_<UTC stamp>.json`.
+Step 2 verification of the production `extract` stage (ADR-0054, Amendments 1 and 2) on the **Day 4 dev lecture
+only** (`sha256-de27cb67c2acbedebd0c2c7416932b8a`). The held-out lecture `yt-5vqk6HnITko` is never used:
+`refuse_held_out()` stops the run before any HTTP path, CLI argument or file path that names it.
 
-Bilal runs it, after `python3 docs/evidence/m7/scripts/check_ollama_frozen.py` prints OK (m7_verify runs that check
-first and stops on anything else):
+Standalone: HTTP to the API, the `insightex` CLI as a subprocess, and reads of published files. It imports nothing from
+`backend/` and never deletes stage outputs or workspace files. The 90 s cut lecture is removed through
+`DELETE /api/lectures/{id}`. The only file it deletes itself is the temporary cut it wrote.
 
-```bash
-# 1. the API alone (no worker: m7_verify starts and kills its own for the resume check)
-bash ~/insightex/scripts/run_in_env.sh python -m insightex.api &
-# 2. the checks
-python3 tools/m7_verify/m7_verify.py --api http://127.0.0.1:8000
-```
+Results go to `docs/evidence/m7/session3/m7_verify_<UTC stamp>.json`. The file holds counts, statuses, hashes, timings
+and equality results only: no labels, aliases, relations, raw replies or transcript text.
 
-Checks: Ollama frozen; Day 4 extraction with a SIGKILL of the worker once at least 3 windows are stored, then a
-restart (exactly the stored valid windows must be reused); the 20 C1 target-window records byte-identical to
-`docs/evidence/m7/<Day 4>/C1/C1-gemma4-e4b/extraction.json`; no model resident and the GPU lease free; re-add is a
-cache hit; cost; the hold round trip on a 90 s cut (offset `CUT_START_S`, chosen from Day 4 segment timings).
+## Run instructions (Bilal), in this order
 
-If Day 4 already has a published extraction, the resume check prints `Not run (already extracted)`; that run does not
-count for the step 2 exit (ADR-0054 Gate), and m7_verify will not delete the extraction to make it run.
+From a WSL shell in `~/insightex`:
+
+1. **Ollama frozen check.** Start the Ollama app by hand, then run:
+
+   ```bash
+   python3 docs/evidence/m7/scripts/check_ollama_frozen.py
+   ```
+
+   It must print a line starting with `OK:`. On `STOP`, do not continue; tell Bilal. m7_verify runs this check again
+   as its first step, before any HTTP call, and stops unless it prints `OK:`.
+
+2. **Start the API alone** (not `scripts/dev_run.sh`, which also starts a worker), in its own terminal:
+
+   ```bash
+   bash ~/insightex/scripts/run_in_env.sh python -m insightex.api
+   ```
+
+3. **Make sure no worker is running.** m7_verify starts its own worker so it can kill it for the resume check.
+
+   ```bash
+   pgrep -af 'insightex(\.cli)? worker'                       # must print nothing
+   bash ~/insightex/scripts/run_in_env.sh insightex gpu status   # must say: state: free
+   ```
+
+   If a worker is running (for example from `dev_run.sh`), stop it with Ctrl-C in its terminal. A clean stop puts
+   a running job back in the queue.
+
+4. **Run m7_verify** in a third terminal:
+
+   ```bash
+   python3 tools/m7_verify/m7_verify.py --api http://127.0.0.1:8000
+   ```
+
+5. **What a pass looks like.** Every check line starts with `[ok]`:
+
+   ```
+   [ok]   ollama frozen: OK: Ollama 0.40.2, gemma4:e4b digest dc35e8d9c606 match ...
+   [ok]   day 4 extraction with resume: passed: killed with N windows stored, N reused, M calls after the restart
+   [ok]   C1 byte identity: passed: 20 of 20 C1 target windows byte-identical
+   [ok]   model unloaded, lease free: passed: no model resident, GPU lease free
+   [ok]   re-add is a cache hit: passed: ...
+   [info] cost: windows 23, ok ..., failed ..., calls ..., wall ... s, ... tok/s, VRAM peak ... MiB above baseline, ...
+      cut: offset 390.0 s, 90.0 s (stream copy|re-encoded), sha256 <64 hex>
+   [ok]   hold round trip (90 s cut): passed: held (extract skipped), released, re-added (stages [...]), removed
+   [ok]   model unloaded, lease free (after the hold test): passed: ...
+   results: docs/evidence/m7/session3/m7_verify_<stamp>.json
+   7 of 7 checks passed
+   ```
+
+   The exit code is 0. Any `[FAIL]` line, or a final line other than `7 of 7 checks passed`, is a fail.
+
+6. **The resume check must actually run once.** It runs only while Day 4 has no published extraction. The run that
+   counts for the step 2 exit (ADR-0054 Gate, Amendment 1 item 9) must therefore be **the first m7_verify run on Day 4
+   at the current extract key**. Later runs print
+   `day 4 extraction with resume: Not run (already extracted)`, which does not count. m7_verify will not delete the
+   extraction to make the check run again. If that first run fails, stop and report it; do not delete files to retry.
+
+## Checks
+
+| Function | Check |
+|---|---|
+| `check_frozen` | `check_ollama_frozen.py` exits 0 and its last line starts with `OK:`; runs first, before any HTTP call |
+| `check_day4_with_resume` | ingest Day 4; SIGKILL the worker once at least `RESUME_MIN_STORED` (3) windows are stored; restart it; exactly the stored valid windows are reused; `.resume/` is gone after publish |
+| `check_c1_identity` | the reference has 20 distinct C1 target windows, and each record equals the stage's record for that window byte for byte (canonical JSON) |
+| `check_unloaded` | Ollama `/api/ps` shows no model, `insightex gpu status --json` shows the lease free |
+| `check_readd_cached` | re-adding Day 4 creates no job, or a job whose stages are all cached |
+| `cost_line` | totals and cost from `extract.json` (info, not a pass/fail check) |
+| `check_hold_round_trip` | 90 s cut from `CUT_START_S` (390.0 s, chosen from Day 4 segment timings): `--hold-extract` (extract `skipped`, state `held`), release job (state `none`), re-add (extract runs, others cached, state `done`), `DELETE /api/lectures/{id}` then 404 |

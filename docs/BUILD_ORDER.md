@@ -150,3 +150,6 @@ These come from the October 2026 review. Settle each one when its module starts.
 - **Visual gate / V1–V3: Effort.**
   - Use a fixed time box: one owner, about 1 day a week, and a hard gate that decides continue vs freeze.
   - Scene detection + PP-OCR are cheap; PaddleOCR-VL is the time sink.
+## Open items (pre-existing bugs, outside the current session)
+
+- **`IndexStageError` is missing from the error-code regex in `ingest/file_jobs.py`** (`_FAILED_CODE_RE`, used by `job_outcome`). Found 2026-11-21 during M7 Session 3 step 2; pre-existing since M5, outside Session 3, not fixed. Effect: when an `index` stage failure (`NO_WINDOWS`, `ENCODE_CRASHED`, `ENCODE_TIMEOUT`, ...) ends an `ingest-file --wait`, the printed outcome has no `code`, only the raw job error as `message`. Fix: add `IndexStageError` to the alternation and a test.

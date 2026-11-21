@@ -47,7 +47,7 @@ REPO = Path(__file__).resolve().parents[2]
 WRAPPER = REPO / "scripts" / "run_in_env.sh"
 FROZEN_CHECK = REPO / "docs" / "evidence" / "m7" / "scripts" / "check_ollama_frozen.py"
 DAY4_ID = "sha256-de27cb67c2acbedebd0c2c7416932b8a"
-HELD_OUT_ID = "yt-5vqk6HnITko"  # never touched; checked only to refuse a mix-up
+HELD_OUT_ID = "yt-5vqk6HnITko"  # never touched: refuse_held_out() stops any request, path or id that names it
 C1_EXTRACTION = REPO / "docs" / "evidence" / "m7" / DAY4_ID / "C1" / "C1-gemma4-e4b" / "extraction.json"
 DAY4_LANGUAGE = "hindi"
 OLLAMA = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -55,6 +55,8 @@ OLLAMA = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
 # for 90 s (chosen from the transcript's segment timings only, 2026-11-21)
 CUT_START_S = 390.0
 CUT_LENGTH_S = 90.0
+C1_TARGET_WINDOWS = 20  # the C1 run's target windows (0, 3 and 5 were reserved as guide examples)
+CUT_INFO: dict = {}  # offset, length, method and sha256 of the hold-test cut, for the results file
 RESUME_MIN_STORED = 3  # windows that must be in the resume store before the worker is killed
 POLL_S = 1.0
 JOB_TIMEOUT_S = 3 * 3600  # the whole Day 4 pipeline at most (extraction alone measured ~ minutes in M7)
@@ -75,11 +77,19 @@ def env_value(name: str) -> str:
 
 
 def cli(*args: str, check: bool = False) -> subprocess.CompletedProcess:
+    refuse_held_out(*args)
     return subprocess.run(["bash", str(WRAPPER), "python", "-m", "insightex.cli", *args], capture_output=True,
                           text=True, check=check)
 
 
+def refuse_held_out(*values: object) -> None:
+    """Stop the run before anything that would name the held-out lecture (ADR-0054: it is used up)."""
+    if any(HELD_OUT_ID in str(v) for v in values):
+        raise SystemExit(f"STOP: refusing to touch the held-out lecture {HELD_OUT_ID}")
+
+
 def http(api: str, method: str, path: str) -> tuple[int, dict | None]:
+    refuse_held_out(path)
     req = urllib.request.Request(api.rstrip("/") + path, method=method)
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
@@ -147,6 +157,7 @@ def stored_windows(data: Path, ws: str) -> dict[int, str]:
 
 
 def ingest_file(path: Path, *flags: str) -> dict:
+    refuse_held_out(path)
     out = cli("ingest-file", str(path), "--confirm-rights", "--language", DAY4_LANGUAGE, *flags)
     try:
         return {"exit": out.returncode, **json.loads(out.stdout.strip().splitlines()[-1])}
@@ -190,8 +201,8 @@ class Worker:
 def check_frozen() -> str:
     out = subprocess.run([sys.executable, str(FROZEN_CHECK)], capture_output=True, text=True, check=False)
     last = first_line(out.stdout.strip().splitlines()[-1] if out.stdout.strip() else out.stderr)
-    if out.returncode != 0:
-        raise CheckFailed(f"check_ollama_frozen.py: {last}")
+    if out.returncode != 0 or not last.startswith("OK:"):
+        raise CheckFailed(f"check_ollama_frozen.py: exit {out.returncode}: {last}")
     return last
 
 
@@ -241,6 +252,8 @@ def check_c1_identity(data: Path) -> str:
         raise CheckFailed("Day 4 has no published extraction")
     ours = {r["window"]["window_index"]: r for r in json.loads((d / "extraction.json").read_text("utf-8"))["windows"]}
     ref = json.loads(C1_EXTRACTION.read_text(encoding="utf-8"))["windows"]
+    if len(ref) != C1_TARGET_WINDOWS or len({r["window"]["window_index"] for r in ref}) != C1_TARGET_WINDOWS:
+        raise CheckFailed(f"the C1 reference has {len(ref)} records, expected {C1_TARGET_WINDOWS} distinct windows")
     canon = lambda r: json.dumps(r, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
     same = [r["window"]["window_index"] for r in ref
             if r["window"]["window_index"] in ours and canon(ours[r["window"]["window_index"]]) == canon(r)]
@@ -318,6 +331,8 @@ def check_hold_round_trip(api: str, day4: Path) -> str:
         how = make_cut(day4, cut)
         sha = hashlib.sha256(cut.read_bytes()).hexdigest()
         ws = f"sha256-{sha[:32]}"
+        refuse_held_out(ws)
+        CUT_INFO.update(offset_s=CUT_START_S, length_s=CUT_LENGTH_S, method=how, sha256=sha, lecture_id=ws)
         print(f"   cut: offset {CUT_START_S} s, {CUT_LENGTH_S} s ({how}), sha256 {sha}")
         held = ingest_file(cut, "--hold-extract", "--wait")
         if held.get("exit") != 0 or held.get("status") != "succeeded":
@@ -352,17 +367,6 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--api", default="http://127.0.0.1:8000")
     args = parser.parse_args()
-    data = Path(env_value("INSIGHTEX_DATA"))
-    day4 = data / "eval" / "day04_batch_vs_online" / "raw" / "lecture_test.mp4"
-    if hashlib.sha256(day4.read_bytes()).hexdigest()[:32] != DAY4_ID[len("sha256-"):]:
-        print(f"STOP: {day4} is not the Day 4 lecture")
-        return 1
-    assert HELD_OUT_ID not in str(day4)
-    status, _ = http(args.api, "GET", "/api/lectures")
-    if status != 200:
-        print(f"STOP: the API at {args.api} is not answering (HTTP {status})")
-        return 1
-
     results: list[tuple[str, str, bool]] = []
 
     def run(name: str, fn, *a):
@@ -377,10 +381,22 @@ def main() -> int:
             print(f"[FAIL] {name}: {e}")
             return None
 
+    # First, before any HTTP call, CLI call or file read: Ollama must match the frozen configuration.
     if run("ollama frozen", check_frozen) is None:
         print("STOP: Ollama does not match the frozen configuration; do not run, tell Bilal.")
         return 1
+    data = Path(env_value("INSIGHTEX_DATA"))
+    day4 = data / "eval" / "day04_batch_vs_online" / "raw" / "lecture_test.mp4"
+    refuse_held_out(day4)
+    if hashlib.sha256(day4.read_bytes()).hexdigest()[:32] != DAY4_ID[len("sha256-"):]:
+        print(f"STOP: {day4} is not the Day 4 lecture")
+        return 1
+    status, _ = http(args.api, "GET", "/api/lectures")
+    if status != 200:
+        print(f"STOP: the API at {args.api} is not answering (HTTP {status})")
+        return 1
     worker = Worker()
+    meta = None
     try:
         worker.start()
         day4_result = run("day 4 extraction with resume", check_day4_with_resume, args.api, data, worker, day4)
@@ -397,7 +413,8 @@ def main() -> int:
     out_dir = REPO / "docs" / "evidence" / "m7" / "session3"
     out_dir.mkdir(parents=True, exist_ok=True)
     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
-    report = {"run_at": stamp, "lecture_id": DAY4_ID, "cut_start_s": CUT_START_S, "cut_length_s": CUT_LENGTH_S,
+    # Only counts, statuses, hashes, timings and equality results: no labels, aliases, relations, replies or text.
+    report = {"run_at": stamp, "lecture_id": DAY4_ID, "cut": CUT_INFO or None,
               "checks": [{"name": n, "result": r, "passed": ok} for n, r, ok in results],
               "cost": cost_line(meta, data)}
     (out_dir / f"m7_verify_{stamp}.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")
