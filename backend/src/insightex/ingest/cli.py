@@ -1,12 +1,15 @@
 """CLI for link ingestion.
 
     insightex probe <url>                         metadata without downloading
-    insightex ingest <url> --confirm-rights --language <id>
+    insightex ingest <url> --confirm-rights --language <id> [--hold-extract]
                                                   enqueue an ingest_link job (a running `insightex worker` does it)
-    insightex ingest-file <path> --confirm-rights --language <id> [--wait]
+    insightex ingest-file <path> --confirm-rights --language <id> [--wait] [--hold-extract]
                                                   copy a local video into staging and enqueue an ingest_file job
                                                   exit 0 ok or already ingested, 2 rejected, 1 internal error
     insightex languages list [--json]             the lecture languages (`--language` takes an id from it)
+
+`--hold-extract` runs every stage except `extract` and records a sticky hold in the manifest (ADR-0054 decision 8);
+release it with `insightex extract-hold release <lecture_id>`. A link must be YouTube.
 
 Full error details go to <paths.data_dir>/logs/ingest/ingest.log; the terminal shows the user-facing message.
 """
@@ -21,6 +24,7 @@ from pathlib import Path
 
 from insightex.asr.languages import LanguageConfigError, languages_for, require_language
 from insightex.core.config import get_settings
+from insightex.extract.hold import HoldRefused
 from insightex.ingest.errors import ErrorCode, IngestError
 from insightex.ingest.file_jobs import enqueue_file, job_outcome
 from insightex.ingest.link_jobs import enqueue_link
@@ -54,7 +58,7 @@ def _ingest_file(args: argparse.Namespace, app_settings) -> int:
         return 1
     conn = db.open_connection(app_settings.jobs.db_path, app_settings.jobs.busy_timeout_ms)
     db.migrate(conn)
-    result = enqueue_file(conn, app_settings, path, language=args.language, via="cli")
+    result = enqueue_file(conn, app_settings, path, language=args.language, via="cli", hold_extract=args.hold_extract)
     if result.rejected is not None:  # refused from its size before staging; the failed job is in the history
         print(json.dumps({"lecture_id": None, "job_id": result.job_id, "deduplicated": False, "status": "rejected",
                           **result.rejected.to_dict()}, ensure_ascii=False))
@@ -80,12 +84,16 @@ def main(argv: list[str] | None = None) -> int:
     p_ingest.add_argument("--confirm-rights", action="store_true",
                           help="confirm you have the right to use this video (required)")
     p_ingest.add_argument("--language", help="language spoken in the lecture, an id from `insightex languages list` (required)")
+    p_ingest.add_argument("--hold-extract", action="store_true",
+                          help="run every stage except concept extraction and keep the lecture held until released (ADR-0054)")
     p_file = sub.add_parser("ingest-file", help="copy a local video file in and enqueue an ingest_file job")
     p_file.add_argument("path")
     p_file.add_argument("--confirm-rights", action="store_true",
                         help="confirm you have the right to use this video (required)")
     p_file.add_argument("--language", help="language spoken in the lecture, an id from `insightex languages list` (required)")
     p_file.add_argument("--wait", action="store_true", help="block until the job ends and print its outcome")
+    p_file.add_argument("--hold-extract", action="store_true",
+                        help="run every stage except concept extraction and keep the lecture held until released (ADR-0054)")
     args = parser.parse_args(argv)
 
     app_settings = get_settings()
@@ -108,13 +116,17 @@ def main(argv: list[str] | None = None) -> int:
             return _ingest_file(args, app_settings)
         conn = db.open_connection(app_settings.jobs.db_path, app_settings.jobs.busy_timeout_ms)
         db.migrate(conn)
-        job_id, workspace_id, deduplicated = enqueue_link(conn, app_settings, args.url, args.language)
+        job_id, workspace_id, deduplicated = enqueue_link(conn, app_settings, args.url, args.language,
+                                                          hold_extract=args.hold_extract)
         print(json.dumps({"job_id": job_id, "workspace_id": workspace_id, "deduplicated": deduplicated}))
         return 0
     except IngestError as exc:
         print(json.dumps({"error": exc.to_dict()}, ensure_ascii=False), file=sys.stderr)
         if log_file:
             print(f"details: {log_file}", file=sys.stderr)
+        return 2
+    except HoldRefused as exc:  # no error code (ADR-0054 Amendment 1 item 1)
+        print(f"error: {exc}", file=sys.stderr)
         return 2
     except KeyboardInterrupt:
         print("interrupted", file=sys.stderr)

@@ -108,13 +108,33 @@ def delete(conn: sqlite3.Connection, workspaces: Workspaces, workspace_id: str) 
     conn.execute("DELETE FROM workspaces WHERE id = ?", (workspace_id,))
 
 
+HOLD_KEY = "extract_hold"  # the manifest key insightex.extract.hold writes (kept here so jobs/ needs no extract import)
+
+
+def _held(workspaces: Workspaces, workspace_id: str) -> bool:
+    """True if eviction must leave the workspace alone because of an extraction hold (or an unreadable manifest)."""
+    try:
+        manifest = workspaces.read_manifest(workspace_id)
+    except (ValueError, OSError) as exc:
+        log.warning("not evicting workspace %s: its manifest cannot be read (%s), so a hold cannot be ruled out",
+                    workspace_id, exc)
+        return True
+    h = manifest.get(HOLD_KEY)
+    if isinstance(h, dict) and not h.get("released_at"):
+        log.info("not evicting workspace %s: extraction hold since %s", workspace_id, h.get("set_at"))
+        return True
+    return False
+
+
 def evict(
     conn: sqlite3.Connection, workspaces: Workspaces, max_bytes: int, exclude: str | None = None
 ) -> list[str]:
     """If indexed workspaces exceed `max_bytes`, delete the least recently accessed until under the cap.
 
-    Skips pinned workspaces, workspaces with a queued or running job, and `exclude` (the one whose job
-    just finished). Returns the ids removed.
+    Skips pinned workspaces, workspaces with a queued or running job, `exclude` (the one whose job just
+    finished), and held lectures: a manifest with an `extract_hold` and no `released_at` (ADR-0054 decision 8),
+    or a manifest that cannot be read (skipped with a warning, so a held lecture is never evicted by mistake).
+    Returns the ids removed.
     """
     rows = conn.execute("SELECT id, size_bytes, last_accessed_at, pinned FROM workspaces").fetchall()
     total = sum(r["size_bytes"] for r in rows)
@@ -128,6 +148,8 @@ def evict(
         if total <= max_bytes:
             break
         if r["pinned"] or r["id"] == exclude or is_busy(conn, r["id"]):
+            continue
+        if _held(workspaces, r["id"]):
             continue
         try:
             delete(conn, workspaces, r["id"])

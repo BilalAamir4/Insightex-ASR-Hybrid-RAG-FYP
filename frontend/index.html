@@ -253,6 +253,16 @@ const ERROR_MESSAGES = {
   ENCODE_TIMEOUT: "Preparing the lecture for search took too long and was stopped. Retry when the computer is less busy.",
   NO_WINDOWS: "The transcript has no text to search. Check that the lecture has audible speech.",
   EMPTY_TRANSCRIPT: "No speech was recognised in this lecture. Check that it has audible speech and that the right language was chosen.",
+  // the extract stage (ADR-0054)
+  EXTRACT_MODEL_MISMATCH: "The concept extraction model in Ollama is not the one that was evaluated, so concepts were not extracted.",
+  EXTRACT_MODEL_MISSING: "The concept extraction model is not in Ollama, so concepts were not extracted.",
+  EXTRACT_OLLAMA_VERSION: "Ollama is not the version concept extraction was evaluated on, so concepts were not extracted.",
+  EXTRACT_SELF_TEST_FAILED: "Ollama failed a safety check before concept extraction, so concepts were not extracted.",
+  EXTRACT_ALL_WINDOWS_FAILED: "Concepts could not be found in any part of this lecture. Retry the job.",
+  EXTRACT_OLLAMA_UNREACHABLE: "Concept extraction could not reach Ollama. Start Ollama, then retry the job.",
+  EXTRACT_OLLAMA_ERROR: "Ollama returned an error during concept extraction. Retry the job.",
+  EXTRACT_HOLD_AFTER_EXTRACTION: "This lecture has already been through concept extraction, so it can no longer be held.",
+  EXTRACT_HOLD_JOB_ACTIVE: "A job for this lecture is already running, so it could not be held. Wait for it to finish.",
   // the ask box (ADR-0047)
   QUESTION_EMPTY: "Type a question first.",
   QUESTION_TOO_LONG: "That question is too long. Please shorten it.",
@@ -468,9 +478,10 @@ function renderPreview(p) {
   show($("preview"));
 }
 
-const STAGE_LABELS = { fetch: "Download", normalise: "Convert video and audio", asr: "Transcribe", index: "Prepare for search" };
+const STAGE_LABELS = { fetch: "Download", normalise: "Convert video and audio", asr: "Transcribe", index: "Prepare for search", extract: "Find concepts" };
 const STATUS_LABELS = {
   pending: "Waiting", running: "Working", succeeded: "Done", cached: "Done (reused)", failed: "Failed", cancelled: "Cancelled",
+  skipped: "Skipped (extraction held)",
 };
 const isTerminal = (status) => ["succeeded", "failed", "cancelled"].includes(status);
 

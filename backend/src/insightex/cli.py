@@ -11,6 +11,7 @@
     insightex search <lecture>   ranked windows for questions (insightex.retrieval.cli)
     insightex probe|ingest|ingest-file ...   link and local-file ingestion (insightex.ingest.cli)
     insightex extract-eval ...   M7 extraction evaluation harness (insightex.extract.cli)
+    insightex extract-hold release <lecture>|list   the extraction hold (insightex.extract.hold_cli, ADR-0054)
 """
 
 from __future__ import annotations
@@ -73,6 +74,10 @@ def main(argv: list[str] | None = None) -> int:
         from insightex.extract.cli import main as extract_eval_main
 
         return extract_eval_main(argv[1:])
+    if argv and argv[0] == "extract-hold":
+        from insightex.extract.hold_cli import main as extract_hold_main
+
+        return extract_hold_main(argv[1:])
     if argv and argv[0] in ("probe", "ingest", "ingest-file", "-v", "--verbose"):
         from insightex.ingest.cli import main as ingest_main
 
@@ -91,6 +96,7 @@ def main(argv: list[str] | None = None) -> int:
     jobs_cli.register(sub)
     sub.add_parser("search", help="rank a lecture's windows for questions (see: insightex search --help)")
     sub.add_parser("extract-eval", help="M7 extraction evaluation harness (see: insightex extract-eval --help)")
+    sub.add_parser("extract-hold", help="release or list extraction holds (see: insightex extract-hold --help)")
     sub.add_parser("probe", help="print metadata for a link (see: insightex probe <url>)")
     sub.add_parser("ingest", help="enqueue a link ingest job (see: insightex ingest <url> --confirm-rights)")
     sub.add_parser("ingest-file", help="ingest a local video (see: insightex ingest-file <path> --confirm-rights)")

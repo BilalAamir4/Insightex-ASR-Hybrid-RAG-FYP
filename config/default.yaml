@@ -211,3 +211,12 @@ extract:                            # M7 extraction evaluation harness (ADR-0048
   translation_cache_dir: null       # C2 translation stage, one file per window keyed by (window text sha256, model digest, translation prompt sha256), no harness version (ADR-0048 section 8); null = <cache_dir>/translations. Never under /mnt/
   lease_timeout_s: 600              # seconds to wait for the exclusive GPU lease before a run gives up
   vram_poll_interval_s: 0.2         # seconds between nvidia-smi samples for the VRAM peak
+  stage:                            # production `extract` stage (ADR-0054, Amendment 1); the frozen keys above are shared with the harness
+    model: gemma4:e4b               # Ollama tag of the extraction model (ADR-0050)
+    keep_alive: 0                   # seconds the model stays loaded after each stage call; 0 = reload per call (ADR-0054 decision 2)
+    frozen_ollama_version: 0.40.2   # Ollama version the final configuration was evaluated on; another version fails the stage (ADR-0054 decision 7)
+    frozen_model_digest: dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c  # digest of `model` that was evaluated; another digest fails the stage
+    allow_other_ollama_version: false  # true = run on another Ollama version and record it (needs its own ADR, ADR-0054 decision 7)
+    min_free_vram_mib: 5000         # MiB; free VRAM (nvidia-smi) required after the unloads, else INSUFFICIENT_VRAM (Gemma peaked 4,828 MiB above baseline on Day 4)
+    device_index: 0                 # GPU index the VRAM pre-flight reads
+    heartbeat_interval_s: 1.0       # seconds between progress heartbeats while a call runs (cancel and shutdown are noticed within this)

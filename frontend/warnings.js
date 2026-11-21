@@ -12,8 +12,16 @@ export const WARNING_MESSAGES = {
   // transcript.json (speech recognition)
   TEMPERATURE_FALLBACK: "Some parts of this transcript were hard to recognise; answers about them may be less reliable.",
   HIGH_COMPRESSION_RATIO: "Some parts of this transcript look repetitive and may be wrong; answers about them may be less reliable.",
+  // extract.json (concept extraction, ADR-0054); the counted sentence is built by describeWarning
+  EXTRACT_WINDOWS_FAILED: "Concepts could not be found in some parts of this lecture.",
 };
 
+const isCount = (n) => Number.isInteger(n) && n >= 0;
+
 /** The sentence for one warning `{code, ...}`. An unknown code falls back to a generic notice that names it. */
-export const describeWarning = (w) =>
-  WARNING_MESSAGES[w.code] ?? `Notice: ${w.code}${w.detail ? ` (${w.detail})` : ""}`;
+export const describeWarning = (w) => {
+  if (w.code === "EXTRACT_WINDOWS_FAILED" && isCount(w.failed) && isCount(w.windows)) {
+    return `Concepts could not be found in ${w.failed} of ${w.windows} parts of this lecture.`;
+  }
+  return WARNING_MESSAGES[w.code] ?? `Notice: ${w.code}${w.detail ? ` (${w.detail})` : ""}`;
+};

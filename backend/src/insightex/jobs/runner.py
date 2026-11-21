@@ -33,6 +33,7 @@ from insightex.jobs.stages import (
     StageContext,
     UnknownJobKind,
     WorkerStopping,
+    get_action,
     get_chain_root,
     get_failure_hook,
     get_pipeline,
@@ -136,6 +137,18 @@ def _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop) -> st
         store.finish(conn, job.id, "failed", str(exc))
         return "failed"
 
+    action = get_action(job.kind)
+    if action is not None:  # a stage-less kind (ADR-0054 Amendment 1): the action is the whole job
+        try:
+            action(conn, workspaces, job, settings)
+        except Exception as exc:  # noqa: BLE001 - any action error fails the job and is recorded
+            log.error("job action failed: %s: %s", type(exc).__name__, exc)
+            store.finish(conn, job.id, "failed", f"{job.kind} failed: {type(exc).__name__}: {exc}")
+            return "failed"
+        store.finish(conn, job.id, "succeeded")
+        log.info("job succeeded")
+        return "succeeded"
+
     chain_root = get_chain_root(job.kind)
     upstream_key = chain_root(job.payload, job.workspace_id) if chain_root else job.workspace_id
     upstream_keys: dict[str, str] = {}
@@ -148,6 +161,16 @@ def _run_pipeline(conn, job, settings, workspaces, gpu_lease, should_stop) -> st
             return _cancel(conn, job, idx)
 
         key_ctx = KeyContext(job.id, job.payload, job.workspace_id, settings)
+        try:
+            skip = stage.skip_reason(key_ctx, workspaces)
+            if skip is not None:  # ADR-0054 decision 8: no call, no lease, nothing published
+                stage.on_skipped(key_ctx, workspaces)
+                store.update_stage(conn, job.id, idx, status="skipped", progress=1.0, message=skip, error=None,
+                                   finished_at=utcnow())
+                log.info("stage skipped: %s", skip)
+                continue
+        except Exception as exc:  # noqa: BLE001 - a failed skip check or hold record fails the job, not the worker
+            return _fail(conn, job, idx, exc, settings, workspaces)
         try:
             key = stage_key(stage.name, stage.version, stage.config_fingerprint(key_ctx), upstream_key)
         except Exception as exc:  # noqa: BLE001 - a bad fingerprint fails the job, not the worker
@@ -197,7 +220,8 @@ def pipeline_is_current(kind: str, payload: dict, workspace_id: str, settings: S
 
     Uses the stages' own fingerprints and the same chain as `_run_pipeline` (including the rule for an input that a
     later stage consumed), so a re-add can be skipped exactly when a job would find every stage cached. A stage whose
-    fingerprint cannot be built (for example a missing language) makes the answer False.
+    fingerprint cannot be built (for example a missing language) makes the answer False. A stage the job would skip
+    (the extraction hold, ADR-0054 decision 8) counts as current.
     """
     pipeline = get_pipeline(kind)
     chain_root = get_chain_root(kind)
@@ -205,6 +229,8 @@ def pipeline_is_current(kind: str, payload: dict, workspace_id: str, settings: S
     key_ctx = KeyContext("-", payload, workspace_id, settings)
     for idx, stage in enumerate(pipeline):
         try:
+            if stage.skip_counts_as_current(key_ctx, workspaces):  # a held stage counts as current (ADR-0054)
+                continue
             key = stage_key(stage.name, stage.version, stage.config_fingerprint(key_ctx), upstream_key)
         except Exception:  # noqa: BLE001 - the job itself reports a bad fingerprint
             return False
@@ -258,7 +284,8 @@ def _run_stage(
             progress = _Progress(conn, job.id, idx, settings.jobs.progress_min_interval_s, should_stop)
             ctx = StageContext(
                 job_id=job.id, payload=job.payload, workspace_id=job.workspace_id, settings=settings,
-                staging_dir=staging, upstream=dict(upstream_dirs), reporter=progress,
+                staging_dir=staging, upstream=dict(upstream_dirs), reporter=progress, stage_key=key,
+                workspace_dir=workspaces.path(job.workspace_id),
             )
             progress(0.0, None)
             stage.run(ctx)

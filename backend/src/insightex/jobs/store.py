@@ -152,6 +152,16 @@ def list_jobs(conn: sqlite3.Connection, limit: int = 50, status: str | None = No
     return [_job_from_row(r, _stages_of(conn, r["id"])) for r in rows.fetchall()]
 
 
+def latest_finished_job_with_stage(conn: sqlite3.Connection, workspace_id: str, stage_name: str) -> Job | None:
+    """The most recently finished job on the workspace that has a stage named `stage_name`, with stage rows, or None
+    (jobs of other kinds, such as a hold release, are not considered)."""
+    row = conn.execute(
+        "SELECT j.* FROM jobs j WHERE j.workspace_id = ? AND j.finished_at IS NOT NULL AND EXISTS "
+        "(SELECT 1 FROM job_stages s WHERE s.job_id = j.id AND s.name = ?) "
+        "ORDER BY j.finished_at DESC, j.rowid DESC LIMIT 1", (workspace_id, stage_name)).fetchone()
+    return None if row is None else _job_from_row(row, _stages_of(conn, row["id"]))
+
+
 def update_stage(conn: sqlite3.Connection, job_id: str, idx: int, **changes: Any) -> None:
     """Set columns of one stage row (status, stage_key, progress, message, error, started_at, finished_at)."""
     unknown = set(changes) - set(_STAGE_FIELDS)

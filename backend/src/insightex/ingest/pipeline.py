@@ -19,6 +19,8 @@ from typing import Any, BinaryIO
 import yt_dlp
 
 from insightex.asr.stage import AsrStage
+from insightex.extract import hold
+from insightex.extract.stage import ExtractStage
 from insightex.index.stage import IndexStage
 from insightex.ingest import netguard, staging
 from insightex.ingest.errors import ErrorCode, IngestError, IngestRejected
@@ -303,7 +305,8 @@ def reject_cleanup(conn, workspaces, job, settings, exc: BaseException) -> None:
         conn.execute("DELETE FROM workspaces WHERE id = ?", (job.workspace_id,))
 
 
-register_pipeline("ingest_link", [FetchStage(), NormaliseStage(), AsrStage(), IndexStage()], source_for=source_for,
-                  chain_root=chain_root)
-register_pipeline("ingest_file", [UploadFetchStage(), NormaliseStage(), AsrStage(), IndexStage()], source_for=file_source_for,
-                  on_failure=reject_cleanup)
+register_pipeline("ingest_link", [FetchStage(), NormaliseStage(), AsrStage(), IndexStage(), ExtractStage()],
+                  source_for=source_for, chain_root=chain_root)
+register_pipeline("ingest_file", [UploadFetchStage(), NormaliseStage(), AsrStage(), IndexStage(), ExtractStage()],
+                  source_for=file_source_for, on_failure=reject_cleanup)
+register_pipeline(hold.RELEASE_KIND, [], action=hold.release_action)  # ADR-0054 Amendment 1: no stages, no lease

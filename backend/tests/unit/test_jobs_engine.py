@@ -41,9 +41,9 @@ FAST = {"cpu_seconds": 0.1, "gpu_seconds": 0.1, "step_seconds": 0.05}
 
 def test_migrate_twice_is_a_noop_the_second_time(env):
     _, conn, _ = env
-    assert db.schema_version(conn) == len(db.MIGRATIONS) == 3
+    assert db.schema_version(conn) == len(db.MIGRATIONS) == 4
     assert db.migrate(conn) == 0
-    assert conn.execute("SELECT COUNT(*) FROM schema_version").fetchone()[0] == 3
+    assert conn.execute("SELECT COUNT(*) FROM schema_version").fetchone()[0] == 4
 
 
 def test_migration_3_keeps_workspace_rows_and_allows_gdrive(tmp_path):
@@ -57,7 +57,7 @@ def test_migration_3_keeps_workspace_rows_and_allows_gdrive(tmp_path):
             conn.execute("INSERT INTO schema_version VALUES (?, 'x')", (n,))
         conn.execute("INSERT INTO workspaces (id, source_kind, source_ref, created_at, last_accessed_at, size_bytes, pinned) "
                      "VALUES ('yt-abcdefghijk', 'youtube', 'u', 't1', 't2', 7, 1)")
-    assert db.migrate(conn) == 1 and db.schema_version(conn) == 3
+    assert db.migrate(conn) == 2 and db.schema_version(conn) == 4
     row = conn.execute("SELECT * FROM workspaces").fetchone()
     assert (row["id"], row["source_kind"], row["size_bytes"], row["pinned"]) == ("yt-abcdefghijk", "youtube", 7, 1)
     conn.execute("INSERT INTO workspaces (id, source_kind, source_ref, created_at, last_accessed_at) "
@@ -66,6 +66,32 @@ def test_migration_3_keeps_workspace_rows_and_allows_gdrive(tmp_path):
         conn.execute("INSERT INTO workspaces (id, source_kind, source_ref, created_at, last_accessed_at) "
                      "VALUES ('z', 'bogus', 'u', 't', 't')")
     assert conn.execute("SELECT name FROM sqlite_master WHERE name = 'idx_workspaces_accessed'").fetchone()
+
+
+def test_migration_4_keeps_stage_rows_and_allows_skipped(tmp_path):
+    """ADR-0054 decision 8: a stage row can be 'skipped'; v3 rows survive the table rebuild."""
+    conn = db.open_connection(tmp_path / "v3.db", 1000)
+    with db.transaction(conn):
+        conn.execute("CREATE TABLE schema_version (version INTEGER NOT NULL, applied_at TEXT NOT NULL)")
+        for n, script in enumerate(db.MIGRATIONS[:3], start=1):
+            for statement in script.split(";"):
+                if statement.strip():
+                    conn.execute(statement)
+            conn.execute("INSERT INTO schema_version VALUES (?, 'x')", (n,))
+        conn.execute("INSERT INTO jobs (id, kind, status, payload, workspace_id, attempts, created_at, updated_at) "
+                     "VALUES ('j1', 'dummy', 'succeeded', '{}', 'yt-abcdefghijk', 1, 't', 't')")
+        conn.execute("INSERT INTO job_stages (job_id, idx, name, status, stage_key, progress, message) "
+                     "VALUES ('j1', 0, 'a', 'cached', 'k', 1.0, 'm')")
+        with pytest.raises(sqlite3.IntegrityError):
+            conn.execute("INSERT INTO job_stages (job_id, idx, name, status) VALUES ('j1', 1, 'b', 'skipped')")
+    assert db.migrate(conn) == 1 and db.schema_version(conn) == 4
+    row = conn.execute("SELECT * FROM job_stages").fetchone()
+    assert (row["job_id"], row["status"], row["stage_key"], row["message"]) == ("j1", "cached", "k", "m")
+    conn.execute("INSERT INTO job_stages (job_id, idx, name, status) VALUES ('j1', 1, 'b', 'skipped')")
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("INSERT INTO job_stages (job_id, idx, name, status) VALUES ('j1', 2, 'c', 'bogus')")
+    conn.execute("DELETE FROM jobs WHERE id = 'j1'")  # the foreign key (ON DELETE CASCADE) survived the rebuild
+    assert conn.execute("SELECT COUNT(*) FROM job_stages").fetchone()[0] == 0
 
 
 def test_connection_pragmas(env):

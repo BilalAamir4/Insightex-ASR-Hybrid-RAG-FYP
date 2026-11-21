@@ -21,8 +21,9 @@ from insightex.asr.languages import require_language
 from insightex.asr.stage import AsrStage
 from insightex.asr.transcript import TRANSCRIPT_JSON
 from insightex.core.config import Settings
+from insightex.extract import hold
 from insightex.ingest import staging
-from insightex.ingest.errors import ErrorCode, IngestRejected
+from insightex.ingest.errors import ErrorCode, IngestError, IngestRejected
 from insightex.ingest.settings import IngestSettings
 from insightex.jobs import store
 from insightex.jobs.runner import pipeline_is_current
@@ -50,6 +51,7 @@ def enqueue_file(
     language: str | None,
     via: str = "cli",
     original_filename: str | None = None,
+    hold_extract: bool = False,
 ) -> FileIngest:
     """Stage `path` and queue its ingest. Raises IngestRejected(INSUFFICIENT_DISK) before anything is copied.
 
@@ -72,7 +74,7 @@ def enqueue_file(
 
     staged = staging.copy_to_staging(path, settings)
     return enqueue_staged(conn, settings, staged, language=language, via=via,
-                          original_filename=original_filename or path.name)
+                          original_filename=original_filename or path.name, hold_extract=hold_extract)
 
 
 def enqueue_staged(
@@ -83,12 +85,18 @@ def enqueue_staged(
     language: str | None,
     via: str,
     original_filename: str | None,
+    hold_extract: bool = False,
 ) -> FileIngest:
     """Queue the ingest of a copy that is already in staging (the CLI copied it, or the HTTP upload received it).
 
     Under a lock: an active job for the same bytes and language is returned, then an up-to-date finished lecture
     transcribed in that language; in both cases the staged copy is deleted. Otherwise the job is enqueued and
     owns the staged copy. A missing or unknown language raises IngestError and deletes the staged copy.
+
+    `hold_extract` (CLI only, ADR-0054 decision 8): first, under the same lock, refuse with IngestError if any job
+    is queued or running on the workspace (EXTRACT_HOLD_JOB_ACTIVE) or the lecture was already extracted
+    (EXTRACT_HOLD_AFTER_EXTRACTION); the staged copy is deleted and no job is created. The payload then carries
+    `hold_extract: true`.
     """
     try:
         lang = require_language(settings, language)
@@ -98,6 +106,12 @@ def enqueue_staged(
     workspace_id = workspace_id_for_bytes(staged.sha256)
     workspaces = Workspaces(settings.jobs.workspaces_dir)
     with _lock:
+        if hold_extract:
+            try:
+                hold.check_hold_allowed(conn, workspaces, workspace_id)
+            except IngestError:
+                staging.remove_staged(settings, staged.name)
+                raise
         for status in ("running", "queued"):
             for job in store.list_jobs(conn, limit=1000, status=status):
                 if job.kind == KIND and job.workspace_id == workspace_id and job.payload.get("language") == lang.id:
@@ -112,6 +126,8 @@ def enqueue_staged(
             "via": via,
             "language": lang.id,
         }
+        if hold_extract:
+            payload["hold_extract"] = True
         if pipeline_is_current(KIND, payload, workspace_id, settings, workspaces):  # every stage cached at its current key
             staging.remove_staged(settings, staged.name)
             return FileIngest(workspace_id, None, True)
@@ -134,7 +150,7 @@ def _record_rejection(conn, path: Path, rejected: IngestRejected, via: str, orig
 
 
 _REJECTED_RE = re.compile(r"IngestRejected: ([A-Z_]+): (.*)")
-_FAILED_CODE_RE = re.compile(r"(?:IngestError|AsrError): ([A-Z_]+): (.*)")
+_FAILED_CODE_RE = re.compile(r"(?:IngestError|AsrError|ExtractStageError): ([A-Z_]+): (.*)")
 
 
 def job_outcome(conn: sqlite3.Connection, settings: Settings, job_id: str, *, poll_s: float = 1.0) -> dict:

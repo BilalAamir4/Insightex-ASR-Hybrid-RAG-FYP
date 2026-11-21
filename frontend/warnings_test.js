@@ -18,11 +18,18 @@ Deno.test("the technical message and segment ids from the API are never shown", 
 
 Deno.test("every warning code the backend emits has a sentence", () => {
   for (const code of ["AUDIO_NEAR_SILENT", "ROTATED", "MULTIPLE_AUDIO_STREAMS", "VFR_SOURCE", "START_OFFSET_CORRECTED",
-    "AV_DURATION_MISMATCH", "TEMPERATURE_FALLBACK", "HIGH_COMPRESSION_RATIO"]) {
+    "AV_DURATION_MISMATCH", "TEMPERATURE_FALLBACK", "HIGH_COMPRESSION_RATIO", "EXTRACT_WINDOWS_FAILED"]) {
     assert.ok(WARNING_MESSAGES[code], code);
   }
 });
 
 Deno.test("an unknown code still gives a notice", () => {
   assert.equal(describeWarning({ code: "NEW_ONE" }), "Notice: NEW_ONE");
+});
+
+Deno.test("failed extraction windows are counted in the sentence (ADR-0054)", () => {
+  assert.equal(describeWarning({ code: "EXTRACT_WINDOWS_FAILED", failed: 2, windows: 40 }),
+    "Concepts could not be found in 2 of 40 parts of this lecture.");
+  assert.equal(describeWarning({ code: "EXTRACT_WINDOWS_FAILED" }),
+    "Concepts could not be found in some parts of this lecture.");
 });

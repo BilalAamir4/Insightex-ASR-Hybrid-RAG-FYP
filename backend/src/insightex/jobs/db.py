@@ -77,6 +77,25 @@ MIGRATIONS: list[str] = [
     ALTER TABLE workspaces_new RENAME TO workspaces;
     CREATE INDEX idx_workspaces_accessed ON workspaces(last_accessed_at);
     """,
+    # v4: a stage can be 'skipped' (the extraction hold, ADR-0054 decision 8); the table is rebuilt for the CHECK.
+    """
+    CREATE TABLE job_stages_new (
+        job_id      TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+        idx         INTEGER NOT NULL,
+        name        TEXT NOT NULL,
+        status      TEXT NOT NULL CHECK (status IN ('pending','running','succeeded','cached','skipped','failed','cancelled')),
+        stage_key   TEXT,
+        progress    REAL NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 1),
+        message     TEXT,
+        error       TEXT,
+        started_at  TEXT,
+        finished_at TEXT,
+        PRIMARY KEY (job_id, idx)
+    );
+    INSERT INTO job_stages_new SELECT job_id, idx, name, status, stage_key, progress, message, error, started_at, finished_at FROM job_stages;
+    DROP TABLE job_stages;
+    ALTER TABLE job_stages_new RENAME TO job_stages;
+    """,
 ]
 
 

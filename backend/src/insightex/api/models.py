@@ -52,6 +52,12 @@ class UploadAccepted(BaseModel):
     deduplicated: bool
 
 
+class ExtractionOut(BaseModel):
+    state: str  # held | done | failed | outdated | none (ADR-0054 decision 8)
+    windows: int | None = None  # windows of the published extraction; null without one
+    failed: int | None = None  # windows whose concepts could not be found
+
+
 class LectureItem(BaseModel):
     lecture_id: str
     title: str | None
@@ -60,6 +66,7 @@ class LectureItem(BaseModel):
     created_at: str | None
     language: LanguageOut | None = None  # null: no transcript yet (for example a lecture added before M4)
     searchable: bool = False  # true: a question can be asked (the lecture has a usable search index, ADR-0047)
+    extraction: ExtractionOut | None = None  # concept extraction state (ADR-0054)
 
 
 class LectureOut(LectureItem):
@@ -81,17 +88,22 @@ def language_out(languages: Languages, language_id: object) -> LanguageOut | Non
     return LanguageOut(**entry.public()) if entry else LanguageOut(id=language_id, label=language_id, tier=None)
 
 
-def _asr_warnings(job: store.Job, workspaces: Workspaces) -> list[dict]:
-    """Warnings of the transcript this job produced or reused (the manifest entry at the job's asr key)."""
-    stage = next((s for s in job.stages if s.name == "asr"), None)
+def _stage_warnings(job: store.Job, workspaces: Workspaces, name: str) -> list[dict]:
+    """Warnings of the output this job's stage `name` produced or reused (the manifest entry at the job's key)."""
+    stage = next((s for s in job.stages if s.name == name), None)
     if stage is None or stage.status not in ("succeeded", "cached") or not stage.stage_key:
         return []
     try:
-        entry = workspaces.read_manifest(job.workspace_id)["stages"].get("asr") or {}
+        entry = workspaces.read_manifest(job.workspace_id)["stages"].get(name) or {}
     except (OSError, ValueError, KeyError):
         return []
     warnings = entry.get("warnings") if entry.get("key") == stage.stage_key else None
     return warnings if isinstance(warnings, list) else []
+
+
+def _asr_warnings(job: store.Job, workspaces: Workspaces) -> list[dict]:
+    """Warnings of the transcript and of the extraction this job produced or reused (EXTRACT_WINDOWS_FAILED)."""
+    return [*_stage_warnings(job, workspaces, "asr"), *_stage_warnings(job, workspaces, "extract")]
 
 
 def job_out(job: store.Job, workspaces: Workspaces, languages: Languages | None = None) -> JobOut:

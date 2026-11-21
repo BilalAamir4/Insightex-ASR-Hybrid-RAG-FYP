@@ -328,6 +328,19 @@ def _repo_relative(v: Path | None) -> Path | None:
     return v if v.is_absolute() else repo_root() / v
 
 
+class ExtractStage(_Section):
+    """The production `extract` stage (ADR-0054). Only `model`, `keep_alive` and the two frozen values change outputs."""
+
+    model: str
+    keep_alive: int | str
+    frozen_ollama_version: str
+    frozen_model_digest: str
+    allow_other_ollama_version: bool
+    min_free_vram_mib: int
+    device_index: int
+    heartbeat_interval_s: float
+
+
 class Extract(_Section):
     """M7 extraction evaluation harness (ADR-0048). Prompt files are frozen: each is used only when its sha256 equals
     the pinned value. Relative paths are under the repo root; `cache_dir` is local and never under /mnt/."""
@@ -355,6 +368,7 @@ class Extract(_Section):
     translation_cache_dir: Path | None
     lease_timeout_s: float
     vram_poll_interval_s: float
+    stage: ExtractStage
 
     @field_validator("arms_file", "prompt_file", "context_block_file", "translate_prompt_file", "evidence_dir",
                      "measure_dir", mode="after")

@@ -50,6 +50,16 @@ class ErrorCode(StrEnum):
     ENCODE_CRASHED = "ENCODE_CRASHED"
     ENCODE_TIMEOUT = "ENCODE_TIMEOUT"
     NO_WINDOWS = "NO_WINDOWS"
+    # Added by M7 Session 3 (ADR-0054, Amendment 1): the extract stage and the extraction hold.
+    EXTRACT_MODEL_MISMATCH = "EXTRACT_MODEL_MISMATCH"
+    EXTRACT_MODEL_MISSING = "EXTRACT_MODEL_MISSING"
+    EXTRACT_OLLAMA_VERSION = "EXTRACT_OLLAMA_VERSION"
+    EXTRACT_SELF_TEST_FAILED = "EXTRACT_SELF_TEST_FAILED"
+    EXTRACT_ALL_WINDOWS_FAILED = "EXTRACT_ALL_WINDOWS_FAILED"
+    EXTRACT_OLLAMA_UNREACHABLE = "EXTRACT_OLLAMA_UNREACHABLE"
+    EXTRACT_OLLAMA_ERROR = "EXTRACT_OLLAMA_ERROR"
+    EXTRACT_HOLD_AFTER_EXTRACTION = "EXTRACT_HOLD_AFTER_EXTRACTION"
+    EXTRACT_HOLD_JOB_ACTIVE = "EXTRACT_HOLD_JOB_ACTIVE"
 
 
 DEFAULT_MESSAGES: dict[ErrorCode, str] = {
@@ -123,6 +133,30 @@ DEFAULT_MESSAGES: dict[ErrorCode, str] = {
     ErrorCode.ENCODE_CRASHED: "Preparing the lecture for search stopped unexpectedly. Retry the job; if it fails again, check the worker log.",
     ErrorCode.ENCODE_TIMEOUT: "Preparing the lecture for search took too long and was stopped. Retry the job when the computer is less busy.",
     ErrorCode.NO_WINDOWS: "The transcript has no text to search. Check that the lecture has audible speech, then add it again.",
+    ErrorCode.EXTRACT_MODEL_MISMATCH: (
+        "The concept extraction model in Ollama is not the one that was evaluated, so concepts were not extracted. "
+        "Bilal must decide before it is used."
+    ),
+    ErrorCode.EXTRACT_MODEL_MISSING: "The concept extraction model is not in Ollama, so concepts were not extracted.",
+    ErrorCode.EXTRACT_OLLAMA_VERSION: (
+        "Ollama is not the version the concept extraction was evaluated on, so concepts were not extracted. "
+        "Bilal must decide before another version is used."
+    ),
+    ErrorCode.EXTRACT_SELF_TEST_FAILED: (
+        "Ollama did not refuse an over-long test prompt, so it could silently cut real prompts. "
+        "Concepts were not extracted."
+    ),
+    ErrorCode.EXTRACT_ALL_WINDOWS_FAILED: "Concepts could not be found in any part of this lecture. Retry the job; if it fails again, check the worker log.",
+    ErrorCode.EXTRACT_OLLAMA_UNREACHABLE: "Concept extraction could not reach Ollama. Start Ollama, then retry the job.",
+    ErrorCode.EXTRACT_OLLAMA_ERROR: "Ollama returned an error during concept extraction. Retry the job; if it fails again, check the worker log.",
+    ErrorCode.EXTRACT_HOLD_AFTER_EXTRACTION: (
+        "This lecture has already been through extraction, so a hold can no longer keep model output away from it "
+        "before its gold is frozen. No job was created."
+    ),
+    ErrorCode.EXTRACT_HOLD_JOB_ACTIVE: (
+        "A job for this lecture is already queued or running, so a hold could not stop it from extracting. "
+        "Wait for it to finish, then ingest again with --hold-extract."
+    ),
 }
 
 

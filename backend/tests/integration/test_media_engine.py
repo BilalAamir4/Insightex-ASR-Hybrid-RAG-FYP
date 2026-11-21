@@ -7,6 +7,7 @@ checked independently of the engine; every rejected clip must leave nothing behi
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import wave
 from pathlib import Path
@@ -426,7 +427,8 @@ def test_decode_failure_keeps_ffmpeg_text_out_of_the_message(corpus, monkeypatch
     settings, result, job = ingest(corpus, "h264_aac_mp4")
     assert_rejected(settings, result, job, ErrorCode.TRANSCODE_FAILED)
     stage_error = job.stages[1].error
-    assert "line 49" in stage_error and "line 29" not in stage_error  # last 20 lines only, in the stage details
+    # last 20 lines only, in the stage details (whole words: the traceback's own "line 291" is not ffmpeg's "line 29")
+    assert "line 49" in stage_error and not re.search(r"\bline 29\b", stage_error)
     assert "line" not in job.error  # never in the job's user-facing message
 
 
@@ -539,7 +541,7 @@ def assert_refused_before_staging(settings, result, code):
     job = store.get_job(conn, result.job_id)
     assert job.status == "failed" and job.kind == "ingest_file" and job.finished_at
     assert job.error.startswith(f"fetch failed: IngestRejected: {code}:")
-    assert [s.status for s in job.stages] == ["failed", "pending", "pending", "pending"] and f"IngestRejected: {code}" in job.stages[0].error
+    assert [s.status for s in job.stages] == ["failed", "pending", "pending", "pending", "pending"] and f"IngestRejected: {code}" in job.stages[0].error
     assert store.claim_next(conn, 1) is None, "a refused job must not be claimable"
     assert not settings.ingest.file.staging_dir.exists(), "nothing was written to staging"
     assert not settings.jobs.workspaces_dir.exists() or list(settings.jobs.workspaces_dir.iterdir()) == []

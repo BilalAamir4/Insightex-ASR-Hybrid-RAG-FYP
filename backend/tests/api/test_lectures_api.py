@@ -18,7 +18,8 @@ def test_library_lists_only_workspaces_with_a_completed_normalise(client, make_l
     item = body["lectures"][0]
     assert item["title"] == "Ready lecture" and item["duration_s"] == 60.5
     assert item["thumbnail_url"] == f"/api/lectures/{LID}/thumbnail"
-    assert set(item) == {"lecture_id", "title", "duration_s", "thumbnail_url", "created_at", "language", "searchable"}
+    assert set(item) == {"lecture_id", "title", "duration_s", "thumbnail_url", "created_at", "language", "searchable",
+                         "extraction"}
 
 
 def test_empty_library(client):
@@ -115,3 +116,44 @@ def test_the_lecture_document_gives_the_ask_box_limit(client, make_lecture):
     lecture = make_lecture()
     lecture_id = lecture if isinstance(lecture, str) else "yt-readyvideo1"
     assert client.get(f"/api/lectures/{lecture_id}").json()["max_question_chars"] == 300
+
+
+# -- concept extraction (ADR-0054) ----------------------------------------------------------------------------------
+
+
+def _publish_extract(workspaces, lecture_id, failed=2, windows=40):
+    key = "e" * 16
+    d = workspaces.stage_dir(lecture_id, "extract", key)
+    d.mkdir(parents=True)
+    for name in ("extraction.json", "extract.json"):
+        (d / name).write_text("{}")
+    warnings = [{"code": "EXTRACT_WINDOWS_FAILED", "failed": failed, "windows": windows}] if failed else []
+    workspaces.record_stage(lecture_id, "extract", key, 1.0, ["extraction.json", "extract.json"],
+                            extra={"windows": windows, "failed": failed, "ok_after_retry": 0, "dropped_relations": 0,
+                                   "config_id": "x", "warnings": warnings})
+    return key
+
+
+def test_lecture_extraction_state_and_failed_window_warning(client, make_lecture, workspaces):
+    make_lecture(LID)
+    assert client.get(f"/api/lectures/{LID}").json()["extraction"] == {"state": "none", "windows": None,
+                                                                        "failed": None}
+    _publish_extract(workspaces, LID)
+    body = client.get(f"/api/lectures/{LID}").json()
+    assert body["extraction"] == {"state": "outdated", "windows": 40, "failed": 2}  # no index key: not the current key
+    assert {"code": "EXTRACT_WINDOWS_FAILED", "failed": 2, "windows": 40} in body["warnings"]
+    manifest = workspaces.read_manifest(LID)
+    manifest["extract_hold"] = {"set_at": "t", "job_id": "j"}
+    workspaces.write_manifest(LID, manifest)
+    assert client.get("/api/lectures").json()["lectures"][0]["extraction"]["state"] == "held"
+
+
+def test_job_warnings_include_failed_extraction_windows(client, make_lecture, workspaces, conn):
+    make_lecture(LID)
+    key = _publish_extract(workspaces, LID, failed=1, windows=3)
+    job_id = store.enqueue(conn, "ingest_link", {"url": "https://youtu.be/readyvideo1", "language": "hindi"}, LID)
+    idx = [s.name for s in store.get_job(conn, job_id).stages].index("extract")
+    store.update_stage(conn, job_id, idx, status="succeeded", stage_key=key, progress=1.0)
+    store.finish(conn, job_id, "succeeded")
+    warnings = client.get(f"/api/jobs/{job_id}").json()["warnings"]
+    assert warnings == [{"code": "EXTRACT_WINDOWS_FAILED", "failed": 1, "windows": 3}]

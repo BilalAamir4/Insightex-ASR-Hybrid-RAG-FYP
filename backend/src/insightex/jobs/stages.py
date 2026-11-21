@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from insightex.core.config import Settings
-from insightex.jobs.workspace import validate_stage_name
+from insightex.jobs.workspace import Workspaces, validate_stage_name
 
 log = logging.getLogger(__name__)
 
@@ -60,7 +60,8 @@ class StageContext:
     """What `Stage.run` receives.
 
     Attributes: `job_id`, `payload`, `workspace_id`, `settings`; `staging_dir` (write every output
-    here and nowhere else); `upstream` (stage name -> completed output directory, for earlier stages).
+    here and nowhere else); `upstream` (stage name -> completed output directory, for earlier stages);
+    `stage_key` and `workspace_dir` (for a stage that keeps resume data next to its staging, ADR-0054).
     """
 
     def __init__(
@@ -73,8 +74,12 @@ class StageContext:
         staging_dir: Path,
         upstream: dict[str, Path],
         reporter: Callable[[float, str | None], None],
+        stage_key: str | None = None,
+        workspace_dir: Path | None = None,
     ) -> None:
         self.job_id = job_id
+        self.stage_key = stage_key  # this run's chained key (the runner always sets it)
+        self.workspace_dir = workspace_dir  # the workspace directory (the runner always sets it)
         self.payload = payload
         self.workspace_id = workspace_id
         self.settings = settings
@@ -143,6 +148,21 @@ class Stage(ABC):
         """
         return {}
 
+    def skip_reason(self, ctx: KeyContext, workspaces: Workspaces) -> str | None:
+        """A reason to skip this stage for this job, or None to run it (default). A skipped stage calls nothing,
+        takes no GPU lease and publishes nothing; the runner marks it `skipped` and calls `on_skipped`. Only a last
+        stage may skip, so no later stage chains from it (ADR-0054 decision 8, the extraction hold)."""
+        return None
+
+    def skip_counts_as_current(self, ctx: KeyContext, workspaces: Workspaces) -> bool:
+        """Whether `pipeline_is_current` treats the stage as current because a job would skip it (default: whenever
+        it would skip). A stage may narrow this, e.g. to a skip already recorded in the manifest."""
+        return self.skip_reason(ctx, workspaces) is not None
+
+    def on_skipped(self, ctx: KeyContext, workspaces: Workspaces) -> None:
+        """Called by the worker after the stage was skipped, for example to record why in the manifest. An error here
+        fails the job."""
+
     def after_stage(self, ctx: KeyContext, upstream: dict[str, Path]) -> None:
         """Called after the stage succeeded or was found cached. `upstream` maps stage names, this one included,
         to their completed directories.
@@ -180,6 +200,10 @@ _CHAIN_ROOTS: dict[str, ChainRoot] = {}
 # runner returns. For clean-up of inputs the pipeline owns (a staged upload that was rejected).
 FailureHook = Callable[..., None]
 _FAILURE_HOOKS: dict[str, FailureHook] = {}
+# (conn, workspaces, job, settings) -> None: the whole job for a kind registered with no stages (ADR-0054 Amendment 1,
+# the hold release). It runs in the worker, takes no GPU lease and publishes no stage; an exception fails the job.
+JobAction = Callable[..., None]
+_ACTIONS: dict[str, JobAction] = {}
 PENDING_PREFIX = "pending-"
 _BUILTIN_MODULES = ("insightex.jobs.dummy", "insightex.ingest.pipeline")
 _builtins_loaded = False
@@ -193,8 +217,11 @@ def register_pipeline(
     source_for: SourceFor | None = None,
     chain_root: ChainRoot | None = None,
     on_failure: FailureHook | None = None,
+    action: JobAction | None = None,
 ) -> None:
     """Register the ordered, linear stage list that runs for jobs of `kind`.
+
+    A kind with `action` has no stages: the worker calls `action(conn, workspaces, job, settings)` instead.
 
     `source_for(payload)` returns `(source_kind, source_ref)` for the cache index (see jobs/cache.py);
     the runner calls it at job start. Without it the workspace is not indexed.
@@ -206,8 +233,13 @@ def register_pipeline(
     if kind in _PIPELINES and not replace:
         raise ValueError(f"a pipeline for kind {kind!r} is already registered")
     names = [validate_stage_name(s.name) for s in stages]
-    if not stages or len(set(names)) != len(names):
+    if action is not None:
+        if stages:
+            raise ValueError(f"pipeline {kind!r}: a kind with an action has no stages")
+    elif not stages or len(set(names)) != len(names):
         raise ValueError(f"pipeline {kind!r} needs at least one stage and unique stage names")
+    if any(type(s).skip_reason is not Stage.skip_reason for s in stages[:-1]):
+        raise ValueError(f"pipeline {kind!r}: only the last stage may skip")
     _PIPELINES[kind] = tuple(stages)
     if source_for is not None:
         _SOURCES[kind] = source_for
@@ -221,6 +253,16 @@ def register_pipeline(
         _FAILURE_HOOKS[kind] = on_failure
     else:
         _FAILURE_HOOKS.pop(kind, None)
+    if action is not None:
+        _ACTIONS[kind] = action
+    else:
+        _ACTIONS.pop(kind, None)
+
+
+def get_action(kind: str) -> JobAction | None:
+    """The `action` of a stage-less kind, or None."""
+    get_pipeline(kind)
+    return _ACTIONS.get(kind)
 
 
 def get_source_for(kind: str) -> SourceFor | None:

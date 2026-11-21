@@ -59,6 +59,25 @@ def fake_asr(request, monkeypatch):
     yield transcriber, gpu
 
 
+@pytest.fixture(autouse=True)
+def fake_extract(request, monkeypatch, fake_asr):
+    """Every test gets a fake extraction client (no Ollama), the fake GPU and no nvidia-smi sampling for `extract`.
+
+    Tests marked `gpu` get the real ones. Returns the client so a test can change replies or served values."""
+    if request.node.get_closest_marker("gpu"):
+        yield None
+        return
+    from extract_fakes import FakeExtractClient
+
+    from insightex.extract import stage as extract_stage
+
+    client = FakeExtractClient()
+    monkeypatch.setattr(extract_stage, "make_client", lambda settings: client)
+    monkeypatch.setattr(extract_stage, "gpu_vram", fake_asr[1])
+    monkeypatch.setattr(extract_stage, "vram_used", lambda: 1000)
+    yield client
+
+
 def _ffmpeg(*args: str) -> None:
     subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *args], check=True)
 

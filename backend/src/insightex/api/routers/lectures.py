@@ -16,9 +16,10 @@ from fastapi.responses import FileResponse, Response
 
 from insightex.api.deps import connection, settings_of, workspaces_of
 from insightex.api.errors import error_response
-from insightex.api.models import LectureItem, LectureList, LectureOut, language_out
+from insightex.api.models import ExtractionOut, LectureItem, LectureList, LectureOut, language_out
 from insightex.asr.languages import Languages, languages_for
 from insightex.core.config import Settings
+from insightex.extract.stage import extraction_summary, extraction_warnings
 from insightex.index.stage import IndexStage, index_searchable
 from insightex.ingest.pipeline import NORMALISE_JSON, SOURCE_JSON, THUMB_NAME, VIDEO_NAME
 from insightex.jobs import cache
@@ -68,7 +69,7 @@ def _searchable(workspaces: Workspaces, lecture_id: str, settings: Settings) -> 
 
 
 def _item(workspaces: Workspaces, lecture_id: str, normalised: Path, created_at: str | None,
-          languages: Languages, settings: Settings) -> LectureItem:
+          languages: Languages, settings: Settings, conn) -> LectureItem:
     fetched = workspaces.stage_output_dir(lecture_id, "fetch")
     source = _json(fetched / SOURCE_JSON) if fetched else {}
     info = _json(normalised / NORMALISE_JSON)
@@ -80,6 +81,7 @@ def _item(workspaces: Workspaces, lecture_id: str, normalised: Path, created_at:
         created_at=created_at,
         language=_language(workspaces, lecture_id, languages),
         searchable=_searchable(workspaces, lecture_id, settings),
+        extraction=ExtractionOut(**extraction_summary(conn, workspaces, settings, lecture_id)),
     )
 
 
@@ -88,10 +90,12 @@ def list_lectures(request: Request):
     workspaces = workspaces_of(request)
     languages = languages_for(settings_of(request))
     items = []
-    for row in cache.list_workspaces(connection(settings_of(request)), workspaces):
+    conn = connection(settings_of(request))
+    for row in cache.list_workspaces(conn, workspaces):
         directory = _lecture_dir(workspaces, row["id"])
         if directory is not None:
-            items.append(_item(workspaces, row["id"], directory, row["created_at"], languages, settings_of(request)))
+            items.append(_item(workspaces, row["id"], directory, row["created_at"], languages, settings_of(request),
+                               conn))
     items.sort(key=lambda i: i.created_at or "", reverse=True)
     return LectureList(lectures=items)
 
@@ -102,13 +106,15 @@ def get_lecture(lecture_id: str, request: Request):
     directory = _lecture_dir(workspaces, lecture_id)
     if directory is None:
         return error_response(*_NOT_FOUND)
-    row = connection(settings_of(request)).execute("SELECT created_at FROM workspaces WHERE id = ?", (lecture_id,)).fetchone()
+    conn = connection(settings_of(request))
+    row = conn.execute("SELECT created_at FROM workspaces WHERE id = ?", (lecture_id,)).fetchone()
     item = _item(workspaces, lecture_id, directory, row["created_at"] if row else None, languages_for(settings_of(request)),
-                 settings_of(request))
+                 settings_of(request), conn)
     fetched = workspaces.stage_output_dir(lecture_id, "fetch")
     template = _json(fetched / SOURCE_JSON).get("external_timestamp_url_template") if fetched else None
     warnings = _json(directory / NORMALISE_JSON).get("warnings")
-    warnings = [*(warnings if isinstance(warnings, list) else []), *_asr_warnings(workspaces, lecture_id)]
+    warnings = [*(warnings if isinstance(warnings, list) else []), *_asr_warnings(workspaces, lecture_id),
+                *extraction_warnings(workspaces, lecture_id)]
     return LectureOut(**item.model_dump(), video_url=f"/api/lectures/{lecture_id}/video",
                       warnings=warnings, max_question_chars=settings_of(request).retrieval.max_question_chars,
                       external_timestamp_url_template=template)

@@ -26,7 +26,7 @@ def test_second_language_wins_and_one_transcript_stays_current(media, fake_asr):
 
     first, job1 = run_file_job(clip, settings, conn, language="hindi")
     assert job1.status == "succeeded", job1.error
-    assert [s.name for s in job1.stages] == ["fetch", "normalise", "asr", "index"]
+    assert [s.name for s in job1.stages] == ["fetch", "normalise", "asr", "index", "extract"]
 
     same, none = run_file_job(clip, settings, conn, language="hindi")
     assert same.deduplicated and same.job_id is None and none is None
@@ -35,7 +35,7 @@ def test_second_language_wins_and_one_transcript_stays_current(media, fake_asr):
     second, job2 = run_file_job(clip, settings, conn, language="english")
     assert job2.status == "succeeded", job2.error
     assert second.workspace_id == first.workspace_id and not second.deduplicated
-    assert [s.status for s in job2.stages][1:] == ["cached", "succeeded", "succeeded"]
+    assert [s.status for s in job2.stages][1:] == ["cached", "succeeded", "succeeded", "succeeded"]
     assert [c.language for c in fake_asr[0].calls] == ["ur", "en"]
 
     ws = Workspaces(settings.jobs.workspaces_dir)
@@ -66,7 +66,7 @@ def test_upload_resumes_after_an_interruption_during_asr(media, fake_asr):
     fake_asr[0].error = None
     assert run_job(conn, store.claim_next(conn, 1), settings, ws) == "succeeded"
     job = store.get_job(conn, result.job_id)
-    assert [s.status for s in job.stages] == ["cached", "cached", "succeeded", "succeeded"], [s.error for s in job.stages]
+    assert [s.status for s in job.stages] == ["cached", "cached", "succeeded", "succeeded", "succeeded"], [s.error for s in job.stages]
 
 
 # One case per stage that has settings (the upload `fetch` stage's only input is the file's hash: a different file is a

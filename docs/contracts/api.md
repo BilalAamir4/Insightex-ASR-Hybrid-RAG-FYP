@@ -50,7 +50,7 @@ The API enqueues and reads jobs; the worker (`insightex worker`) runs them. On s
 
 Checks run before any body byte is read, in this order: rights missing or not `true` → **400** `RIGHTS_NOT_CONFIRMED`; language missing → **400** `MISSING_LANGUAGE`, not in the list → **400** `UNKNOWN_LANGUAGE`; no valid `Content-Length` → **411** `LENGTH_REQUIRED`; length 0 → **400** `EMPTY_FILE`; over the limit → **413** `TOO_LARGE`; another upload running → **409** `UPLOAD_BUSY`; free-space rule → **507** `INSUFFICIENT_DISK`. These responses carry `Connection: close`. While the body streams, more or fewer bytes than `Content-Length` or a dropped connection → the staged copy is deleted and the answer is **400** `UPLOAD_INTERRUPTED`.
 
-On success: **202** `{"lecture_id": "sha256-<32 hex>", "job_id": "...", "deduplicated": false}`. If a job for the same bytes and language is already queued or running, that job's id is returned with `deduplicated: true` (202). If an up-to-date lecture already exists with a current transcript in the same language: **200** `{"lecture_id": "...", "job_id": null, "deduplicated": true}`. Follow the job with `/api/jobs/{job_id}/events`; a media rejection (`NO_VIDEO_STREAM`, `NO_AUDIO_STREAM`, `NOT_A_VIDEO`, `TOO_SHORT`, ...) appears as the failed `normalise` stage's error (`IngestRejected: <CODE>: <message>`); an ASR failure appears on the `asr` stage as `AsrError: <CODE>: <message>` (`INSUFFICIENT_VRAM`, `GPU_NOT_AVAILABLE`, `MODEL_LOAD_FAILED`, `GPU_OUT_OF_MEMORY`, `TRANSCRIBE_CRASHED`, `TRANSCRIBE_TIMEOUT`, `EMPTY_TRANSCRIPT`, `MISSING_LANGUAGE`, `UNKNOWN_LANGUAGE`). Submitting the same file in another language queues a new job that re-runs only `asr`; its transcript replaces the old one (ADR-0042). There is no CORS: other origins cannot call this endpoint from a browser (ADR-0037).
+On success: **202** `{"lecture_id": "sha256-<32 hex>", "job_id": "...", "deduplicated": false}`. If a job for the same bytes and language is already queued or running, that job's id is returned with `deduplicated: true` (202). If an up-to-date lecture already exists with a current transcript in the same language: **200** `{"lecture_id": "...", "job_id": null, "deduplicated": true}`. Follow the job with `/api/jobs/{job_id}/events`; a media rejection (`NO_VIDEO_STREAM`, `NO_AUDIO_STREAM`, `NOT_A_VIDEO`, `TOO_SHORT`, ...) appears as the failed `normalise` stage's error (`IngestRejected: <CODE>: <message>`); an ASR failure appears on the `asr` stage as `AsrError: <CODE>: <message>` (`INSUFFICIENT_VRAM`, `GPU_NOT_AVAILABLE`, `MODEL_LOAD_FAILED`, `GPU_OUT_OF_MEMORY`, `TRANSCRIBE_CRASHED`, `TRANSCRIBE_TIMEOUT`, `EMPTY_TRANSCRIPT`, `MISSING_LANGUAGE`, `UNKNOWN_LANGUAGE`); a concept extraction failure appears on the `extract` stage as `ExtractStageError: <CODE>: <message>` (see "Concept extraction" below). Submitting the same file in another language queues a new job that re-runs only `asr`; its transcript replaces the old one (ADR-0042). There is no CORS: other origins cannot call this endpoint from a browser (ADR-0037).
 
 ## Jobs
 
@@ -70,7 +70,7 @@ On success: **202** `{"lecture_id": "sha256-<32 hex>", "job_id": "...", "dedupli
  "warnings": []}
 ```
 
-Stage `status`: `pending | running | succeeded | cached | failed | cancelled`. A stage `error` holds `Type: message` and a trimmed traceback; show its first line. `workspace_deleted` is true for a finished job whose workspace directory is gone. `language` is the job's language with its **current** tier (`null` for jobs from before M4 session 2; `tier` is `null` if the id was removed from the config). `warnings` are the transcript warnings (`{code, message, segment_ids}`: `TEMPERATURE_FALLBACK`, `HIGH_COMPRESSION_RATIO`) once the job's `asr` stage succeeded or was cached. ASR progress is the last transcribed second over the audio duration, updated at most every 2 s and only after 2 more percentage points.
+Stage `status`: `pending | running | succeeded | cached | skipped | failed | cancelled` (`skipped`: the `extract` stage of a held lecture, message `extraction held`; shown as "Skipped (extraction held)", ADR-0054). A stage `error` holds `Type: message` and a trimmed traceback; show its first line. `workspace_deleted` is true for a finished job whose workspace directory is gone. `language` is the job's language with its **current** tier (`null` for jobs from before M4 session 2; `tier` is `null` if the id was removed from the config). `warnings` are the transcript warnings (`{code, message, segment_ids}`: `TEMPERATURE_FALLBACK`, `HIGH_COMPRESSION_RATIO`) once the job's `asr` stage succeeded or was cached, followed by `{"code": "EXTRACT_WINDOWS_FAILED", "failed": k, "windows": n}` once its `extract` stage succeeded or was cached with failed windows. ASR progress is the last transcribed second over the audio duration, updated at most every 2 s and only after 2 more percentage points.
 
 `GET /api/jobs/{job_id}/events` is Server-Sent Events (`Content-Type: text/event-stream`, `Cache-Control: no-cache`, `X-Accel-Buffering: no`). The first event is sent at once; later ones only when the document changes:
 
@@ -89,13 +89,32 @@ A `: keepalive` comment is sent after `api.sse_keepalive_s` of silence. After th
 
 | Request | Response |
 |---|---|
-| `GET /api/lectures` | `{"lectures": [{"lecture_id", "title", "duration_s", "thumbnail_url", "created_at", "language", "searchable"}]}`, newest first; only workspaces whose `normalise` stage is complete. `searchable` is true when the lecture has a search index built with the configured model and the current windows format (a question can be asked, ADR-0047). `language` is `{id, label, tier}` of the current transcript (tier from the current config), or `null` when the lecture has no transcript |
-| `GET /api/lectures/{id}` | the item above plus `video_url`, `max_question_chars` (the ask box's limit, ADR-0047), `external_timestamp_url_template` (`null` unless YouTube) and `warnings` (the `{code, detail}` list from `normalise.json`, for example `AUDIO_NEAR_SILENT`, `ROTATED`, followed by the current transcript's `{code, message, segment_ids}` warnings, `TEMPERATURE_FALLBACK` and `HIGH_COMPRESSION_RATIO`; the UI shows a plain sentence per code, never the code) |
+| `GET /api/lectures` | `{"lectures": [{"lecture_id", "title", "duration_s", "thumbnail_url", "created_at", "language", "searchable"}]}`, newest first; only workspaces whose `normalise` stage is complete. `searchable` is true when the lecture has a search index built with the configured model and the current windows format (a question can be asked, ADR-0047). `language` is `{id, label, tier}` of the current transcript (tier from the current config), or `null` when the lecture has no transcript. `extraction` is `{state, windows, failed}` (see "Concept extraction") |
+| `GET /api/lectures/{id}` | the item above plus `video_url`, `max_question_chars` (the ask box's limit, ADR-0047), `external_timestamp_url_template` (`null` unless YouTube) and `warnings` (the `{code, detail}` list from `normalise.json`, for example `AUDIO_NEAR_SILENT`, `ROTATED`, followed by the current transcript's `{code, message, segment_ids}` warnings, `TEMPERATURE_FALLBACK` and `HIGH_COMPRESSION_RATIO`, then the published extraction's `{code: EXTRACT_WINDOWS_FAILED, failed, windows}`; the UI shows a plain sentence per code, never the code) |
 | `GET/HEAD /api/lectures/{id}/video` | `video/mp4`, Range requests (`206`, `Content-Range`, `416`) |
 | `GET/HEAD /api/lectures/{id}/thumbnail` | `image/jpeg` |
 | `DELETE /api/lectures/{id}` | **204**; **409** `LECTURE_BUSY` while a queued or running job uses it; 404 `LECTURE_NOT_FOUND` |
 
 `{id}` is a workspace id (`yt-<id>` or `sha256-<32 hex>`). The player page keeps `?lecture=<id>`.
+
+## Concept extraction (M7 Session 3, ADR-0054)
+
+`ingest_link` and `ingest_file` jobs have a fifth stage, `extract` ("Find concepts"), after `index`. Its progress message is `Finding concepts: window i of n` (plus `, k failed`). The job succeeds when at least one window gave valid concepts; failed windows give the `EXTRACT_WINDOWS_FAILED` warning on the job and the lecture. The stage fails with one of these codes:
+
+| Code | When |
+|---|---|
+| `EXTRACT_MODEL_MISMATCH` | Ollama serves the model with another digest than the evaluated one |
+| `EXTRACT_MODEL_MISSING` | the model (`extract.stage.model`) is not in Ollama, at the start check or mid-run |
+| `EXTRACT_OLLAMA_VERSION` | Ollama is not the evaluated version and `extract.stage.allow_other_ollama_version` is off |
+| `EXTRACT_SELF_TEST_FAILED` | Ollama answered the over-long test prompt instead of refusing it |
+| `EXTRACT_ALL_WINDOWS_FAILED` | every window was still invalid after its retry |
+| `EXTRACT_OLLAMA_UNREACHABLE` | Ollama could not be reached, or did not answer within `ollama.request_timeout_s` (different messages) |
+| `EXTRACT_OLLAMA_ERROR` | Ollama returned another HTTP error; the message names the window and the HTTP status, never the body |
+| `INSUFFICIENT_VRAM`, `GPU_NOT_AVAILABLE` | the VRAM pre-flight |
+
+The lecture's `extraction` is `{"state", "windows", "failed"}`. `state`, checked in this order: `held` (an unreleased extraction hold), `done` (published at the key a job would use now), `failed` (the latest finished job with an `extract` stage failed there), `outdated` (published only at an older key), `none`. `windows` and `failed` are the published extraction's counts, `null` without one.
+
+**The extraction hold** is CLI only: `insightex ingest <youtube url> --hold-extract` or `insightex ingest-file <path> --hold-extract` runs every stage except `extract` (`skipped`, no model call, no GPU lease) and records a sticky hold in the workspace manifest. It is refused before any job with `EXTRACT_HOLD_JOB_ACTIVE` (a job for the lecture is queued or running) or `EXTRACT_HOLD_AFTER_EXTRACTION` (the lecture was already extracted); a non-YouTube link is refused without a code. `insightex extract-hold release <lecture_id>` enqueues a job of kind `extract_hold_release` (no stages: `stages` is `[]`), which writes `released_at`; a later re-add extracts. `insightex extract-hold list` lists held lectures. A held lecture is never evicted from the cache.
 
 ## Search
 
