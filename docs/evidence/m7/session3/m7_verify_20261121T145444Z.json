@@ -1,0 +1,49 @@
+{
+ "run_at": "20261121T145444Z",
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "cut": {
+  "offset_s": 390.0,
+  "length_s": 90.0,
+  "method": "stream copy",
+  "sha256": "186eb65e13c78c353521071c0003d9b79a934925b51074186cbc74a6b309e9f7",
+  "lecture_id": "sha256-186eb65e13c78c353521071c0003d9b7"
+ },
+ "checks": [
+  {
+   "name": "ollama frozen",
+   "result": "OK: Ollama 0.40.2, gemma4:e4b digest dc35e8d9c606 match the frozen final configuration; no installer staged",
+   "passed": true
+  },
+  {
+   "name": "day 4 extraction with resume",
+   "result": "passed: killed with 3 windows stored, 3 reused, 20 calls after the restart",
+   "passed": true
+  },
+  {
+   "name": "C1 byte identity",
+   "result": "passed: 20 of 20 C1 target windows byte-identical",
+   "passed": true
+  },
+  {
+   "name": "model unloaded, lease free",
+   "result": "passed: no model resident, GPU lease free",
+   "passed": true
+  },
+  {
+   "name": "re-add is a cache hit",
+   "result": "passed: re-add is a no-op (every stage current)",
+   "passed": true
+  },
+  {
+   "name": "hold round trip (90 s cut)",
+   "result": "passed: held (extract skipped), released, re-added (stages ['cached', 'cached', 'cached', 'cached', 'succeeded']), removed",
+   "passed": true
+  },
+  {
+   "name": "model unloaded, lease free (after the hold test)",
+   "result": "passed: no model resident, GPU lease free",
+   "passed": true
+  }
+ ],
+ "cost": "windows 23, ok 23, ok_after_retry 0, failed 0, calls 20, reused 3; wall 174.69 s, 130.9 tok/s, VRAM peak 4656 MiB above baseline, largest prompt 1927 tokens (the last run only: a resumed run's wall time covers the restart)"
+}
