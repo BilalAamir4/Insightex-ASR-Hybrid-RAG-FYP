@@ -1,0 +1,58 @@
+{
+ "lecture_id": "sha256-de27cb67c2acbedebd0c2c7416932b8a",
+ "v2": {
+  "stage_key": "a92d9cabba3b68fe",
+  "stage_version": "2",
+  "producer": "extract stage v2 (gemma4:e4b)",
+  "ollama_version_served": "0.40.2",
+  "digest_served": "dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c",
+  "totals": {
+   "windows": 23,
+   "ok": 23,
+   "ok_after_retry": 0,
+   "failed": 0,
+   "empty_after_retry": 0,
+   "dropped_relations": 1,
+   "dropped_self_relations": 0,
+   "calls": 23,
+   "reused_from_store": 0
+  },
+  "attempt_used": [
+   1
+  ],
+  "extraction_json_sha256": "7a2b02a48d956b5ef1f4ad61adfd3561a9ba5cfc7c1b3dec22f51a1d0d92413e",
+  "cost": {
+   "wall_s": 209.877,
+   "tokens_per_sec": 152.9,
+   "max_prompt_eval_count": 1927
+  },
+  "vram_peak_above_baseline_mib": 6169
+ },
+ "v1": {
+  "stage_key": "day4_stage_v1",
+  "stage_version": "1",
+  "totals": {
+   "windows": 23,
+   "ok": 23,
+   "ok_after_retry": 0,
+   "failed": 0,
+   "empty_after_retry": 0,
+   "dropped_relations": 1,
+   "calls": 20,
+   "reused_from_store": 3
+  }
+ },
+ "vs_v1_all_windows": {
+  "windows_compared": 23,
+  "identical": 23,
+  "changed": [],
+  "missing_in_v2": []
+ },
+ "vs_c1_target_windows": {
+  "windows_compared": 20,
+  "identical": 20,
+  "changed": [],
+  "missing_in_v2": []
+ },
+ "expectation_met": true
+}
