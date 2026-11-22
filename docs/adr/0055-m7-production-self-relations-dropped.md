@@ -100,6 +100,13 @@ All decided before any run or count.
 - **Counts only**, like m7_verify; no labels or relation text.
 - **Who runs it:** Bilal, or me only when he says so.
 
+**Outcome (2026-11-22, accepted by Bilal).**
+- **(a):** the unit tests pass (full backend suite 1033 passed, commit 4f9bf11).
+- **(b):** 0 self-relations in C1-gemma4-e4b, C1-qwen3.5, C2-original, C2-english, C3-single and C3-batch. C4-window is identical to C1-gemma4-e4b. C4-previous has 2, on window 6, attempts 1 and 2, each attempt rejected only because of self-relations (`docs/evidence/m7/session3/self_relations_day4.json`).
+- **(c):** Day 4 rerun at stage version 2, job `ecfae974…`. fetch, normalise, asr and index were cached; key `a92d9cabba3b68fe`; Ollama 0.40.2, Gemma digest frozen.
+  - All 23 windows are identical to `day4_stage_v1/extraction.json`; the 20 C1 target windows are identical to `C1/C1-gemma4-e4b/extraction.json`.
+  - `dropped_self_relations` is 0. 23 of 23 windows were `ok` on the first attempt, with 23 calls, as predicted from (b) and the v1 totals (`docs/evidence/m7/session3/day4_stage_v2_compare.json`, script `scripts/compare_day4_v2.py`).
+
 ## Review (2026-11-21)
 
 1. **"Same concept":** accepted as drafted: exact `head == tail` after `drop_dangling`, matching the check it replaces. The order rule (dangling first, each relation counted once) was added, with its unit test.

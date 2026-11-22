@@ -67,6 +67,10 @@ Adopted October 2026. It replaces the module 1–21 list in the earlier `Insight
     - **Manual check: partly done.** The "Find concepts" stage label is pending (Day 4's extraction finished before the page was opened, and the lecture page doesn't show finished stages; to check on the next real ingest). "Skipped (extraction held)": Bilal checks it in the browser on the held-out lecture's hold job. Failed-window warning: not shown, as expected (0 failed windows).
     - **Held-out lecture held** (21 Nov 2026): `yt-5vqk6HnITko` re-ingested with `--hold-extract` (job `89f4cfe2…`): fetch, normalise, asr and index cached, `extract` skipped; `insightex extract-hold list` shows it; no extraction published.
     - **Small fix, not done:** m7_verify prints a traceback instead of a clear message when the API is not reachable.
+    - **Step 3 done (22 Nov 2026): decision (b), self-pointing relations (ADR-0055, Accepted 21 Nov 2026).** The production stage drops a relation with head == tail (after the dangling drop) and counts it as `dropped_self_relations`, instead of failing the window. Stage version 2; harness 8 and the validator unchanged.
+      - Evidence (b): self-relations occur only in C4-previous window 6.
+      - Evidence (c): the Day 4 rerun at v2 (key `a92d9cabba3b68fe`) is 23/23 identical to the v1 copy and 20/20 identical to C1, with `dropped_self_relations` 0.
+      - Files: `docs/evidence/m7/session3/day4_stage_v1/`, `self_relations_day4.json`, `day4_stage_v2_compare.json`.
   Exit: precision/recall against hand-labelled concepts on 2 lectures, and the LLM choice decided. **Met 20 Nov 2026** (`docs/reports/M7_extraction_report.md`).
 - **M8: Concept canonicalisation + graph build.**
   Exit: duplicate-node rate measured on 2 lectures, and the graph JSON passes schema checks.
