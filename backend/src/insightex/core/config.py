@@ -341,6 +341,38 @@ class ExtractStage(_Section):
     heartbeat_interval_s: float
 
 
+class ExtractKeepalive(_Section):
+    """The ADR-0056 keep-alive test (`insightex extract-eval keepalive`). Paths relative to the repo root."""
+
+    lecture_id: str
+    reference_extract_key: str
+    synthetic_case_file: Path
+    synthetic_case_sha256: str
+    keep_alive: int
+    load_threshold_s: float
+    idle_vram_min_ratio: float
+    out_dir: Path
+
+    @field_validator("synthetic_case_file", "out_dir", mode="after")
+    @classmethod
+    def _under_repo(cls, v: Path) -> Path:
+        return _repo_relative(v)
+
+    @field_validator("keep_alive", mode="after")
+    @classmethod
+    def _positive(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError(f"keepalive.keep_alive must be > 0 seconds (the loaded repeats): {v}")
+        return v
+
+    @field_validator("idle_vram_min_ratio", mode="after")
+    @classmethod
+    def _ratio(cls, v: float) -> float:
+        if not 0 < v <= 1:
+            raise ValueError(f"keepalive.idle_vram_min_ratio must be in (0, 1]: {v}")
+        return v
+
+
 class Extract(_Section):
     """M7 extraction evaluation harness (ADR-0048). Prompt files are frozen: each is used only when its sha256 equals
     the pinned value. Relative paths are under the repo root; `cache_dir` is local and never under /mnt/."""
@@ -369,6 +401,7 @@ class Extract(_Section):
     lease_timeout_s: float
     vram_poll_interval_s: float
     stage: ExtractStage
+    keepalive: ExtractKeepalive
 
     @field_validator("arms_file", "prompt_file", "context_block_file", "translate_prompt_file", "evidence_dir",
                      "measure_dir", mode="after")

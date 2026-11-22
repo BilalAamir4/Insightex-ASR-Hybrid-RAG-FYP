@@ -7,6 +7,7 @@
     insightex extract-eval measure --lecture ID --model TAG [--prompt-file FILE] [--context-block-file FILE]
                                    [--k 1 3 4 5] [--context both|none|previous] [--num-ctx 4096 8192 ...]
                                    [--windows FILE] [--out FILE]
+    insightex extract-eval keepalive --lecture ID     the ADR-0056 keep-alive session (Day 4 only; real Ollama calls)
 
 `run` extracts the target windows (a label_concepts sample.json or a JSON list of window indices) with one arm and
 writes extraction.json, run.json and calls.jsonl to the run directory, which the scorer in tools/label_concepts reads.
@@ -24,6 +25,10 @@ before it is frozen, under the same call rules, and writes source text and Engli
 each batch size k, with and without previous-window context, and reports VRAM, tokens/s, the real prompt tokens and
 `ollama ps` (insightex.extract.measure). Before the freeze it takes a draft prompt with `--prompt-file` (its sha256 is
 recorded and the report says it was not frozen).
+
+`keepalive` runs the ADR-0056 session (insightex.extract.keepalive): Day 4 run 0 and the ADR-0049 synthetic case
+reloaded per call, then three repeats of each with the model kept loaded, under the GPU lease. It accepts only the
+Day 4 lecture, writes `<extract.keepalive.out_dir>/<UTC stamp>/` and prints counts only.
 """
 
 from __future__ import annotations
@@ -36,6 +41,7 @@ from pathlib import Path
 from insightex.core.config import ConfigError, Settings, load_settings
 from insightex.extract import harness as h
 from insightex.extract.arms import ArmConfigError, load_arms
+from insightex.extract.keepalive import KeepaliveRefused
 from insightex.extract.prompts import PromptNotFrozen
 from insightex.extract.translation import TranslationCache
 from insightex.extract.vram import VramSampler
@@ -188,6 +194,27 @@ def _measure(settings: Settings, args: argparse.Namespace, client: h.ModelClient
     return 0
 
 
+def _keepalive(settings: Settings, args: argparse.Namespace, client=None) -> int:
+    from insightex.extract import keepalive as ka
+    from insightex.jobs.gpu_lease import gpu_memory_used_mib
+
+    session = ka.run_session(settings, client or ka.OllamaSessionClient(settings), args.lecture,
+                             lease_factory(settings), gpu_memory_used_mib)
+    t = session["totals"]
+    print(f"outcome: {session['outcome']}")
+    print(f"calls {t['calls']}; repeat calls {t['repeat_calls']}, identical {t['repeat_calls_identical']}, "
+          f"differences {t['differences']}")
+    for r in session["runs"]:
+        print(f"  {r['run']}: {r['calls']} calls, wall {r['wall_s']} s, mean {r['mean_call_wall_s']} s/call, "
+              f"{r['tokens_per_sec']} tok/s")
+    if session["void_cause"]:
+        print(f"void cause: {session['void_cause']['check']}")
+    if session["reference_failure"]:
+        print(f"reference not reproduced: {session['reference_failure']['reference']}")
+    print(f"written: {settings.extract.keepalive.out_dir}")
+    return 0 if session["outcome"] in ("pass", "fail") else 2
+
+
 def main(argv: list[str], client: h.ModelClient | None = None) -> int:
     parser = argparse.ArgumentParser(prog="insightex extract-eval", description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -224,6 +251,8 @@ def main(argv: list[str], client: h.ModelClient | None = None) -> int:
                         "extract.num_predict_per_window)")
     p.add_argument("--windows", help="windows.json-shaped file to use instead of the lecture's index stage")
     p.add_argument("--out", help="report file (default: <extract.measure_dir>/<lecture>/<model>_<time>.json)")
+    p = sub.add_parser("keepalive", help="the ADR-0056 keep-alive session on Day 4 (real Ollama calls)")
+    p.add_argument("--lecture", required=True, help="workspace id (only the Day 4 lecture is accepted)")
     args = parser.parse_args(argv)
     try:
         settings = load_settings()
@@ -231,11 +260,13 @@ def main(argv: list[str], client: h.ModelClient | None = None) -> int:
             return _arms(settings, args)
         if args.action == "measure":
             return _measure(settings, args, client)
+        if args.action == "keepalive":
+            return _keepalive(settings, args, client)
         if args.action == "translate-check":
             return _translate_check(settings, args, client)
         return _run(settings, args, client)
     except (ConfigError, ArmConfigError, PromptNotFrozen, h.HarnessError, OllamaError, OSError, ValueError,
-            GpuBusy, GpuUnavailable) as exc:
+            GpuBusy, GpuUnavailable, KeepaliveRefused) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 

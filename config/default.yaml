@@ -220,3 +220,12 @@ extract:                            # M7 extraction evaluation harness (ADR-0048
     min_free_vram_mib: 5000         # MiB; free VRAM (nvidia-smi) required after the unloads, else INSUFFICIENT_VRAM (Gemma peaked 4,828 MiB above baseline on Day 4)
     device_index: 0                 # GPU index the VRAM pre-flight reads
     heartbeat_interval_s: 1.0       # seconds between progress heartbeats while a call runs (cancel and shutdown are noticed within this)
+  keepalive:                        # ADR-0056 test of keeping the model loaded (`insightex extract-eval keepalive`); Day 4 and the ADR-0049 synthetic case only
+    lecture_id: sha256-de27cb67c2acbedebd0c2c7416932b8a  # the only lecture the command accepts (Day 4); the held-out lecture is never used
+    reference_extract_key: a92d9cabba3b68fe  # published stage v2 extraction that run 0's records must reproduce (ADR-0056 decision 2)
+    synthetic_case_file: docs/evidence/m7/session3/keepalive/adr0049_case.json  # frozen ADR-0049 request bodies, built from commit adad53c
+    synthetic_case_sha256: 9751d5bb485060f62a4d4046a5c2195eb612d75ea0ab5201c86e6ccfb9f4482d  # pinned sha256 of synthetic_case_file; any other hash refuses the session
+    keep_alive: 600                 # seconds; keep_alive of the loaded repeats (ADR-0056 decision 4; ADR-0002's "10m")
+    load_threshold_s: 1.0           # seconds; a call whose load_duration is at least this loaded the model (measured loads about 6 s)
+    idle_vram_min_ratio: 0.9        # share; idle VRAM above baseline before a repeat must be at least this times the figure after Day 4 repeat 1
+    out_dir: docs/evidence/m7/session3/keepalive  # one <UTC stamp>/ folder per session (session.json, windows.json, replies.jsonl)

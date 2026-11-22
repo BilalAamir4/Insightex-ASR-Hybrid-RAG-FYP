@@ -229,6 +229,27 @@ def resume_dir(workspace_dir: Path, stage_key: str) -> Path:
 # -- one window ----------------------------------------------------------------------------------------------------
 
 
+def window_request(settings: Settings, prompt: FrozenText, w: WindowText) -> tuple[list[dict], dict, int]:
+    """The stage's attempt-1 request for one window: messages, `format` and num_predict (ADR-0054 decision 1).
+    Also used by the ADR-0056 keep-alive test, so it sends exactly the stage's requests."""
+    return (extraction_messages(prompt, None, [(w.window_index, w.text)], []), extraction_format([w.window_index]),
+            extraction_num_predict(settings, 1))
+
+
+def evaluate_attempt(settings: Settings, lecture_id: str, grid: dict[int, WindowText], window_index: int,
+                     attempt: dict[str, Any], num_predict: int) -> WindowOutcome:
+    """The stage's reply handling: the post-call overflow check, then parsing and validation with self-relations
+    dropped (ADR-0055). `attempt` has `content`, `error`, `category` and `metrics`."""
+    content, error, category = attempt["content"], attempt["error"], attempt["category"]
+    overflow = prompt_overflow(attempt["metrics"], num_predict, settings.extract.num_ctx) if content else None
+    if overflow is not None:
+        content, error, category = None, overflow, "prompt_overflow"
+    outcome = parse_reply(content, error, CallPlan((window_index,), ()), lecture_id, grid, drop_self=True)[window_index]
+    if not outcome.valid and outcome.category is None:
+        outcome.category = category
+    return outcome
+
+
 class _Run:
     """State of one stage run: the client, the prompt, the progress reporter and the call log."""
 
@@ -278,21 +299,11 @@ class _Run:
 
     def evaluate(self, window_index: int, attempt: dict[str, Any], num_predict: int) -> WindowOutcome:
         """The post-call overflow check, then parsing and validation; re-applied to stored attempts too."""
-        content, error, category = attempt["content"], attempt["error"], attempt["category"]
-        overflow = prompt_overflow(attempt["metrics"], num_predict, self.settings.extract.num_ctx) if content else None
-        if overflow is not None:
-            content, error, category = None, overflow, "prompt_overflow"
-        outcome = parse_reply(content, error, CallPlan((window_index,), ()), self.ctx.workspace_id, self.grid,
-                              drop_self=True)[window_index]
-        if not outcome.valid and outcome.category is None:
-            outcome.category = category
-        return outcome
+        return evaluate_attempt(self.settings, self.ctx.workspace_id, self.grid, window_index, attempt, num_predict)
 
     def run_window(self, w: WindowText) -> dict[str, Any]:
         """Both attempts of one window (one retry in the same unit with the errors in the frozen template)."""
-        messages = extraction_messages(self.prompt, None, [(w.window_index, w.text)], [])
-        fmt = extraction_format([w.window_index])
-        num_predict = extraction_num_predict(self.settings, 1)
+        messages, fmt, num_predict = window_request(self.settings, self.prompt, w)
         attempts: list[dict[str, Any]] = []
         sent = messages
         for n in range(1, RETRIES + 2):
