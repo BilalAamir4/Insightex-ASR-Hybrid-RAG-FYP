@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); 2026-11-09, Amendment 8 (C2: gold v2.1 only, reuse of arm A, translations shown for prompt approval, the English check) Amendment 9 (C3: gold v2.1 only, reuse of arm A, the unchanged prompt, the k check) and Amendment 10 (C4: gold v2.1 only, reuse of arm A, the context block and its freeze, the budget check, blinding of shell output); 2026-11-13, Amendment 11 (a second annotator on the held-out lecture's shared windows); all at the end
+Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); 2026-11-09, Amendment 8 (C2: gold v2.1 only, reuse of arm A, translations shown for prompt approval, the English check) Amendment 9 (C3: gold v2.1 only, reuse of arm A, the unchanged prompt, the k check) and Amendment 10 (C4: gold v2.1 only, reuse of arm A, the context block and its freeze, the budget check, blinding of shell output); 2026-11-13, Amendment 11 (a second annotator on the held-out lecture's shared windows); 2026-11-26, Amendment 12 (Proposed: a fresh lecture with its own gold, for decisions (c) and (e) and M8); all at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -471,3 +471,72 @@ Decided by Bilal on 2026-11-13, after the held-out lecture was ingested (`normal
 - The ceiling rests on two people and 10 windows: one window is 10% of the set, so it is noisy.
 - Fatima labelled Day 4 under the same guide before gold v2, so her reading of the guide may differ from the reading gold v2 enforced. Re-reading the guide narrows that but does not remove it.
 - Corrections can move the gold towards Fatima's reading on the shared windows; the log makes each one auditable.
+
+## Amendment 12 (2026-11-26, Proposed): a fresh lecture with its own gold, for decisions (c) and (e) and M8
+
+Status: **Proposed** (drafted 26 Nov 2026, for Bilal's review). Nothing below takes effect until Bilal accepts it. The text above and Amendments 1 to 11 are kept; where they conflict with this amendment, this amendment applies to the fresh lecture only.
+
+**Context.**
+
+- Handoff 6 (sections 3 and 4) leaves decision (c) (stop list) and decision (e) (relations, importance, `is_recap`) open until a **fresh lecture** with its own gold exists. M8's exit needs the duplicate-node rate on 2 lectures.
+- Day 4 is development data, and the held-out lecture `yt-5vqk6HnITko` is used up (handoff 6, section 3). `yt-B7TQYJLfYZQ` has model output and is excluded.
+- Neither existing gold supports (e): Day 4 has 1 gold relation and the held-out gold has 0; importance rests on 1 gold window in 60.
+- **Candidate:** codebasics Hindi, "Hindi Machine Learning Tutorial 4 - Gradient Descent and Cost Function", https://www.youtube.com/watch?v=Aym1Gx2wVK4, expected workspace `yt-Aym1Gx2wVK4`. Chosen by Bilal.
+- **State when drafted (26 Nov 2026):** the video id appears nowhere: not in `$INSIGHTEX_DATA/workspaces/`, the old `lectures/` folder, either job database (`insightex.db`, `m6_manual/insightex.db`, all tables and columns), the logs, staging or the repo (tracked files and `docs/report-notes/`). No transcript, window text or model output for it exists. It has not been ingested.
+
+**Decision.**
+
+1. **The lecture.** `yt-Aym1Gx2wVK4`, ingested with `insightex ingest <url> --confirm-rights --language hindi --hold-extract`. Only `fetch`, `normalise`, `asr` and `index` run; `extract` is skipped by the hold.
+   - The section 2 held-out criteria apply: Hindi (tested tier at processing), a speaker other than Day 4's and the held-out lecture's, and **at least 40 non-empty windows**. If it has fewer than 40, it is not used and another lecture is chosen; N is not lowered to fit.
+   - Ingest checks report counts, ids and flags only. Nobody, Claude included, reads the transcript or window text before the gold is merged. The code-only window count (decision 5) is computed by a script that prints one count and is disclosed in the evidence.
+
+2. **Census or sample**, decided by the number of non-empty windows E on the index stage's grid:
+   - **E ≤ 60: census** of all E windows: `sample --lecture yt-Aym1Gx2wVK4 --n 60 --shared 10 --seed 20261126 --labellers bilal` (N ≥ E gives the census; the manifest says so).
+   - **E > 60: a seeded, stratified sample of 40**: the same command with `--n 40`.
+   - **No windows are reserved** as guide examples (no `--exclude`): the guide's examples are Day 4's and stay so.
+   - **Seed 20261126**, fixed here before the windows exist. `sample` is run once and `sample.json` is committed before any labelling; it is never re-run after labelling starts.
+
+3. **The shared windows.** 10 windows, drawn by `sample` from the labelled set (the census or the 40) with the same seeded generator, stratified across the timeline (`sampling.py`, `stratified_pick`). Then `add-annotator --lecture yt-Aym1Gx2wVK4 --labeller fatima --note "ADR-0048 Amendment 12"` records Fatima as a shared-windows-only annotator (an `amendments` entry with the previous manifest's sha256). Every gold window is Bilal's (Amendment 1).
+
+4. **What is labelled:** the full schema v1 record, under the frozen guide (`docs/labelling/m7_concepts.md`, unchanged; no rule update, as for the held-out lecture).
+   - **Concepts and aliases**, as before.
+   - **Relations are labelled**, with the four existing types of schema v1 (`prerequisite_of`, `part_of`, `example_of`, `contrasts_with`) and the guide's rules as written: only relations the speaker states or clearly implies inside the window, both ends labelled in the window, and "when you are unsure, leave it out". Decision (e) needs relations, but **there is no quota or target**: a relation is never added because the decision needs one.
+   - **Importance is labelled** (`important` and `cue`): schema v1 requires both on every window record, and the guide defines the explicit-signal rule.
+   - **`is_recap` is not labelled.** Schema v1 makes it optional, "not labelled in gold, not gated" (section 1), and the guide says it is not labelled (F20 is Exploratory). Labelling it would need a guide change, and the guide is frozen. So this gold gives (e) no evidence on `is_recap`.
+   - **Minimum support for (e), fixed now.** If the merged gold has **fewer than 10 relations**, relation P/R/F1 is reported but cannot decide (e)'s relation part, which stays open. If it has **fewer than 3 important windows**, the same holds for importance. The counts are known only at the merge.
+
+5. **Code-only windows** (written before anyone has seen the windows). The guide's explanation rule is applied as follows; this is a reading of the existing rules, not a new rule, and the guide text does not change:
+   - A **code-only window** is one whose text is only about writing, reading or running code (typing, naming variables, functions, files or libraries, reading out a call or its output) and in which no concept is explained or used substantively. It is labelled **with no concepts and no relations**. Press "Save this window" so it counts as labelled.
+   - **Code names are not concepts by themselves.** A library, module, function, method or variable name (for example a plotting call) is labelled only when the window explains the technical idea behind it, and then under the idea's canonical name, with the code name as an alias only if the speaker said it as a name for that idea.
+   - **A concept explained while coding is labelled normally,** with its relations and the window's importance, exactly as in any other window.
+   - **Only the transcript text counts.** Code or text shown on screen but not spoken is not in the window's text, so it is not labelled (guide: "Label the text shown in the window").
+   - **Importance is unchanged:** an explicit teacher signal in a code-only window still sets `important = true` with its cue.
+   - Both labellers read this decision 5 before labelling. It is the only instruction either gets beyond the guide.
+
+6. **Who labels, and blinding** (as Amendment 11).
+   - **Bilal labels every gold window first**, as `bilal`, validates and commits `bilal.json`.
+   - **Fatima labels the 10 shared windows blind and separately**, as `fatima`. The tool serves only her own file; she never sees `bilal.json`. Bilal does not see hers until his shared-window labels are finished and frozen as `bilal_pre_review.json`. Neither discusses any window of this lecture with the other before both files are frozen. Before starting, she re-reads the whole guide and decision 5. Her labels never enter the gold set.
+   - **Freeze:** `fatima.json` and `bilal_pre_review.json` (a byte copy of the whole finished `bilal.json`) are committed and tagged `m7-fresh-labels-frozen` before `agreement` runs.
+   - **Agreement:** `agreement --a bilal --b fatima`, string rule only, on `bilal_pre_review.json`. Section 6's fairness rule holds. It is a second inter-annotator figure; the thesis figure stays the held-out one (Amendment 11, decision 8), and this one is reported next to it.
+   - **Review:** after the agreement, Bilal may correct clear errors in his own labels **on the shared windows only**, judged by the frozen guide and decision 5, never because Fatima labelled differently. Each correction is logged with `log-correction` and its reason (the tool records `amendment` 3, the shared-window rule; the reason names Amendment 12, as on the held-out lecture). All corrections are made before any model output for the lecture exists. `validate` refuses any change to a non-shared window.
+   - **Merge:** `merge` writes `gold.json` from the reviewed `bilal.json` alone. It is committed and tagged `m7-fresh-gold-frozen` before the hold is released.
+
+7. **Questions to Claude.** While labelling, Bilal or Fatima may ask Claude **questions about the guide's rules only**, described in general terms. They do not paste window text, transcript text or video into Claude, and Claude never suggests, checks or pre-fills a label. Each question is disclosed in `docs/evidence/m7/fresh_lecture/labelling.md`: who asked, when, the question in general terms, and the rule Claude pointed to. No question is asked about a shared window's labels before both files are frozen.
+
+8. **The hold.** `yt-Aym1Gx2wVK4` stays held until the gold is frozen and merged (tag `m7-fresh-gold-frozen`), and is released only when the first use below is ready to run (its rule accepted). Releasing runs no stage; extraction runs only on the following re-add.
+
+9. **What this gold may be used for, and in what order.** Each use evaluates its change **once**, with the decision rule fixed in an Accepted ADR before the run. A crash may be fixed and the run repeated. If a prompt, model, filter or setting is changed after this lecture's scores or output have been seen, any later figure on this lecture is reported as contaminated.
+   1. **Rules first.** Before the hold is released: the ADR for decision (c) is Accepted with its exact candidate (a fixed list, a post-processing rule, or a new frozen prompt version) and its adoption rule, and the ADR for decision (e) is Accepted with its exact options and decision rule. Neither may use this lecture's output. If an ADR does not state another rule, section 7's rule applies (net wins of 3 or more and micro concept F1 not lower; a tie keeps the current configuration).
+   2. **One baseline run.** `check_ollama_frozen.py` prints OK; the hold is released; the lecture is re-added and the production `extract` stage runs once, on the unchanged production configuration (handoff 6, section 2). Until (c)'s adjudication decisions are frozen, results are read only through count-and-cost output (as Amendment 10, decision 7).
+   3. **Decision (c).** Arm A is the baseline output. Arm B is the stop list applied to it (post-processing, no new call) or, if (c) is a prompt change, one run with the new frozen prompt. Both are scored with a blind adjudication sheet pooled over both arms (section 4), decided before any score is shown, and compared once.
+   4. **Decision (e).** Relation P/R/F1 and importance P/R are measured once against this gold on the configuration that (c) keeps, and (e) is decided by its pre-fixed rule (subject to decision 4's minimum support).
+   5. **M8 duplicate-node rate.** M8's canonicalisation is frozen before it reads this lecture. Its duplicate-node rate is measured once on the extraction output that (c) and (e) leave, as M8's second lecture with Day 4. Whether M8 uses this gold's labels as its duplicate reference is decided in M8's ADR, before the measurement.
+   - **After these uses the lecture is used up,** as the held-out lecture is: no further change may be evaluated on it, and it becomes development data. Any later quality claim needs another fresh lecture under a new amendment.
+
+**Consequences.**
+
+- **The topic overlaps the worked examples.** The guide's invented example A and the frozen extraction prompt's Example 4 (`m7_extraction_v2.txt`) are both about the learning rate as `part_of` gradient descent, which is this lecture's topic. The labellers and the model have both seen that example, so concept and relation agreement on it may be higher here than on an unrelated topic. Recorded as a limitation of (c) and (e) on this lecture; the guide and the prompt are not changed.
+- **Part of a series.** The lecture is "Tutorial 4", so some concepts may rest on earlier videos. The held-out selection preferred a stand-alone lecture for this reason. Under the guide, a concept explained only in an earlier video is labelled only where this window says something substantive about it.
+- **Code-heavy windows** lower the number of windows with concepts. Decision 5 labels them empty, which is correct gold, but a gold with many empty windows gives (c) and (e) fewer concepts and relations to decide on.
+- **One lecture, one speaker.** Decisions taken on it rest on one lecture; the minimum support in decision 4 keeps (e) from resting on a handful of relations.
+- The gold files contain short surface forms from the lecture (aliases) and join the M20 review list (Consequences above).
