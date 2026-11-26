@@ -127,7 +127,31 @@ If the rule fails, nothing changes: `keep_alive` stays 0, no lecture is re-extra
 
 - The ADR-0049 counterexample: `docs/measurements/m7/synthetic/determinism_gemma4_e4b.json` and `_run2.json`, `reload_determinism_gemma4_e4b.json`; `docs/evidence/m7/session2b_vram_numctx.md`, section "Determinism and replay at temperature 0".
 - The rebuild check (2026-11-22): messages equal between `adad53c` and today's builders; `format` differs only by the two `maxItems: 10` of ADR-0049 Amendment 1.
-- The session: to be added (decision 7).
+- The session (2026-11-26, stamp `20261126T144306Z`, evidence commit `1705653`), in `docs/evidence/m7/session3/keepalive/20261126T144306Z/`:
+  - `session.json`: settings, served version and digest, the self-test, every check, per-run timings and VRAM, the differences and the outcome (`fail`);
+  - `windows.json`: per call, the raw-reply and parsed-result sha256, category, equalities, `load_duration`, wall time and token counts (100 calls);
+  - `replies.jsonl`: the raw replies (Day 4 and the ADR-0049 case only).
+- The outcome is recorded below (Outcome).
+
+## Outcome (2026-11-26)
+
+The outcome of the accepted rule (decision 1), not a new decision; the status stays Accepted. Run by me at Bilal's instruction with `insightex extract-eval keepalive` (commit `25717a1`), on Ollama 0.40.2 serving `gemma4:e4b` digest `dc35e8d9…0c9c`. Before the run: `check_ollama_frozen.py` printed `OK:`, the full test suite passed (1060 passed, 7 deselected), `dev_run.sh` was not running and `/api/ps` was empty.
+
+- **Not void.** Every check passed:
+  - `/api/ps` empty at the start and after the references;
+  - the self-test refused the 2048-token probe, as intended;
+  - a load on every call of run 0 (6.30–6.78 s) and of the ADR-0049 reference run (5.76 s, 5.95 s);
+  - only the first call of Day 4 repeat 1 loaded (6.23 s), and every other repeat call had `load_duration` < 0.012 s;
+  - before each repeat after the first and at the end: only `gemma4:e4b` resident, with the frozen digest, `context_length` 8192 and a future `expires_at`; idle VRAM 4,788–4,805 MiB above baseline against a floor of 4,324.5 MiB (90% of 4,805 MiB).
+- **Both references reproduced.** Run 0: 23 of 23 records byte-identical to v2 (`a92d9cabba3b68fe`), every window valid on attempt 1. ADR-0049 reference run: k = 1 `1d414909…`, k = 3 `e2a7020f…`, the fresh-load hashes.
+- **Day 4:** 23 of 23 windows identical (raw reply and parsed record) in each of the three repeats, 69 of 69 calls.
+- **ADR-0049 case:**
+  - k = 1: identical in all three repeats.
+  - k = 3: the raw reply and the parsed result differ from the reference in all three repeats (repeat 1 `67885c5d…`, repeat 2 `f73336ed…`, repeat 3 `5d7255df…`). They also differ from each other, and their output length varies: `eval_count` 2,039, 1,439 and 1,719 against 1,536 in the reference. Every reply ended with `done_reason` `stop` and parsed as JSON.
+  - The three differences are 3 of the 75 repeat calls.
+- **Cause: not established.** Prompt-cache reuse between calls (the ADR-0049 hypothesis) remains an **unverified hypothesis**. This session does not test it.
+- **Result: the rule fails.** `extract.stage.keep_alive` stays 0 and the stage fingerprint is unchanged, so no lecture is re-extracted. ADR-0054 decision 2 stands, and the byte-identical request test stays as it is. The only way back is a quality check on a fresh lecture under a new ADR (decision 1), never a re-run of this test.
+- **Cost of keeping reload per call** (information only; speed is not part of the rule): Day 4 run 0 (`keep_alive` 0) took 180.8 s for 23 windows (mean 7.861 s per call, client wall). Day 4 repeats 2 and 3 (model kept loaded) took 14.1 s and 14.4 s (mean 0.612 and 0.625 s per call). VRAM: baseline 1,763 MiB, session peak 4,814 MiB above baseline (run 0), final 1,772 MiB after the unload.
 
 ## Gate / revisit when
 
