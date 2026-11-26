@@ -1,7 +1,7 @@
 # ADR-0048: M7 extraction schema, gold set and gate rules
 
 Status: Accepted
-Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); 2026-11-09, Amendment 8 (C2: gold v2.1 only, reuse of arm A, translations shown for prompt approval, the English check) Amendment 9 (C3: gold v2.1 only, reuse of arm A, the unchanged prompt, the k check) and Amendment 10 (C4: gold v2.1 only, reuse of arm A, the context block and its freeze, the budget check, blinding of shell output); 2026-11-13, Amendment 11 (a second annotator on the held-out lecture's shared windows); 2026-11-26, Amendment 12 (Proposed: a fresh lecture with its own gold, for decisions (c) and (e) and M8); all at the end
+Amended: 2026-10-17, Amendments 1 (single labeller), 2 (comparison C4, labelling order) and 3 (second annotator on the Day 4 shared windows); 2026-10-18, Amendment 4 (correcting invalid relations in Day 4 gold windows); 2026-10-20, Amendment 5 (Day 4 gold v2 relabelling pass); 2026-10-22, Amendment 6 (adding concepts in the gold v2 pass) and Amendment 7 (gold v2.1, one concept added after seeing model output); 2026-11-09, Amendment 8 (C2: gold v2.1 only, reuse of arm A, translations shown for prompt approval, the English check) Amendment 9 (C3: gold v2.1 only, reuse of arm A, the unchanged prompt, the k check) and Amendment 10 (C4: gold v2.1 only, reuse of arm A, the context block and its freeze, the budget check, blinding of shell output); 2026-11-13, Amendment 11 (a second annotator on the held-out lecture's shared windows); 2026-11-26, Amendment 12 (a fresh lecture with its own gold, for decisions (c) and (e) and M8); all at the end
 Date decided: 2026-10-15
 Date recorded: 2026-10-15
 Module: M7
@@ -472,9 +472,9 @@ Decided by Bilal on 2026-11-13, after the held-out lecture was ingested (`normal
 - Fatima labelled Day 4 under the same guide before gold v2, so her reading of the guide may differ from the reading gold v2 enforced. Re-reading the guide narrows that but does not remove it.
 - Corrections can move the gold towards Fatima's reading on the shared windows; the log makes each one auditable.
 
-## Amendment 12 (2026-11-26, Proposed): a fresh lecture with its own gold, for decisions (c) and (e) and M8
+## Amendment 12 (2026-11-26): a fresh lecture with its own gold, for decisions (c) and (e) and M8
 
-Status: **Proposed** (drafted 26 Nov 2026 and revised the same day after Bilal's first review, for his review). Nothing below takes effect until Bilal accepts it. The text above and Amendments 1 to 11 are kept; where they conflict with this amendment, this amendment applies to the fresh lecture only.
+Status: **Accepted** by Bilal on 2026-11-26 (drafted and revised the same day; accepted after the lecture was ingested and before any labelling or sampling). The text above and Amendments 1 to 11 are kept; where they conflict with this amendment, this amendment applies to the fresh lecture only.
 
 **Context.**
 
@@ -483,6 +483,16 @@ Status: **Proposed** (drafted 26 Nov 2026 and revised the same day after Bilal's
 - Neither existing gold supports (e): Day 4 has 1 gold relation and the held-out gold has 0; importance rests on 1 gold window in 60.
 - **Chosen lecture:** codebasics Hindi, "Hindi Machine Learning Tutorial 14 - K Means Clustering", https://www.youtube.com/watch?v=YyXP7yCfOIU, expected workspace `yt-YyXP7yCfOIU`. Chosen by Bilal.
 - **State when drafted (26 Nov 2026):** the video id appears nowhere: not in `$INSIGHTEX_DATA/workspaces/`, the old `lectures/` folder, either job database (`insightex.db`, `m6_manual/insightex.db`, all tables and columns), the logs, staging or run folders, or the repo (tracked files and `docs/report-notes/`). No transcript, window text or model output for it exists. It has not been ingested.
+
+**Properties of this lecture, recorded at ingest (26 Nov 2026).** These are records, not rules; they change nothing in the decisions below. Counts only; nobody read the transcript or window text.
+
+- **Ingest.** Job `3c57591e976043db93043aca5bfc4e56`, with `hold_extract: true`. The first worker stopped during `fetch` (pid 42070 gone, a 7,367,145-byte partial `.part` file left in staging). A new worker recovered the job as **attempt 2**: it removed the abandoned staging directory, so **the download restarted cleanly and the partial file was not reused**. `fetch` 559 s, `normalise` 8.1 s, `asr` 178 s (RTF 0.1175, peak 5,417 MiB), `index` 16.8 s; `extract` skipped (hold recorded 2026-11-26T15:43:38Z). Ollama's own server log shows only the GPU lease's two unload requests during the job, no chat call and no model load.
+- **Size.** 1,439.846 s; 48 grid slots, **48 non-empty windows** (`windows.json` and the labelling tool's grid match). It meets decision 1's 40-window minimum, and decision 3 gives a census.
+- **Language.** `hindi` (Whisper `ur`), `tier_at_processing: tested`.
+- **ASR.** 798 segments. **`TEMPERATURE_FALLBACK` on 15 segments**; no `HIGH_COMPRESSION_RATIO`. No consecutive repeated segments. Median `avg_logprob` −0.133.
+- **No-speech.** **174 of 798 segments have `no_speech_prob` > 0.5** (held-out: 15 of 1,148; Day 4: 58 of 351). They fall in **16 of the 48 windows**, 5 to 28 per window (windows by count: 5 → 1, 6 → 2, 7 → 3, 8 → 2, 9 → 1, 10 → 1, 11 → 1, 14 → 1, 16 → 3, 28 → 1). Of those 16 windows, 5 are among the code-only estimate's main-rule windows and 3 among its strict-rule windows. The cause is not investigated. Window indices are kept out of this record so that neither labeller is primed; they are in the session report only.
+- **Code-only estimate: about 20 of 48 windows (main rule), 7 (strict rule), unvalidated.** A script counted lower-cased Latin-script words of each window against two fixed word lists (coding talk; k-means topic words): main rule at least 3 coding words and more coding than topic words, strict rule at least 3 coding words and no topic word. It cannot see coding words written in Urdu script, and it was not checked against the windows, because that would mean reading them. If the estimate holds, many windows may be labelled empty under decision 6; the support minimums in decision 5 cover the risk that (e) rests on too few relations or important windows.
+- **Unusable text.** The guide's existing rule applies: a window is labelled from its transcript text as shown, and the audio is used only to read that text. If a window's text is unusable, Bilal records the window index (no text) in `docs/evidence/m7/fresh_lecture/labelling.md` and labels what the text supports.
 
 **Decision.**
 
