@@ -1,8 +1,8 @@
 # Insightex M7 handoff 6 (26 Nov 2026): M7 Session 3 closed, before M8
 
-**DRAFT for Bilal's review.** For a fresh session. Read this first, then:
+Final (reviewed by Bilal, 26 Nov 2026). For a fresh session. Read this first, then:
 - `CLAUDE.md`;
-- ADR-0054 (Amendments 1–3), ADR-0055 and ADR-0056 (with its Outcome);
+- ADR-0054 (Amendments 1–3), ADR-0055 and ADR-0056 (with its Outcome and its 2026-11-26 Correction);
 - `docs/reports/M7_extraction_report.md` and handoff 5 (`Insightex_M7_handoff_5.md`) for the M7 results and the five Session 3 decisions as first posed.
 
 Trust the files over this summary when they differ. It holds counts, hashes and settings only: no labels and no transcript text.
@@ -52,7 +52,7 @@ Decisions (a) and (b) are closed: (a) by ADR-0056 (failed, reload per call kept)
 
 Also carried from handoffs 4 and 5, each needing its own evidence:
 - **Context-aware extraction** is not ruled out, but needs new evidence (ADR-0053).
-- **Batching for throughput** (ADR-0052) was to follow decision (a). With reload per call kept, a batch would put several windows in one loaded call. Whether that is reproducible is **unverified**: the ADR-0049 counterexample is itself a k = 3 batch.
+- **Batching for throughput** (ADR-0052) was to follow decision (a). With reload per call kept, a batch would put several windows in one loaded call. Whether that is reproducible is **unverified**: the ADR-0049 counterexample is itself a k = 3 batch. Production uses single-window calls (ADR-0052), so this matters only if batching is reconsidered later. It is not a risk in the current stage.
 
 ## 5. Open items
 
@@ -62,7 +62,12 @@ Also carried from handoffs 4 and 5, each needing its own evidence:
 - **`yt-B7TQYJLfYZQ` is a new run, not used for evaluation.** Job `0a1c3f5a…` re-ran normalise, asr and index (normaliser v4). Its transcript shows 5 segments (ids 6–10) on temperature fallback. Extraction key `4ae313af114e2305`, stage v2: 28/28 windows ok on attempt 1, 1 dangling relation dropped, 0 self-relations.
 - **`IndexStageError` is missing from `_FAILED_CODE_RE`** in `ingest/file_jobs.py`. Pre-existing since M5 and not fixed (`docs/BUILD_ORDER.md`, Open items).
 - **m7_verify prints a traceback** instead of a clear message when the API is not reachable. Small fix, not done.
-- **The Day 4 v2 cost figures disagree.** ADR-0056's Context gives Day 4 at stage v2 as 179.6 s for 23 windows, but no committed file I found holds 179.6. `docs/evidence/m7/session3/day4_stage_v2_compare.json` records `wall_s` 209.877 and `vram_peak_above_baseline_mib` 6,169 for the v2 rerun, against about 4.8 GB in every other Gemma run (4,814 MiB in the keep-alive session). The cause is not investigated. Section 2's cost per window uses the keep-alive run 0, not these figures.
+- **The Day 4 v2 cost mismatch, partly explained** (ADR-0056, Correction 2026-11-26).
+  - The 179.6 s in ADR-0056's Context has no committed source. It is replaced by the committed 209.877 s and 6,169 MiB from `docs/evidence/m7/session3/day4_stage_v2_compare.json`.
+  - **The wall time is explained** (from the code and the worker log). The stage's `wall_s` also covers the start-of-run unload of a resident qwen3.5, the self-test and the final unload, while run 0 covers only its calls. Calls for windows 1–22 took about 7.41 s each, in line with run 0.
+  - **The VRAM peak stays open.** The lecture page's warm-up loaded qwen3.5 before and after the lease, but all 326 warm-ups during it were skipped, and the stage unloads every model before its baseline. So the logs show no second model during the run. The stage records hold no residency fields. The open browser tab adding desktop VRAM is an unverified hypothesis.
+  - No result is affected: the records were 23/23 identical to v1 and 20/20 to C1.
+  - Section 2's cost per window uses the keep-alive run 0.
 - **`docs/report-notes/`** (5 thesis-note files) is untracked. It is left as it is and is not part of Session 3.
 
 ## 6. What comes next

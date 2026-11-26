@@ -10,7 +10,7 @@ Decision (a) of M7 Session 3 (handoff 5, item 1). It sets, before any run, the t
 ## Context
 
 - **Reload per call is the frozen setting.** `extract.stage.keep_alive` is 0 (ADR-0054 decision 2), as in every M7 run (ADR-0049 decision 6). It is part of the stage fingerprint.
-- **It is the main cost.** About 6.3–7.1 s of every ~9 s window is the model load (M7 report section 5). Day 4 at stage v2 took 179.6 s for 23 windows; `yt-B7TQYJLfYZQ` took 233.1 s for 28 (both measured, Session 3).
+- **It is the main cost.** About 6.3–7.1 s of every ~9 s window is the model load (M7 report section 5). Day 4 at stage v2 took 179.6 s for 23 windows; `yt-B7TQYJLfYZQ` took 233.1 s for 28 (both measured, Session 3). *(The Day 4 figure is corrected below: Correction, 2026-11-26.)*
 - **Why reload per call was chosen: an observed counterexample.** ADR-0049 ("Gemma's session-state dependence", decision 6; measurements in `docs/evidence/m7/session2b_vram_numctx.md`, section "Determinism and replay at temperature 0") found that on synthetic input Gemma's replies at temperature 0 depended on session state. With Gemma as shipped (draft model on, as the stage runs it), the k = 3 case (windows 18, 20, 21 of `docs/measurements/m7/synthetic/day4_shape.json`) sent twice in a row in one loaded session gave `e2a7020f…` and then `214e43e6…`, and a fresh load reproduced `e2a7020f…` (`docs/measurements/m7/synthetic/determinism_gemma4_e4b.json`; repeated exactly in `determinism_gemma4_e4b_run2.json`). Under reload per call both cases were byte-identical over three calls (`reload_determinism_gemma4_e4b.json`: k = 1 `1d414909…`, k = 3 `e2a7020f…`). The likely cause, prompt-cache reuse between calls, is **unverified**. So the prior evidence predicts that this test may well fail; it is run because the speed-up is large and that evidence is synthetic, not Day 4.
 - **What depends on reproducibility.** ADR-0054 decision 5 reuses a stored reply after a crash because "a repeated request returns a byte-identical reply". The request-identity test compares the stage's request with the harness's with `keep_alive` equal (both 0).
 - **v2 published no raw replies.** The Day 4 stage v2 output (key `a92d9cabba3b68fe`) has records and metadata only; the resume store, which held the replies, was deleted on publish (ADR-0054 Amendment 2). So a raw-reply reference has to be made again (decision 2).
@@ -157,3 +157,18 @@ The outcome of the accepted rule (decision 1), not a new decision; the status st
 
 - **Gate:** decision 1's rule, on one session that is not void and whose two references reproduced.
 - **Revisit** if Ollama, the Gemma digest or the frozen configuration changes (the result holds only for Ollama 0.40.2, digest `dc35e8d9…0c9c`, and the frozen prompt v2), or when a fresh lecture with gold is available (the only route back after a failure).
+
+## Correction (2026-11-26): the Day 4 stage v2 cost in Context
+
+- **The figure.** Context says "Day 4 at stage v2 took 179.6 s for 23 windows". That number appears in no committed file, commit message, file under `docs/evidence/m7/session3/`, or the published stage output. It first appears in this ADR's draft (`be1c649`). Its source is unknown, so it is not used.
+- **The committed figure** for the Day 4 rerun at stage v2 (key `a92d9cabba3b68fe`, job `ecfae974…`, 22 Nov 2026) is `wall_s` 209.877 and `vram_peak_above_baseline_mib` 6,169 (baseline 1,414 MiB, peak 7,583 MiB). Source: `docs/evidence/m7/session3/day4_stage_v2_compare.json`, whose figures are the same as the stage's own `extract.json`. The `yt-B7TQYJLfYZQ` figure (233.1 s for 28 windows) matches that lecture's own stage output (`wall_s` 233.09, key `4ae313af114e2305`) and needs no correction.
+- **Why 209.877 s is not like-for-like with run 0 (180.8 s)** (checked from the code and the logs):
+  - The stage's `wall_s` runs from before the start-of-run unloads to after the final unload. It covers unloading whatever is resident, the version and VRAM checks, the self-test, the 23 calls and the final unload.
+  - Run 0's wall time covers its 23 calls only.
+  - In the worker log, the extract lease was taken at 17:50:12 with 7,780 MiB of GPU memory used. Window 0's call ended at 17:50:44 (about 32 s, including the qwen3.5 unload and the self-test). Calls for windows 1–22 then took 163.0 s (about 7.41 s each), in line with run 0's per-call figures.
+- **The VRAM peak (6,169 MiB above baseline, against 4,765–4,828 MiB in every other Gemma stage or harness run): cause not established.**
+  - What the logs show (counts only): the Day 4 lecture page was open. Its warm-up loaded `qwen3.5:latest` before the lease (5 `loaded` warm-ups, one of them a 19.9 s load). All 326 warm-ups during the lease were `skipped` (`gpu_busy`). Warm-ups loaded again after the release (278 `loaded`, the first at 17:53:40), which is why qwen3.5 was found resident afterwards.
+  - The stage unloads every resident model before its baseline (pre-flight: 6,605 MiB free). So the logs show no second model loaded during the run.
+  - The stage records hold no per-call `load_duration` or residency fields, so whether Gemma stayed fully on the GPU cannot be checked from them.
+  - The open browser tab adding Windows desktop VRAM (nvidia-smi counts the whole GPU) is an **unverified hypothesis**. Nothing was re-run to test it.
+- **No result is affected.** The rerun's records were 23/23 byte-identical to v1 and 20/20 to C1 (ADR-0055 evidence (c)), and this ADR's run 0 reproduced them. The cost figures are information only, and speed is not part of the rule.
