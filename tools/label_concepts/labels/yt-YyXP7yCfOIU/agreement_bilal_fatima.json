@@ -1,0 +1,241 @@
+{
+ "lecture_id": "yt-YyXP7yCfOIU",
+ "a": "bilal",
+ "b": "fatima",
+ "sample_manifest_sha256": "1307741c2f97c64b4c8f89bfe2abeeb417e11aad2c5a7c5111a44be2c9c1e6fd",
+ "inputs": {
+  "bilal": {
+   "path": "labels/yt-YyXP7yCfOIU/bilal_pre_review.json",
+   "sha256": "84aec3fc04a6962bc004c73e5748fc844d6b0d58502d61015314bfb645936845"
+  },
+  "fatima": {
+   "path": "labels/yt-YyXP7yCfOIU/fatima.json",
+   "sha256": "d24ee89a1a0e851929f65a0865ed68df739f7cf6073371cf548d582c746fe48e"
+  }
+ },
+ "adjudications": null,
+ "rule": "ADR-0048 concept and relation matching",
+ "per_window": [
+  {
+   "window_index": 3,
+   "start_s": 90.0,
+   "concepts_a": 1,
+   "concepts_b": 0,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "K Mean Clustering"
+   ],
+   "only_b": []
+  },
+  {
+   "window_index": 7,
+   "start_s": 210.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 1,
+   "concept_f1": 1.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [
+    {
+     "b": "K Mean Clustering",
+     "a": "K Mean Clustering",
+     "by": "string"
+    }
+   ],
+   "only_a": [],
+   "only_b": []
+  },
+  {
+   "window_index": 9,
+   "start_s": 270.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 1,
+   "concept_f1": 1.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [
+    {
+     "b": "K Mean Clustering",
+     "a": "K Mean Clustering",
+     "by": "string"
+    }
+   ],
+   "only_a": [],
+   "only_b": []
+  },
+  {
+   "window_index": 18,
+   "start_s": 540.0,
+   "concepts_a": 1,
+   "concepts_b": 0,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": true,
+   "matched_pairs": [],
+   "only_a": [
+    "Data Visualization"
+   ],
+   "only_b": []
+  },
+  {
+   "window_index": 19,
+   "start_s": 570.0,
+   "concepts_a": 1,
+   "concepts_b": 0,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": true,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Data Visualization"
+   ],
+   "only_b": []
+  },
+  {
+   "window_index": 26,
+   "start_s": 780.0,
+   "concepts_a": 0,
+   "concepts_b": 0,
+   "concepts_matched": 0,
+   "concept_f1": 1.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [],
+   "only_b": []
+  },
+  {
+   "window_index": 30,
+   "start_s": 900.0,
+   "concepts_a": 0,
+   "concepts_b": 0,
+   "concepts_matched": 0,
+   "concept_f1": 1.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [],
+   "only_b": []
+  },
+  {
+   "window_index": 34,
+   "start_s": 1020.0,
+   "concepts_a": 0,
+   "concepts_b": 0,
+   "concepts_matched": 0,
+   "concept_f1": 1.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [],
+   "only_b": []
+  },
+  {
+   "window_index": 40,
+   "start_s": 1200.0,
+   "concepts_a": 0,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [],
+   "only_b": [
+    "Elbow Technique"
+   ]
+  },
+  {
+   "window_index": 43,
+   "start_s": 1290.0,
+   "concepts_a": 1,
+   "concepts_b": 1,
+   "concepts_matched": 0,
+   "concept_f1": 0.0,
+   "relations_a": 0,
+   "relations_b": 0,
+   "relations_matched": 0,
+   "relation_f1": 1.0,
+   "important_a": false,
+   "important_b": false,
+   "matched_pairs": [],
+   "only_a": [
+    "Finding K using Elbow Plot"
+   ],
+   "only_b": [
+    "Elbow Technique"
+   ]
+  }
+ ],
+ "micro": {
+  "windows": 10,
+  "concept": {
+   "tp": 2,
+   "pred": 4,
+   "ref": 6,
+   "precision": 0.5,
+   "recall": 0.3333333333333333,
+   "f1": 0.4
+  },
+  "relation": {
+   "tp": 0,
+   "pred": 0,
+   "ref": 0,
+   "precision": null,
+   "recall": null,
+   "f1": 1.0
+  },
+  "important": {
+   "tp": 0,
+   "pred": 1,
+   "ref": 1,
+   "precision": 0.0,
+   "recall": 0.0,
+   "agreement": 0.8
+  }
+ }
+}
