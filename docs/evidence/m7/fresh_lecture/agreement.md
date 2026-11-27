@@ -31,15 +31,23 @@ The counts are small: 6 and 4 concepts, 2 matched. One more or one fewer match m
 
 The tool prints relation F1 1.000 when both sets are empty. That is reported above as n/a.
 
+## Relations across the three lectures (a fact, not a decision)
+
+In the gold actually used, no human relation exists. Day 4 gold v2.1, the held-out gold, and this lecture's pre-review labels and Fatima's shared windows all have 0. The model predicted 5 relations on Day 4 (ADR-0050) and 24 on the held-out lecture (`docs/evidence/m7/heldout/readthrough.md`).
+
+Day 4's v1 labels did have relations: Bilal had 6 before review, Fatima 1, and gold v1 1. They were dropped in the v2 relabel (Amendment 5) by decision, with relations to be evaluated on the held-out lecture instead. On the held-out lecture neither labeller recorded any.
+
+Under decision 5, the relations and importance parts of (e) stay open on this lecture. No labels are changed to meet the minimums.
+
 ## Whole-lecture counts from `bilal_pre_review.json` (for Amendment 12, decision 5)
 
 The pre-review gold labels have 22 concepts in 22 of the 48 windows, **0 relations** and **2 important windows**. Both counts are below decision 5's minimums (10 relations, 3 important windows). Unless the review changes them, the relations and importance parts of decision (e) stay open on this lecture. The review corrects shared windows only.
 
 ## Procedure notes
 
-- Fatima labelled her 10 windows before freeze A. The runbook (section 5) put her labelling after it.
+- **Order departure:** Fatima labelled her 10 windows before freeze A, at the same time as Bilal. The runbook (section 5) put her labelling after it. Sessions, as Bilal states them in `labelling.md`: Bilal from about 15:40 to 17:08, Fatima from about 16:30 to 17:20, on Bilal's machine. Bilal states that `bilal.json` was not edited after Fatima started.
 - Both freezes (A, then B) were run on 27 Nov 2026, after both files were complete, with the runbook's commands and messages. `bilal.json` was last written at 17:08 and `fatima.json` at 17:20.
 - Bilal reports that Fatima labelled on his machine without seeing `bilal.json`, and that they did not discuss any window.
-- At the time of freezing, `labelling.md` had no entries, including the self-containment confirmation required by decision 2. `labelling_fatima.md` was not created.
+- At the time of freezing, `labelling.md` had no entries. They were added on 27 Nov 2026, after both freezes and this agreement run, from Bilal's statements: self-containment YES; no guide-rule questions; Bilal did not read the no-speech or code-only indices. `labelling_fatima.md` was not created.
 
 The ceiling is compared only with the model's string-rule-only concept F1 (Amendment 3). The next step is the review of Bilal's shared-window disagreements: corrections judged by the guide, logged with `log-correction`, shared windows only. The figure above is not recomputed after the review.
