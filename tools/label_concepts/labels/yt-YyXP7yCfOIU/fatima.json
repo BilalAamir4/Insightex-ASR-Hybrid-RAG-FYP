@@ -1,0 +1,151 @@
+{
+ "schema_version": 1,
+ "lecture_id": "yt-YyXP7yCfOIU",
+ "producer": {
+  "kind": "human",
+  "name": "fatima"
+ },
+ "sample_manifest_sha256": "1307741c2f97c64b4c8f89bfe2abeeb417e11aad2c5a7c5111a44be2c9c1e6fd",
+ "windows": [
+  {
+   "window": {
+    "lecture_id": "yt-YyXP7yCfOIU",
+    "window_index": 3,
+    "start_s": 90.0,
+    "end_s": 120.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-YyXP7yCfOIU",
+    "window_index": 7,
+    "start_s": 210.0,
+    "end_s": 240.0
+   },
+   "concepts": [
+    {
+     "label": "K Mean Clustering",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-YyXP7yCfOIU",
+    "window_index": 9,
+    "start_s": 270.0,
+    "end_s": 300.0
+   },
+   "concepts": [
+    {
+     "label": "K Mean Clustering",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-YyXP7yCfOIU",
+    "window_index": 18,
+    "start_s": 540.0,
+    "end_s": 570.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": true,
+   "cue": "In Machin Learning Data Cleaning & Visualization are important"
+  },
+  {
+   "window": {
+    "lecture_id": "yt-YyXP7yCfOIU",
+    "window_index": 19,
+    "start_s": 570.0,
+    "end_s": 600.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-YyXP7yCfOIU",
+    "window_index": 26,
+    "start_s": 780.0,
+    "end_s": 810.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-YyXP7yCfOIU",
+    "window_index": 30,
+    "start_s": 900.0,
+    "end_s": 930.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-YyXP7yCfOIU",
+    "window_index": 34,
+    "start_s": 1020.0,
+    "end_s": 1050.0
+   },
+   "concepts": [],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-YyXP7yCfOIU",
+    "window_index": 40,
+    "start_s": 1200.0,
+    "end_s": 1230.0
+   },
+   "concepts": [
+    {
+     "label": "Elbow Technique",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  },
+  {
+   "window": {
+    "lecture_id": "yt-YyXP7yCfOIU",
+    "window_index": 43,
+    "start_s": 1290.0,
+    "end_s": 1320.0
+   },
+   "concepts": [
+    {
+     "label": "Elbow Technique",
+     "aliases": []
+    }
+   ],
+   "relations": [],
+   "important": false,
+   "cue": null
+  }
+ ]
+}
